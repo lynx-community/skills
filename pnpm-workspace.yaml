@@ -1,0 +1,9 @@
+packages:
+  - "packages/*"
+
+catalogs:
+  rslib:
+    "@rslib/core": "0.19.2"
+
+  rstest:
+    "@rstest/core": "0.7.9"

@@ -1,0 +1,14 @@
+{
+  "name": "lynx-skills",
+  "version": "0.1.0",
+  "description": "Lynx skills",
+  "plugins": [
+    {
+      "name": "reactlynx",
+      "description": "ReactLynx Skills",
+      "strict": false,
+      "source": "./skills",
+      "skills": ["./reactlynx"]
+    }
+  ]
+}

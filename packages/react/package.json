@@ -1,0 +1,35 @@
+{
+  "name": "@lynx-js/skills-react",
+  "version": "1.0.0",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "rslib build",
+    "check": "biome check --write",
+    "dev": "rslib build --watch",
+    "format": "biome format --write",
+    "test": "rstest",
+    "sync": "node scripts/sync.js"
+  },
+  "dependencies": {
+    "@ast-grep/napi": "^0.37.0"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "2.3.8",
+    "@rslib/core": "catalog:rslib",
+    "@rstest/adapter-rslib": "^0.1.1",
+    "@rstest/core": "catalog:rstest",
+    "@types/node": "^24.10.4",
+    "typescript": "^5.9.3"
+  },
+  "private": true
+}

@@ -1,0 +1,12 @@
+{
+  "name": "@lynx-js/skills",
+  "version": "0.1.0",
+  "description": "Lynx skills",
+  "scripts": {},
+  "keywords": [],
+  "author": "",
+  "license": "Apache-2.0",
+  "dependencies": {
+    "@lynx-js/skills-react": "workspace:*"
+  }
+}
