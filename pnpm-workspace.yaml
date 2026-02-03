@@ -1,9 +1,12 @@
 packages:
+  - .
   - "packages/*"
+  - "packages/cmd/*"
+  - "packages/skills/*"
+  - "packages/plugins/*"
+
 
 catalogs:
-  rslib:
+  rstack:
     "@rslib/core": "0.19.2"
-
-  rstest:
     "@rstest/core": "0.7.9"

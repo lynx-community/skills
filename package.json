@@ -1,12 +1,30 @@
 {
-  "name": "@lynx-js/skills",
+  "name": "@lynx-js/marketplace-lynx-agent-skills",
   "version": "0.1.0",
   "description": "Lynx skills",
-  "scripts": {},
-  "keywords": [],
-  "author": "",
+  "author": {
+    "name": "lynx"
+  },
   "license": "Apache-2.0",
+  "private": true,
+  "files": [
+    "plugins",
+    "skills",
+    ".claude-plugin"
+  ],
+  "scripts": {
+    "build": "build-marketplace && node ./export-skills.mjs",
+    "prepare": "husky && turbo build"
+  },
   "dependencies": {
-    "@lynx-js/skills-react": "workspace:*"
-  }
+    "@lynx-js/plugin-reactlynx": "workspace:*",
+    "@lynx-js/plugin-lynx-debug": "workspace:*"
+  },
+  "devDependencies": {
+    "turbo": "^2.7.5",
+    "build-marketplace": "workspace:*",
+    "build-plugin": "workspace:*",
+    "husky": "^9.1.7"
+  },
+  "packageManager": "pnpm@10.18.2"
 }

@@ -1,0 +1,16 @@
+{
+  "name": "@lynx-js/skill-debug-info-remapping",
+  "version": "0.1.0",
+  "type": "module",
+  "files": [
+    "SKILL.md",
+    "scripts",
+    "references",
+    "examples",
+    "reference.md",
+    "examples.md"
+  ],
+  "engines": {
+    "node": ">=18"
+  }
+}

@@ -1,0 +1,32 @@
+{
+  "name": "@lynx-js/plugin-lynx-debug",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Debug Agent For Lynx",
+  "type": "module",
+  "files": [
+    ".claude-plugin",
+    "commands",
+    "agents",
+    "skills",
+    "scripts",
+    "hooks",
+    ".mcp.json",
+    ".lsp.json"
+  ],
+  "scripts": {
+    "build": "build-plugin"
+  },
+  "dependencies": {
+    "@lynx-js/skill-debug-info-remapping": "workspace:*"
+  },
+  "devDependencies": {
+    "build-plugin": "workspace:*"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "claudePlugin": {
+    "category": "development"
+  }
+}

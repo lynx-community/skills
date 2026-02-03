@@ -1,0 +1,31 @@
+{
+  "name": "build-plugin",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "files": [
+    "bin"
+  ],
+  "bin": "./bin/build-plugin.js",
+  "exports": {
+    ".": {
+      "import": "./src/lib.ts",
+      "default": "./src/lib.ts",
+      "types": "./src/lib.ts"
+    }
+  },
+  "scripts": {
+    "build": "rslib build"
+  },
+  "dependencies": {
+    "npm-packlist": "^5.1.3"
+  },
+  "devDependencies": {
+    "@types/node": "24",
+    "@rslib/core": "catalog:rstack",
+    "commander": "14"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

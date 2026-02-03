@@ -1,35 +1,33 @@
 {
-  "name": "@lynx-js/skills-react",
+  "name": "@lynx-js/skill-reactlynx-best-practice",
   "version": "1.0.0",
+  "private": true,
   "type": "module",
-  "exports": {
-    ".": {
-      "types": "./dist/index.d.ts",
-      "import": "./dist/index.js"
-    }
-  },
-  "types": "./dist/index.d.ts",
   "files": [
-    "dist"
+    "SKILL.md",
+    "scripts",
+    "references",
+    "examples",
+    "reference.md",
+    "examples.md",
+    "rules"
   ],
   "scripts": {
     "build": "rslib build",
     "check": "biome check --write",
     "dev": "rslib build --watch",
     "format": "biome format --write",
-    "test": "rstest",
-    "sync": "node scripts/sync.js"
+    "test": "rstest"
   },
   "dependencies": {
     "@ast-grep/napi": "^0.37.0"
   },
   "devDependencies": {
     "@biomejs/biome": "2.3.8",
-    "@rslib/core": "catalog:rslib",
+    "@rslib/core": "catalog:rstack",
     "@rstest/adapter-rslib": "^0.1.1",
-    "@rstest/core": "catalog:rstest",
+    "@rstest/core": "catalog:rstack",
     "@types/node": "^24.10.4",
     "typescript": "^5.9.3"
-  },
-  "private": true
+  }
 }

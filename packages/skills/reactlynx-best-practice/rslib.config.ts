@@ -1,0 +1,18 @@
+import { defineConfig } from "@rslib/core";
+
+export default defineConfig({
+  lib: [
+    {
+      format: "esm",
+      syntax: ["node 18"],
+      dts: true,
+      autoExtension: false,
+      output: {
+        filename: {
+          js: "[name].mjs",
+        },
+        distPath: "./scripts",
+      },
+    },
+  ],
+});

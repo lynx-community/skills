@@ -148,3 +148,14 @@ dist
 
 # darwin
 .DS_Store
+
+# auto-generated skill and plugin files
+packages/skills/*/scripts
+packages/plugins/*/skills
+packages/plugins/*/scripts
+packages/plugins/*/.claude-plugin
+
+/.claude-plugin
+
+/plugins/
+/skills/
