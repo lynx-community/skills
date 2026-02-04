@@ -1,0 +1,25 @@
+{
+  "name": "@lynx-js/skill-trace-analysis",
+  "version": "0.1.0",
+  "type": "module",
+  "files": [
+    "SKILL.md",
+    "scripts",
+    "references",
+    "examples",
+    "reference.md",
+    "examples.md"
+  ],
+  "scripts": {
+    "build": "rsbuild build"
+  },
+  "devDependencies": {
+    "@types/node": "^20",
+    "commander": "^14",
+    "@rsbuild/core": "catalog:rstack",
+    "@lynx-js/trace-processor": "workspace:*"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
