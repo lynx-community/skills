@@ -1,0 +1,22 @@
+{
+  "name": "lynx-agent-skills",
+  "version": "0.1.0",
+  "description": "Lynx skills",
+  "owner": {
+    "name": "lynx"
+  },
+  "plugins": [
+    {
+      "name": "reactlynx",
+      "description": "ReactLynx Development Assistant Agent",
+      "source": "./plugins/reactlynx",
+      "category": "development"
+    },
+    {
+      "name": "lynx-debug",
+      "description": "Debug Agent For Lynx",
+      "source": "./plugins/lynx-debug",
+      "category": "development"
+    }
+  ]
+}
