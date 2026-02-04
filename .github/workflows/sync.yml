@@ -1,0 +1,79 @@
+name: Sync to Release
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    concurrency:
+      group: release-branch
+      cancel-in-progress: false
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build
+        run: pnpm run build
+
+      - name: Setup tree command
+        run: sudo apt-get update && sudo apt-get install -y tree
+
+      - name: Export to dist
+        run: |
+          mkdir -p dist
+          npx build-marketplace export ./dist
+          tree ./dist
+
+      - name: Push to release branch
+        run: |
+          git fetch origin release || git checkout --orphan release
+          git checkout release || git checkout --orphan release
+          
+          find . -maxdepth 1 \
+            -not -name '.git' \
+            -not -name '.' \
+            -not -name 'dist' \
+            -exec rm -rf {} +
+          
+          cp -R dist/. . && rm -rf dist
+          
+          cat <<EOF > README.md
+          # Lynx Agent Skills
+
+          This repository contains the built plugins & skills of Lynx.
+
+          If you want to see the source code, please visit the [main](https://github.com/${{ github.repository }}/tree/main) branch.
+          EOF
+          
+          git config --local user.name "github-actions[bot]"
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git add -A
+          
+          if git diff --cached --quiet; then
+            echo "No changes to commit, skipping"
+          else
+            git commit \
+              --author="$(git log -1 --format='%an <%ae>' ${{ github.sha }})" \
+              -m "$(git log -1 --format='%B' ${{ github.sha }})"
+            git show HEAD
+            git push origin release
+          fi

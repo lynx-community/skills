@@ -14,17 +14,19 @@
   ],
   "scripts": {
     "build": "build-marketplace && node ./export-skills.mjs",
-    "prepare": "husky && turbo build"
+    "prepare": "husky && turbo build",
+    "release": "pnpm run build && pnpm changeset publish"
   },
   "dependencies": {
-    "@lynx-js/plugin-reactlynx": "workspace:*",
-    "@lynx-js/plugin-lynx-debug": "workspace:*"
+    "@lynx-js/plugin-lynx-debug": "workspace:*",
+    "@lynx-js/plugin-reactlynx": "workspace:*"
   },
   "devDependencies": {
-    "turbo": "^2.7.5",
+    "@changesets/cli": "^2.29.8",
     "build-marketplace": "workspace:*",
     "build-plugin": "workspace:*",
-    "husky": "^9.1.7"
+    "husky": "^9.1.7",
+    "turbo": "^2.7.5"
   },
   "packageManager": "pnpm@10.18.2"
 }

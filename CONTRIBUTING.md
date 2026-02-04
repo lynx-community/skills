@@ -29,7 +29,6 @@ pnpm build
 ## Project Structure
 
 ```
-.
 ├── packages/
 │   ├── cmd/                    # Build tools
 │   │   ├── build-plugin/
