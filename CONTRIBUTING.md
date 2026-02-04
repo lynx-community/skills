@@ -59,7 +59,14 @@ mkdir -p packages/skills/my-skill
   "name": "@lynx-js/skill-my-skill",
   "version": "1.0.0",
   "type": "module",
-  "files": ["SKILL.md", "scripts"],
+  "files": [
+    "SKILL.md",
+    "scripts",
+    "references",
+    "examples",
+    "reference.md",
+    "examples.md"
+  ],
   "scripts": {
     "build": "rslib build"
   },
@@ -90,7 +97,16 @@ mkdir -p packages/plugins/my-plugin
   "version": "0.1.0",
   "description": "My Plugin",
   "type": "module",
-  "files": [".claude-plugin", "commands", "agents", "skills", "scripts"],
+  "files": [
+    ".claude-plugin",
+    "commands",
+    "agents",
+    "skills",
+    "scripts",
+    "hooks",
+    ".mcp.json",
+    ".lsp.json"
+  ],
   "scripts": {
     "build": "build-plugin"
   },
@@ -131,10 +147,10 @@ pnpm -F @lynx-js/skill-reactlynx-best-practice test
 
 ## Naming Conventions
 
-| Type | Pattern | Example |
-|------|---------|---------|
-| Skill | `@lynx-js/skill-*` | `@lynx-js/skill-reactlynx-best-practice` |
-| Plugin | `@lynx-js/plugin-*` | `@lynx-js/plugin-reactlynx` |
+| Type   | Pattern             | Example                                  |
+| ------ | ------------------- | ---------------------------------------- |
+| Skill  | `@lynx-js/skill-*`  | `@lynx-js/skill-reactlynx-best-practice` |
+| Plugin | `@lynx-js/plugin-*` | `@lynx-js/plugin-reactlynx`              |
 
 ## How It Works
 
@@ -145,6 +161,7 @@ This project uses pnpm workspaces to manage Skills and Plugins:
 - **Build tools** (`build-plugin`, `build-marketplace`) handle metadata generation and file aggregation
 
 The build process:
+
 1. Compiles TypeScript scripts via rslib
 2. Copies dependent Skills into the plugin's `skills/` directory
 3. Generates `.claude-plugin/plugin.json` metadata
@@ -152,6 +169,7 @@ The build process:
 ## Release Process
 
 When code is merged to `main`:
+
 1. CI builds all packages
 2. Artifacts are pushed to the `release` branch
 3. Only `plugins/`, `skills/`, `.claude-plugin/`, and `README.md` are kept on `release`
