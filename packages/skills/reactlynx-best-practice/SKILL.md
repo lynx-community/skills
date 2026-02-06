@@ -81,7 +81,7 @@ All rules are documented in the `rules/` directory as Markdown files:
 |------|--------|-------------|
 | [detect-background-only](./rules/detect-background-only.md) | CRITICAL | Native APIs in background contexts, use `'background only'` directive |
 | [proper-event-handlers](./rules/proper-event-handlers.md) | MEDIUM | Correct event handler usage |
-| [main-thread-scripts-guard](./rules/main-thread-scripts-guard.md) | MEDIUM | Main thread scripts guards |
+| [main-thread-scripts-guide](./rules/main-thread-scripts-guide.md) | MEDIUM | Main thread scripts guide |
 | [hoist-static-jsx](./rules/hoist-static-jsx.md) | LOW | Performance optimization |
 
 ## API Reference
