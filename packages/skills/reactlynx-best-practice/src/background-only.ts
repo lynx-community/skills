@@ -1,20 +1,5 @@
 import { Lang, parse, type SgNode } from '@ast-grep/napi';
-
-export interface Diagnostic {
-  ruleId: string;
-  message: string;
-  severity: 'error' | 'warning' | 'info';
-  location: {
-    start: { line: number; column: number };
-    end: { line: number; column: number };
-  };
-}
-
-export interface RuleConfig {
-  id: string;
-  severity: 'error' | 'warning' | 'info';
-  message: string;
-}
+import type { Diagnostic } from './types';
 
 const BACKGROUND_ONLY_DIRECTIVE = "'background only'";
 const BACKGROUND_ONLY_DIRECTIVE_DOUBLE = '"background only"';
@@ -271,5 +256,3 @@ export function analyzeBackgroundOnlyUsage(source: string): Diagnostic[] {
 
   return diagnostics;
 }
-
-

@@ -15,7 +15,7 @@
   "scripts": {
     "build": "build-marketplace && node ./export-skills.mjs",
     "prepare": "husky && turbo build",
-    "release": "pnpm run build && pnpm changeset publish"
+    "release": "turbo build && pnpm run build && pnpm changeset publish"
   },
   "dependencies": {
     "@lynx-js/plugin-lynx-debug": "workspace:*",
