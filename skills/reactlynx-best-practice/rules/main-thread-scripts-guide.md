@@ -1,6 +1,6 @@
 ---
-title: Main Thread Script
-ruleId: use-main-thread-guard
+title: Main Thread Script Guide
+ruleId: main-thread-scripts-guide
 impact: MEDIUM
 impactDescription: enables smooth animations and gesture handling
 tags: dual-thread, main-thread, animation, gesture, optimization
