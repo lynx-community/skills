@@ -1,6 +1,6 @@
 # ReactLynx Best Practice
 
-Best practices and static analysis for ReactLynx applications. Detects thread context violations and provides auto-fix suggestions.
+ReactLynx best practices covering dual-thread architecture and React patterns. Provides rules reference for writing, static analysis for reviewing, and auto-fix for refactoring.
 
 ## Installation
 
@@ -130,6 +130,6 @@ Output:
 |------|--------|-------------|
 | [detect-background-only](./rules/detect-background-only.md) | CRITICAL | Native APIs in background contexts, use `'background only'` directive |
 | [proper-event-handlers](./rules/proper-event-handlers.md) | MEDIUM | Correct event handler usage |
-| [use-main-thread-guard](./rules/use-main-thread-guard.md) | MEDIUM | Main thread code guards |
+| [main-thread-scripts-guard](./rules/main-thread-scripts-guard.md) | MEDIUM | Main thread scripts guards |
 | [hoist-static-jsx](./rules/hoist-static-jsx.md) | LOW | Performance optimization |
 
