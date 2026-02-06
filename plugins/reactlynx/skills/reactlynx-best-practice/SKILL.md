@@ -1,212 +1,159 @@
 ---
 name: reactlynx-best-practices
-description: Best practices and static analysis rules for ReactLynx applications. Detects improper usage patterns in dual-thread architecture, ensures APIs are called in correct thread context. Use this skill when writing, reviewing, or refactoring ReactLynx components.
+description: ReactLynx best practices covering dual-thread architecture and React patterns. Provides rules reference for writing, static analysis for reviewing, and auto-fix for refactoring.
 ---
 
 # ReactLynx Best Practices
 
-Best practices and static analysis rules for ReactLynx applications. This skill helps you write performant, correct ReactLynx code by detecting common pitfalls and enforcing recommended patterns.
-
-## Background: Dual-Thread Architecture
-
-ReactLynx uses a **dual-thread architecture**:
-
-| Thread | Description | Runs |
-|--------|-------------|------|
-| **Main Thread** | Handles UI rendering and layout | React component render, JSX evaluation |
-| **Background Thread** | Handles business logic and native calls | Effects, event handlers, native module calls |
-
-This architecture improves performance by offloading heavy operations to the background thread, keeping the main thread responsive for UI updates.
-
-### Key Principle
-
-> **Native module APIs (`lynx.getJSModule`, `NativeModules`) must only be called in background thread contexts, never in main-thread.**
+ReactLynx best practices covering dual-thread architecture and React patterns. Provides rules reference for writing, static analysis for reviewing, and auto-fix for refactoring.
 
 ## When to Apply
 
-Reference these guidelines when:
-- Writing new ReactLynx components
-- Calling native module APIs (`lynx.getJSModule`, `NativeModules`)
-- Understanding main-thread vs background-thread boundaries
-- Optimizing component performance
-- Refactoring existing ReactLynx code
+This skill should be used when:
+- **Writing** new ReactLynx components or application → Reference rules as guidelines
+- **Reviewing** existing ReactLynx code → Use scanner to detect issues
+- **Refactoring** ReactLynx code → Use auto-fix with user approval
 
-## Rule Categories
+## Workflow Modes
 
-| Priority | Category | Impact | Prefix |
-|----------|----------|--------|--------|
-| 1 | Background-Only APIs | CRITICAL | `background-` |
+### 📝 Writing Mode
 
-> More categories coming soon: `rendering-`, `performance-`, `hooks-`
+When writing new ReactLynx code, reference the rules in `rules/*.md` as best practice guidelines. See also the [Rules](#rules) section below for a summary of all available rules.
 
-## Quick Reference
+### 🔍 Review Mode
 
-### 1. Background-Only APIs (CRITICAL)
+When reviewing code, use the scanner to analyze source code for issues:
 
-- `detect-background-only` - Ensure `lynx.getJSModule` and `NativeModules` are only called in background thread contexts
-
-## Rules
-
----
-
-### detect-background-only
-
-**Severity:** `error`  
-**Category:** Background-Only APIs
-
-Detects when `lynx.getJSModule` and `NativeModules` are called in main-thread context instead of background-thread context.
-
-#### Why It Matters
-
-In ReactLynx's dual-thread architecture:
-- **Main thread**: Runs React component render functions, evaluates JSX
-- **Background thread**: Runs effects, event handlers, and native module calls
-
-Calling `lynx.getJSModule` or `NativeModules` in main thread will:
-- Block UI rendering
-- Cause thread synchronization overhead
-- Lead to poor user experience
-
-#### Thread Context Reference
-
-| Context | Thread | Allowed |
-|---------|--------|---------|
-| Component render body | Main and Background | ❌ |
-| `useEffect` / `useLayoutEffect` | Background | ✅ |
-| `useImperativeHandle` | Background | ✅ |
-| `ref` callback | Background | ✅ |
-| Event handlers (`bindtap`, etc.) | Background | ✅ |
-| `'background only'` functions | Background | ✅ |
-
-#### Examples
-
-**❌ Incorrect (Main Thread):**
-
-```tsx
-export function App() {
-  // Error: called in main thread (render scope)
-  const module = lynx.getJSModule('SomeModule');
-  NativeModules.SomeModule.call();
-
-  return <view />;
-}
-```
-
-**✅ Correct (Background Thread):**
-
-```tsx
-// Inside useEffect - runs in background thread
-export function App() {
-  useEffect(() => {
-    lynx.getJSModule('SomeModule').doSomething();
-    NativeModules.SomeModule.call();
-  }, []);
-  return <view />;
-}
-```
-
-```tsx
-// Inside 'background only' function
-export function App() {
-  function doBackgroundWork() {
-    'background only';
-    lynx.getJSModule('SomeModule');
-  }
-  useEffect(() => doBackgroundWork(), []);
-  return <view />;
-}
-```
-
-```tsx
-// Inside event handler - runs in background thread
-export function App() {
-  function handleTap() {
-    lynx.getJSModule('SomeModule');
-  }
-  return <view bindtap={handleTap} />;
-}
-```
-
-```tsx
-// Inside ref callback - runs in background thread
-export function App() {
-  return <text ref={(ref) => {
-    lynx.getJSModule('SomeModule');
-  }} />;
-}
-```
-
-```tsx
-// Inside useImperativeHandle - runs in background thread
-export function App() {
-  useImperativeHandle(ref, () => ({
-    doSomething: () => lynx.getJSModule('SomeModule')
-  }));
-  return <view />;
-}
-```
-
----
-
-## Programmatic Usage
-
-### API
-
-```typescript
-import { analyzeBackgroundOnlyUsage, runSkill } from '@lynx-js/skills-react';
-
-const diagnostics = runSkill(sourceCode);
-// or
-const diagnostics = analyzeBackgroundOnlyUsage(sourceCode);
-```
-
-### Example
-
-```typescript
-const source = `
+```bash
+node -e "
+const { ReactLynxWorkflow, formatScanReport } = await import('<path_to_skill>/scripts/index.mjs');
+const sourceCode = \`
 export function App() {
   lynx.getJSModule('SomeModule');
   return <view />;
 }
-`;
-
-const diagnostics = runSkill(source);
-console.log(diagnostics);
-// [
-//   {
-//     ruleId: 'detect-background-only',
-//     message: "'lynx.getJSModule' must only be called in background-only contexts...",
-//     severity: 'error',
-//     location: { start: { line: 3, column: 2 }, end: { line: 3, column: 32 } }
-//   }
-// ]
+\`;
+const workflow = new ReactLynxWorkflow('review');
+const summary = workflow.reviewCode(sourceCode);
+console.log(formatScanReport(summary));
+"
 ```
 
-### Diagnostic Interface
+### 🔧 Refactor Mode
+
+When refactoring, generate a fix plan and **ask the user before applying**:
+
+```
+TOOL CALL: AskUserQuestion(
+  question: "🔧 Found {fixableIssues} auto-fixable issues. Would you like me to apply these fixes?",
+  options: ["Yes, apply fixes", "No, show me the issues first", "Skip auto-fix"]
+)
+```
+
+```bash
+node -e "
+const { ReactLynxWorkflow, formatFixPlan } = await import('<path_to_skill>/scripts/index.mjs');
+const sourceCode = \`
+export function App() {
+  lynx.getJSModule('SomeModule');
+  return <view />;
+}
+\`;
+const workflow = new ReactLynxWorkflow('refactor');
+workflow.reviewCode(sourceCode);
+const plan = workflow.generateFixPlan();
+
+if (plan && plan.fixableIssues > 0) {
+  console.log(formatFixPlan(plan));
+  // ASK USER: 'Would you like me to apply these auto-fixes?'
+  // If yes:
+  const { fixed, appliedFixes } = workflow.applyAutoFixes(sourceCode);
+  console.log('Fixed code:', fixed);
+}
+"
+```
+
+## Rules
+
+All rules are documented in the `rules/` directory as Markdown files:
+
+| Rule | Impact | Description |
+|------|--------|-------------|
+| [detect-background-only](./rules/detect-background-only.md) | CRITICAL | Native APIs in background contexts, use `'background only'` directive |
+| [proper-event-handlers](./rules/proper-event-handlers.md) | MEDIUM | Correct event handler usage |
+| [use-main-thread-guard](./rules/use-main-thread-guard.md) | MEDIUM | Main thread code guards |
+| [hoist-static-jsx](./rules/hoist-static-jsx.md) | LOW | Performance optimization |
+
+## API Reference
+
+For complete type definitions:
+
+```
+TOOL CALL: Read(<path_to_skill>/scripts/index.d.ts)
+```
+
+### Exported Functions
 
 ```typescript
+function runSkill(source: string): Diagnostic[];
+function runSkillWithFixes(source: string): DiagnosticWithFix[];
+function analyzeBackgroundOnlyUsage(source: string): Diagnostic[];
+function generateFixes(source: string, diagnostic: Diagnostic): Fix[];
+function applyFix(source: string, fix: Fix): string;
+function applyFixes(source: string, fixes: Fix[]): string;
+function formatScanReport(summary: ScanSummary): string;
+function formatFixPlan(plan: FixPlan): string;
+```
+
+### Workflow Class
+
+```typescript
+class ReactLynxWorkflow {
+  constructor(mode: WorkflowMode);
+  reviewCode(source: string): ScanSummary;
+  generateFixPlan(): FixPlan | null;
+  applyAutoFixes(source: string): { fixed: string; appliedFixes: Fix[] };
+}
+```
+
+### Key Types
+
+```typescript
+type WorkflowMode = 'writing' | 'review' | 'refactor';
+
 interface Diagnostic {
   ruleId: string;
   message: string;
   severity: 'error' | 'warning' | 'info';
-  location: {
-    start: { line: number; column: number };
-    end: { line: number; column: number };
-  };
+  location: { start: { line: number; column: number }; end: { line: number; column: number } };
+}
+
+interface DiagnosticWithFix extends Diagnostic {
+  fixes?: Fix[];
+}
+
+interface Fix {
+  type: 'wrap-in-useEffect' | 'add-directive' | 'add-import' | 'move-to-event-handler';
+  description: string;
+  oldCode: string;
+  newCode: string;
+  location: { start: { line: number; column: number }; end: { line: number; column: number } };
+}
+
+interface ScanSummary {
+  totalFiles: number;
+  filesWithIssues: number;
+  totalIssues: number;
+  errorCount: number;
+  warningCount: number;
+  infoCount: number;
+  results: ScanResult[];
+}
+
+interface FixPlan {
+  totalIssues: number;
+  fixableIssues: number;
+  manualIssues: number;
+  files: FilePlan[];
 }
 ```
-
-## Rule Files
-
-Individual rule definitions are located in the `rules/` directory:
-
-```
-rules/
-└── detect-background-only.yml
-```
-
-Each rule file contains:
-- Rule ID and language target
-- Severity level
-- Error message template
-- Usage notes and examples
