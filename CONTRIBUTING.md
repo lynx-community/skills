@@ -35,7 +35,7 @@ pnpm build
 │   │   └── build-marketplace/
 │   ├── skills/                 # Skill packages
 │   │   ├── debug-info-remapping/
-│   │   └── reactlynx-best-practice/
+│   │   └── reactlynx-best-practices/
 │   └── plugins/                # Plugin packages
 │       ├── lynx-debug/
 │       └── reactlynx/
@@ -138,17 +138,17 @@ mkdir -p packages/plugins/my-plugin
 pnpm build
 
 # Build a specific package
-pnpm -F @lynx-js/skill-reactlynx-best-practice build
+pnpm -F @lynx-js/skill-reactlynx-best-practices build
 
 # Run tests
-pnpm -F @lynx-js/skill-reactlynx-best-practice test
+pnpm -F @lynx-js/skill-reactlynx-best-practices test
 ```
 
 ## Naming Conventions
 
 | Type   | Pattern             | Example                                  |
 | ------ | ------------------- | ---------------------------------------- |
-| Skill  | `@lynx-js/skill-*`  | `@lynx-js/skill-reactlynx-best-practice` |
+| Skill  | `@lynx-js/skill-*`  | `@lynx-js/skill-reactlynx-best-practices` |
 | Plugin | `@lynx-js/plugin-*` | `@lynx-js/plugin-reactlynx`              |
 
 ## How It Works

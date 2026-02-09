@@ -90,9 +90,9 @@ importers:
 
   packages/plugins/reactlynx:
     dependencies:
-      '@lynx-js/skill-reactlynx-best-practice':
+      '@lynx-js/skill-reactlynx-best-practices':
         specifier: workspace:*
-        version: link:../../skills/reactlynx-best-practice
+        version: link:../../skills/reactlynx-best-practices
     devDependencies:
       build-plugin:
         specifier: workspace:*
@@ -100,7 +100,7 @@ importers:
 
   packages/skills/debug-info-remapping: {}
 
-  packages/skills/reactlynx-best-practice:
+  packages/skills/reactlynx-best-practices:
     dependencies:
       '@ast-grep/napi':
         specifier: ^0.37.0
