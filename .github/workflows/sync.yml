@@ -41,6 +41,7 @@ jobs:
         run: |
           mkdir -p dist
           npx build-marketplace export ./dist
+          cp README.md dist/
           tree ./dist
 
       - name: Push to release branch
@@ -55,14 +56,6 @@ jobs:
             -exec rm -rf {} +
           
           cp -R dist/. . && rm -rf dist
-          
-          cat <<EOF > README.md
-          # Lynx Agent Skills
-
-          This repository contains the built plugins & skills of Lynx.
-
-          If you want to see the source code, please visit the [main](https://github.com/${{ github.repository }}/tree/main) branch.
-          EOF
           
           git config --local user.name "github-actions[bot]"
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
