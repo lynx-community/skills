@@ -5,13 +5,13 @@ ReactLynx best practices covering dual-thread architecture and React patterns. P
 ## Installation
 
 ```bash
-pnpm add @lynx-js/skill-reactlynx-best-practice
+pnpm add @lynx-js/skill-reactlynx-best-practices
 ```
 
 ## Quick Start
 
 ```typescript
-import { runSkill } from '@lynx-js/skill-reactlynx-best-practice';
+import { runSkill } from '@lynx-js/skill-reactlynx-best-practices';
 
 const source = `
 export function App() {
@@ -33,7 +33,7 @@ The skill supports three workflow modes for different use cases.
 Reference best practices while writing new ReactLynx code.
 
 ```typescript
-import { ReactLynxWorkflow, WORKFLOW_GUIDE } from '@anthropic/skill-reactlynx-best-practice';
+import { ReactLynxWorkflow, WORKFLOW_GUIDE } from '@anthropic/skill-reactlynx-best-practices';
 
 const workflow = new ReactLynxWorkflow('writing');
 console.log(WORKFLOW_GUIDE.writing);
@@ -49,7 +49,7 @@ console.log(WORKFLOW_GUIDE.writing);
 Analyze existing code for ReactLynx issues.
 
 ```typescript
-import { ReactLynxWorkflow, formatScanReport } from '@anthropic/skill-reactlynx-best-practice';
+import { ReactLynxWorkflow, formatScanReport } from '@anthropic/skill-reactlynx-best-practices';
 
 const workflow = new ReactLynxWorkflow('review');
 const summary = workflow.reviewCode(source);
@@ -88,7 +88,7 @@ Output:
 Fix detected issues with auto-fix suggestions.
 
 ```typescript
-import { ReactLynxWorkflow, formatFixPlan } from '@lynx-js/skill-reactlynx-best-practice';
+import { ReactLynxWorkflow, formatFixPlan } from '@lynx-js/skill-reactlynx-best-practices';
 
 const workflow = new ReactLynxWorkflow('refactor');
 
