@@ -1,4 +1,4 @@
-# ReactLynx Best Practice
+# ReactLynx Best Practices
 
 ReactLynx best practices covering dual-thread architecture and React patterns. Provides rules reference for writing, static analysis for reviewing, and auto-fix for refactoring.
 
