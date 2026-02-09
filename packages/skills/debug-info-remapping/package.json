@@ -1,6 +1,6 @@
 {
   "name": "@lynx-js/skill-debug-info-remapping",
-  "version": "0.1.0",
+  "version": "0.0.1",
   "description": "Lynx Debug Info Remapping SKILL",
   "type": "module",
   "files": [
