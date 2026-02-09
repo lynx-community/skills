@@ -14,25 +14,54 @@ This skill should be used when:
 - **Reviewing** existing ReactLynx code → Use scanner to detect issues
 - **Refactoring** ReactLynx code → Use auto-fix with user approval
 
+## Input
+
+This skill accepts the following inputs:
+
+| Input | Required | Description |
+|-------|----------|-------------|
+| `sourceCode` | No | The ReactLynx source code to analyze (string or file path) |
+| `mode` | No | Workflow mode: `writing`, `review`, or `refactor`. Auto-detected if not specified |
+
+### Mode Auto-Detection
+
+When `mode` is not explicitly provided, the skill will determine the appropriate mode based on context:
+
+| Context | Auto-Selected Mode |
+|---------|-------------------|
+| User is asking for best practices or guidelines | `writing` |
+| User wants to check/analyze existing code for issues | `review` |
+| User wants to fix/refactor code with auto-fixes | `refactor` |
+
 ## Workflow Modes
 
 ### 📝 Writing Mode
 
 When writing new ReactLynx code, reference the rules in `rules/*.md` as best practice guidelines. See also the [Rules](#rules) section below for a summary of all available rules.
 
+**Use this mode when:**
+- User is creating new ReactLynx components or application
+- User asks "how should I write..." or "what's the best practice for..."
+- No existing code to analyze
+
 ### 🔍 Review Mode
 
-When reviewing code, use the scanner to analyze source code for issues:
+When reviewing code, use the scanner to analyze source code for issues.
+
+**Use this mode when:**
+- User provides code and asks to "check", "review", or "analyze" it
+- User wants to know if their code has any issues
+- User asks "is this code correct?" or "any problems with this?"
 
 ```bash
 node -e "
-const { ReactLynxWorkflow, formatScanReport } = await import('<path_to_skill>/scripts/index.mjs');
-const sourceCode = \`
-export function App() {
-  lynx.getJSModule('SomeModule');
-  return <view />;
-}
-\`;
+import fs from 'fs';
+import { ReactLynxWorkflow, formatScanReport } from '<path_to_skill>/scripts/index.mjs';
+
+// <sourceCode>: string (source code) or file path
+const input = '<sourceCode>';
+const sourceCode = fs.existsSync(input) ? fs.readFileSync(input, 'utf-8') : input;
+
 const workflow = new ReactLynxWorkflow('review');
 const summary = workflow.reviewCode(sourceCode);
 console.log(formatScanReport(summary));
@@ -41,7 +70,12 @@ console.log(formatScanReport(summary));
 
 ### 🔧 Refactor Mode
 
-When refactoring, generate a fix plan and **ask the user before applying**:
+When refactoring, generate a fix plan and **ask the user before applying**.
+
+**Use this mode when:**
+- User explicitly asks to "fix", "refactor", or "auto-fix" code
+- User wants to apply suggested fixes from a previous review
+- User says "please fix these issues" or "apply the fixes"
 
 ```
 TOOL CALL: AskUserQuestion(
@@ -52,13 +86,13 @@ TOOL CALL: AskUserQuestion(
 
 ```bash
 node -e "
-const { ReactLynxWorkflow, formatFixPlan } = await import('<path_to_skill>/scripts/index.mjs');
-const sourceCode = \`
-export function App() {
-  lynx.getJSModule('SomeModule');
-  return <view />;
-}
-\`;
+import fs from 'fs';
+import { ReactLynxWorkflow, formatFixPlan } from '<path_to_skill>/scripts/index.mjs';
+
+// <sourceCode>: string (source code) or file path
+const input = '<sourceCode>';
+const sourceCode = fs.existsSync(input) ? fs.readFileSync(input, 'utf-8') : input;
+
 const workflow = new ReactLynxWorkflow('refactor');
 workflow.reviewCode(sourceCode);
 const plan = workflow.generateFixPlan();
