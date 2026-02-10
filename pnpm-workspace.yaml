@@ -1,12 +1,16 @@
 packages:
   - .
-  - "packages/*"
-  - "packages/cmd/*"
-  - "packages/skills/*"
-  - "packages/plugins/*"
-
+  - packages/*
+  - packages/tools/*
+  - packages/cmd/*
+  - packages/skills/*
+  - packages/plugins/*
 
 catalogs:
   rstack:
-    "@rslib/core": "0.19.2"
-    "@rstest/core": "0.7.9"
+    '@rslib/core': 0.19.2
+    '@rsbuild/core': 1.7.1
+    '@rstest/core': 0.7.9
+
+onlyBuiltDependencies:
+  - esbuild

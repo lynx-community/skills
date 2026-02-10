@@ -40,5 +40,7 @@
   "include": [],
   "references": [
     { "path": "./packages/cmd/build-plugin" },
+    { "path": "./packages/cmd/build-marketplace" },
+    { "path": "./packages/tools/perfetto-trace-processor" }
   ]
 }
