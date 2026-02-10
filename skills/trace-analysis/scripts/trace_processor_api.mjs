@@ -50708,6 +50708,9 @@ ${err.stack}`;
 // EXTERNAL MODULE: external "node:fs"
 var external_node_fs_ = __webpack_require__(24);
 ;// CONCATENATED MODULE: ../../tools/perfetto-trace-processor/dist/index.js
+// Copyright 2026 The Lynx Authors. All rights reserved.
+// Licensed under the Apache License Version 2.0 that can be found in the
+// LICENSE file in the root directory of this source tree.
 
 
 
@@ -50741,6 +50744,9 @@ class WasmEngine extends perfetto_engine/* .EngineBase */.G {
 
 ;// CONCATENATED MODULE: ../../tools/perfetto-trace-processor/dist/cli.js
 //#!/usr/bin/env node
+// Copyright 2026 The Lynx Authors. All rights reserved.
+// Licensed under the Apache License Version 2.0 that can be found in the
+// LICENSE file in the root directory of this source tree.
 
 
 
@@ -50837,6 +50843,9 @@ cli_program.parseAsync().catch((err)=>{
 }); //# sourceMappingURL=cli.js.map
 
 ;// CONCATENATED MODULE: ./src/scripts/trace_processor_api.js
+// Copyright 2026 The Lynx Authors. All rights reserved.
+// Licensed under the Apache License Version 2.0 that can be found in the
+// LICENSE file in the root directory of this source tree.
 
 
 })();
