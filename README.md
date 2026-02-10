@@ -9,6 +9,7 @@ A collection of skills for AI coding agents working with [Lynx](https://lynxjs.o
 ReactLynx best practices covering dual-thread architecture and React patterns. Provides rules reference for writing, static analysis for reviewing, and auto-fix for refactoring.
 
 **Use when:**
+
 - Writing new ReactLynx components or applications
 - Reviewing existing ReactLynx code for issues
 - Refactoring ReactLynx code with auto-fixes
@@ -27,9 +28,21 @@ ReactLynx best practices covering dual-thread architecture and React patterns. P
 Remap Lynx main-thread runtime error positions to original source code locations using debug info.
 
 **Use when:**
+
 - Debugging main thread runtime errors with `function_id:pc_index` format
 - Working with Lynx bytecode stack traces
 - Need to locate the actual source position from encoded error messages
+
+### trace-analysis
+
+Analyze Lynx performance traces (`.ptrace` files) to identify bottlenecks in rendering pipelines.
+
+**Use when:**
+
+- Analyzing performance of Lynx applications
+- Diagnosing rendering delays and bottlenecks
+- Understanding Lynx pipeline execution flow
+- Automated performance reporting / regressions detection with Agents
 
 ## Installation
 
@@ -39,7 +52,7 @@ npx skills add lynx-family/skills
 
 ## Contributing
 
-See [CONTRIBUTING.md](./CONTRIBUTING.md) for development setup, project structure, and guidelines on creating new skills and plugins.
+See [CONTRIBUTING.md](https://github.com/lynx-family/skills/blob/main/CONTRIBUTING.md) for development setup, project structure, and guidelines on creating new skills and plugins.
 
 ## Credits
 
