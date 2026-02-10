@@ -14,10 +14,10 @@
     "build": "rsbuild build"
   },
   "devDependencies": {
-    "@types/node": "^20",
-    "commander": "^14",
+    "@lynx-js/trace-processor": "workspace:*",
     "@rsbuild/core": "catalog:rstack",
-    "@lynx-js/trace-processor": "workspace:*"
+    "@types/node": "^20",
+    "commander": "^14"
   },
   "engines": {
     "node": ">=18"

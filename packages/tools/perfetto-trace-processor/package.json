@@ -1,11 +1,8 @@
 {
   "name": "@lynx-js/trace-processor",
-  "description": "A WebAssembly build of the Perfetto Trace Processor providing a JavaScript API for querying Perfetto traces",
   "version": "0.0.1",
+  "description": "A WebAssembly build of the Perfetto Trace Processor providing a JavaScript API for querying Perfetto traces",
   "type": "module",
-  "bin": {
-    "trace-processor": "./dist/cli.js"
-  },
   "exports": {
     ".": {
       "import": "./dist/index.js",
@@ -19,13 +16,20 @@
       "default": "./vendor/perfetto/trace_processor.wasm"
     }
   },
+  "bin": {
+    "trace-processor": "./bin/trace-processor.js"
+  },
   "files": [
     "vendor",
     "dist"
   ],
   "scripts": {
-    "prepare": "node scripts/prepare.js",
-    "build": "tsc --build"
+    "build": "tsc --build",
+    "prepare": "node scripts/prepare.js"
+  },
+  "dependencies": {
+    "commander": "^14.0.3",
+    "immer": "^10.1.1"
   },
   "devDependencies": {
     "@types/node": "^20",
@@ -35,9 +39,5 @@
   },
   "engines": {
     "node": ">=18"
-  },
-  "dependencies": {
-    "commander": "^14.0.3",
-    "immer": "^10.1.1"
   }
 }
