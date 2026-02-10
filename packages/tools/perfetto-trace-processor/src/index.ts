@@ -1,3 +1,6 @@
+// Copyright 2026 The Lynx Authors. All rights reserved.
+// Licensed under the Apache License Version 2.0 that can be found in the
+// LICENSE file in the root directory of this source tree.
 import { EngineBase } from "../vendor/perfetto/engine.js";
 import type { EngineMode } from "../vendor/perfetto/engine.js";
 import { WasmBridge } from "../vendor/perfetto/wasm_bridge.js";
@@ -29,7 +32,7 @@ export class WasmEngine extends EngineBase {
       port1.close();
     };
   }
-  onMessage(m: MessageEvent<any>) {
+  onMessage(m: MessageEvent<unknown>) {
     if (m.data instanceof Uint8Array) {
       super.onRpcResponseBytes(m.data);
     } else {

@@ -1,12 +1,13 @@
 {
   "name": "@lynx-js/marketplace-lynx-agent-skills",
   "version": "0.1.0",
+  "private": true,
   "description": "Lynx skills",
+  "license": "Apache-2.0",
   "author": {
     "name": "lynx"
   },
-  "license": "Apache-2.0",
-  "private": true,
+  "type": "module",
   "files": [
     "plugins",
     "skills",
@@ -17,6 +18,12 @@
     "prepare": "husky && turbo build",
     "release": "turbo build && pnpm run build && pnpm changeset publish"
   },
+  "lint-staged": {
+    "*.{ts,tsx,js,jsx,cjs,mjs,css,sass,scss,less,html,yml,yaml,rs,toml,md,json}": [
+      "eslint --cache --fix --no-warn-ignored"
+    ],
+    "package.json": "sort-package-json"
+  },
   "dependencies": {
     "@lynx-js/plugin-lynx-debug": "workspace:*",
     "@lynx-js/plugin-reactlynx": "workspace:*"
@@ -25,8 +32,14 @@
     "@changesets/cli": "^2.29.8",
     "build-marketplace": "workspace:*",
     "build-plugin": "workspace:*",
+    "eslint": "^9.39.2",
+    "eslint-config-flat-gitignore": "^2.1.0",
+    "eslint-plugin-headers": "^1.3.3",
     "husky": "^9.1.7",
-    "turbo": "^2.7.5"
+    "lint-staged": "^16.2.3",
+    "sort-package-json": "^3.4.0",
+    "turbo": "^2.7.5",
+    "typescript-eslint": "^8.55.0"
   },
   "packageManager": "pnpm@10.18.2"
 }
