@@ -44451,6 +44451,8 @@ const {
   Help,
 } = commander;
 
+// EXTERNAL MODULE: external "node:fs"
+var external_node_fs_ = __webpack_require__(24);
 // EXTERNAL MODULE: ../../tools/perfetto-trace-processor/vendor/perfetto/engine.js
 var perfetto_engine = __webpack_require__(338);
 ;// CONCATENATED MODULE: ../../tools/perfetto-trace-processor/vendor/perfetto/wasm_bridge.js
@@ -50705,8 +50707,6 @@ ${err.stack}`;
 };
 
 
-// EXTERNAL MODULE: external "node:fs"
-var external_node_fs_ = __webpack_require__(24);
 ;// CONCATENATED MODULE: ../../tools/perfetto-trace-processor/dist/index.js
 // Copyright 2026 The Lynx Authors. All rights reserved.
 // Licensed under the Apache License Version 2.0 that can be found in the
@@ -50715,7 +50715,7 @@ var external_node_fs_ = __webpack_require__(24);
 
 
 class WasmEngine extends perfetto_engine/* .EngineBase */.G {
-    mode = "WASM";
+    mode = 'WASM';
     id;
     constructor(id, { wasmBinary } = {}){
         super();
@@ -50734,7 +50734,7 @@ class WasmEngine extends perfetto_engine/* .EngineBase */.G {
         if (m.data instanceof Uint8Array) {
             super.onRpcResponseBytes(m.data);
         } else {
-            throw new Error("Unknown message type");
+            throw new Error('Unknown message type');
         }
     }
     rpcSendRequestBytes(data) {
@@ -50754,15 +50754,15 @@ const CHUNK_SIZE = 64 * 1024 * 1024; // 64MB
 function extractTraceUrl(input) {
     try {
         const parsed = new URL(input);
-        if (parsed.hash.includes("url=")) {
+        if (parsed.hash.includes('url=')) {
             // Handle hash-based routing: #!/viewer?url=...
-            const hashQuery = parsed.hash.replace(/^#!?\/[^?]*\??/, "");
+            const hashQuery = parsed.hash.replace(/^#!?\/[^?]*\??/, '');
             const params = new URLSearchParams(hashQuery);
-            const url = params.get("url");
+            const url = params.get('url');
             if (url) return url;
         }
-        if (parsed.searchParams.has("url")) {
-            const url = parsed.searchParams.get("url");
+        if (parsed.searchParams.has('url')) {
+            const url = parsed.searchParams.get('url');
             if (url) return url;
         }
     } catch  {
@@ -50775,7 +50775,7 @@ async function readStdin() {
     for await (const chunk of process.stdin){
         chunks.push(chunk);
     }
-    return Buffer.concat(chunks).toString("utf-8");
+    return Buffer.concat(chunks).toString('utf-8');
 }
 async function fetchTrace(url) {
     const resp = await fetch(url);
@@ -50794,7 +50794,7 @@ async function loadTrace(input) {
 function formatResultsAsJson(result) {
     const columns = result.columns();
     if (columns.length === 0 || result.numRows() === 0) {
-        return "[]";
+        return '[]';
     }
     const spec = {};
     for (const col of columns){
@@ -50807,7 +50807,7 @@ function formatResultsAsJson(result) {
         for (const col of columns){
             const val = iter.get(col);
             // Convert bigint to number for JSON compatibility
-            row[col] = typeof val === "bigint" ? Number(val) : val;
+            row[col] = typeof val === 'bigint' ? Number(val) : val;
         }
         rows.push(row);
         iter.next();
@@ -50815,14 +50815,14 @@ function formatResultsAsJson(result) {
     return JSON.stringify(rows);
 }
 const cli_program = new Command();
-cli_program.name("trace-processor").description("Query Perfetto trace files using SQL").argument("<trace>", 'path or URL to a .pftrace file, or a Lynx trace viewer URL (the "url" param will be extracted automatically)').argument("<sql>", 'SQL query to execute, or "-" to read from stdin').action(async (trace, sqlArg)=>{
-    const sql = sqlArg === "-" ? (await readStdin()).trim() : sqlArg;
+cli_program.name('trace-processor').description('Query Perfetto trace files using SQL').argument('<trace>', 'path or URL to a .pftrace file, or a Lynx trace viewer URL (the "url" param will be extracted automatically)').argument('<sql>', 'SQL query to execute, or "-" to read from stdin').action(async (trace, sqlArg)=>{
+    const sql = sqlArg === '-' ? (await readStdin()).trim() : sqlArg;
     if (!sql) {
         process.exitCode = 1;
-        throw new Error("empty SQL query");
+        throw new Error('empty SQL query');
     }
     const traceData = await loadTrace(trace);
-    const engine = new WasmEngine("cli");
+    const engine = new WasmEngine('cli');
     for(let offset = 0; offset < traceData.byteLength; offset += CHUNK_SIZE){
         const end = Math.min(offset + CHUNK_SIZE, traceData.byteLength);
         await engine.parse(traceData.subarray(offset, end));
@@ -50834,7 +50834,7 @@ cli_program.name("trace-processor").description("Query Perfetto trace files usin
         process.exitCode = 1;
         throw new Error(error);
     }
-    process.stdout.write(formatResultsAsJson(result) + "\n");
+    process.stdout.write(`${formatResultsAsJson(result)}\n`);
     engine[Symbol.dispose]();
 });
 cli_program.parseAsync().catch((err)=>{

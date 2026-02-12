@@ -6,7 +6,7 @@ async function main() {
         console.error('Please provide the debug info path as the first argument.');
         process.exit(1);
     }
-    if (isNaN(function_id) || isNaN(pc_index)) {
+    if (Number.isNaN(function_id) || Number.isNaN(pc_index)) {
         console.error('Please provide the valid function_id and pc_index as the second and third arguments.');
         process.exit(1);
     }
