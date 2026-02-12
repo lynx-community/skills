@@ -1,13 +1,14 @@
 // Copyright 2026 The Lynx Authors. All rights reserved.
 // Licensed under the Apache License Version 2.0 that can be found in the
 // LICENSE file in the root directory of this source tree.
-import { EngineBase } from "../vendor/perfetto/engine.js";
-import type { EngineMode } from "../vendor/perfetto/engine.js";
-import { WasmBridge } from "../vendor/perfetto/wasm_bridge.js";
-import { readFileSync } from "node:fs";
+
+import { readFileSync } from 'node:fs';
+import type { EngineMode } from '../vendor/perfetto/engine.js';
+import { EngineBase } from '../vendor/perfetto/engine.js';
+import { WasmBridge } from '../vendor/perfetto/wasm_bridge.js';
 
 export class WasmEngine extends EngineBase {
-  mode: EngineMode = "WASM";
+  mode: EngineMode = 'WASM';
   id: string;
   declare port: MessagePort;
   declare [Symbol.dispose]: () => void;
@@ -19,7 +20,7 @@ export class WasmEngine extends EngineBase {
       wasmBinary ??
         new Uint8Array(
           readFileSync(
-            new URL("../vendor/perfetto/trace_processor.wasm", import.meta.url),
+            new URL('../vendor/perfetto/trace_processor.wasm', import.meta.url),
           ),
         ),
     );
@@ -36,7 +37,7 @@ export class WasmEngine extends EngineBase {
     if (m.data instanceof Uint8Array) {
       super.onRpcResponseBytes(m.data);
     } else {
-      throw new Error("Unknown message type");
+      throw new Error('Unknown message type');
     }
   }
   rpcSendRequestBytes(data: Uint8Array) {
@@ -44,4 +45,4 @@ export class WasmEngine extends EngineBase {
   }
 }
 
-export type * from "../vendor/perfetto/engine.js";
+export type * from '../vendor/perfetto/engine.js';

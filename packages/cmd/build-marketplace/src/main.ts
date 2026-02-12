@@ -1,22 +1,23 @@
 // Copyright 2026 The Lynx Authors. All rights reserved.
 // Licensed under the Apache License Version 2.0 that can be found in the
 // LICENSE file in the root directory of this source tree.
-import { resolve } from "node:path";
-import { Command } from "commander";
-import { readFileSync } from "node:fs";
-import { mkdir, writeFile } from "node:fs/promises";
-import { exportPlugin } from "build-plugin";
+
+import { readFileSync } from 'node:fs';
+import { mkdir, writeFile } from 'node:fs/promises';
+import { resolve } from 'node:path';
+import { exportPlugin } from 'build-plugin';
+import { Command } from 'commander';
 
 async function buildMarketplace(pkgDir: string) {
   const pkgPath = `${pkgDir}/package.json`;
 
   // Read package.json to get the marketplace name
   const { default: pkg } = await import(`file://${pkgPath}`, {
-    with: { type: "json" },
+    with: { type: 'json' },
   });
 
-  if (!pkg.name.match(/^@lynx-js\/marketplace-/)){
-    throw new Error("Package is not a marketplace. Aborting...");
+  if (!pkg.name.match(/^@lynx-js\/marketplace-/)) {
+    throw new Error('Package is not a marketplace. Aborting...');
   }
 
   const { dependencies = {} } = pkg;
@@ -26,14 +27,14 @@ async function buildMarketplace(pkgDir: string) {
 
   // PLUGINS
   for (const dep in dependencies) {
-    if (dep.startsWith("@lynx-js/plugin-")) {
-      const name = dep.replace(/^@lynx-js\/plugin-/, "");
-      const source = resolve(pkgDir, "node_modules", dep);
+    if (dep.startsWith('@lynx-js/plugin-')) {
+      const name = dep.replace(/^@lynx-js\/plugin-/, '');
+      const source = resolve(pkgDir, 'node_modules', dep);
 
-      await exportPlugin(source, resolve(pkgDir, "plugins", name));
+      await exportPlugin(source, resolve(pkgDir, 'plugins', name));
 
       const pluginMeta = JSON.parse(
-        readFileSync(`${source}/package.json`, "utf-8"),
+        readFileSync(`${source}/package.json`, 'utf-8'),
       );
 
       plugins.push({
@@ -47,24 +48,23 @@ async function buildMarketplace(pkgDir: string) {
   }
 
   // metadata files
-  const metadataContent =
-    JSON.stringify(
-      {
-        name: pkg.name.replace(/^@lynx-js\/marketplace-/, ""),
-        version: pkg.version,
-        description: pkg.description || "A marketplace",
-        owner: pkg.author || { name: "lynx" },
-        plugins,
-      },
-      null,
-      2,
-    ) + "\n"; // add newline at end of file
+  const metadataContent = `${JSON.stringify(
+    {
+      name: pkg.name.replace(/^@lynx-js\/marketplace-/, ''),
+      version: pkg.version,
+      description: pkg.description || 'A marketplace',
+      owner: pkg.author || { name: 'lynx' },
+      plugins,
+    },
+    null,
+    2,
+  )}\n`;
 
   // .claude-plugin/marketplace.json
-  const claudePluginDir = resolve(pkgDir, ".claude-plugin");
+  const claudePluginDir = resolve(pkgDir, '.claude-plugin');
   await mkdir(claudePluginDir, { recursive: true });
   await writeFile(
-    resolve(claudePluginDir, "marketplace.json"),
+    resolve(claudePluginDir, 'marketplace.json'),
     metadataContent,
   );
 }
@@ -72,9 +72,9 @@ async function buildMarketplace(pkgDir: string) {
 const program = new Command();
 
 program
-  .name("plugin-marketplace")
-  .description("A helper script for build your claude plugin marketplace")
-  .option("-C, --cwd <cwd>", "Set current working directory", process.cwd());
+  .name('plugin-marketplace')
+  .description('A helper script for build your claude plugin marketplace')
+  .option('-C, --cwd <cwd>', 'Set current working directory', process.cwd());
 
 program.action(async () => {
   const { cwd } = program.opts<{ cwd: string }>();
@@ -83,9 +83,9 @@ program.action(async () => {
 });
 
 program
-  .command("export")
-  .description("Build and export your claude plugin marketplace")
-  .argument("<targetDir>")
+  .command('export')
+  .description('Build and export your claude plugin marketplace')
+  .argument('<targetDir>')
   .action(async (targetDir: string, options: { skipBuild: boolean }) => {
     const { cwd } = program.opts<{ cwd: string }>();
     const pkgDir = resolve(process.cwd(), cwd);

@@ -3,25 +3,25 @@
 // Copyright 2026 The Lynx Authors. All rights reserved.
 // Licensed under the Apache License Version 2.0 that can be found in the
 // LICENSE file in the root directory of this source tree.
-import { readFile } from "node:fs/promises";
-import { Command } from "commander";
-import type { QueryResult, SqlValue } from "../vendor/perfetto/engine.js";
-import { WasmEngine } from "./index.js";
+import { readFile } from 'node:fs/promises';
+import { Command } from 'commander';
+import type { QueryResult, SqlValue } from '../vendor/perfetto/engine.js';
+import { WasmEngine } from './index.js';
 
 const CHUNK_SIZE = 64 * 1024 * 1024; // 64MB
 
 function extractTraceUrl(input: string): string {
   try {
     const parsed = new URL(input);
-    if (parsed.hash.includes("url=")) {
+    if (parsed.hash.includes('url=')) {
       // Handle hash-based routing: #!/viewer?url=...
-      const hashQuery = parsed.hash.replace(/^#!?\/[^?]*\??/, "");
+      const hashQuery = parsed.hash.replace(/^#!?\/[^?]*\??/, '');
       const params = new URLSearchParams(hashQuery);
-      const url = params.get("url");
+      const url = params.get('url');
       if (url) return url;
     }
-    if (parsed.searchParams.has("url")) {
-      const url = parsed.searchParams.get("url");
+    if (parsed.searchParams.has('url')) {
+      const url = parsed.searchParams.get('url');
       if (url) return url;
     }
   } catch {
@@ -35,7 +35,7 @@ async function readStdin(): Promise<string> {
   for await (const chunk of process.stdin) {
     chunks.push(chunk as Buffer);
   }
-  return Buffer.concat(chunks).toString("utf-8");
+  return Buffer.concat(chunks).toString('utf-8');
 }
 
 async function fetchTrace(url: string): Promise<Uint8Array> {
@@ -59,7 +59,7 @@ async function loadTrace(input: string): Promise<Uint8Array> {
 function formatResultsAsJson(result: QueryResult): string {
   const columns = result.columns();
   if (columns.length === 0 || result.numRows() === 0) {
-    return "[]";
+    return '[]';
   }
 
   const spec: Record<string, SqlValue> = {};
@@ -74,7 +74,7 @@ function formatResultsAsJson(result: QueryResult): string {
     for (const col of columns) {
       const val = iter.get(col);
       // Convert bigint to number for JSON compatibility
-      row[col] = typeof val === "bigint" ? Number(val) : val;
+      row[col] = typeof val === 'bigint' ? Number(val) : val;
     }
     rows.push(row);
     iter.next();
@@ -86,22 +86,22 @@ function formatResultsAsJson(result: QueryResult): string {
 const program = new Command();
 
 program
-  .name("trace-processor")
-  .description("Query Perfetto trace files using SQL")
+  .name('trace-processor')
+  .description('Query Perfetto trace files using SQL')
   .argument(
-    "<trace>",
+    '<trace>',
     'path or URL to a .pftrace file, or a Lynx trace viewer URL (the "url" param will be extracted automatically)',
   )
-  .argument("<sql>", 'SQL query to execute, or "-" to read from stdin')
+  .argument('<sql>', 'SQL query to execute, or "-" to read from stdin')
   .action(async (trace: string, sqlArg: string) => {
-    const sql = sqlArg === "-" ? (await readStdin()).trim() : sqlArg;
+    const sql = sqlArg === '-' ? (await readStdin()).trim() : sqlArg;
     if (!sql) {
       process.exitCode = 1;
-      throw new Error("empty SQL query");
+      throw new Error('empty SQL query');
     }
 
     const traceData = await loadTrace(trace);
-    const engine = new WasmEngine("cli");
+    const engine = new WasmEngine('cli');
 
     for (let offset = 0; offset < traceData.byteLength; offset += CHUNK_SIZE) {
       const end = Math.min(offset + CHUNK_SIZE, traceData.byteLength);
@@ -116,7 +116,7 @@ program
       throw new Error(error);
     }
 
-    process.stdout.write(formatResultsAsJson(result) + "\n");
+    process.stdout.write(`${formatResultsAsJson(result)}\n`);
 
     engine[Symbol.dispose]();
   });
