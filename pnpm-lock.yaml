@@ -26,6 +26,15 @@ importers:
       '@lynx-js/plugin-reactlynx':
         specifier: workspace:*
         version: link:packages/plugins/reactlynx
+      '@lynx-js/skill-debug-info-remapping':
+        specifier: workspace:*
+        version: link:packages/skills/debug-info-remapping
+      '@lynx-js/skill-reactlynx-best-practices':
+        specifier: workspace:*
+        version: link:packages/skills/reactlynx-best-practices
+      '@lynx-js/skill-trace-analysis':
+        specifier: workspace:*
+        version: link:packages/skills/trace-analysis
     devDependencies:
       '@biomejs/biome':
         specifier: 2.3.8

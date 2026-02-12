@@ -2,13 +2,23 @@
 // Licensed under the Apache License Version 2.0 that can be found in the
 // LICENSE file in the root directory of this source tree.
 import { execSync, spawn } from 'node:child_process';
+import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 
-const skills = JSON.parse(
+const rootPkg = JSON.parse(readFileSync('./package.json', 'utf-8'));
+const skillDeps = Object.keys(rootPkg.dependencies || {}).filter((dep) =>
+  dep.startsWith('@lynx-js/skill-'),
+);
+
+const allWorkspaces = JSON.parse(
   execSync('pnpm list --recursive --depth -1 --json', {
     encoding: 'utf-8',
   }),
-).filter((workspace) => workspace.name.startsWith('@lynx-js/skill-'));
+);
+
+const skills = allWorkspaces.filter((workspace) =>
+  skillDeps.includes(workspace.name),
+);
 
 /**
  * @param {string} skillPath

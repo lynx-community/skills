@@ -29,7 +29,10 @@
   },
   "dependencies": {
     "@lynx-js/plugin-lynx-debug": "workspace:*",
-    "@lynx-js/plugin-reactlynx": "workspace:*"
+    "@lynx-js/plugin-reactlynx": "workspace:*",
+    "@lynx-js/skill-debug-info-remapping": "workspace:*",
+    "@lynx-js/skill-reactlynx-best-practices": "workspace:*",
+    "@lynx-js/skill-trace-analysis": "workspace:*"
   },
   "devDependencies": {
     "@biomejs/biome": "2.3.8",
