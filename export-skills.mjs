@@ -1,29 +1,49 @@
 // Copyright 2026 The Lynx Authors. All rights reserved.
 // Licensed under the Apache License Version 2.0 that can be found in the
 // LICENSE file in the root directory of this source tree.
-import { execFileSync } from 'node:child_process';
+import { execSync, spawn } from 'node:child_process';
 import { resolve } from 'node:path';
 
 const skills = JSON.parse(
-  execFileSync('pnpm', ['list', '--recursive', '--depth', '-1', '--json'], {
+  execSync('pnpm list --recursive --depth -1 --json', {
     encoding: 'utf-8',
   }),
 ).filter((workspace) => workspace.name.startsWith('@lynx-js/skill-'));
 
+/**
+ * @param {string} skillPath
+ * @param {string} targetDir
+ * @returns {Promise<void>}
+ */
+function runBuildPlugin(skillPath, targetDir) {
+  return new Promise((resolve, reject) => {
+    const child = spawn(
+      process.execPath,
+      [
+        './packages/cmd/build-plugin/bin/build-plugin.js',
+        '-C',
+        skillPath,
+        'export',
+        '--skip-build',
+        targetDir,
+      ],
+      { stdio: 'inherit' },
+    );
+    child.on('close', (code) => {
+      if (code === 0) resolve();
+      else reject(new Error(`build-plugin exited with code ${code}`));
+    });
+    child.on('error', reject);
+  });
+}
+
 for (const skill of skills) {
-  const { name, path } = skill;
-  execFileSync(
-    './node_modules/.bin/build-plugin',
-    [
-      '-C',
-      path,
-      'export',
-      '--skip-build',
-      resolve(process.cwd(), 'skills', name.replace('@lynx-js/skill-', '')),
-    ],
-    {
-      stdio: 'inherit',
-    },
+  const { name, path: skillPath } = skill;
+  const targetDir = resolve(
+    process.cwd(),
+    'skills',
+    name.replace('@lynx-js/skill-', ''),
   );
+  await runBuildPlugin(skillPath, targetDir);
   console.error(`Exported skill: ${name}`);
 }
