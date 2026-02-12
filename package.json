@@ -15,9 +15,11 @@
   ],
   "scripts": {
     "build": "build-marketplace && node ./export-skills.mjs",
+    "check": "biome check && eslint .",
+    "lint": "eslint . --fix && biome check --write",
     "prepare": "husky && turbo build",
     "release": "turbo build && pnpm run build && pnpm changeset publish",
-    "test": "pnpm -r test"
+    "test": "pnpm -r --if-present test"
   },
   "lint-staged": {
     "*.{ts,tsx,js,jsx,cjs,mjs,css,sass,scss,less,html,yml,yaml,rs,toml,md,json}": [
@@ -30,6 +32,7 @@
     "@lynx-js/plugin-reactlynx": "workspace:*"
   },
   "devDependencies": {
+    "@biomejs/biome": "2.3.8",
     "@changesets/cli": "^2.29.8",
     "build-marketplace": "workspace:*",
     "build-plugin": "workspace:*",

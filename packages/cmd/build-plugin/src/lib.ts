@@ -1,9 +1,10 @@
 // Copyright 2026 The Lynx Authors. All rights reserved.
 // Licensed under the Apache License Version 2.0 that can be found in the
 // LICENSE file in the root directory of this source tree.
-import { resolve, dirname } from "node:path";
-import { mkdir, writeFile, copyFile, stat } from "node:fs/promises";
-import { default as packList } from "npm-packlist";
+
+import { copyFile, mkdir, stat, writeFile } from 'node:fs/promises';
+import { dirname, resolve } from 'node:path';
+import { default as packList } from 'npm-packlist';
 
 /**
  * Copy files in a package (defined by package.json `files`)
@@ -20,7 +21,7 @@ export async function copyPackageFiles(
 
   for (const file of files) {
     if (skipPackageJSON) {
-      if (file === "package.json") {
+      if (file === 'package.json') {
         continue;
       }
     }
@@ -36,11 +37,11 @@ export async function buildPlugin(pkgDir: string) {
 
   // Read package.json to get the plugin name
   const { default: pkg } = await import(`file://${pkgPath}`, {
-    with: { type: "json" },
+    with: { type: 'json' },
   });
 
   if (!pkg.name.match(/^@lynx-js\/plugin-/)) {
-    throw new Error("Package is not a plugin. Aborting...");
+    throw new Error('Package is not a plugin. Aborting...');
   }
 
   const { dependencies = {} } = pkg;
@@ -50,28 +51,27 @@ export async function buildPlugin(pkgDir: string) {
     const m = dep.match(/^@lynx-js\/skill-([^/]+)/);
     if (m != null) {
       const [, skillName] = m as [string, string];
-      const source = resolve(pkgDir, "node_modules", dep);
-      const target = resolve(pkgDir, "skills", skillName);
+      const source = resolve(pkgDir, 'node_modules', dep);
+      const target = resolve(pkgDir, 'skills', skillName);
       await copyPackageFiles(source, target, true);
     }
   }
 
   // metadata files
-  const metadataContent =
-    JSON.stringify(
-      {
-        name: pkg.name.replace(/^@lynx-js\/plugin-/, ""),
-        version: pkg.version,
-        description: pkg.description || "",
-      },
-      null,
-      2,
-    ) + "\n"; // add newline at end of file
+  const metadataContent = `${JSON.stringify(
+    {
+      name: pkg.name.replace(/^@lynx-js\/plugin-/, ''),
+      version: pkg.version,
+      description: pkg.description || '',
+    },
+    null,
+    2,
+  )}\n`;
 
   // .claude-plugin
-  const claudePluginDir = resolve(pkgDir, ".claude-plugin");
+  const claudePluginDir = resolve(pkgDir, '.claude-plugin');
   await mkdir(claudePluginDir, { recursive: true });
-  await writeFile(resolve(claudePluginDir, "plugin.json"), metadataContent);
+  await writeFile(resolve(claudePluginDir, 'plugin.json'), metadataContent);
 }
 
 /**
@@ -85,7 +85,7 @@ export async function validateDirForCopying(
 ): Promise<void> {
   if (sourceDir === targetDir) {
     throw new Error(
-      "Target directory cannot be the same as the package directory.",
+      'Target directory cannot be the same as the package directory.',
     );
   }
 
@@ -97,7 +97,7 @@ export async function validateDirForCopying(
       );
     }
   } catch (error) {
-    if ((error as { code?: string }).code !== "ENOENT") {
+    if ((error as { code?: string }).code !== 'ENOENT') {
       throw error;
     }
   }

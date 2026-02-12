@@ -1,29 +1,29 @@
 // Copyright 2026 The Lynx Authors. All rights reserved.
 // Licensed under the Apache License Version 2.0 that can be found in the
 // LICENSE file in the root directory of this source tree.
-import { mkdir, rm, readFile, copyFile, writeFile } from "node:fs/promises";
-import { extract } from "tar";
-import { pipeline } from "node:stream/promises";
-import { fileURLToPath } from "node:url";
-import { dirname, join, normalize } from "node:path";
-import { build } from "esbuild";
+import { copyFile, mkdir, readFile, rm, writeFile } from 'node:fs/promises';
+import { dirname, join, normalize } from 'node:path';
+import { pipeline } from 'node:stream/promises';
+import { fileURLToPath } from 'node:url';
+import { build } from 'esbuild';
+import { extract } from 'tar';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const RELEASE_DIR = join(
   __dirname,
-  "..",
-  "node_modules",
-  ".lynx-trace-release",
+  '..',
+  'node_modules',
+  '.lynx-trace-release',
 );
-const VENDOR_DIR = join(__dirname, "..", "vendor", "perfetto");
+const VENDOR_DIR = join(__dirname, '..', 'vendor', 'perfetto');
 const DOWNLOAD_URL =
-  "https://github.com/lynx-family/lynx-trace/releases/download/v50.1-ui.alpha.1/perfetto-ui-15375aabfeac5091fc1b1737f1c5a54ff9f3b520.tar.gz";
+  'https://github.com/lynx-family/lynx-trace/releases/download/v50.1-ui.alpha.1/perfetto-ui-15375aabfeac5091fc1b1737f1c5a54ff9f3b520.tar.gz';
 
 /**
  * @returns {Promise<string>}
  */
 async function downloadAndExtractLatestRelease() {
-  console.log("Downloading release from GitHub...");
+  console.log('Downloading release from GitHub...');
 
   await rm(RELEASE_DIR, { recursive: true, force: true });
   await mkdir(RELEASE_DIR, { recursive: true });
@@ -33,13 +33,13 @@ async function downloadAndExtractLatestRelease() {
     throw new Error(`Failed to download: ${res.status}`);
   }
 
-  console.log("Extracting...");
+  console.log('Extracting...');
   await pipeline(res.body, extract({ cwd: RELEASE_DIR }));
 
   // Read version from index.html
-  const indexHtml = await readFile(join(RELEASE_DIR, "index.html"), "utf-8");
+  const indexHtml = await readFile(join(RELEASE_DIR, 'index.html'), 'utf-8');
   const match = indexHtml.match(/data-perfetto_version='([^']+)'/);
-  let version = "";
+  let version = '';
   if (match) {
     const versionInfo = JSON.parse(match[1]);
     version = versionInfo.stable;
@@ -92,7 +92,7 @@ function createVirtualFSPlugin(
   patches = new Map(),
 ) {
   return {
-    name: "virtual-fs",
+    name: 'virtual-fs',
     setup(build) {
       // Build a map for bare module resolution
       /** @type {Map<string, string>} */
@@ -107,10 +107,10 @@ function createVirtualFSPlugin(
             bareModuleMap.set(modulePath, path);
           }
           if (
-            modulePath.endsWith("/index.js") ||
-            modulePath.endsWith("/index.ts")
+            modulePath.endsWith('/index.js') ||
+            modulePath.endsWith('/index.ts')
           ) {
-            const moduleDir = modulePath.replace(/\/index\.[jt]s$/, "");
+            const moduleDir = modulePath.replace(/\/index\.[jt]s$/, '');
             if (!bareModuleMap.has(moduleDir)) {
               bareModuleMap.set(moduleDir, path);
             }
@@ -130,34 +130,34 @@ function createVirtualFSPlugin(
       };
 
       build.onResolve({ filter: /.*/ }, (args) => {
-        if (args.kind === "entry-point") {
+        if (args.kind === 'entry-point') {
           if (virtualFS.has(args.path)) {
-            return { path: args.path, namespace: "virtual" };
+            return { path: args.path, namespace: 'virtual' };
           }
           return null;
         }
 
-        if (args.namespace !== "virtual") {
+        if (args.namespace !== 'virtual') {
           return null;
         }
 
-        if (!args.path.startsWith(".") && !args.path.startsWith("/")) {
+        if (!args.path.startsWith('.') && !args.path.startsWith('/')) {
           const exactMatch = bareModuleMap.get(args.path);
           if (exactMatch) {
-            return { path: exactMatch, namespace: "virtual" };
+            return { path: exactMatch, namespace: 'virtual' };
           }
 
           for (const suffix of [
-            "/index.js",
-            "/index.ts",
-            ".js",
-            ".ts",
-            "/minimal.js",
+            '/index.js',
+            '/index.ts',
+            '.js',
+            '.ts',
+            '/minimal.js',
           ]) {
             const tryPath = args.path + suffix;
             const match = bareModuleMap.get(tryPath);
             if (match) {
-              return { path: match, namespace: "virtual" };
+              return { path: match, namespace: 'virtual' };
             }
           }
 
@@ -169,14 +169,14 @@ function createVirtualFSPlugin(
 
         const aliased = pathAliases.get(resolved);
         if (aliased && virtualFS.has(aliased)) {
-          return { path: aliased, namespace: "virtual" };
+          return { path: aliased, namespace: 'virtual' };
         }
 
-        const extensions = ["", ".ts", ".js", "/index.ts", "/index.js"];
+        const extensions = ['', '.ts', '.js', '/index.ts', '/index.js'];
         for (const ext of extensions) {
           const tryPath = resolved + ext;
           if (virtualFS.has(tryPath)) {
-            return { path: tryPath, namespace: "virtual" };
+            return { path: tryPath, namespace: 'virtual' };
           }
         }
 
@@ -184,7 +184,7 @@ function createVirtualFSPlugin(
         return { external: true };
       });
 
-      build.onLoad({ filter: /.*/, namespace: "virtual" }, (args) => {
+      build.onLoad({ filter: /.*/, namespace: 'virtual' }, (args) => {
         let content = virtualFS.get(args.path);
         if (content === undefined) {
           return { errors: [{ text: `File not found: ${args.path}` }] };
@@ -207,7 +207,7 @@ function createVirtualFSPlugin(
           }
         }
 
-        const loader = args.path.endsWith(".ts") ? "ts" : "js";
+        const loader = args.path.endsWith('.ts') ? 'ts' : 'js';
         return { contents: content, loader };
       });
     },
@@ -222,15 +222,15 @@ const outputDir = join(RELEASE_DIR, version);
 await mkdir(VENDOR_DIR, { recursive: true });
 
 // Build 1: engine.js from frontend_bundle.js.map
-console.log("\n--- Building engine.js from frontend_bundle.js.map ---");
+console.log('\n--- Building engine.js from frontend_bundle.js.map ---');
 const frontendSourceMap = JSON.parse(
-  await readFile(join(outputDir, "frontend_bundle.js.map"), "utf-8"),
+  await readFile(join(outputDir, 'frontend_bundle.js.map'), 'utf-8'),
 );
 const frontendVFS = buildVirtualFS(frontendSourceMap);
 console.log(`Virtual FS created with ${frontendVFS.size} files`);
 
 const engineEntry = normalize(
-  "../../../out/dist/src/trace_processor/engine.ts",
+  '../../../out/dist/src/trace_processor/engine.ts',
 );
 console.log(`Entry point: ${engineEntry}`);
 console.log(`Entry exists: ${frontendVFS.has(engineEntry)}`);
@@ -238,34 +238,34 @@ console.log(`Entry exists: ${frontendVFS.has(engineEntry)}`);
 await build({
   entryPoints: [engineEntry],
   bundle: true,
-  outfile: join(VENDOR_DIR, "engine.js"),
-  format: "esm",
-  platform: "node",
-  external: ["immer"],
+  outfile: join(VENDOR_DIR, 'engine.js'),
+  format: 'esm',
+  platform: 'node',
+  external: ['immer'],
   plugins: [
     createVirtualFSPlugin(
       frontendVFS,
       new Map([
         [
-          "../../../out/dist/src/gen/protos",
-          "../../../out/dist/ui/tsc/gen/protos.js",
+          '../../../out/dist/src/gen/protos',
+          '../../../out/dist/ui/tsc/gen/protos.js',
         ],
       ]),
     ),
   ],
 });
-console.log(`Output: ${join(VENDOR_DIR, "engine.js")}`);
+console.log(`Output: ${join(VENDOR_DIR, 'engine.js')}`);
 
 // Build 2: wasm_bridge.js from engine_bundle.js.map
-console.log("\n--- Building wasm_bridge.js from engine_bundle.js.map ---");
+console.log('\n--- Building wasm_bridge.js from engine_bundle.js.map ---');
 const engineSourceMap = JSON.parse(
-  await readFile(join(outputDir, "engine_bundle.js.map"), "utf-8"),
+  await readFile(join(outputDir, 'engine_bundle.js.map'), 'utf-8'),
 );
 const engineVFS = buildVirtualFS(engineSourceMap);
 console.log(`Virtual FS created with ${engineVFS.size} files`);
 
 const wasmBridgeEntry = normalize(
-  "../../../out/dist/src/engine/wasm_bridge.ts",
+  '../../../out/dist/src/engine/wasm_bridge.ts',
 );
 console.log(`Entry point: ${wasmBridgeEntry}`);
 console.log(`Entry exists: ${engineVFS.has(wasmBridgeEntry)}`);
@@ -273,21 +273,21 @@ console.log(`Entry exists: ${engineVFS.has(wasmBridgeEntry)}`);
 await build({
   entryPoints: [wasmBridgeEntry],
   bundle: true,
-  outfile: join(VENDOR_DIR, "wasm_bridge.js"),
-  format: "esm",
-  platform: "node",
+  outfile: join(VENDOR_DIR, 'wasm_bridge.js'),
+  format: 'esm',
+  platform: 'node',
   plugins: [
     createVirtualFSPlugin(
       engineVFS,
       new Map([
         [
-          "../../../out/dist/src/gen/trace_processor",
-          "../../../out/dist/ui/tsc/gen/trace_processor.js",
+          '../../../out/dist/src/gen/trace_processor',
+          '../../../out/dist/ui/tsc/gen/trace_processor.js',
         ],
       ]),
       new Map([
         [
-          "../../../out/dist/src/engine/wasm_bridge.ts",
+          '../../../out/dist/src/engine/wasm_bridge.ts',
           [
             {
               oldCode: `\
@@ -317,7 +317,7 @@ await build({
           ],
         ],
         [
-          "../../../out/dist/ui/tsc/gen/trace_processor.js",
+          '../../../out/dist/ui/tsc/gen/trace_processor.js',
           [
             {
               oldCode: `throw new Error("environment detection error");`,
@@ -329,20 +329,20 @@ await build({
     ),
   ],
 });
-console.log(`Output: ${join(VENDOR_DIR, "wasm_bridge.js")}`);
+console.log(`Output: ${join(VENDOR_DIR, 'wasm_bridge.js')}`);
 
 // Copy trace_processor.wasm to vendor directory
 await copyFile(
-  join(outputDir, "trace_processor.wasm"),
-  join(VENDOR_DIR, "trace_processor.wasm"),
+  join(outputDir, 'trace_processor.wasm'),
+  join(VENDOR_DIR, 'trace_processor.wasm'),
 );
-console.log(`Copied: ${join(VENDOR_DIR, "trace_processor.wasm")}`);
+console.log(`Copied: ${join(VENDOR_DIR, 'trace_processor.wasm')}`);
 
 // Download and save Perfetto LICENSE
 const licenseRes = await fetch(
-  "https://raw.githubusercontent.com/google/perfetto/master/LICENSE",
+  'https://raw.githubusercontent.com/google/perfetto/master/LICENSE',
 );
 if (licenseRes.ok) {
-  await writeFile(join(VENDOR_DIR, "LICENSE"), await licenseRes.text());
-  console.log(`Downloaded: ${join(VENDOR_DIR, "LICENSE")}`);
+  await writeFile(join(VENDOR_DIR, 'LICENSE'), await licenseRes.text());
+  console.log(`Downloaded: ${join(VENDOR_DIR, 'LICENSE')}`);
 }

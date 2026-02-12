@@ -31,7 +31,7 @@ jobs:
         run: pnpm install
 
       - name: Code Style Check
-        run: pnpm biome check
+        run: pnpm check
 
       - name: Changeset Check
         run: pnpm changeset status --since=origin/main
