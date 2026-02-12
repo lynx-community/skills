@@ -2,12 +2,21 @@ name: Test
 
 on:
   pull_request:
-    branches: [main]
+    branches: [main, release]
   push:
     branches: [main]
   workflow_dispatch:
 
 jobs:
+  block-release-pr:
+    if: github.event_name == 'pull_request' && github.base_ref == 'release'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Block PR to release branch
+        run: |
+          echo "::error::PRs to release branch are not allowed. This branch is managed by GitHub Actions only."
+          exit 1
+
   code-style-check:
     runs-on: ubuntu-latest
     timeout-minutes: 10

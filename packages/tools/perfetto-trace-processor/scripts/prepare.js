@@ -63,6 +63,15 @@ async function downloadAndExtractLatestRelease() {
  */
 
 /**
+ * Normalize path using forward slashes (cross-platform)
+ * @param {string} path
+ * @returns {string}
+ */
+function normalizePosix(path) {
+  return normalize(path).replaceAll('\\', '/');
+}
+
+/**
  * Build virtual file system from a sourcemap
  * @param {SourceMap} sourceMap
  * @returns {Map<string, string>}
@@ -73,7 +82,7 @@ function buildVirtualFS(sourceMap) {
   for (let i = 0; i < sourceMap.sources.length; i++) {
     const sourcePath = sourceMap.sources[i];
     const content = sourceMap.sourcesContent[i];
-    const normalizedPath = normalize(sourcePath);
+    const normalizedPath = normalizePosix(sourcePath);
     virtualFS.set(normalizedPath, content);
   }
   return virtualFS;
@@ -126,7 +135,7 @@ function createVirtualFSPlugin(
       const resolvePath = (importPath, importerPath) => {
         const importerDir = dirname(importerPath);
         const joined = join(importerDir, importPath);
-        return normalize(joined);
+        return normalizePosix(joined);
       };
 
       build.onResolve({ filter: /.*/ }, (args) => {
@@ -229,7 +238,7 @@ const frontendSourceMap = JSON.parse(
 const frontendVFS = buildVirtualFS(frontendSourceMap);
 console.log(`Virtual FS created with ${frontendVFS.size} files`);
 
-const engineEntry = normalize(
+const engineEntry = normalizePosix(
   '../../../out/dist/src/trace_processor/engine.ts',
 );
 console.log(`Entry point: ${engineEntry}`);
@@ -264,7 +273,7 @@ const engineSourceMap = JSON.parse(
 const engineVFS = buildVirtualFS(engineSourceMap);
 console.log(`Virtual FS created with ${engineVFS.size} files`);
 
-const wasmBridgeEntry = normalize(
+const wasmBridgeEntry = normalizePosix(
   '../../../out/dist/src/engine/wasm_bridge.ts',
 );
 console.log(`Entry point: ${wasmBridgeEntry}`);
