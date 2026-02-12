@@ -11,6 +11,14 @@
     "reference.md",
     "examples.md"
   ],
+  "scripts": {
+    "build": "rslib build"
+  },
+  "devDependencies": {
+    "@rslib/core": "catalog:rstack",
+    "@types/node": "^24.10.4",
+    "typescript": "^5.9.3"
+  },
   "engines": {
     "node": ">=18"
   }
