@@ -16,7 +16,8 @@
   "scripts": {
     "build": "build-marketplace && node ./export-skills.mjs",
     "prepare": "husky && turbo build",
-    "release": "turbo build && pnpm run build && pnpm changeset publish"
+    "release": "turbo build && pnpm run build && pnpm changeset publish",
+    "test": "pnpm -r test"
   },
   "lint-staged": {
     "*.{ts,tsx,js,jsx,cjs,mjs,css,sass,scss,less,html,yml,yaml,rs,toml,md,json}": [
