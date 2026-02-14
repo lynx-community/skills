@@ -1,6 +1,11 @@
 {
   "version": "0.2",
-  "ignorePaths": ["**/dist/**", "**/node_modules/**", "**/vendor/**", "pnpm-lock.yaml"],
+  "ignorePaths": [
+    "**/dist/**",
+    "**/node_modules/**",
+    "**/vendor/**",
+    "pnpm-lock.yaml"
+  ],
   "words": [
     "bindscroll",
     "bindtap",

@@ -1,0 +1,24 @@
+{
+  "name": "@lynx-js/benchx-cli",
+  "version": "0.0.1",
+  "private": true,
+  "description": "Workspace wrapper to provide benchx_cli binary via npm (downloads from GitHub Releases in prepare)",
+  "type": "module",
+  "bin": {
+    "benchx_cli": "./bin/benchx_cli.js"
+  },
+  "files": [
+    "bin",
+    "vendor"
+  ],
+  "scripts": {
+    "prepare": "node scripts/prepare.js"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "tar": "^7.5.7"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
