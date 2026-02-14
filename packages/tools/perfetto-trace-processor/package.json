@@ -25,9 +25,11 @@
   ],
   "scripts": {
     "build": "tsc --build",
-    "prepare": "node scripts/prepare.js"
+    "prepare": "node scripts/prepare.js",
+    "test": "pnpm run build && node ./test/smoke.mjs"
   },
   "dependencies": {
+    "@lynx-js/benchx-cli": "workspace:*",
     "commander": "^14.0.3",
     "immer": "^10.1.1"
   },
