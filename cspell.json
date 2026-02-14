@@ -1,4 +1,26 @@
 {
   "version": "0.2",
-  "words": ["rstest"]
+  "ignorePaths": ["**/dist/**", "**/node_modules/**", "**/vendor/**", "pnpm-lock.yaml"],
+  "words": [
+    "bindscroll",
+    "bindtap",
+    "callstacks",
+    "catchtap",
+    "lynxjs",
+    "napi",
+    "packlist",
+    "pftrace",
+    "reactlynx",
+    "rsbuild",
+    "rslib",
+    "rspack",
+    "rspeedy",
+    "rstack",
+    "rstest",
+    "Schlueter",
+    "touchend",
+    "touchmove",
+    "touchstart",
+    "VDOM"
+  ]
 }
