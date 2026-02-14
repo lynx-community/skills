@@ -20,7 +20,7 @@ Trace analysis is a relatively complex process involving multiple concepts and t
 | LynxView | Similar to WebView in native developing. Renders bundle within host application’s context. |
 | Pipeline, `debug.pipeline_id` | The lynx pipeline in Lynx development refers to the sequence of steps a Lynx app takes to convert its internal structures into the visual representation that users see and interact with on their screens. |
 | Timing Flags, `debug.timing_flags` | The identifier (flag) of a Pipeline |
-| LoadTemplate, `LynxLoadTemplate` | Load the Lynx Bundle (historical "Template"), resulting to the FCP |
+| LoadTemplate, `LynxLoadTemplate` | Load the Lynx Bundle (historical "Template"), resulting in FCP |
 
 ## Input
 
@@ -208,7 +208,7 @@ From the graph above, it is easy to analyze the critical paths to reach FCP and 
 **Note:**
 
 - When writing SQL queries, pay attention to adding the `debug.instance_id` filter condition.
-- Filter events by join slice and args tables, and use `debug.timing_flags = "Lynx FCP"` or `debug.timing_flags = "react_lynx_hydrate"` to filter events belonging to the FCP or Hydration stage.
+- Filter events by joining the `slice` and `args` tables, and use `debug.timing_flags = "Lynx FCP"` or `debug.timing_flags = "react_lynx_hydrate"` to filter events belonging to the FCP or Hydration stage.
 - FCP happens mostly on the Engine Thread, while Hydration involves both the JS Thread and Engine Thread. When analyzing Hydration bottlenecks, consider events on both threads and their dependencies.
 
 ### 4 Generate Final Report
