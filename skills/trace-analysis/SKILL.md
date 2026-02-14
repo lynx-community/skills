@@ -20,7 +20,7 @@ Trace analysis is a relatively complex process involving multiple concepts and t
 | LynxView | Similar to WebView in native developing. Renders bundle within host application’s context. |
 | Pipeline, `debug.pipeline_id` | The lynx pipeline in Lynx development refers to the sequence of steps a Lynx app takes to convert its internal structures into the visual representation that users see and interact with on their screens. |
 | Timing Flags, `debug.timing_flags` | The identifier (flag) of a Pipeline |
-| LoadTemplate, `LynxLoadTemplate` |  |
+| LoadTemplate, `LynxLoadTemplate` | Load the Lynx Bundle (historical "Template"), resulting in FCP |
 
 ## Input
 
@@ -144,7 +144,7 @@ graph TD
                 VMExec --> DR_Start((Start))
                 DR_Start --> TriggerJS["Trigger: OnJSPrepared<br/>(Immediate)"]
                 
-                TriggerJS --> CreateVDOM["QuickContext::Call 'renderPage'<br/>(Create VDOM)"]
+                TriggerJS --> CreateVDOM["QuickContext::Call 'debug.name = renderPage'<br/>(Create VDOM)"]
                 
                 CreateVDOM --> LayoutFCP[Layout & Paint]
             end
@@ -166,21 +166,30 @@ graph TD
     end
 
     subgraph JS_Thread [Lynx JS Thread]
-        JSBoot[LoadJSApp]
+        subgraph LoadJSApp [Scope: LoadJSApp]
+            style LoadJSApp fill:#fff3cd,stroke:#856404,stroke-dasharray: 5 5
+            LoadScript[App::loadScript]
+            subgraph ExecScript [Scope: executeLoadedScript]
+                style ExecScript fill:#fff3ee,stroke:#856404,stroke-dasharray: 5 5
+                CreateVDOM_JSThread["ReactLynx::diff::*<br/>(Create VDOM at JS Thread)"]
+            end
+        end
+        
+        LoadScript --> ExecScript
         
         subgraph Hydration_Scope_JS [Scope: react_lynx_hydrate]
             style Hydration_Scope_JS fill:#ebf8ff,stroke:#3182ce,stroke-dasharray: 5 5
             EventDispatch[EventTarget::DispatchEvent]
-            Hydrate["react_lynx_hydrate<br/>(JS Execution)"]
+            Hydrate["react_lynx_hydrate<br/>(JS Execution)<br/>(VDOM at JS Thread will hydrate the VDOM at Engine Thread)"]
         end
-        
-        JSBoot -.->|Implicit: Thread Busy| EventDispatch
+
+        LoadJSApp -.->|Implicit: Thread Busy| EventDispatch
         EventDispatch --> Hydrate
-        Hydrate --"Update UI (callLepusMethod)"--> UpdateUI
+        Hydrate --"Update UI (TemplateAssembler::CallLepusMethod)"--> UpdateUI
     end
 
     %% Cross-Thread Signals
-    TriggerJS --"Async Trigger"--> JSBoot
+    TriggerJS --"Async Trigger"--> LoadJSApp
     Lifecycle --"Flow: Dispatch Event"--> EventDispatch
 
     %% Styling Classes
@@ -196,11 +205,15 @@ graph TD
 
 From the graph above, it is easy to analyze the critical paths to reach FCP and Hydration, as well as the performance bottlenecks in each stage.
 
-When writing SQL queries, pay attention to adding the `instance_id` filter condition.
+**Note:**
+
+- When writing SQL queries, pay attention to adding the `debug.instance_id` filter condition.
+- Filter events by joining the `slice` and `args` tables, and use `debug.timing_flags = "Lynx FCP"` or `debug.timing_flags = "react_lynx_hydrate"` to filter events belonging to the FCP or Hydration stage.
+- FCP happens mostly on the Engine Thread, while Hydration involves both the JS Thread and Engine Thread. When analyzing Hydration bottlenecks, consider events on both threads and their dependencies.
 
 ### 4 Generate Final Report
 
-Refer to the format in [Output](#Output) to generate the final analysis report.
+Refer to the format in [Output](#output) to generate the final analysis report.
 
 ## Appendix
 
