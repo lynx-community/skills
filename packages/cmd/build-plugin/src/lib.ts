@@ -40,7 +40,7 @@ export async function buildPlugin(pkgDir: string) {
     with: { type: 'json' },
   });
 
-  if (!pkg.name.match(/^@lynx-js\/plugin-/)) {
+  if (!pkg.name.match(/^@lynx-js\/ai-plugin-/)) {
     throw new Error('Package is not a plugin. Aborting...');
   }
 
@@ -60,7 +60,7 @@ export async function buildPlugin(pkgDir: string) {
   // metadata files
   const metadataContent = `${JSON.stringify(
     {
-      name: pkg.name.replace(/^@lynx-js\/plugin-/, ''),
+      name: pkg.name.replace(/^@lynx-js\/ai-plugin-/, ''),
       version: pkg.version,
       description: pkg.description || '',
     },

@@ -91,7 +91,7 @@ mkdir -p packages/plugins/my-plugin
 
 ```json
 {
-  "name": "@lynx-js/plugin-my-plugin",
+  "name": "@lynx-js/ai-plugin-my-plugin",
   "private": true,
   "version": "0.1.0",
   "description": "My Plugin",
@@ -126,7 +126,7 @@ mkdir -p packages/plugins/my-plugin
 ```json
 {
   "dependencies": {
-    "@lynx-js/plugin-my-plugin": "workspace:*"
+    "@lynx-js/ai-plugin-my-plugin": "workspace:*"
   }
 }
 ```
@@ -149,7 +149,7 @@ pnpm -F @lynx-js/skill-reactlynx-best-practices test
 | Type   | Pattern             | Example                                  |
 | ------ | ------------------- | ---------------------------------------- |
 | Skill  | `@lynx-js/skill-*`  | `@lynx-js/skill-reactlynx-best-practices` |
-| Plugin | `@lynx-js/plugin-*` | `@lynx-js/plugin-reactlynx`              |
+| Plugin | `@lynx-js/ai-plugin-*` | `@lynx-js/ai-plugin-reactlynx`              |
 
 ## How It Works
 

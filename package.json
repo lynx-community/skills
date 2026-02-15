@@ -28,8 +28,8 @@
     "package.json": "sort-package-json"
   },
   "dependencies": {
-    "@lynx-js/plugin-lynx-debug": "workspace:*",
-    "@lynx-js/plugin-reactlynx": "workspace:*",
+    "@lynx-js/ai-plugin-lynx-debug": "workspace:*",
+    "@lynx-js/ai-plugin-reactlynx": "workspace:*",
     "@lynx-js/skill-debug-info-remapping": "workspace:*",
     "@lynx-js/skill-reactlynx-best-practices": "workspace:*",
     "@lynx-js/skill-trace-analysis": "workspace:*"
