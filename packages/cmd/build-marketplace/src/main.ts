@@ -27,8 +27,8 @@ async function buildMarketplace(pkgDir: string) {
 
   // PLUGINS
   for (const dep in dependencies) {
-    if (dep.startsWith('@lynx-js/plugin-')) {
-      const name = dep.replace(/^@lynx-js\/plugin-/, '');
+    if (dep.startsWith('@lynx-js/ai-plugin-')) {
+      const name = dep.replace(/^@lynx-js\/ai-plugin-/, '');
       const source = resolve(pkgDir, 'node_modules', dep);
 
       await exportPlugin(source, resolve(pkgDir, 'plugins', name));

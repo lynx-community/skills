@@ -20,10 +20,10 @@ importers:
 
   .:
     dependencies:
-      '@lynx-js/plugin-lynx-debug':
+      '@lynx-js/ai-plugin-lynx-debug':
         specifier: workspace:*
         version: link:packages/plugins/lynx-debug
-      '@lynx-js/plugin-reactlynx':
+      '@lynx-js/ai-plugin-reactlynx':
         specifier: workspace:*
         version: link:packages/plugins/reactlynx
       '@lynx-js/skill-debug-info-remapping':

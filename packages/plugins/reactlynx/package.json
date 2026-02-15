@@ -1,7 +1,7 @@
 {
-  "name": "@lynx-js/plugin-reactlynx",
-  "private": true,
+  "name": "@lynx-js/ai-plugin-reactlynx",
   "version": "0.1.0",
+  "private": true,
   "description": "ReactLynx Development Assistant Agent",
   "type": "module",
   "files": [
