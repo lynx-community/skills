@@ -113,8 +113,8 @@ main-thread.js exception: App render failed at main thread backtrace:
 
 Files used:
 
-  - Debug Info: ./output/.rspeedy/main/debug-info.json
-  - Source File: ./output/.rspeedy/main/main-thread.js
+  - Debug Info: ./dist/.rspeedy/main/debug-info.json
+  - Source File: ./dist/.rspeedy/main/main-thread.js
 ```
 
 The `./dist/.rspeedy/main/main-thread.js:9368:56` will make sure it is clickable in the editor/terminal.
