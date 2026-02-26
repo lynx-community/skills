@@ -71,7 +71,7 @@ If the user uses `rspeedy build` and there is no `.rspeedy` folder, remind them 
 For each `function_id:pc_index` pair in the stack trace, run the remapping script.
 
 ```bash
-node ${CLAUDE_PLUGIN_ROOT}/skills/debug-info/scripts/index.mjs $PROJECT_DIR/[dist]/.rspeedy/[main]/debug-info.json $function_id $pc_index
+node ${CLAUDE_PLUGIN_ROOT}/skills/debug-info-remapping/scripts/index.mjs $PROJECT_DIR/[dist]/.rspeedy/[main]/debug-info.json $function_id $pc_index
 ```
 
 ### 4. Output the Remapped Position
