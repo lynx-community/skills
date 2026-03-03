@@ -116,13 +116,19 @@ Use this to run extra steps during sync (generate files, copy assets, apply patc
 
 ```python
 def example_function():
+    from pathlib import Path
     import shutil
 
-    shutil.copytree("/etc/a", "/etc/b")
+    dest_dir = Path("scripts/sync_something")
+    dest_dir.mkdir(parents=True, exist_ok=True)
+    src = dest_dir / "input.txt"
+    dst = dest_dir / "output.txt"
+    src.write_text("example\n", encoding="utf-8")
+    shutil.copyfile(src, dst)
 
 
 deps = {
-    "sync something": {
+    "scripts/sync_something": {
         "type": "action",
         "function": example_function,
     }
