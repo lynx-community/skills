@@ -1,0 +1,25 @@
+{
+  "name": "@lynx-js/skill-habitat-usage",
+  "version": "0.0.1",
+  "description": "Guidance on using Habitat to manage multi-repo source and asset dependencies via .habitat/DEPS and hab sync, plus troubleshooting common sync failures.",
+  "type": "module",
+  "files": [
+    "SKILL.md",
+    "scripts",
+    "references",
+    "examples",
+    "reference.md",
+    "examples.md"
+  ],
+  "scripts": {
+    "build": "rslib build"
+  },
+  "devDependencies": {
+    "@rslib/core": "catalog:rstack",
+    "@types/node": "^24.10.4",
+    "typescript": "^5.9.3"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
