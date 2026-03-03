@@ -26,10 +26,31 @@ When sync fails (fetch errors, permission issues, timeouts), collect:
 
 Prefer committing the Habitat wrapper (`hab`) and config files (`.habitat`, `DEPS`) into the repository so developers and CI use the same version and configuration.
 
-Example: download the wrapper from the official release:
+Avoid downloading `releases/latest` in automation, because it is not reproducible. Instead, pin to a specific release version (tag) and keep that pinned version consistent across developers and CI.
 
 ```bash
-curl -L -O https://github.com/lynx-family/habitat/releases/latest/download/hab && chmod +x hab
+HABITAT_VERSION="0.3.145"
+curl -L -o hab "https://github.com/lynx-family/habitat/releases/download/${HABITAT_VERSION}/hab"
+chmod +x hab
+```
+
+If you just want to try Habitat locally (not recommended for CI), you can download the latest release:
+
+```bash
+curl -L -o hab "https://github.com/lynx-family/habitat/releases/latest/download/hab"
+chmod +x hab
+```
+
+If you need integrity verification, pin an expected SHA-256 for `hab` in your repo/CI and verify after download:
+
+```bash
+EXPECTED_SHA256="<fill-me>"
+
+if command -v shasum >/dev/null 2>&1; then
+  echo "${EXPECTED_SHA256}  hab" | shasum -a 256 -c -
+else
+  echo "${EXPECTED_SHA256}  hab" | sha256sum -c -
+fi
 ```
 
 ## Multi-Repo Setup (solutions + deps)
