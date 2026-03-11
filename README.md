@@ -47,12 +47,12 @@ Analyze Lynx performance traces (`.ptrace` files) to identify bottlenecks in ren
 ## Installation
 
 ```bash
-npx skills add lynx-family/skills
+npx skills add lynx-community/skills
 ```
 
 ## Contributing
 
-See [CONTRIBUTING.md](https://github.com/lynx-family/skills/blob/main/CONTRIBUTING.md) for development setup, project structure, and guidelines on creating new skills and plugins.
+See [CONTRIBUTING.md](https://github.com/lynx-community/skills/blob/main/CONTRIBUTING.md) for development setup, project structure, and guidelines on creating new skills and plugins.
 
 ## Credits
 
