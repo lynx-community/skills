@@ -164,9 +164,8 @@ The build process:
 
 ## Release Process
 
-> [!WARNING]
+> [!IMPORTANT]
 > Pull requests must target the `main` branch, not the `release` branch.
-
 
 When code is merged to `main`:
 
