@@ -52,7 +52,10 @@ npx skills add lynx-community/skills
 
 ## Contributing
 
-See [CONTRIBUTING.md](https://github.com/lynx-community/skills/blob/main/CONTRIBUTING.md) for development setup, project structure, and guidelines on creating new skills and plugins.
+> [!IMPORTANT]
+> Pull requests must target the `main` branch, not the `release` branch.
+
+See [CONTRIBUTING.md](./CONTRIBUTING.md) for development setup, project structure, and guidelines on creating new skills and plugins.
 
 ## Credits
 
