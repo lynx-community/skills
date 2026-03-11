@@ -41,7 +41,7 @@ jobs:
         run: |
           mkdir -p dist
           npx build-marketplace export ./dist
-          cp README.md dist/
+          cp README.md CONTRIBUTING.md dist/
           tree ./dist
 
       - name: Push to release branch

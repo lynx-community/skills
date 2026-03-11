@@ -33,12 +33,9 @@ pnpm build
 │   ├── cmd/                    # Build tools
 │   │   ├── build-plugin/
 │   │   └── build-marketplace/
+│   ├── tools/
 │   ├── skills/                 # Skill packages
-│   │   ├── debug-info-remapping/
-│   │   └── reactlynx-best-practices/
 │   └── plugins/                # Plugin packages
-│       ├── lynx-debug/
-│       └── reactlynx/
 ├── package.json                # Marketplace root
 └── pnpm-workspace.yaml
 ```
@@ -146,10 +143,10 @@ pnpm -F @lynx-js/skill-reactlynx-best-practices test
 
 ## Naming Conventions
 
-| Type   | Pattern             | Example                                  |
-| ------ | ------------------- | ---------------------------------------- |
-| Skill  | `@lynx-js/skill-*`  | `@lynx-js/skill-reactlynx-best-practices` |
-| Plugin | `@lynx-js/ai-plugin-*` | `@lynx-js/ai-plugin-reactlynx`              |
+| Type   | Pattern                | Example                                   |
+| ------ | ---------------------- | ----------------------------------------- |
+| Skill  | `@lynx-js/skill-*`     | `@lynx-js/skill-reactlynx-best-practices` |
+| Plugin | `@lynx-js/ai-plugin-*` | `@lynx-js/ai-plugin-reactlynx`            |
 
 ## How It Works
 
@@ -166,6 +163,9 @@ The build process:
 3. Generates `.claude-plugin/plugin.json` metadata
 
 ## Release Process
+
+> [!IMPORTANT]
+> Pull requests must target the `main` branch, not the `release` branch.
 
 When code is merged to `main`:
 
