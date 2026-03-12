@@ -1,12 +1,12 @@
 # Lynx Agent Skills
 
-A collection of skills for AI coding agents working with [Lynx](https://lynxjs.org) applications.
+A collection of [Agent skills](https://agentskills.io/) for [Lynx](https://lynxjs.org).
 
 ## Available Skills
 
 ### reactlynx-best-practices
 
-ReactLynx best practices covering dual-thread architecture and React patterns. Provides rules reference for writing, static analysis for reviewing, and auto-fix for refactoring.
+ReactLynx best practices covering patterns writing dual-threaded React code with [ReactLynx](https://lynxjs.org/react/). Provides rules reference for writing, static analysis for reviewing, and auto-fix for refactoring.
 
 **Use when:**
 
