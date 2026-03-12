@@ -46,12 +46,20 @@ When writing new ReactLynx code, reference the rules in `rules/*.md` as best pra
 
 ### 🔍 Review Mode
 
-When reviewing code, use the scanner to analyze source code for issues.
+When reviewing code, do both:
+1. Use the scanner (`scripts/index.mjs`) to analyze source code for issues
+2. Combine findings with `rules/*.md` explanations to generate a rule-aware report
 
 **Use this mode when:**
 - User provides code and asks to "check", "review", or "analyze" it
 - User wants to know if their code has any issues
 - User asks "is this code correct?" or "any problems with this?"
+
+**Report requirements (must include):**
+- Scan summary from `workflow.reviewCode(sourceCode)`
+- Rule interpretation for each hit `ruleId` from `rules/<ruleId>.md`
+- Severity/impact context from rule metadata (`impact`, `impactDescription`)
+- Actionable suggestions based on rule guidance (not only raw diagnostics)
 
 ```bash
 node -e "
@@ -70,12 +78,18 @@ console.log(formatScanReport(summary));
 
 ### 🔧 Refactor Mode
 
-When refactoring, generate a fix plan and **ask the user before applying**.
+When refactoring, generate a fix plan and **ask the user before applying**.  
+In this mode, output must include both script results and a rules-aware report.
 
 **Use this mode when:**
 - User explicitly asks to "fix", "refactor", or "auto-fix" code
 - User wants to apply suggested fixes from a previous review
 - User says "please fix these issues" or "apply the fixes"
+
+**Report requirements (must include):**
+- Pre-fix scan summary and rule-aware interpretation
+- Fix plan summary (`fixableIssues`, `manualIssues`, per-file changes)
+- Post-fix outcome (`appliedFixes`) and remaining manual issues
 
 ```
 TOOL CALL: AskUserQuestion(
