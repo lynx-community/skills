@@ -2,6 +2,9 @@
   "name": "@lynx-js/skill-reactlynx-best-practices",
   "version": "0.0.3",
   "description": "ReactLynx Best Practice SKILL",
+  "repository": {
+    "url": "https://github.com/lynx-community/skills"
+  },
   "type": "module",
   "files": [
     "SKILL.md",
