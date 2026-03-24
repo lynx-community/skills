@@ -1,11 +1,12 @@
 // Copyright 2026 The Lynx Authors. All rights reserved.
 // Licensed under the Apache License Version 2.0 that can be found in the
 // LICENSE file in the root directory of this source tree.
-import type { Connector } from "@lynx-js/devtool-connector";
-import { Command } from "commander";
-import { ReadableStream } from "node:stream/web";
-import { setTimeout } from "node:timers/promises";
-import { getFirstClient, getFirstSession } from "./utils.ts";
+
+import { ReadableStream } from 'node:stream/web';
+import { setTimeout } from 'node:timers/promises';
+import type { Connector } from '@lynx-js/devtool-connector';
+import type { Command } from 'commander';
+import { getFirstClient, getFirstSession } from './utils.ts';
 
 interface ConsoleCallFrame {
   url: string;
@@ -28,26 +29,43 @@ interface ConsoleMessage {
   url?: string;
 }
 
-export function registerGetConsoleCommand(program: Command, connector: Connector) {
+export function registerGetConsoleCommand(
+  program: Command,
+  connector: Connector,
+) {
   program
-    .command("get-console")
-    .description("Capture console logs from the device")
-    .option("-c, --client <clientId>", "Client ID (optional, will auto-discover if not provided)")
-    .option("-s, --session <sessionId>", "Session ID (optional, will auto-discover if not provided)")
-    .option("--offset <number>", "The number of console messages to skip before returning results.", parseInt)
-    .option("--limit <number>", "The maximum number of console messages to return.", parseInt)
+    .command('get-console')
+    .description('Capture console logs from the device')
     .option(
-      "--include-stack-traces",
-      "By default, only error messages would contain stack traces. Set this to true to include stack traces for all messages in the output.",
+      '-c, --client <clientId>',
+      'Client ID (optional, will auto-discover if not provided)',
     )
     .option(
-      "--level <levels>",
+      '-s, --session <sessionId>',
+      'Session ID (optional, will auto-discover if not provided)',
+    )
+    .option(
+      '--offset <number>',
+      'The number of console messages to skip before returning results.',
+      parseInt,
+    )
+    .option(
+      '--limit <number>',
+      'The maximum number of console messages to return.',
+      parseInt,
+    )
+    .option(
+      '--include-stack-traces',
+      'By default, only error messages would contain stack traces. Set this to true to include stack traces for all messages in the output.',
+    )
+    .option(
+      '--level <levels>',
       "The log level to filter messages. Defaults to ['info', 'log', 'warning', 'error']",
-      (value) => value.split(",").map((s) => s.trim()),
+      (value) => value.split(',').map((s) => s.trim()),
     )
     .action(async (options) => {
       let { client: clientId, session: sessionId, limit } = options;
-      const { offset = 0, includeStackTraces, level } = options
+      const { offset = 0, includeStackTraces, level } = options;
 
       if (limit) {
         limit = Math.max(1, Math.min(100, limit));
@@ -65,17 +83,20 @@ export function registerGetConsoleCommand(program: Command, connector: Connector
 
       await using stream = await connector.sendCDPStream(
         clientId,
-        ReadableStream.from([{
-          sessionId: numericSessionId,
-          method: "Page.enable",
-        }, {
-          sessionId: numericSessionId,
-          method: "Runtime.enable",
-        }]),
+        ReadableStream.from([
+          {
+            sessionId: numericSessionId,
+            method: 'Page.enable',
+          },
+          {
+            sessionId: numericSessionId,
+            method: 'Runtime.enable',
+          },
+        ]),
       );
 
       const messages: ConsoleMessage[] = [];
-      const defaultLevels = ["info", "log", "warning", "error"];
+      const defaultLevels = ['info', 'log', 'warning', 'error'];
       const allowedLevels = level || defaultLevels;
       let skipped = 0;
 
@@ -88,9 +109,9 @@ export function registerGetConsoleCommand(program: Command, connector: Connector
         while (Date.now() - startTime < MAX_TOTAL_TIME) {
           const result = await Promise.race([
             reader.read(),
-            setTimeout(IDLE_TIMEOUT, "timeout" as const),
+            setTimeout(IDLE_TIMEOUT, 'timeout' as const),
           ]);
-          if (result === "timeout") {
+          if (result === 'timeout') {
             await reader.cancel();
             break;
           }
@@ -98,7 +119,7 @@ export function registerGetConsoleCommand(program: Command, connector: Connector
           const { done, value } = result;
           if (done) break;
 
-          if (value.method === "Runtime.consoleAPICalled") {
+          if (value.method === 'Runtime.consoleAPICalled') {
             const params = value.params as ConsoleMessage;
             if (allowedLevels.includes(params.type)) {
               if (skipped < offset) {
@@ -106,7 +127,7 @@ export function registerGetConsoleCommand(program: Command, connector: Connector
                 continue;
               }
 
-              if (!includeStackTraces && params.type !== "error") {
+              if (!includeStackTraces && params.type !== 'error') {
                 delete params.stackTrace;
               }
 
@@ -124,14 +145,22 @@ export function registerGetConsoleCommand(program: Command, connector: Connector
       }
 
       console.log(
-        messages.map(({ type, args, stackTrace }) =>
-          `- [${type}]: ${args.map(({ value }) => value).join(" ")}${stackTrace
-            ? '\n' + stackTrace.callFrames.map(({ url, lineNumber, columnNumber }) =>
-              `    at ${url}:${lineNumber}:${columnNumber}`
-            ).join("\n")
-            : ""
-          }`
-        ).join("\n"),
+        messages
+          .map(
+            ({ type, args, stackTrace }) =>
+              `- [${type}]: ${args.map(({ value }) => value).join(' ')}${
+                stackTrace
+                  ? '\n' +
+                    stackTrace.callFrames
+                      .map(
+                        ({ url, lineNumber, columnNumber }) =>
+                          `    at ${url}:${lineNumber}:${columnNumber}`,
+                      )
+                      .join('\n')
+                  : ''
+              }`,
+          )
+          .join('\n'),
       );
     });
 }

@@ -1,11 +1,12 @@
 // Copyright 2026 The Lynx Authors. All rights reserved.
 // Licensed under the Apache License Version 2.0 that can be found in the
 // LICENSE file in the root directory of this source tree.
-import { Command } from "commander";
-import type { Connector } from "@lynx-js/devtool-connector";
-import { ReadableStream } from "node:stream/web";
-import { setTimeout } from "node:timers/promises";
-import { getFirstClient, getFirstSession } from "./utils.ts";
+
+import { ReadableStream } from 'node:stream/web';
+import { setTimeout } from 'node:timers/promises';
+import type { Connector } from '@lynx-js/devtool-connector';
+import type { Command } from 'commander';
+import { getFirstClient, getFirstSession } from './utils.ts';
 
 interface ScriptParsedEvent {
   scriptId: string;
@@ -13,12 +14,21 @@ interface ScriptParsedEvent {
   [key: string]: unknown;
 }
 
-export function registerGetSourcesCommand(program: Command, connector: Connector) {
+export function registerGetSourcesCommand(
+  program: Command,
+  connector: Connector,
+) {
   program
-    .command("get-sources")
-    .description("List all parsed scripts.")
-    .option("-c, --client <clientId>", "Client ID (optional, will auto-discover if not provided)")
-    .option("-s, --session <sessionId>", "Session ID (optional, will auto-discover if not provided)")
+    .command('get-sources')
+    .description('List all parsed scripts.')
+    .option(
+      '-c, --client <clientId>',
+      'Client ID (optional, will auto-discover if not provided)',
+    )
+    .option(
+      '-s, --session <sessionId>',
+      'Session ID (optional, will auto-discover if not provided)',
+    )
     .action(async (options) => {
       let { client: clientId, session: sessionId } = options;
 
@@ -32,13 +42,16 @@ export function registerGetSourcesCommand(program: Command, connector: Connector
 
       const numericSessionId = Number(sessionId);
 
-      const messages: { sessionId: number; method: string }[] = [{
-        sessionId: numericSessionId,
-        method: "Debugger.disable",
-      },{
-        sessionId: numericSessionId,
-        method: "Debugger.enable",
-      }];
+      const messages: { sessionId: number; method: string }[] = [
+        {
+          sessionId: numericSessionId,
+          method: 'Debugger.disable',
+        },
+        {
+          sessionId: numericSessionId,
+          method: 'Debugger.enable',
+        },
+      ];
 
       await using stream = await connector.sendCDPStream(
         clientId,
@@ -56,9 +69,9 @@ export function registerGetSourcesCommand(program: Command, connector: Connector
         while (Date.now() - startTime < MAX_TOTAL_TIME) {
           const result = await Promise.race([
             reader.read(),
-            setTimeout(IDLE_TIMEOUT, "timeout" as const),
+            setTimeout(IDLE_TIMEOUT, 'timeout' as const),
           ]);
-          if (result === "timeout") {
+          if (result === 'timeout') {
             await reader.cancel();
             break;
           }
@@ -66,7 +79,7 @@ export function registerGetSourcesCommand(program: Command, connector: Connector
           const { done, value } = result;
           if (done) break;
 
-          if (value.method === "Debugger.scriptParsed") {
+          if (value.method === 'Debugger.scriptParsed') {
             scripts.push(value.params as ScriptParsedEvent);
           }
         }
@@ -74,6 +87,12 @@ export function registerGetSourcesCommand(program: Command, connector: Connector
         reader.releaseLock();
       }
 
-      console.log(JSON.stringify(scripts.map(({ scriptId, url }) => ({ scriptId, url })), null, 2));
+      console.log(
+        JSON.stringify(
+          scripts.map(({ scriptId, url }) => ({ scriptId, url })),
+          null,
+          2,
+        ),
+      );
     });
 }

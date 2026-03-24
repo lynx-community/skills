@@ -1,16 +1,20 @@
 // Copyright 2026 The Lynx Authors. All rights reserved.
 // Licensed under the Apache License Version 2.0 that can be found in the
 // LICENSE file in the root directory of this source tree.
-import { Command } from "commander";
-import type { Connector } from "@lynx-js/devtool-connector";
-import { getFirstClient } from "./utils.ts";
+
+import type { Connector } from '@lynx-js/devtool-connector';
+import type { Command } from 'commander';
+import { getFirstClient } from './utils.ts';
 
 export function registerOpenCommand(program: Command, connector: Connector) {
   program
-    .command("open")
-    .description("Open page")
-    .option("-c, --client <clientId>", "Client ID (optional, will auto-discover if not provided)")
-    .argument("<url>", "The url of the page")
+    .command('open')
+    .description('Open page')
+    .option(
+      '-c, --client <clientId>',
+      'Client ID (optional, will auto-discover if not provided)',
+    )
+    .argument('<url>', 'The url of the page')
     .action(async (url, options) => {
       let { client: clientId } = options;
 
@@ -19,11 +23,11 @@ export function registerOpenCommand(program: Command, connector: Connector) {
       }
 
       const openCardMessage = {
-        event: "Customized",
+        event: 'Customized',
         data: {
-          type: "OpenCard",
+          type: 'OpenCard',
           data: {
-            type: "url",
+            type: 'url',
             url,
           },
           sender: -1,
@@ -31,12 +35,17 @@ export function registerOpenCommand(program: Command, connector: Connector) {
         from: -1,
       } as const;
 
-      let result;
+      let result: unknown;
       try {
         result = await connector.sendMessage(clientId, openCardMessage);
       } catch (error) {
-        console.warn(`OpenCard failed, falling back to App.openPage for ${url}`, error);
-        result = await connector.sendAppMessage(clientId, "App.openPage", { url });
+        console.warn(
+          `OpenCard failed, falling back to App.openPage for ${url}`,
+          error,
+        );
+        result = await connector.sendAppMessage(clientId, 'App.openPage', {
+          url,
+        });
       }
 
       console.log(JSON.stringify(result, null, 2));
