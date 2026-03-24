@@ -146,6 +146,21 @@ importers:
         specifier: ^5.9.3
         version: 5.9.3
 
+  packages/skills/devtool:
+    devDependencies:
+      '@lynx-js/devtool-connector':
+        specifier: 0.1.0
+        version: 0.1.0
+      '@rslib/core':
+        specifier: catalog:rstack
+        version: 0.19.2(@microsoft/api-extractor@7.56.2(@types/node@24.10.10))(typescript@5.9.3)
+      '@types/node':
+        specifier: '24'
+        version: 24.10.10
+      commander:
+        specifier: '14'
+        version: 14.0.3
+
   packages/skills/habitat-usage:
     devDependencies:
       '@rslib/core':
@@ -657,6 +672,10 @@ packages:
   '@isaacs/fs-minipass@4.0.1':
     resolution: {integrity: sha512-wgm9Ehl2jpeqP3zw/7mo3kRHFp5MEDhqAdwy1fTGkHAwnkGOVsgpvQhL8B5n1qlb01jV3n/bI0ZfZp5lWA1k4w==}
     engines: {node: '>=18.0.0'}
+
+  '@lynx-js/devtool-connector@0.1.0':
+    resolution: {integrity: sha512-zYE7aUC510EGDGA/wsGdNn8tVRy5XDwS8OmpFTTKMmzw9ww1LI3xYWlop5MF1cockZR98QHEmtzgxpXYa0YN9g==}
+    engines: {node: '>=18.19'}
 
   '@manypkg/find-root@1.1.0':
     resolution: {integrity: sha512-mki5uBvhHzO8kYYix/WRy2WX8S3B5wdVSc9D6KcU5lQNglP2yt58/VfLuAK49glRXChosY8ap2oJ1qgma3GUVA==}
@@ -2298,6 +2317,8 @@ snapshots:
   '@isaacs/fs-minipass@4.0.1':
     dependencies:
       minipass: 7.1.2
+
+  '@lynx-js/devtool-connector@0.1.0': {}
 
   '@manypkg/find-root@1.1.0':
     dependencies:
