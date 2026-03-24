@@ -1,0 +1,26 @@
+{
+  "name": "@lynx-js/skill-devtool",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "files": [
+    "SKILL.md",
+    "scripts",
+    "references",
+    "examples",
+    "reference.md",
+    "examples.md"
+  ],
+  "scripts": {
+    "build": "rslib build"
+  },
+  "devDependencies": {
+    "@lynx-js/devtool-connector": "0.1.0",
+    "@rslib/core": "catalog:rstack",
+    "@types/node": "24",
+    "commander": "14"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
