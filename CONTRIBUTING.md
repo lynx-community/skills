@@ -76,6 +76,16 @@ mkdir -p packages/skills/my-skill
 
 4. (Optional) Add scripts in `src/` with `rslib.config.ts` for TypeScript compilation.
 
+5. (Optional, recommended) Add the skill to root `package.json` if you need this skill in the release branch (final artifact):
+
+```json
+{
+  "dependencies": {
+    "@lynx-js/skill-my-skill": "workspace:*"
+  }
+}
+```
+
 ## Creating a Plugin
 
 1. Create a directory under `packages/plugins/`:
@@ -118,7 +128,7 @@ mkdir -p packages/plugins/my-plugin
 }
 ```
 
-3. Add the plugin to root `package.json`:
+3. (Optional, recommended) Add the plugin to root `package.json` if you need this plugin in the release branch (final artifact):
 
 ```json
 {
