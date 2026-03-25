@@ -29,6 +29,9 @@ importers:
       '@lynx-js/skill-debug-info-remapping':
         specifier: workspace:*
         version: link:packages/skills/debug-info-remapping
+      '@lynx-js/skill-devtool':
+        specifier: workspace:*
+        version: link:packages/skills/devtool
       '@lynx-js/skill-habitat-usage':
         specifier: workspace:*
         version: link:packages/skills/habitat-usage
