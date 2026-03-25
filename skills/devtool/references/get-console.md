@@ -25,7 +25,12 @@ The command listens for logs for up to 5 seconds. It stops early if:
 
 ## Output
 
-The output is a JSON array of console message objects. Each object contains the fields returned by the CDP `Runtime.consoleAPICalled` event (e.g., `type`, `args`, `timestamp`, `stackTrace`).
+The output is formatted text where each line represents a console message. The format is:
+`- [<type>]: <message>`
+
+If a message contains an object or array, it will be represented with its description and `objectId` (e.g., `<Object (objectId:123)>` or `<Array(1) (objectId:456)>`).
+
+If `--include-stack-traces` is set or the message type is `error`, the stack trace will be printed below the message.
 
 ## Examples
 

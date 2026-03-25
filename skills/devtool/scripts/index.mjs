@@ -185,7 +185,10 @@ __webpack_require__.add({
                     } finally{
                         reader.releaseLock();
                     }
-                    console.log(messages.map(({ type, args, stackTrace })=>`- [${type}]: ${args.map(({ value })=>value).join(' ')}${stackTrace ? '\n' + stackTrace.callFrames.map(({ url, lineNumber, columnNumber })=>`    at ${url}:${lineNumber}:${columnNumber}`).join('\n') : ''}`).join('\n'));
+                    console.log(messages.map(({ type, args, stackTrace })=>`- [${type}]: ${args.map((arg)=>{
+                            if (arg.objectId) return `<${arg.description || arg.className || 'Object'} (objectId:${arg.objectId})>`;
+                            return arg.value;
+                        }).join(' ')}${stackTrace ? '\n' + stackTrace.callFrames.map(({ url, lineNumber, columnNumber })=>`    at ${url}:${lineNumber}:${columnNumber}`).join('\n') : ''}`).join('\n'));
                 } catch (e) {
                     env.error = e;
                     env.hasError = true;
