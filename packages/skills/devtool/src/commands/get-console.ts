@@ -19,7 +19,12 @@ interface ConsoleStackTrace {
 }
 
 interface ConsoleArg {
+  type: string;
   value?: unknown;
+  className?: string;
+  description?: string;
+  objectId?: string;
+  subtype?: string;
 }
 
 interface ConsoleMessage {
@@ -148,7 +153,14 @@ export function registerGetConsoleCommand(
         messages
           .map(
             ({ type, args, stackTrace }) =>
-              `- [${type}]: ${args.map(({ value }) => value).join(' ')}${
+              `- [${type}]: ${args
+                .map((arg) => {
+                  if (arg.objectId) {
+                    return `<${arg.description || arg.className || 'Object'} (objectId:${arg.objectId})>`;
+                  }
+                  return arg.value;
+                })
+                .join(' ')}${
                 stackTrace
                   ? '\n' +
                     stackTrace.callFrames
