@@ -11,3 +11,4 @@ This document lists all Chrome DevTools Protocol (CDP) methods supported by Lynx
 - [Overlay Methods](overlay/index.md)
 - [Lynx Specific Methods](lynx/index.md)
 - [Debugger Methods](debugger/index.md)
+- [Runtime Methods](runtime/index.md)
