@@ -44,7 +44,7 @@ Analyze Lynx performance traces (`.ptrace` files) to identify bottlenecks in ren
 - Understanding Lynx pipeline execution flow
 - Automated performance reporting / regressions detection with Agents
 
-### devtool
+### lynx-devtool
 
 Interact with Lynx DevTool to inspect and debug Lynx applications via the CLI. Supports sending CDP commands, App commands, opening URLs, reading console logs, listing sources, and taking screenshots on connected devices.
 
