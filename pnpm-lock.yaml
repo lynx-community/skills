@@ -31,7 +31,7 @@ importers:
         version: link:packages/skills/debug-info-remapping
       '@lynx-js/skill-devtool':
         specifier: workspace:*
-        version: link:packages/skills/devtool
+        version: link:packages/skills/lynx-devtool
       '@lynx-js/skill-habitat-usage':
         specifier: workspace:*
         version: link:packages/skills/habitat-usage
@@ -149,7 +149,19 @@ importers:
         specifier: ^5.9.3
         version: 5.9.3
 
-  packages/skills/devtool:
+  packages/skills/habitat-usage:
+    devDependencies:
+      '@rslib/core':
+        specifier: catalog:rstack
+        version: 0.19.2(@microsoft/api-extractor@7.56.2(@types/node@24.10.10))(typescript@5.9.3)
+      '@types/node':
+        specifier: ^24.10.4
+        version: 24.10.10
+      typescript:
+        specifier: ^5.9.3
+        version: 5.9.3
+
+  packages/skills/lynx-devtool:
     devDependencies:
       '@lynx-js/devtool-connector':
         specifier: 0.1.0
@@ -163,18 +175,6 @@ importers:
       commander:
         specifier: '14'
         version: 14.0.3
-
-  packages/skills/habitat-usage:
-    devDependencies:
-      '@rslib/core':
-        specifier: catalog:rstack
-        version: 0.19.2(@microsoft/api-extractor@7.56.2(@types/node@24.10.10))(typescript@5.9.3)
-      '@types/node':
-        specifier: ^24.10.4
-        version: 24.10.10
-      typescript:
-        specifier: ^5.9.3
-        version: 5.9.3
 
   packages/skills/reactlynx-best-practices:
     dependencies:
