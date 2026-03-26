@@ -1,5 +1,5 @@
 ---
-name: devtool
+name: lynx-devtool
 description: Interact with Lynx DevTool to inspect and debug Lynx applications. Use this skill to list connected clients and sessions, send Chrome DevTools Protocol (CDP) commands, send App commands, and open URLs in Lynx. This is useful for debugging UI issues, inspecting runtime state, or automating interactions with Lynx apps.
 ---
 
@@ -30,7 +30,6 @@ node <path_to_the_skill>/scripts/index.mjs <command>
 - [Send CDP Command](examples/cdp.md): Send a supported CDP method to a selected session.
 - [Send App Command](examples/app.md): Send an App-level method to the Lynx app.
 - [Open URL](examples/open.md): Open a target URL in the Lynx app.
-- [Get Console](examples/get-console.md): Read console logs with level and range filters.
 - [Get Sources](examples/get-sources.md): List parsed scripts for later debugger operations.
 - [Take Screenshot](examples/take-screenshot.md): Capture the current page as a screenshot.
 
