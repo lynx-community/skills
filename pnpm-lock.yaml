@@ -29,12 +29,12 @@ importers:
       '@lynx-js/skill-debug-info-remapping':
         specifier: workspace:*
         version: link:packages/skills/debug-info-remapping
-      '@lynx-js/skill-devtool':
-        specifier: workspace:*
-        version: link:packages/skills/lynx-devtool
       '@lynx-js/skill-habitat-usage':
         specifier: workspace:*
         version: link:packages/skills/habitat-usage
+      '@lynx-js/skill-lynx-devtool':
+        specifier: workspace:*
+        version: link:packages/skills/lynx-devtool
       '@lynx-js/skill-reactlynx-best-practices':
         specifier: workspace:*
         version: link:packages/skills/reactlynx-best-practices
