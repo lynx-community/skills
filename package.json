@@ -33,6 +33,7 @@
     "@lynx-js/skill-debug-info-remapping": "workspace:*",
     "@lynx-js/skill-habitat-usage": "workspace:*",
     "@lynx-js/skill-lynx-devtool": "workspace:*",
+    "@lynx-js/skill-lynx-typescript": "workspace:*",
     "@lynx-js/skill-reactlynx-best-practices": "workspace:*",
     "@lynx-js/skill-trace-analysis": "workspace:*"
   },
