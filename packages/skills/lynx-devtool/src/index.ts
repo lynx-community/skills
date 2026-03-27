@@ -10,8 +10,17 @@ import {
 } from '@lynx-js/devtool-connector/transport';
 import { createProgram } from './devtool.ts';
 
+function getAndroidTransportSpec(): { host: string; port: number } {
+  const port = Number.parseInt(process.env['ADB_SERVER_PORT'] ?? '5037', 10);
+
+  return {
+    host: process.env['ADB_SERVER_HOST'] ?? '127.0.0.1',
+    port: Number.isInteger(port) && port > 0 ? port : 5037,
+  };
+}
+
 const transports: Transport[] = [
-  new AndroidTransport(),
+  new AndroidTransport(getAndroidTransportSpec()),
   new DesktopTransport(),
   new iOSTransport(),
 ];
