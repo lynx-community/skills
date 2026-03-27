@@ -12,4 +12,4 @@ This document lists all Chrome DevTools Protocol (CDP) methods supported by Lynx
 - [Overlay Methods](overlay/index.md)
 - [Page Methods](page/index.md)
 - [Runtime Methods](runtime/index.md)
-- [WhiteBoard Methods](whiteboard/index.md)
+- [WhiteBoard (session storage) Methods](whiteboard/index.md)

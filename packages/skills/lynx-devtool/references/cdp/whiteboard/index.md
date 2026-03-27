@@ -2,6 +2,13 @@
 
 The `WhiteBoard` domain provides access to Lynx shared global data. Values are read and written as serialized JSON strings.
 
+## Related APIs
+
+- `lynx.getSessionStorageItem`
+- `lynx.setSessionStorageItem`
+- `lynx.subscribeSessionStorage`
+- `lynx.unsubscribeSessionStorage`
+
 ## Methods
 
 - [WhiteBoard.enable](WhiteBoard.enable.md) - Enable WhiteBoard domain events
