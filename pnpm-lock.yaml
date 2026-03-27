@@ -35,6 +35,9 @@ importers:
       '@lynx-js/skill-lynx-devtool':
         specifier: workspace:*
         version: link:packages/skills/lynx-devtool
+      '@lynx-js/skill-lynx-typescript':
+        specifier: workspace:*
+        version: link:packages/skills/lynx-typescript
       '@lynx-js/skill-reactlynx-best-practices':
         specifier: workspace:*
         version: link:packages/skills/reactlynx-best-practices
@@ -175,6 +178,8 @@ importers:
       commander:
         specifier: '14'
         version: 14.0.3
+
+  packages/skills/lynx-typescript: {}
 
   packages/skills/reactlynx-best-practices:
     dependencies:

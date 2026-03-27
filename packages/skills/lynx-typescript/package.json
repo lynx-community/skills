@@ -1,0 +1,20 @@
+{
+  "name": "@lynx-js/skill-lynx-typescript",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "files": [
+    "SKILL.md",
+    "scripts",
+    "references",
+    "examples",
+    "template",
+    "reference.md",
+    "examples.md"
+  ],
+  "scripts": {},
+  "devDependencies": {},
+  "engines": {
+    "node": ">=18"
+  }
+}
