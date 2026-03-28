@@ -11,7 +11,7 @@ node <path_to_the_skill>/scripts/index.mjs cdp -m <method> [options] [params]
 
 - `-m, --method <method>`: The CDP method name (e.g., `DOM.getDocument`, `Runtime.evaluate`).
 - `-c, --client <clientId>`: (Optional) The Client ID. If omitted, uses the first available client.
-- `-s, --session <sessionId>`: (Optional) The Session ID. If omitted, uses the first available session.
+- `-s, --session <sessionId>`: (Optional) The Session ID. If omitted, uses the latest available session.
 - `[params]`: (Optional) JSON string of parameters for the command.
 
 Example:

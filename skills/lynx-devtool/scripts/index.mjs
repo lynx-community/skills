@@ -42,7 +42,7 @@ __webpack_require__.add({
                 const { method } = options;
                 let { client: clientId, session: sessionId } = options;
                 if (!clientId) clientId = await (0, _utils_ts__rspack_import_0.a)(connector);
-                if (!sessionId) sessionId = await (0, _utils_ts__rspack_import_0.x)(connector, clientId);
+                if (!sessionId) sessionId = await (0, _utils_ts__rspack_import_0.k)(connector, clientId);
                 const params = paramsStr ? JSON.parse(paramsStr) : {};
                 const result = await connector.sendCDPMessage(clientId, Number(sessionId), method, params);
                 console.log(JSON.stringify(result, null, 2));
@@ -129,7 +129,7 @@ __webpack_require__.add({
                     const { offset = 0, includeStackTraces, level } = options;
                     if (limit) limit = Math.max(1, Math.min(100, limit));
                     if (!clientId) clientId = await (0, _utils_ts__rspack_import_2.a)(connector);
-                    if (!sessionId) sessionId = await (0, _utils_ts__rspack_import_2.x)(connector, clientId);
+                    if (!sessionId) sessionId = await (0, _utils_ts__rspack_import_2.k)(connector, clientId);
                     const numericSessionId = Number(sessionId);
                     const stream = _ts_add_disposable_resource(env, await connector.sendCDPStream(clientId, node_stream_web__rspack_import_0.ReadableStream.from([
                         {
@@ -277,7 +277,7 @@ __webpack_require__.add({
                 try {
                     let { client: clientId, session: sessionId } = options;
                     if (!clientId) clientId = await (0, _utils_ts__rspack_import_2.a)(connector);
-                    if (!sessionId) sessionId = await (0, _utils_ts__rspack_import_2.x)(connector, clientId);
+                    if (!sessionId) sessionId = await (0, _utils_ts__rspack_import_2.k)(connector, clientId);
                     const numericSessionId = Number(sessionId);
                     const messages = [
                         {
@@ -465,7 +465,7 @@ __webpack_require__.add({
                     let { client: clientId, session: sessionId } = options;
                     const { output, fullscreen } = options;
                     if (!clientId) clientId = await (0, _utils_ts__rspack_import_3.a)(connector);
-                    if (!sessionId) sessionId = await (0, _utils_ts__rspack_import_3.x)(connector, clientId);
+                    if (!sessionId) sessionId = await (0, _utils_ts__rspack_import_3.k)(connector, clientId);
                     const numericSessionId = Number(sessionId);
                     const signal = AbortSignal.timeout(10000);
                     const { promise, resolve } = Promise.withResolvers();
@@ -519,7 +519,7 @@ __webpack_require__.add({
     "./src/commands/utils.ts" (__unused_rspack_module, __webpack_exports__, __webpack_require__) {
         __webpack_require__.d(__webpack_exports__, {
             a: ()=>getFirstClient,
-            x: ()=>getFirstSession
+            k: ()=>getLatestSession
         });
         async function getFirstClient(connector) {
             const clients = await connector.listClients();
@@ -527,11 +527,11 @@ __webpack_require__.add({
             if (!firstClient) throw new Error('No available clients found.');
             return firstClient.id;
         }
-        async function getFirstSession(connector, clientId) {
+        async function getLatestSession(connector, clientId) {
             const sessions = await connector.sendListSessionMessage(clientId);
-            const firstSession = sessions[0];
-            if (!firstSession) throw new Error(`No available sessions found for client: ${clientId}`);
-            return String(firstSession.session_id);
+            if (!sessions || 0 === sessions.length) throw new Error(`No available sessions found for client: ${clientId}`);
+            const latestSession = sessions.reduce((max, session)=>session.session_id > max.session_id ? session : max);
+            return String(latestSession.session_id);
         }
     },
     "./src/devtool.ts" (__unused_rspack_module, __webpack_exports__, __webpack_require__) {

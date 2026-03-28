@@ -11,7 +11,7 @@ node scripts/index.mjs get-console [options]
 ## Options
 
 - `-c, --client <clientId>`: Client ID. If not provided, the command will attempt to discover the first available client.
-- `-s, --session <sessionId>`: Session ID. If not provided, the command will attempt to discover the first available session.
+- `-s, --session <sessionId>`: Session ID. If not provided, the command will attempt to discover the latest available session.
 - `--offset <number>`: The number of console messages to skip before returning results. Default is `0`.
 - `--limit <number>`: The maximum number of console messages to return. Values are clamped between 1 and 100.
 - `--include-stack-traces`: By default, only error messages include stack traces. Set this flag to include stack traces for all message types.
