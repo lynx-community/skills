@@ -4,7 +4,7 @@
 
 import type { Connector } from '@lynx-js/devtool-connector';
 import type { Command } from 'commander';
-import { getFirstClient, getFirstSession } from './utils.ts';
+import { getFirstClient, getLatestSession } from './utils.ts';
 
 export function registerCdpCommand(program: Command, connector: Connector) {
   program
@@ -32,7 +32,7 @@ export function registerCdpCommand(program: Command, connector: Connector) {
       }
 
       if (!sessionId) {
-        sessionId = await getFirstSession(connector, clientId);
+        sessionId = await getLatestSession(connector, clientId);
       }
 
       const params = paramsStr ? JSON.parse(paramsStr) : {};

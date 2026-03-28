@@ -11,7 +11,7 @@ node scripts/index.mjs take-screenshot [options]
 ## Options
 
 - `-c, --client <clientId>`: Client ID. If not provided, the command will attempt to discover the first available client.
-- `-s, --session <sessionId>`: Session ID. If not provided, the command will attempt to discover the first available session.
+- `-s, --session <sessionId>`: Session ID. If not provided, the command will attempt to discover the latest available session.
 - `-o, --output <path>`: The file path where the screenshot will be saved. Defaults to `screenshot-<timestamp>.jpeg` in the current working directory.
 
 ## Behavior

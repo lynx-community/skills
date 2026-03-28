@@ -6,7 +6,7 @@ import { ReadableStream } from 'node:stream/web';
 import { setTimeout } from 'node:timers/promises';
 import type { Connector } from '@lynx-js/devtool-connector';
 import type { Command } from 'commander';
-import { getFirstClient, getFirstSession } from './utils.ts';
+import { getFirstClient, getLatestSession } from './utils.ts';
 
 interface ScriptParsedEvent {
   scriptId: string;
@@ -37,7 +37,7 @@ export function registerGetSourcesCommand(
       }
 
       if (!sessionId) {
-        sessionId = await getFirstSession(connector, clientId);
+        sessionId = await getLatestSession(connector, clientId);
       }
 
       const numericSessionId = Number(sessionId);
