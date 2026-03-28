@@ -12,14 +12,16 @@ export async function getFirstClient(connector: Connector): Promise<string> {
   return firstClient.id;
 }
 
-export async function getFirstSession(
+export async function getLatestSession(
   connector: Connector,
   clientId: string,
 ): Promise<string> {
   const sessions = await connector.sendListSessionMessage(clientId);
-  const firstSession = sessions[0];
-  if (!firstSession) {
+  if (!sessions || sessions.length === 0) {
     throw new Error(`No available sessions found for client: ${clientId}`);
   }
-  return String(firstSession.session_id);
+  const latestSession = sessions.reduce((max, session) =>
+    session.session_id > max.session_id ? session : max,
+  );
+  return String(latestSession.session_id);
 }
