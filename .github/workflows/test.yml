@@ -1,0 +1,14 @@
+name: Block PR
+
+on:
+  pull_request:
+    branches: [release]
+
+jobs:
+  block-release-pr:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Block PR to release branch
+        run: |
+          echo "::error::PRs to release branch are not allowed. This branch is managed by GitHub Actions only."
+          exit 1
