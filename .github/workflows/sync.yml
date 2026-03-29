@@ -49,13 +49,12 @@ jobs:
           git fetch origin release || git checkout --orphan release
           git checkout release || git checkout --orphan release
           
-          find . -maxdepth 1 \
-            -not -name '.git' \
-            -not -name 'AGENTS.md' \
-            -not -name '.github' \
-            -not -name '.' \
-            -not -name 'dist' \
-            -exec rm -rf {} +
+          # Only remove the files/folders that are generated in dist/.
+          # This safely preserves any release-specific files (like .github, AGENTS.md, etc.)
+          # while perfectly cleaning up old/deleted skills inside the generated directories.
+          ls -A dist | while read -r item; do
+            rm -rf "$item"
+          done
           
           cp -R dist/. . && rm -rf dist
           
