@@ -3,8 +3,8 @@
 // LICENSE file in the root directory of this source tree.
 import { execSync, spawn } from 'node:child_process';
 import { readFileSync } from 'node:fs';
-import { dirname, resolve } from 'node:path';
 import { createRequire } from 'node:module';
+import { dirname, resolve } from 'node:path';
 
 const require = createRequire(import.meta.url);
 
@@ -19,20 +19,22 @@ const allWorkspaces = JSON.parse(
   }),
 );
 
-const skills = skillDeps.map((name) => {
-  const workspace = allWorkspaces.find((ws) => ws.name === name);
-  if (workspace) {
-    return { name, path: workspace.path };
-  }
+const skills = skillDeps
+  .map((name) => {
+    const workspace = allWorkspaces.find((ws) => ws.name === name);
+    if (workspace) {
+      return { name, path: workspace.path };
+    }
 
-  try {
-    const pkgJsonPath = require.resolve(`${name}/package.json`);
-    return { name, path: dirname(pkgJsonPath) };
-  } catch {
-    console.warn(`Warning: Could not resolve package path for ${name}`);
-    return null;
-  }
-}).filter(Boolean);
+    try {
+      const pkgJsonPath = require.resolve(`${name}/package.json`);
+      return { name, path: dirname(pkgJsonPath) };
+    } catch {
+      console.warn(`Warning: Could not resolve package path for ${name}`);
+      return null;
+    }
+  })
+  .filter(Boolean);
 
 /**
  * @param {string} skillPath
