@@ -46,17 +46,23 @@ jobs:
 
       - name: Push to release branch
         run: |
-          git fetch origin release || git checkout --orphan release
-          git checkout release || git checkout --orphan release
-          
-          # Only remove the files/folders that are generated in dist/.
-          # This safely preserves any release-specific files (like .github, AGENTS.md, etc.)
-          # while perfectly cleaning up old/deleted skills inside the generated directories.
-          ls -A dist | while read -r item; do
+          STAGE_DIR=$(mktemp -d)
+          cp -R dist/. "$STAGE_DIR"
+
+          git fetch origin release || true
+          if git show-ref --verify --quiet refs/remotes/origin/release; then
+            git checkout release
+          else
+            git checkout --orphan release
+          fi
+          git clean -fdx -e .git
+          git checkout -- . 2>/dev/null || true
+
+          ls -A "$STAGE_DIR" | while read -r item; do
             rm -rf "$item"
           done
-          
-          cp -R dist/. . && rm -rf dist
+
+          cp -R "$STAGE_DIR"/. . && rm -rf "$STAGE_DIR"
           
           git config --local user.name "github-actions[bot]"
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
