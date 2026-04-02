@@ -1,6 +1,7 @@
 {
   "name": "@lynx-js/trace-processor",
   "version": "0.0.1",
+  "private": true,
   "description": "A WebAssembly build of the Perfetto Trace Processor providing a JavaScript API for querying Perfetto traces",
   "type": "module",
   "exports": {
