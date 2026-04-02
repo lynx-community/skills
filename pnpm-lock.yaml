@@ -6,9 +6,6 @@ settings:
 
 catalogs:
   rstack:
-    '@rsbuild/core':
-      specifier: 1.7.1
-      version: 1.7.1
     '@rslib/core':
       specifier: 0.19.2
       version: 0.19.2
@@ -35,15 +32,18 @@ importers:
       '@lynx-js/skill-lynx-devtool':
         specifier: workspace:*
         version: link:packages/skills/lynx-devtool
+      '@lynx-js/skill-lynx-trace-analysis':
+        specifier: 0.0.4
+        version: 0.0.4
+      '@lynx-js/skill-lynx-trace-record':
+        specifier: 0.0.3
+        version: 0.0.3
       '@lynx-js/skill-lynx-typescript':
         specifier: workspace:*
         version: link:packages/skills/lynx-typescript
       '@lynx-js/skill-reactlynx-best-practices':
         specifier: workspace:*
         version: link:packages/skills/reactlynx-best-practices
-      '@lynx-js/skill-trace-analysis':
-        specifier: workspace:*
-        version: link:packages/skills/trace-analysis
     devDependencies:
       '@biomejs/biome':
         specifier: 2.3.8
@@ -205,21 +205,6 @@ importers:
       typescript:
         specifier: ^5.9.3
         version: 5.9.3
-
-  packages/skills/trace-analysis:
-    devDependencies:
-      '@lynx-js/trace-processor':
-        specifier: workspace:*
-        version: link:../../tools/perfetto-trace-processor
-      '@rsbuild/core':
-        specifier: catalog:rstack
-        version: 1.7.1
-      '@types/node':
-        specifier: ^20
-        version: 20.19.31
-      commander:
-        specifier: ^14
-        version: 14.0.3
 
   packages/tools/benchx_cli:
     devDependencies:
@@ -684,6 +669,14 @@ packages:
   '@lynx-js/devtool-connector@0.1.0':
     resolution: {integrity: sha512-zYE7aUC510EGDGA/wsGdNn8tVRy5XDwS8OmpFTTKMmzw9ww1LI3xYWlop5MF1cockZR98QHEmtzgxpXYa0YN9g==}
     engines: {node: '>=18.19'}
+
+  '@lynx-js/skill-lynx-trace-analysis@0.0.4':
+    resolution: {integrity: sha512-OZ0bT/DBimNZXBLxDrX++pf6EXrLYSP17EvCquZJm9rxtZ5A9BNuSi2I+fNQpUhoeQDXK/r16XX2xQb7nRir9g==}
+    engines: {node: '>=18'}
+
+  '@lynx-js/skill-lynx-trace-record@0.0.3':
+    resolution: {integrity: sha512-gQINVVX4c0OO8wxKLI30jfaLrWY1nRfDQpPipzjYXAVEGRJ0BQ+KwWj76MthK4f9D+LOj6Y8mG31yI+YmGpc4w==}
+    engines: {node: '>=18'}
 
   '@manypkg/find-root@1.1.0':
     resolution: {integrity: sha512-mki5uBvhHzO8kYYix/WRy2WX8S3B5wdVSc9D6KcU5lQNglP2yt58/VfLuAK49glRXChosY8ap2oJ1qgma3GUVA==}
@@ -2327,6 +2320,10 @@ snapshots:
       minipass: 7.1.2
 
   '@lynx-js/devtool-connector@0.1.0': {}
+
+  '@lynx-js/skill-lynx-trace-analysis@0.0.4': {}
+
+  '@lynx-js/skill-lynx-trace-record@0.0.3': {}
 
   '@manypkg/find-root@1.1.0':
     dependencies:
