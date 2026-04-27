@@ -33,8 +33,8 @@ importers:
         specifier: workspace:*
         version: link:packages/skills/lynx-devtool
       '@lynx-js/skill-lynx-trace-analysis':
-        specifier: 0.0.4
-        version: 0.0.4
+        specifier: 0.0.6
+        version: 0.0.6
       '@lynx-js/skill-lynx-trace-record':
         specifier: 0.0.3
         version: 0.0.3
@@ -670,8 +670,8 @@ packages:
     resolution: {integrity: sha512-zYE7aUC510EGDGA/wsGdNn8tVRy5XDwS8OmpFTTKMmzw9ww1LI3xYWlop5MF1cockZR98QHEmtzgxpXYa0YN9g==}
     engines: {node: '>=18.19'}
 
-  '@lynx-js/skill-lynx-trace-analysis@0.0.4':
-    resolution: {integrity: sha512-OZ0bT/DBimNZXBLxDrX++pf6EXrLYSP17EvCquZJm9rxtZ5A9BNuSi2I+fNQpUhoeQDXK/r16XX2xQb7nRir9g==}
+  '@lynx-js/skill-lynx-trace-analysis@0.0.6':
+    resolution: {integrity: sha512-2vvoMidxnmaxxtrkLFOXy6GK7nXtWC5m7dqLWPacnHm7FmNBRjVPrQCC49v5X8tAcuN2LQjkcTu+ebIYvfq4/w==}
     engines: {node: '>=18'}
 
   '@lynx-js/skill-lynx-trace-record@0.0.3':
@@ -2321,7 +2321,7 @@ snapshots:
 
   '@lynx-js/devtool-connector@0.1.0': {}
 
-  '@lynx-js/skill-lynx-trace-analysis@0.0.4': {}
+  '@lynx-js/skill-lynx-trace-analysis@0.0.6': {}
 
   '@lynx-js/skill-lynx-trace-record@0.0.3': {}
 
