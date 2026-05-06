@@ -26,6 +26,9 @@ importers:
       '@lynx-js/skill-debug-info-remapping':
         specifier: workspace:*
         version: link:packages/skills/debug-info-remapping
+      '@lynx-js/skill-fiber-element':
+        specifier: workspace:*
+        version: link:packages/skills/fiber-element
       '@lynx-js/skill-habitat-usage':
         specifier: workspace:*
         version: link:packages/skills/habitat-usage
@@ -151,6 +154,8 @@ importers:
       typescript:
         specifier: ^5.9.3
         version: 5.9.3
+
+  packages/skills/fiber-element: {}
 
   packages/skills/habitat-usage:
     devDependencies:
