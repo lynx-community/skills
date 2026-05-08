@@ -21,6 +21,10 @@ const SKIP_LIST = new Map([
 ]);
 
 const ALLOWED_PREFIX_RE = /^(lynx-|reactlynx-|ttml-|perflab-)/;
+const ALLOWED_PREFIX_LABEL = ALLOWED_PREFIX_RE.source
+  .slice(2, -2)
+  .split('|')
+  .join(' / ');
 
 function getSkillDirs() {
   if (!existsSync(SKILLS_DIR)) return [];
@@ -47,6 +51,13 @@ function readSkillName(skillDir) {
 }
 
 describe('skills validation', () => {
+  it('skills directory exists', () => {
+    assert.ok(
+      existsSync(SKILLS_DIR),
+      `skills directory not found: ${SKILLS_DIR}`,
+    );
+  });
+
   const skills = getSkillDirs();
 
   if (skills.length === 0) {
@@ -79,7 +90,7 @@ describe('skills validation', () => {
           );
         });
 
-        it('name starts with an allowed prefix (lynx- / reactlynx- / ttml-)', () => {
+        it(`name starts with an allowed prefix (${ALLOWED_PREFIX_LABEL})`, () => {
           assert.match(
             skillName,
             ALLOWED_PREFIX_RE,
