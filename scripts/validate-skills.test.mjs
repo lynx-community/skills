@@ -20,11 +20,13 @@ const SKIP_LIST = new Map([
   ['habitat-usage', 'name does not start with an allowed prefix'],
 ]);
 
-const ALLOWED_PREFIX_RE = /^(lynx-|reactlynx-|ttml-|perflab-)/;
-const ALLOWED_PREFIX_LABEL = ALLOWED_PREFIX_RE.source
-  .slice(2, -2)
-  .split('|')
-  .join(' / ');
+const ALLOWED_PREFIXES = ['lynx-', 'reactlynx-', 'ttml-', 'perflab-'];
+const ALLOWED_PREFIX_RE = new RegExp(
+  `^(${ALLOWED_PREFIXES
+    .map((prefix) => prefix.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'))
+    .join('|')})`,
+);
+const ALLOWED_PREFIX_LABEL = ALLOWED_PREFIXES.join(' / ');
 
 function getSkillDirs() {
   if (!existsSync(SKILLS_DIR)) return [];
