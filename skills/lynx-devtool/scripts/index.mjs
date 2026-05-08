@@ -572,9 +572,9 @@ __webpack_require__.add({
                 var _lynx_js_devtool_connector_transport__rspack_import_1 = __webpack_require__("../../../node_modules/.pnpm/@lynx-js+devtool-connector@0.1.0/node_modules/@lynx-js/devtool-connector/dist/transport/index.js");
                 var _devtool_ts__rspack_import_2 = __webpack_require__("./src/devtool.ts");
                 function getAndroidTransportSpec() {
-                    const port = Number.parseInt(process.env['ADB_SERVER_PORT'] ?? '5037', 10);
+                    const port = Number.parseInt(process.env.ADB_SERVER_PORT ?? '5037', 10);
                     return {
-                        host: process.env['ADB_SERVER_HOST'] ?? '127.0.0.1',
+                        host: process.env.ADB_SERVER_HOST ?? '127.0.0.1',
                         port: Number.isInteger(port) && port > 0 ? port : 5037
                     };
                 }
