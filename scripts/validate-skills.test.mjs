@@ -15,7 +15,6 @@ const SKILLS_DIR = new URL('../skills', import.meta.url).pathname;
 // When a skill here is fixed, remove it from this list so future
 // regressions will be caught.
 const SKIP_LIST = new Map([
-  ['debug-info-remapping', 'name does not start with an allowed prefix'],
   ['fiber-element', 'name does not start with an allowed prefix'],
   ['habitat-usage', 'name does not start with an allowed prefix'],
 ]);

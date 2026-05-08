@@ -1,5 +1,5 @@
 ---
-name: debug-info-remapping
+name: lynx-debug-info-remapping
 description: Remap the function_id:pc_index to the original source code position by provided debug info json file.
 ---
 

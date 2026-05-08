@@ -30,9 +30,9 @@
   "dependencies": {
     "@lynx-js/ai-plugin-lynx-debug": "workspace:*",
     "@lynx-js/ai-plugin-reactlynx": "workspace:*",
-    "@lynx-js/skill-debug-info-remapping": "workspace:*",
     "@lynx-js/skill-fiber-element": "workspace:*",
     "@lynx-js/skill-habitat-usage": "workspace:*",
+    "@lynx-js/skill-lynx-debug-info-remapping": "workspace:*",
     "@lynx-js/skill-lynx-devtool": "workspace:*",
     "@lynx-js/skill-lynx-trace-analysis": "0.0.4",
     "@lynx-js/skill-lynx-trace-record": "0.0.3",

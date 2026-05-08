@@ -23,15 +23,15 @@ importers:
       '@lynx-js/ai-plugin-reactlynx':
         specifier: workspace:*
         version: link:packages/plugins/reactlynx
-      '@lynx-js/skill-debug-info-remapping':
-        specifier: workspace:*
-        version: link:packages/skills/debug-info-remapping
       '@lynx-js/skill-fiber-element':
         specifier: workspace:*
         version: link:packages/skills/fiber-element
       '@lynx-js/skill-habitat-usage':
         specifier: workspace:*
         version: link:packages/skills/habitat-usage
+      '@lynx-js/skill-lynx-debug-info-remapping':
+        specifier: workspace:*
+        version: link:packages/skills/lynx-debug-info-remapping
       '@lynx-js/skill-lynx-devtool':
         specifier: workspace:*
         version: link:packages/skills/lynx-devtool
@@ -128,9 +128,9 @@ importers:
 
   packages/plugins/lynx-debug:
     dependencies:
-      '@lynx-js/skill-debug-info-remapping':
+      '@lynx-js/skill-lynx-debug-info-remapping':
         specifier: workspace:*
-        version: link:../../skills/debug-info-remapping
+        version: link:../../skills/lynx-debug-info-remapping
     devDependencies:
       build-plugin:
         specifier: workspace:*
@@ -146,7 +146,9 @@ importers:
         specifier: workspace:*
         version: link:../../cmd/build-plugin
 
-  packages/skills/debug-info-remapping:
+  packages/skills/fiber-element: {}
+
+  packages/skills/habitat-usage:
     devDependencies:
       '@rslib/core':
         specifier: catalog:rstack
@@ -158,9 +160,7 @@ importers:
         specifier: ^5.9.3
         version: 5.9.3
 
-  packages/skills/fiber-element: {}
-
-  packages/skills/habitat-usage:
+  packages/skills/lynx-debug-info-remapping:
     devDependencies:
       '@rslib/core':
         specifier: catalog:rstack
