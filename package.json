@@ -51,7 +51,8 @@
     "lint-staged": "^16.2.3",
     "sort-package-json": "^3.4.0",
     "turbo": "^2.7.5",
-    "typescript-eslint": "^8.55.0"
+    "typescript-eslint": "^8.55.0",
+    "yaml": "^2.8.2"
   },
   "packageManager": "pnpm@10.18.2"
 }

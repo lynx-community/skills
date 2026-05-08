@@ -36,6 +36,33 @@ jobs:
       - name: Changeset Check
         run: pnpm changeset status --since=origin/main
 
+  validate-new-skills:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+
+      - name: Setup Pnpm
+        run: npm install -g corepack@latest && corepack enable
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "pnpm"
+
+      - name: Install Dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build
+        run: pnpm -r build
+
+      - name: Validate Skills
+        run: node --test scripts/validate-skills.test.mjs
+
   test:
     runs-on: ${{ matrix.os }}
     strategy:
