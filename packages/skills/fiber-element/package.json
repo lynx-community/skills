@@ -1,6 +1,6 @@
 {
   "name": "@lynx-js/skill-fiber-element",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "description": "Build Lynx apps directly with FiberElement Element PAPI APIs from @lynx-js/type-element-api.",
   "repository": {
     "url": "https://github.com/lynx-community/skills"
@@ -19,5 +19,8 @@
   "devDependencies": {},
   "engines": {
     "node": ">=18"
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }
