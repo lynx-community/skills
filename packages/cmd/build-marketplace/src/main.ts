@@ -3,7 +3,7 @@
 // LICENSE file in the root directory of this source tree.
 
 import { readFileSync } from 'node:fs';
-import { mkdir, writeFile } from 'node:fs/promises';
+import { mkdir, rm, writeFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { exportPlugin } from 'build-plugin';
 import { Command } from 'commander';
@@ -24,6 +24,9 @@ async function buildMarketplace(pkgDir: string) {
 
   const plugins: Array<{ name: string; description?: string; source: string }> =
     [];
+
+  // Clean plugins output directory before rebuilding
+  await rm(resolve(pkgDir, 'plugins'), { recursive: true, force: true });
 
   // PLUGINS
   for (const dep in dependencies) {
