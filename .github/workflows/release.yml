@@ -29,12 +29,12 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
         with:
-          node-version: 22
+          node-version: 24
           package-manager-cache: false
 
       - name: Install Dependencies
         run: |
-          npm i -g corepack npm@latest
+          npm i -g corepack
           npm --version
           corepack enable
           pnpm install
