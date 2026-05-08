@@ -2,10 +2,10 @@
 // Licensed under the Apache License Version 2.0 that can be found in the
 // LICENSE file in the root directory of this source tree.
 
-import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync, readdirSync, existsSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { describe, it } from 'node:test';
 import { parse as parseYaml } from 'yaml';
 
 const SKILLS_DIR = new URL('../skills', import.meta.url).pathname;
@@ -64,7 +64,10 @@ describe('skills validation', () => {
       const skillName = readSkillName(skillDir);
 
       it('has a SKILL.md with a name field', () => {
-        assert.ok(skillName, 'SKILL.md is missing or has no name field in frontmatter');
+        assert.ok(
+          skillName,
+          'SKILL.md is missing or has no name field in frontmatter',
+        );
       });
 
       if (skillName) {
@@ -101,10 +104,12 @@ describe('skills validation', () => {
       );
 
       const name = readSkillName(skipDir);
-      assert.ok(name, `"${skipDir}" has no valid name — but should still be checked`);
+      assert.ok(
+        name,
+        `"${skipDir}" has no valid name — but should still be checked`,
+      );
       if (name) {
-        const stillFails =
-          name !== skipDir || !ALLOWED_PREFIX_RE.test(name);
+        const stillFails = name !== skipDir || !ALLOWED_PREFIX_RE.test(name);
         assert.ok(
           stillFails,
           `"${skipDir}" is now compliant (name="${name}") — remove from SKIP_LIST`,
