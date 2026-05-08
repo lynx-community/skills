@@ -36,7 +36,7 @@ jobs:
       - name: Changeset Check
         run: pnpm changeset status --since=origin/main
 
-  validate-new-skills:
+  validate-skills:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
