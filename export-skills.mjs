@@ -3,6 +3,7 @@
 // LICENSE file in the root directory of this source tree.
 import { execSync, spawn } from 'node:child_process';
 import { readFileSync } from 'node:fs';
+import { rm } from 'node:fs/promises';
 import { createRequire } from 'node:module';
 import { dirname, resolve } from 'node:path';
 
@@ -63,11 +64,13 @@ function runBuildPlugin(skillPath, targetDir) {
   });
 }
 
+const skillsOutputDir = resolve(process.cwd(), 'skills');
+await rm(skillsOutputDir, { recursive: true, force: true });
+
 for (const skill of skills) {
   const { name, path: skillPath } = skill;
   const targetDir = resolve(
-    process.cwd(),
-    'skills',
+    skillsOutputDir,
     name.replace('@lynx-js/skill-', ''),
   );
   await runBuildPlugin(skillPath, targetDir);
