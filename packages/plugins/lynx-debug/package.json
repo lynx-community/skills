@@ -18,7 +18,7 @@
     "build": "build-plugin"
   },
   "dependencies": {
-    "@lynx-js/skill-debug-info-remapping": "workspace:*"
+    "@lynx-js/skill-lynx-debug-info-remapping": "workspace:*"
   },
   "devDependencies": {
     "build-plugin": "workspace:*"
