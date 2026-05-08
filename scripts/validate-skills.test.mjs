@@ -22,9 +22,9 @@ const SKIP_LIST = new Map([
 
 const ALLOWED_PREFIXES = ['lynx-', 'reactlynx-', 'ttml-', 'perflab-'];
 const ALLOWED_PREFIX_RE = new RegExp(
-  `^(${ALLOWED_PREFIXES
-    .map((prefix) => prefix.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'))
-    .join('|')})`,
+  `^(${ALLOWED_PREFIXES.map((prefix) =>
+    prefix.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'),
+  ).join('|')})`,
 );
 const ALLOWED_PREFIX_LABEL = ALLOWED_PREFIXES.join(' / ');
 
