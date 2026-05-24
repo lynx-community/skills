@@ -8,8 +8,8 @@
       "files": [],
       "assertions": [
         "Mentions an official Lynx UI docs page or example as the recommended source of truth",
-        "Frames the answer around adapting the official Lynx UI approach rather than inventing a generic React abstraction",
-        "Avoids detouring into unrelated visual-companion or design-gate workflow text"
+        "Points to a local Lynx UI reference file or section in addition to the official docs anchor",
+        "Frames the answer around adapting the official Lynx UI approach rather than inventing a generic React abstraction"
       ]
     },
     {
@@ -19,8 +19,8 @@
       "files": [],
       "assertions": [
         "Recommends Luna themes or tokens as the default theming path",
-        "Points to the Luna themes/tokens docs or names Luna-specific token concepts",
-        "Stays focused on Lynx UI theming guidance instead of generic design-process boilerplate"
+        "Points to the Luna themes/tokens docs page rather than only naming token concepts",
+        "Maps the recommendation to concrete Luna semantic tokens for surfaces, text, borders, or actions"
       ]
     },
     {
@@ -42,7 +42,7 @@
       "assertions": [
         "Treats the request as a screen-level composition problem rather than only a single component lookup",
         "Composes the answer from official Lynx UI primitives such as ScrollView, Switch, RadioGroup, Input, or Button",
-        "Avoids inventing a generic React settings abstraction instead of using Lynx UI primitives"
+        "Explicitly explains why the chosen primitive composition stays close to the official Lynx UI way"
       ]
     },
     {
@@ -64,7 +64,7 @@
       "assertions": [
         "Names the likely boundary between Lynx UI guidance and another local Lynx skill",
         "Mentions reactlynx-best-practices or lynx-typescript when the issue appears architectural or type/config related",
-        "Avoids forcing a pure Lynx UI answer when the prompt explicitly suggests a setup or typing problem"
+        "Includes a minimal boundary check that still verifies an official Lynx UI install/import assumption before handing off"
       ]
     }
   ]
