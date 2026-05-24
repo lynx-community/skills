@@ -37,6 +37,7 @@ This file is a local composition guide, not the final authority. If the closest 
 - Change only names, surrounding layout, local data wiring, and app-specific wrappers.
 - If the task is really just a single primitive choice, go back to [`components.md`](./components.md) instead of forcing a recipe.
 - If the task needs shared visual consistency, pair the recipe with [`theming-and-tokens.md`](./theming-and-tokens.md).
+- If the user needs a concrete one-file example of a composed interactive screen, consult [`example/counter-app.tsx`](./example/counter-app.tsx) before inventing a new layout from scratch.
 
 ## Recipe: settings screen
 

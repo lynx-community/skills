@@ -22,6 +22,7 @@ Read this file when the task is primarily about a Lynx UI component, component c
 - Keep state styling aligned with official state classes or render props.
 - If a component uses main-thread callbacks or gesture-specific props, keep that architecture intact.
 - If the user asks for a new flow, start from one component section here and compose outward.
+- If the user needs a commented reference that combines several primitives in one file, consult [`example/counter-app.tsx`](./example/counter-app.tsx) and copy only the relevant composition slices.
 
 ## Table of contents
 

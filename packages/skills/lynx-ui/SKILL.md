@@ -25,10 +25,11 @@ Use this skill to help AI agents work with the official Lynx UI library in React
 2. Classify the task as setup/install, components/composition, theming/tokens, motion, troubleshooting, or screen-level composition.
 3. Load only the relevant reference files before generating code.
 4. For component work, go straight to [`references/components.md`](./references/components.md) and start from the closest documented component section.
-5. Reuse the nearest official snippet and adapt it minimally.
-6. Explain only the adaptations that were necessary for the user’s codebase.
-7. If the request is a multi-part screen or flow, compose it from the closest official Lynx UI primitives instead of inventing a generic abstraction first.
-8. If the relevant component is not covered in local markdown, check the official Lynx UI docs for the latest component guidance and use that as the source of truth.
+5. If the task needs a concrete multi-component example, open [`references/example/counter-app.tsx`](./references/example/counter-app.tsx) and reuse only the parts that match the request.
+6. Reuse the nearest official snippet and adapt it minimally.
+7. Explain only the adaptations that were necessary for the user’s codebase.
+8. If the request is a multi-part screen or flow, compose it from the closest official Lynx UI primitives instead of inventing a generic abstraction first.
+9. If the relevant component is not covered in local markdown, check the official Lynx UI docs for the latest component guidance and use that as the source of truth.
 
 ## Reading Order
 
@@ -45,6 +46,7 @@ Use this skill to help AI agents work with the official Lynx UI library in React
 - **Theming** — `theming-and-tokens.md`
 - **Motion** — `motion.md`
 - **Screen recipes** — `screen-recipes.md`
+- **Example screen** — `example/counter-app.tsx`
 
 This structure keeps `SKILL.md` as the orchestrator and pushes dense, task-specific guidance into a small reference set, which matches Anthropic's progressive-disclosure skill pattern.
 
@@ -96,6 +98,7 @@ export default function App() {
 - **Theming/tokens** — use Luna themes/tokens instead of ad hoc styling when appropriate.
 - **Motion** — choose between motion and motion-mini and adapt the correct official pattern.
 - **Screen-level composition** — use [`references/screen-recipes.md`](./references/screen-recipes.md) to assemble multi-part screens from the closest documented primitives.
+- **Reference example reuse** — when a request is close to a simple interactive demo or a small composed screen, consult [`references/example/counter-app.tsx`](./references/example/counter-app.tsx) for a concrete one-file example that combines several Lynx UI primitives with comments.
 - **Troubleshooting** — start in [`references/foundation.md`](./references/foundation.md), then hand off if the issue belongs to another local Lynx skill.
 
 ## Related Local Skills
