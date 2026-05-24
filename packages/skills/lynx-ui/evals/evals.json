@@ -1,0 +1,23 @@
+{
+  "skill_name": "lynx-ui",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "I already have a ReactLynx app and want to add Lynx UI for a new interactive list flow. Please use the official Lynx UI approach and keep the code close to the docs unless the project structure forces small changes.",
+      "expected_output": "The response routes through Lynx UI setup or capability guidance, prefers official docs examples, and avoids generic React rewrites.",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "Can you help me add consistent theming to this Lynx UI screen? I think we should use Luna tokens if that's the recommended path.",
+      "expected_output": "The response routes into theming and tokens guidance, points to the Luna docs, and keeps the answer in Lynx UI terms.",
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "I need a small transition for a Lynx UI interaction. Should I use motion or motion-mini, and can you keep it aligned with the official docs?",
+      "expected_output": "The response routes into motion guidance, explains motion vs motion-mini, and prefers the official docs path.",
+      "files": []
+    }
+  ]
+}
