@@ -5,19 +5,34 @@
       "id": 1,
       "prompt": "I already have a ReactLynx app and want to add Lynx UI for a new interactive list flow. Please use the official Lynx UI approach and keep the code close to the docs unless the project structure forces small changes.",
       "expected_output": "The response routes through Lynx UI setup or capability guidance, prefers official docs examples, and avoids generic React rewrites.",
-      "files": []
+      "files": [],
+      "assertions": [
+        "Mentions an official Lynx UI docs page or example as the recommended source of truth",
+        "Frames the answer around adapting the official Lynx UI approach rather than inventing a generic React abstraction",
+        "Avoids detouring into unrelated visual-companion or design-gate workflow text"
+      ]
     },
     {
       "id": 2,
       "prompt": "Can you help me add consistent theming to this Lynx UI screen? I think we should use Luna tokens if that's the recommended path.",
       "expected_output": "The response routes into theming and tokens guidance, points to the Luna docs, and keeps the answer in Lynx UI terms.",
-      "files": []
+      "files": [],
+      "assertions": [
+        "Recommends Luna themes or tokens as the default theming path",
+        "Points to the Luna themes/tokens docs or names Luna-specific token concepts",
+        "Stays focused on Lynx UI theming guidance instead of generic design-process boilerplate"
+      ]
     },
     {
       "id": 3,
       "prompt": "I need a small transition for a Lynx UI interaction. Should I use motion or motion-mini, and can you keep it aligned with the official docs?",
       "expected_output": "The response routes into motion guidance, explains motion vs motion-mini, and prefers the official docs path.",
-      "files": []
+      "files": [],
+      "assertions": [
+        "Chooses between motion and motion-mini with an explicit recommendation",
+        "Justifies the choice using Lynx UI or official-doc-aligned criteria",
+        "Avoids generic animation-library advice that ignores Lynx UI"
+      ]
     }
   ]
 }
