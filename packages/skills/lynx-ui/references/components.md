@@ -84,6 +84,8 @@ Official docs: `https://lynxjs.org/next/lynx-ui/components/button.html`
 
 **Adaptation notes**
 - Keep the `Button` primitive.
+- Lynx UI `Button` uses `onClick`, not raw native view event props like `bindtap` or `catchtap`.
+- Use `bindtap`/`catchtap` only on raw Lynx elements such as `view` when the task is explicitly about native event wiring rather than a Lynx UI component.
 - Change only the internal content, layout wrappers, and local click behavior.
 - Use the active/disabled state channels instead of inventing separate state wiring.
 

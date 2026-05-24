@@ -27,6 +27,7 @@ This file condenses the general working rules for Lynx UI into one place so the 
 - Index: `https://lynxjs.org/next/lynx-ui/`
 - Introduction: `https://lynxjs.org/next/lynx-ui/introduction`
 - Luna themes/tokens: `https://lynxjs.org/next/lynx-ui/luna-themes-tokens.html`
+- Styling and theming setup: `https://lynxjs.org/next/lynx-ui/styling-theming.html#setup`
 - Motion: `https://lynxjs.org/next/lynx-ui/motion.html`
 - Motion Mini: `https://lynxjs.org/next/lynx-ui/motion-mini.html`
 
@@ -41,7 +42,7 @@ This file condenses the general working rules for Lynx UI into one place so the 
 
 - If the user needs a specific primitive or official example, go to [`components.md`](./components.md).
 - If the user needs a multi-part screen or flow, go to [`screen-recipes.md`](./screen-recipes.md).
-- If the task is mainly about shared visual consistency, pair the answer with [`theming-and-tokens.md`](./theming-and-tokens.md).
+- If the task is mainly about shared visual consistency, theme setup, built-in Luna theme application, or custom theme definition, pair the answer with [`theming-and-tokens.md`](./theming-and-tokens.md).
 - If the task depends on animation capability, pair the answer with [`motion.md`](./motion.md).
 - If the issue is really architectural or type/config related, hand off to the relevant local Lynx skill instead of forcing a UI-specific answer.
 
