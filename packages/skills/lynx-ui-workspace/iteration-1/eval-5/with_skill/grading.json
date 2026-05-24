@@ -1,0 +1,38 @@
+{
+  "expectations": [
+    {
+      "text": "Compares the relevant Lynx UI primitives instead of picking one without explanation",
+      "passed": true,
+      "evidence": "It compares `Popover`, `Sheet`, and `Dialog` with usage criteria before choosing one."
+    },
+    {
+      "text": "Points back to the closest official Lynx UI component docs or local component-routing guidance",
+      "passed": true,
+      "evidence": "It points to the official Popover docs URL and local references in `components.md` and `screen-recipes.md`."
+    },
+    {
+      "text": "Avoids jumping straight into unrelated implementation code before choosing the component family",
+      "passed": true,
+      "evidence": "It stays at the component-family decision level and does not jump into unrelated implementation code."
+    }
+  ],
+  "summary": {
+    "passed": 3,
+    "failed": 0,
+    "total": 3,
+    "pass_rate": 1.0
+  },
+  "timing": {
+    "total_tokens": 36237,
+    "duration_ms": 91664,
+    "total_duration_seconds": 91.7
+  },
+  "claims": [
+    {
+      "claim": "Popover is probably the closest official pattern for the described action.",
+      "type": "quality",
+      "verified": true,
+      "evidence": "The answer conditions that recommendation on the action being attached to a specific trigger and contrasts it with when to use Sheet or Dialog."
+    }
+  ]
+}

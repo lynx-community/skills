@@ -1,0 +1,10 @@
+{
+  "eval_id": 6,
+  "eval_name": "cross-skill-handoff",
+  "prompt": "My Lynx UI example looks fine structurally, but the setup and types are breaking in my ReactLynx project. Can you troubleshoot it and tell me if this is actually a Lynx UI problem or another Lynx skill should handle it?",
+  "assertions": [
+    "Names the likely boundary between Lynx UI guidance and another local Lynx skill",
+    "Mentions reactlynx-best-practices or lynx-typescript when the issue appears architectural or type/config related",
+    "Avoids forcing a pure Lynx UI answer when the prompt explicitly suggests a setup or typing problem"
+  ]
+}

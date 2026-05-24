@@ -1,0 +1,47 @@
+{
+  "expectations": [
+    {
+      "text": "Compares the relevant Lynx UI primitives instead of picking one without explanation",
+      "passed": true,
+      "evidence": "It compares `Popover`, `Dialog`, and `Sheet` with explicit criteria such as anchored, modal, or larger sliding surface."
+    },
+    {
+      "text": "Points back to the closest official Lynx UI component docs or local component-routing guidance",
+      "passed": false,
+      "evidence": "It names relevant primitive structures like `DialogRoot` and `PopoverRoot`, but does not point to official docs or local component-routing guidance."
+    },
+    {
+      "text": "Avoids jumping straight into unrelated implementation code before choosing the component family",
+      "passed": true,
+      "evidence": "It avoids implementation code and focuses on choosing the component family first."
+    }
+  ],
+  "summary": {
+    "passed": 2,
+    "failed": 1,
+    "total": 3,
+    "pass_rate": 0.67
+  },
+  "timing": {
+    "total_tokens": 29930,
+    "duration_ms": 81996,
+    "total_duration_seconds": 82.0
+  },
+  "claims": [
+    {
+      "claim": "The right family choice depends on whether the action is anchored, confirmational, or panel-like.",
+      "type": "quality",
+      "verified": true,
+      "evidence": "That distinction is the core structure of the answer."
+    }
+  ],
+  "eval_feedback": {
+    "suggestions": [
+      {
+        "assertion": "Points back to the closest official Lynx UI component docs or local component-routing guidance",
+        "reason": "This failure shows the assertion is meaningful, but if local routing guidance is important the eval could also require a concrete file/path citation, not just primitive names, to distinguish shallow familiarity from grounded guidance."
+      }
+    ],
+    "overall": "The eval is mostly solid; the docs/routing assertion could be made slightly more specific if needed."
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "eval_id": 2,
+  "eval_name": "luna-theming",
+  "prompt": "Can you help me add consistent theming to this Lynx UI screen? I think we should use Luna tokens if that's the recommended path.",
+  "assertions": [
+    "Recommends Luna themes or tokens as the default theming path",
+    "Points to the Luna themes/tokens docs or names Luna-specific token concepts",
+    "Stays focused on Lynx UI theming guidance instead of generic design-process boilerplate"
+  ]
+}

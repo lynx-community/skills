@@ -1,0 +1,44 @@
+{
+  "expectations": [
+    {
+      "text": "Recommends Luna themes or tokens as the default theming path",
+      "passed": true,
+      "evidence": "It says 'Luna tokens are the recommended path here' and recommends a Luna semantic token set as the default."
+    },
+    {
+      "text": "Points to the Luna themes/tokens docs or names Luna-specific token concepts",
+      "passed": true,
+      "evidence": "It cites 'Lynx UI Luna themes/tokens (\\`https://lynxjs.org/next/lynx-ui/luna-themes-tokens.html\\`)' and names tokens such as `canvas`, `paper`, `content`, `line`, and `primary`."
+    },
+    {
+      "text": "Stays focused on Lynx UI theming guidance instead of generic design-process boilerplate",
+      "passed": true,
+      "evidence": "The answer stays on Lynx UI theming guidance and token mapping, without drifting into generic design-process discussion."
+    }
+  ],
+  "summary": {
+    "passed": 3,
+    "failed": 0,
+    "total": 3,
+    "pass_rate": 1.0
+  },
+  "timing": {
+    "total_tokens": 26284,
+    "duration_ms": 48502,
+    "total_duration_seconds": 48.5
+  },
+  "claims": [
+    {
+      "claim": "Luna tokens are the recommended path for consistent Lynx UI theming.",
+      "type": "factual",
+      "verified": true,
+      "evidence": "The first line states this directly and the rest of the answer is organized around Luna token usage."
+    },
+    {
+      "claim": "A small semantic token set can theme a full screen consistently.",
+      "type": "quality",
+      "verified": true,
+      "evidence": "The response maps surfaces, text, actions, and structure to Luna semantics and gives a matching example shell."
+    }
+  ]
+}
