@@ -9,9 +9,7 @@
   "files": [
     "SKILL.md",
     "references",
-    "examples",
-    "rules",
-    "scripts"
+    "evals"
   ],
   "scripts": {},
   "devDependencies": {},
