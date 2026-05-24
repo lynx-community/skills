@@ -10,6 +10,7 @@ Read this file when the task is primarily about a Lynx UI component, component c
 ## How to use this file
 
 - Start with the closest component section below.
+- If you are not sure which component family applies, use the quick routing guide in this file first.
 - Open the official component URL linked in that section.
 - Keep the official structure and subcomponent shape intact.
 - Adapt only naming, surrounding layout, local data wiring, and app-specific wrappers.
@@ -46,6 +47,16 @@ Read this file when the task is primarily about a Lynx UI component, component c
 ## Freshness note
 
 This file is a maintained local field guide, not the final authority. If a component is missing here or the local snippet looks stale, check the official Lynx UI website first and treat the website as the source of truth.
+
+## Quick routing guide
+
+- Need a pressable action or submit control? Start with [Button](#button).
+- Need a boolean toggle or partial selection? Start with [Checkbox](#checkbox) or [Switch](#switch).
+- Need a form field or keyboard-aware text entry? Start with [Input and TextArea](#input-and-textarea) or [Form](#form).
+- Need a modal, drawer, floating layer, or anchored popup? Start with [Dialog](#dialog), [Sheet](#sheet), [OverlayView](#overlayview), or [Popover](#popover).
+- Need a long list, feed, swipeable row, or carousel? Start with [List](#list), [FeedList](#feedlist), [SwipeAction](#swipeaction), or [Swiper](#swiper).
+- Need drag, direct manipulation, or reordering? Start with [Draggable](#draggable) or [Sortable](#sortable).
+- Need deferred rendering or scrollable content wrappers? Start with [LazyComponent](#lazycomponent) or [ScrollView](#scrollview).
 
 ## Button
 

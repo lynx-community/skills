@@ -22,21 +22,31 @@ Use this skill to help AI agents work with the official Lynx UI library in React
 ## Default Workflow
 
 1. Identify the closest official Lynx UI docs page.
-2. Classify the task as install, component/composition, theming/tokens, motion, or troubleshooting.
-3. Reuse the nearest official snippet and adapt it minimally.
-4. Explain only the adaptations that were necessary for the user’s codebase.
-5. If the relevant component is not covered in local markdown, check the official Lynx UI docs for the latest component guidance and use that as the source of truth.
+2. Classify the task as setup/install, components/composition, theming/tokens, motion, troubleshooting, or screen-level composition.
+3. Load only the relevant reference files before generating code.
+4. For component work, go straight to [`references/components.md`](./references/components.md) and start from the closest documented component section.
+5. Reuse the nearest official snippet and adapt it minimally.
+6. Explain only the adaptations that were necessary for the user’s codebase.
+7. If the request is a multi-part screen or flow, compose it from the closest official Lynx UI primitives instead of inventing a generic abstraction first.
+8. If the relevant component is not covered in local markdown, check the official Lynx UI docs for the latest component guidance and use that as the source of truth.
 
 ## Reading Order
 
-1. For install choices, package setup, imports, and config checks, read [`references/installation-and-config.md`](./references/installation-and-config.md).
-2. For deciding whether the task is about components, theming, motion, or escalation, read [`references/capability-selection.md`](./references/capability-selection.md).
-3. For adapting official examples into an existing codebase, read [`references/snippet-adaptation-rules.md`](./references/snippet-adaptation-rules.md).
-4. For component categories and official component routing, read [`references/composition-patterns.md`](./references/composition-patterns.md).
-5. For component-specific official links, code style, and examples, read [`references/components.md`](./references/components.md).
-6. For Luna themes/tokens, read [`references/theming-and-tokens.md`](./references/theming-and-tokens.md).
-7. For choosing and applying motion or motion-mini, read [`references/motion.md`](./references/motion.md).
-8. For import, config, or mismatch debugging, read [`references/troubleshooting.md`](./references/troubleshooting.md).
+1. For overall routing, setup, adaptation, and troubleshooting boundaries, read [`references/foundation.md`](./references/foundation.md).
+2. For component-specific official links, code style, examples, and component-family selection, read [`references/components.md`](./references/components.md).
+3. For Luna themes/tokens, read [`references/theming-and-tokens.md`](./references/theming-and-tokens.md).
+4. For choosing and applying motion or motion-mini, read [`references/motion.md`](./references/motion.md).
+5. For composing a full screen or multi-part flow from Lynx UI primitives, read [`references/screen-recipes.md`](./references/screen-recipes.md).
+
+## Reference Groups
+
+- **Foundation** — `foundation.md`
+- **Component lookup** — `components.md`
+- **Theming** — `theming-and-tokens.md`
+- **Motion** — `motion.md`
+- **Screen recipes** — `screen-recipes.md`
+
+This structure keeps `SKILL.md` as the orchestrator and pushes dense, task-specific guidance into a small reference set, which matches Anthropic's progressive-disclosure skill pattern.
 
 ## Examples
 
@@ -79,13 +89,14 @@ export default function App() {
 
 ## Task Modes
 
-- **Setup/install** — install the right package shape, confirm imports and config, and verify compatibility.
-- **Existing-app adoption** — adapt official examples to the user’s file structure and conventions.
+- **Setup/install** — use [`references/foundation.md`](./references/foundation.md) for package shape, imports, config, and setup troubleshooting.
+- **Existing-app adoption** — use [`references/foundation.md`](./references/foundation.md) for adaptation rules, then pair with the closest specific reference.
 - **New-flow implementation** — build a new component or interaction from the closest official Lynx UI pattern.
-- **Components/composition** — route to the nearest component category, then use [`references/components.md`](./references/components.md) for the closest official component example.
+- **Components/composition** — go to [`references/components.md`](./references/components.md), choose the nearest component section, and stay close to the official structure.
 - **Theming/tokens** — use Luna themes/tokens instead of ad hoc styling when appropriate.
 - **Motion** — choose between motion and motion-mini and adapt the correct official pattern.
-- **Troubleshooting** — diagnose mismatches in imports, setup, snippet drift, types, or unsupported assumptions.
+- **Screen-level composition** — use [`references/screen-recipes.md`](./references/screen-recipes.md) to assemble multi-part screens from the closest documented primitives.
+- **Troubleshooting** — start in [`references/foundation.md`](./references/foundation.md), then hand off if the issue belongs to another local Lynx skill.
 
 ## Related Local Skills
 

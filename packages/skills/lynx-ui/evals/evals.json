@@ -33,6 +33,39 @@
         "Justifies the choice using Lynx UI or official-doc-aligned criteria",
         "Avoids generic animation-library advice that ignores Lynx UI"
       ]
+    },
+    {
+      "id": 4,
+      "prompt": "Can you build me a Lynx UI settings screen with notification toggles, a theme radio group, and a save button? Please stay close to the official Lynx UI way instead of inventing a custom design system.",
+      "expected_output": "The response treats this as a multi-part screen task, composes the screen from official Lynx UI primitives, and stays close to the local screen-recipes guidance rather than inventing a generic wrapper system.",
+      "files": [],
+      "assertions": [
+        "Treats the request as a screen-level composition problem rather than only a single component lookup",
+        "Composes the answer from official Lynx UI primitives such as ScrollView, Switch, RadioGroup, Input, or Button",
+        "Avoids inventing a generic React settings abstraction instead of using Lynx UI primitives"
+      ]
+    },
+    {
+      "id": 5,
+      "prompt": "I am not sure whether this Lynx UI action should use a dialog, a sheet, or a popover. Can you help me choose the closest official pattern before we write code?",
+      "expected_output": "The response uses Lynx UI routing guidance to compare the relevant primitives, points back to official component docs, and helps the user choose instead of jumping into arbitrary code.",
+      "files": [],
+      "assertions": [
+        "Compares the relevant Lynx UI primitives instead of picking one without explanation",
+        "Points back to the closest official Lynx UI component docs or local component-routing guidance",
+        "Avoids jumping straight into unrelated implementation code before choosing the component family"
+      ]
+    },
+    {
+      "id": 6,
+      "prompt": "My Lynx UI example looks fine structurally, but the setup and types are breaking in my ReactLynx project. Can you troubleshoot it and tell me if this is actually a Lynx UI problem or another Lynx skill should handle it?",
+      "expected_output": "The response identifies the likely boundary between Lynx UI and adjacent Lynx skills, keeps the fix anchored in official docs if appropriate, and hands off cleanly if the issue is really about ReactLynx architecture or Lynx TypeScript config.",
+      "files": [],
+      "assertions": [
+        "Names the likely boundary between Lynx UI guidance and another local Lynx skill",
+        "Mentions reactlynx-best-practices or lynx-typescript when the issue appears architectural or type/config related",
+        "Avoids forcing a pure Lynx UI answer when the prompt explicitly suggests a setup or typing problem"
+      ]
     }
   ]
 }
