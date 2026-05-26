@@ -1,5 +1,5 @@
 {
-  "name": "@lynx-js/skill-fiber-element",
+  "name": "@lynx-js/skill-lynx-fiber-element",
   "version": "0.0.1",
   "description": "Build Lynx apps directly with FiberElement Element PAPI APIs from @lynx-js/type-element-api.",
   "repository": {
