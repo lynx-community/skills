@@ -179,11 +179,7 @@ WHERE a.key = 'debug.bundle_url'
 LIMIT 10;
 
 -- Group all arguments of a slice into a JSON-like string
-SELECT s.id, s.name,
-       '{' || GROUP_CONCAT(
-           printf('"%s": "%s"', a.key, a.display_value),
-           ', '
-       ) || '}' AS args
+SELECT s.id, s.name, json_group_object(a.key, a.display_value) AS args
 FROM slice s
 LEFT JOIN args a ON s.arg_set_id = a.arg_set_id
 GROUP BY s.id
@@ -288,10 +284,7 @@ SELECT
   s.track_id,
   s.name,
   t.name AS thread_name,
-  '{' || GROUP_CONCAT(
-    printf('"%s": "%s"', a.key, a.display_value),
-    ', '
-  ) || '}' AS args
+  json_group_object(a.key, a.display_value) AS args
 FROM slice s
 LEFT JOIN args a ON s.arg_set_id = a.arg_set_id
 JOIN thread_track tt ON s.track_id = tt.id
@@ -311,10 +304,7 @@ SELECT
   s.name,
   s.depth,
   t.name AS thread_name,
-  '{' || GROUP_CONCAT(
-    printf('"%s": "%s"', a.key, a.display_value),
-    ', '
-  ) || '}' AS args
+  json_group_object(a.key, a.display_value) AS args
 FROM slice s
 LEFT JOIN args a ON s.arg_set_id = a.arg_set_id
 JOIN thread_track tt ON s.track_id = tt.id
