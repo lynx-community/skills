@@ -2,7 +2,13 @@
 
 This example shows a minimal todo list with first-screen data, background events, and patch-based updates.
 
-Read `../references/template-webpack-build.md` for the project scaffold and `../references/double-thread-data-sync.md` for the shared double-thread flow.
+If you want a Lynx-consumable JSON output, start with
+[`../references/lynx-consumable-json.md`](../references/lynx-consumable-json.md).
+If you want a bundled FiberElement app, start with
+[`../references/template-webpack-build.md`](../references/template-webpack-build.md)
+for the project scaffold and
+[`../references/double-thread-data-sync.md`](../references/double-thread-data-sync.md)
+for the shared double-thread flow.
 
 ## src/main-thread.ts
 

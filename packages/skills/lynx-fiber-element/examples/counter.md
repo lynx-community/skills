@@ -2,7 +2,11 @@
 
 This example shows the smallest counter app built with `@lynx-js/type-element-api`.
 
-Read `../references/template-webpack-build.md` for the project scaffold.
+If you want a Lynx-consumable JSON output, start with
+[`../references/lynx-consumable-json.md`](../references/lynx-consumable-json.md).
+If you want a bundled FiberElement app, start with
+[`../references/template-webpack-build.md`](../references/template-webpack-build.md)
+for the project scaffold.
 
 ## src/main-thread.ts
 

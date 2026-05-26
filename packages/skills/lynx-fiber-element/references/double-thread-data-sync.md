@@ -4,14 +4,14 @@ Use this reference when a FiberElement app needs first-screen data, background-s
 
 ## Thread Boundaries
 
-main-thread
+### main-thread
 
 - Receives first-screen data through `processData(data)`.
 - Receives background patches through `updatePage(patch)`.
 - Owns UI tree creation and all Element PAPI mutations.
 - Treats incoming data as render input only; it does not perform async work or call native background APIs directly.
 
-background
+### background
 
 - `lynxCoreInject.tt` is the background-thread bridge for card data and event dispatch.
 - Reads native data from `lynxCoreInject.tt._params.initData` and `lynxCoreInject.tt._params.updateData`.

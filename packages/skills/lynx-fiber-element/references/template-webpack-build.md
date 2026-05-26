@@ -45,3 +45,12 @@ my-fiber-element-app/
 ## Example Usage
 
 Start from the example repo above, then copy the same file layout and replace the example page logic with your own main-thread tree, background event handling, and styles.
+
+## Verification
+
+```bash
+pnpm dev
+```
+
+- expected `.bundle` files are emitted in `dist/`
+- the QR/dev URL opens
