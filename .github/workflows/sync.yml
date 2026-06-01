@@ -93,8 +93,8 @@ jobs:
             SOURCE_MESSAGE="$(git log -1 --format='%B' "${{ github.sha }}")"
 
             git commit \
+              --author="$SOURCE_AUTHOR" \
               -m "$SOURCE_MESSAGE" \
-              -m "Original-author: ${SOURCE_AUTHOR}" \
               -m "Source-commit: ${SOURCE_SHA}"
             git show HEAD
             git push origin release
