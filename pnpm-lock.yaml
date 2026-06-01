@@ -44,6 +44,9 @@ importers:
       '@lynx-js/skill-lynx-typescript':
         specifier: workspace:*
         version: link:packages/skills/lynx-typescript
+      '@lynx-js/skill-lynx-ui':
+        specifier: 3.133.2
+        version: 3.133.2
       '@lynx-js/skill-reactlynx-best-practices':
         specifier: workspace:*
         version: link:packages/skills/reactlynx-best-practices
@@ -685,6 +688,9 @@ packages:
   '@lynx-js/skill-lynx-trace-record@0.0.3':
     resolution: {integrity: sha512-gQINVVX4c0OO8wxKLI30jfaLrWY1nRfDQpPipzjYXAVEGRJ0BQ+KwWj76MthK4f9D+LOj6Y8mG31yI+YmGpc4w==}
     engines: {node: '>=18'}
+
+  '@lynx-js/skill-lynx-ui@3.133.2':
+    resolution: {integrity: sha512-IGUDHPRMltXEmft4LNpfXY938E0rRQtVfSbFltmj4TAEZV3LI8TzSPqJ/XytuISnEmRqHmxYhEQz8lNH3CXu3g==}
 
   '@manypkg/find-root@1.1.0':
     resolution: {integrity: sha512-mki5uBvhHzO8kYYix/WRy2WX8S3B5wdVSc9D6KcU5lQNglP2yt58/VfLuAK49glRXChosY8ap2oJ1qgma3GUVA==}
@@ -2332,6 +2338,8 @@ snapshots:
   '@lynx-js/skill-lynx-trace-analysis@0.0.6': {}
 
   '@lynx-js/skill-lynx-trace-record@0.0.3': {}
+
+  '@lynx-js/skill-lynx-ui@3.133.2': {}
 
   '@manypkg/find-root@1.1.0':
     dependencies:
