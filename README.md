@@ -4,55 +4,14 @@ A collection of [Agent skills](https://agentskills.io/) for [Lynx](https://lynxj
 
 ## Available Skills
 
-### reactlynx-best-practices
-
-ReactLynx best practices covering patterns writing dual-threaded React code with [ReactLynx](https://lynxjs.org/react/). Provides rules reference for writing, static analysis for reviewing, and auto-fix for refactoring.
-
-**Use when:**
-
-- Writing new ReactLynx components or applications
-- Reviewing existing ReactLynx code for issues
-- Refactoring ReactLynx code with auto-fixes
-
-**Rules covered:**
-
-| Rule | Impact | Description |
-|------|--------|-------------|
-| `detect-background-only` | Critical | Native APIs in background contexts |
-| `proper-event-handlers` | Medium | Correct event handler usage |
-| `main-thread-scripts-guide` | Medium | Main thread scripts guide |
-| `hoist-static-jsx` | Low | Performance optimization |
-
-### debug-info-remapping
-
-Remap Lynx main-thread runtime error positions to original source code locations using debug info.
-
-**Use when:**
-
-- Debugging main thread runtime errors with `function_id:pc_index` format
-- Working with Lynx bytecode stack traces
-- Need to locate the actual source position from encoded error messages
-
-### trace-analysis
-
-Analyze Lynx performance traces (`.ptrace` files) to identify bottlenecks in rendering pipelines.
-
-**Use when:**
-
-- Analyzing performance of Lynx applications
-- Diagnosing rendering delays and bottlenecks
-- Understanding Lynx pipeline execution flow
-- Automated performance reporting / regressions detection with Agents
-
-### lynx-devtool
-
-Interact with Lynx DevTool to inspect and debug Lynx applications via the CLI. Supports sending CDP commands, App commands, opening URLs, reading console logs, listing sources, and taking screenshots on connected devices.
-
-**Use when:**
-
-- Inspecting DOM, runtime state, or console output of a running Lynx app
-- Sending Chrome DevTools Protocol (CDP) or App commands to a connected device
-- Automating debugging workflows like taking screenshots or opening URLs in Lynx
+- [reactlynx-best-practices](./packages/skills/reactlynx-best-practices): ReactLynx dual-thread best practices, static analysis, and auto-fixes.
+- [lynx-debug-info-remapping](./packages/skills/lynx-debug-info-remapping): Remap `function_id:pc_index` runtime errors to original source positions with `debug-info.json`.
+- [lynx-devtool](./packages/skills/lynx-devtool): Inspect and debug Lynx apps through DevTool CLI, CDP/App commands, console logs, sources, and screenshots.
+- [lynx-fiber-element](./packages/skills/lynx-fiber-element): Build Lynx apps directly with FiberElement / Element PAPI APIs, without ReactLynx JSX.
+- [lynx-trace-analysis](https://www.npmjs.com/package/@lynx-js/skill-lynx-trace-analysis): Analyze Lynx traces to diagnose loading, rendering, smoothness, and native module performance issues.
+- [lynx-trace-record](https://www.npmjs.com/package/@lynx-js/skill-lynx-trace-record): Record Lynx performance traces from connected clients for later analysis.
+- [lynx-typescript](./packages/skills/lynx-typescript): Configure and fix common Lynx TypeScript issues around environment setup, events, components, and ReactLynx.
+- [lynx-ui](https://www.npmjs.com/package/@lynx-js/skill-lynx-ui): Use lynx-ui component references for component selection, props, examples, and usage troubleshooting.
 
 ## Installation
 
