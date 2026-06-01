@@ -7,7 +7,6 @@ A collection of [Agent skills](https://agentskills.io/) for [Lynx](https://lynxj
 - [reactlynx-best-practices](./packages/skills/reactlynx-best-practices): ReactLynx dual-thread best practices, static analysis, and auto-fixes.
 - [lynx-debug-info-remapping](./packages/skills/lynx-debug-info-remapping): Remap `function_id:pc_index` runtime errors to original source positions with `debug-info.json`.
 - [lynx-devtool](./packages/skills/lynx-devtool): Inspect and debug Lynx apps through DevTool CLI, CDP/App commands, console logs, sources, and screenshots.
-- [lynx-fiber-element](./packages/skills/lynx-fiber-element): Build Lynx apps directly with FiberElement / Element PAPI APIs, without ReactLynx JSX.
 - [lynx-trace-analysis](https://www.npmjs.com/package/@lynx-js/skill-lynx-trace-analysis): Analyze Lynx traces to diagnose loading, rendering, smoothness, and native module performance issues.
 - [lynx-trace-record](https://www.npmjs.com/package/@lynx-js/skill-lynx-trace-record): Record Lynx performance traces from connected clients for later analysis.
 - [lynx-typescript](./packages/skills/lynx-typescript): Configure and fix common Lynx TypeScript issues around environment setup, events, components, and ReactLynx.
