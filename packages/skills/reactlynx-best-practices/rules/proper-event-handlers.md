@@ -171,3 +171,28 @@ function handleTap(event: MainThread.ITouchEvent) {
 3. **Use `dataset`** to pass data instead of closures when possible
 4. **Prefer `currentTarget`** over `target` for accessing the listening element's data
 5. **Native calls are safe** - event handlers run on background thread
+6. **Mark custom prop handlers** with `'background only'` when a handler is passed through a component prop before reaching `bindtap`
+7. **Use `main-thread:` events** only for gesture-coupled visual work that needs synchronous main-thread execution
+
+### Custom Component Boundaries
+
+The compiler recognizes direct event attributes such as `bindtap={handleTap}`. When a handler travels through a custom prop, mark the handler as background-only so it is not bundled into main-thread render code.
+
+```tsx
+function App() {
+  function handleTap() {
+    'background only';
+    lynx.getJSModule('Analytics').track('tap');
+  }
+
+  return <Button onClick={handleTap} />;
+}
+
+function Button({ onClick }) {
+  return <view bindtap={onClick}>Tap me</view>;
+}
+```
+
+### Background vs Main Thread Events
+
+Use normal `bind*`/`catch*` events for business logic, analytics, NativeModule calls, state updates, and network work. Use `main-thread:bind*` events for low-latency gesture or animation responses, and call `runOnBackground()` from the main thread when React state or background-only APIs are needed.

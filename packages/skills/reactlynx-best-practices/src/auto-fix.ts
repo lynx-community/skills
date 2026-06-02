@@ -5,6 +5,11 @@ import type { Diagnostic, Fix } from './types';
 
 export function generateFixes(source: string, diagnostic: Diagnostic): Fix[] {
   const fixes: Fix[] = [];
+
+  if (diagnostic.ruleId !== 'detect-background-only') {
+    return fixes;
+  }
+
   const lines = source.split('\n');
   const lineIndex = diagnostic.location.start.line - 1;
   const line = lines[lineIndex] || '';

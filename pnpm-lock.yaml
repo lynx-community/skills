@@ -193,10 +193,6 @@ importers:
   packages/skills/lynx-typescript: {}
 
   packages/skills/reactlynx-best-practices:
-    dependencies:
-      '@ast-grep/napi':
-        specifier: ^0.37.0
-        version: 0.37.0
     devDependencies:
       '@microsoft/api-extractor':
         specifier: ^7.56.2

@@ -3,13 +3,17 @@
 // LICENSE file in the root directory of this source tree.
 import { generateFixes } from './auto-fix';
 import { analyzeBackgroundOnlyUsage } from './background-only';
+import { analyzeLifecycleUsage } from './lifecycle';
 import type { DiagnosticWithFix, ScanResult, ScanSummary } from './types';
 
 export function analyzeSource(
   source: string,
   options?: { generateFixes?: boolean },
 ): DiagnosticWithFix[] {
-  const diagnostics = analyzeBackgroundOnlyUsage(source);
+  const diagnostics = [
+    ...analyzeBackgroundOnlyUsage(source),
+    ...analyzeLifecycleUsage(source),
+  ];
 
   if (!options?.generateFixes) {
     return diagnostics;
