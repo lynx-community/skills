@@ -20,9 +20,6 @@
     "dev": "rslib build --watch",
     "test": "rstest"
   },
-  "dependencies": {
-    "@ast-grep/napi": "^0.37.0"
-  },
   "devDependencies": {
     "@microsoft/api-extractor": "^7.56.2",
     "@rslib/core": "catalog:rstack",

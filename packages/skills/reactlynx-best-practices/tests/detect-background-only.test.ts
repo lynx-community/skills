@@ -101,6 +101,18 @@ export function App() {
   });
 
   describe('should allow in background only functions', () => {
+    it('should allow entire modules marked with background-only import', () => {
+      const source = `
+import 'background-only';
+
+export function getEnv() {
+  return NativeModules.Env.get();
+}
+`;
+      const diagnostics = analyzeBackgroundOnlyUsage(source);
+      expect(diagnostics).toHaveLength(0);
+    });
+
     it('should allow lynx.getJSModule inside background only function', () => {
       const source = `
 export function App() {
@@ -194,6 +206,21 @@ export function App() {
 `;
       const diagnostics = analyzeBackgroundOnlyUsage(source);
       expect(diagnostics).toHaveLength(0);
+    });
+
+    it('should require background only directive for handlers passed through custom props', () => {
+      const source = `
+export function App() {
+  function handleTap() {
+    lynx.getJSModule('SomeModule');
+  }
+
+  return <Button onClick={handleTap} />;
+}
+`;
+      const diagnostics = analyzeBackgroundOnlyUsage(source);
+      expect(diagnostics).toHaveLength(1);
+      expect(diagnostics[0].message).toContain('lynx.getJSModule');
     });
   });
 
