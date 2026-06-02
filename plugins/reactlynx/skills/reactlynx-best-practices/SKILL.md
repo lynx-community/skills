@@ -1,151 +1,130 @@
 ---
 name: reactlynx-best-practices
-description: ReactLynx best practices covering dual-thread architecture and React patterns. Provides rules reference for writing, static analysis for reviewing, and auto-fix for refactoring.
+description: Review, write, and refactor ReactLynx code using dual-thread, lifecycle, main-thread script, code-splitting, and profiling best practices.
 ---
 
 # ReactLynx Best Practices
 
-ReactLynx best practices covering dual-thread architecture and React patterns. Provides rules reference for writing, static analysis for reviewing, and auto-fix for refactoring.
+Use this skill when writing, reviewing, or refactoring ReactLynx code. ReactLynx follows the React programming model, but Lynx's dual-thread runtime changes how side effects, lifecycle timing, event handlers, and main-thread scripts should be reasoned about.
+
+This skill intentionally does not require `@ast-grep/napi` or any native parser at runtime. The bundled scanner is a lightweight heuristic helper for common issues. The agent must still read the code and apply the rule documents in `rules/*.md`.
 
 ## When to Apply
 
-This skill should be used when:
-- **Writing** new ReactLynx components or application → Reference rules as guidelines
-- **Reviewing** existing ReactLynx code → Use scanner to detect issues
-- **Refactoring** ReactLynx code → Use auto-fix with user approval
+- Writing new ReactLynx components or application code.
+- Reviewing ReactLynx code for thread-boundary, lifecycle, event, code-splitting, or performance issues.
+- Refactoring code that calls `lynx.getJSModule`, `NativeModules`, `runOnMainThread`, `runOnBackground`, `lazy`, `Suspense`, or `useLayoutEffect`.
+- Investigating performance traces that include ReactLynx render, diff, commit, patch, or setState events.
 
-## Input
+## Official References
 
-This skill accepts the following inputs:
+- Thinking in ReactLynx: https://lynxjs.org/next/react/thinking-in-reactlynx.html
+- Rendering Process and Lifecycle: https://lynxjs.org/next/react/lifecycle.html
+- Main Thread Script: https://lynxjs.org/next/react/main-thread-script.html
+- Code Splitting: https://lynxjs.org/next/react/code-splitting.html
+- Performance Profiling: https://lynxjs.org/next/react/performance/profiling
 
-| Input | Required | Description |
-|-------|----------|-------------|
-| `sourceCode` | No | The ReactLynx source code to analyze (string or file path) |
-| `mode` | No | Workflow mode: `writing`, `review`, or `refactor`. Auto-detected if not specified |
+## Workflow
 
-### Mode Auto-Detection
+### 1. Classify the task
 
-When `mode` is not explicitly provided, the skill will determine the appropriate mode based on context:
+Use one of these modes:
 
-| Context | Auto-Selected Mode |
-|---------|-------------------|
-| User is asking for best practices or guidelines | `writing` |
-| User wants to check/analyze existing code for issues | `review` |
-| User wants to fix/refactor code with auto-fixes | `refactor` |
+| Mode | Use when |
+|------|----------|
+| `writing` | The user asks for new ReactLynx code or best-practice guidance |
+| `review` | The user asks to check, audit, explain, or validate existing code |
+| `refactor` | The user asks to fix or rewrite existing code |
 
-## Workflow Modes
+If the mode is not explicit, infer it from the user's wording. Prefer `review` before `refactor` when code has not been inspected yet.
 
-### 📝 Writing Mode
+### 2. Inspect the code
 
-When writing new ReactLynx code, reference the rules in `rules/*.md` as best practice guidelines. See also the [Rules](#rules) section below for a summary of all available rules.
+For repository work, search before editing:
 
-**Use this mode when:**
-- User is creating new ReactLynx components or application
-- User asks "how should I write..." or "what's the best practice for..."
-- No existing code to analyze
+```bash
+rg "lynx.getJSModule|NativeModules|useLayoutEffect|main-thread:|runOnMainThread|runOnBackground|lazy\\(|Suspense|background only" <target>
+```
 
-### 🔍 Review Mode
+Read nearby components, custom hooks, custom components that forward event handlers, Rspeedy config, and performance-related code before making changes.
 
-When reviewing code, do both:
-1. Use the scanner (`scripts/index.mjs`) to analyze source code for issues
-2. Combine findings with `rules/*.md` explanations to generate a rule-aware report
+### 3. Run the helper scanner when source is available
 
-**Use this mode when:**
-- User provides code and asks to "check", "review", or "analyze" it
-- User wants to know if their code has any issues
-- User asks "is this code correct?" or "any problems with this?"
-
-**Report requirements (must include):**
-- Scan summary from `workflow.reviewCode(sourceCode)`
-- Rule interpretation for each hit `ruleId` from `rules/<ruleId>.md`
-- Severity/impact context from rule metadata (`impact`, `impactDescription`)
-- Actionable suggestions based on rule guidance (not only raw diagnostics)
+The scanner catches common background-only and lifecycle issues. It is not a complete parser and must not replace code review.
 
 ```bash
 node -e "
 import fs from 'fs';
 import { ReactLynxWorkflow, formatScanReport } from '<path_to_skill>/scripts/index.mjs';
 
-// <sourceCode>: string (source code) or file path
-const input = '<sourceCode>';
+const input = '<sourceCodeOrFilePath>';
 const sourceCode = fs.existsSync(input) ? fs.readFileSync(input, 'utf-8') : input;
-
 const workflow = new ReactLynxWorkflow('review');
 const summary = workflow.reviewCode(sourceCode);
 console.log(formatScanReport(summary));
 "
 ```
 
-### 🔧 Refactor Mode
+### 4. Apply the rule checklist
 
-When refactoring, generate a fix plan and **ask the user before applying**.  
-In this mode, output must include both script results and a rules-aware report.
+Always combine scanner output with these manual checks:
 
-**Use this mode when:**
-- User explicitly asks to "fix", "refactor", or "auto-fix" code
-- User wants to apply suggested fixes from a previous review
-- User says "please fix these issues" or "apply the fixes"
+- Dual-thread boundaries: render code may run on the main thread; side effects and native APIs must be background-only.
+- Background-only propagation: code called only from background-only code is background-only, but custom prop and custom hook boundaries often need an explicit `'background only'` directive.
+- Lifecycle: `useLayoutEffect` is unsupported; use `useEffect` for background side effects or main-thread layout events/refs for layout reads.
+- Events: normal `bind*`/`catch*` handlers run on the background thread; `main-thread:*` handlers require `'main thread'` and have stricter limitations.
+- MTS: captured values must be JSON-serializable, captured variables cannot be modified, nested main-thread functions are unsupported, and cross-thread calls must use `runOnMainThread()` or `runOnBackground()`.
+- Shared modules: import helpers with `with { runtime: 'shared' }` only for code sharing, not state sharing.
+- Code splitting: lazy components need default exports, `Suspense`, CSS scope awareness, and error handling for important boundaries.
+- Profiling: use trace events and readable `displayName` values to identify hot render/diff/update paths before optimizing.
 
-**Report requirements (must include):**
-- Pre-fix scan summary and rule-aware interpretation
-- Fix plan summary (`fixableIssues`, `manualIssues`, per-file changes)
-- Post-fix outcome (`appliedFixes`) and remaining manual issues
+### 5. Refactor safely
 
-```
-TOOL CALL: AskUserQuestion(
-  question: "🔧 Found {fixableIssues} auto-fixable issues. Would you like me to apply these fixes?",
-  options: ["Yes, apply fixes", "No, show me the issues first", "Skip auto-fix"]
-)
-```
+For refactor mode:
+
+1. Report current findings first.
+2. Explain which fixes are mechanical and which require human design judgment.
+3. Apply only scoped changes.
+4. Re-run the helper scanner or package tests after edits.
+
+Use auto-fixes only as suggestions. The current auto-fixes are designed for `detect-background-only` diagnostics and should be reviewed before applying.
 
 ```bash
 node -e "
 import fs from 'fs';
 import { ReactLynxWorkflow, formatFixPlan } from '<path_to_skill>/scripts/index.mjs';
 
-// <sourceCode>: string (source code) or file path
-const input = '<sourceCode>';
+const input = '<sourceCodeOrFilePath>';
 const sourceCode = fs.existsSync(input) ? fs.readFileSync(input, 'utf-8') : input;
-
 const workflow = new ReactLynxWorkflow('refactor');
 workflow.reviewCode(sourceCode);
 const plan = workflow.generateFixPlan();
 
-if (plan && plan.fixableIssues > 0) {
+if (plan) {
   console.log(formatFixPlan(plan));
-  // ASK USER: 'Would you like me to apply these auto-fixes?'
-  // If yes:
-  const { fixed, appliedFixes } = workflow.applyAutoFixes(sourceCode);
-  console.log('Fixed code:', fixed);
 }
 "
 ```
 
 ## Rules
 
-All rules are documented in the `rules/` directory as Markdown files:
-
-| Rule | Impact | Description |
-|------|--------|-------------|
-| [detect-background-only](./rules/detect-background-only.md) | CRITICAL | Native APIs in background contexts, use `'background only'` directive |
-| [proper-event-handlers](./rules/proper-event-handlers.md) | MEDIUM | Correct event handler usage |
-| [main-thread-scripts-guide](./rules/main-thread-scripts-guide.md) | MEDIUM | Main thread scripts guide |
-| [hoist-static-jsx](./rules/hoist-static-jsx.md) | LOW | Performance optimization |
+| Rule | Impact | Use for |
+|------|--------|---------|
+| [detect-background-only](./rules/detect-background-only.md) | CRITICAL | `lynx.getJSModule`, `NativeModules`, `'background only'`, custom event/hook boundaries |
+| [avoid-use-layout-effect](./rules/avoid-use-layout-effect.md) | MEDIUM | Lifecycle and layout reads |
+| [proper-event-handlers](./rules/proper-event-handlers.md) | MEDIUM | `bindtap`, `catchtap`, propagation, dataset, custom prop handlers |
+| [main-thread-scripts-guide](./rules/main-thread-scripts-guide.md) | MEDIUM | `main-thread:*`, `useMainThreadRef`, cross-thread calls, shared modules |
+| [code-splitting](./rules/code-splitting.md) | MEDIUM | `lazy`, `Suspense`, standalone lazy bundles, CSS bundle scope |
+| [performance-profiling](./rules/performance-profiling.md) | MEDIUM | ReactLynx trace events, flow IDs, displayName |
+| [hoist-static-jsx](./rules/hoist-static-jsx.md) | LOW | Static JSX and render cost |
 
 ## API Reference
-
-For complete type definitions:
-
-```
-TOOL CALL: Read(<path_to_skill>/scripts/index.d.ts)
-```
-
-### Exported Functions
 
 ```typescript
 function runSkill(source: string): Diagnostic[];
 function runSkillWithFixes(source: string): DiagnosticWithFix[];
 function analyzeBackgroundOnlyUsage(source: string): Diagnostic[];
+function analyzeLifecycleUsage(source: string): Diagnostic[];
 function generateFixes(source: string, diagnostic: Diagnostic): Fix[];
 function applyFix(source: string, fix: Fix): string;
 function applyFixes(source: string, fixes: Fix[]): string;
@@ -153,55 +132,11 @@ function formatScanReport(summary: ScanSummary): string;
 function formatFixPlan(plan: FixPlan): string;
 ```
 
-### Workflow Class
-
 ```typescript
 class ReactLynxWorkflow {
   constructor(mode: WorkflowMode);
   reviewCode(source: string): ScanSummary;
   generateFixPlan(): FixPlan | null;
   applyAutoFixes(source: string): { fixed: string; appliedFixes: Fix[] };
-}
-```
-
-### Key Types
-
-```typescript
-type WorkflowMode = 'writing' | 'review' | 'refactor';
-
-interface Diagnostic {
-  ruleId: string;
-  message: string;
-  severity: 'error' | 'warning' | 'info';
-  location: { start: { line: number; column: number }; end: { line: number; column: number } };
-}
-
-interface DiagnosticWithFix extends Diagnostic {
-  fixes?: Fix[];
-}
-
-interface Fix {
-  type: 'wrap-in-useEffect' | 'add-directive' | 'add-import' | 'move-to-event-handler';
-  description: string;
-  oldCode: string;
-  newCode: string;
-  location: { start: { line: number; column: number }; end: { line: number; column: number } };
-}
-
-interface ScanSummary {
-  totalFiles: number;
-  filesWithIssues: number;
-  totalIssues: number;
-  errorCount: number;
-  warningCount: number;
-  infoCount: number;
-  results: ScanResult[];
-}
-
-interface FixPlan {
-  totalIssues: number;
-  fixableIssues: number;
-  manualIssues: number;
-  files: FilePlan[];
 }
 ```

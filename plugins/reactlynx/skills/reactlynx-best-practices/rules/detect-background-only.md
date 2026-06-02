@@ -8,29 +8,29 @@ tags: dual-thread, background-only, native-modules, lynx, directive
 
 ## Detect Background-Only API Usage
 
-Ensure `lynx.getJSModule` and `NativeModules` are only called in background thread contexts.
+Ensure `lynx.getJSModule` and `NativeModules` are only called in background-thread contexts.
 
 ### Why It Matters
 
-In ReactLynx's dual-thread architecture:
-- **Main thread**: Runs React component render functions, evaluates JSX
-- **Background thread**: Runs effects, event handlers, and native module calls
+In ReactLynx's dual-thread architecture, initial rendering can evaluate component code on the main thread while the background thread runs the full React runtime. Side effects unrelated to rendering are background-only. Calling background-only APIs during render can fail on the main thread because APIs such as `lynx.getJSModule` may not exist there.
 
-Calling `lynx.getJSModule` or `NativeModules` in main thread will:
-- Block UI rendering
-- Cause thread synchronization overhead
-- Lead to poor user experience
+Calling `lynx.getJSModule` or `NativeModules` from render or other shared code can:
+- Throw at runtime on the main thread
+- Increase main-thread bundle size by keeping side-effect code reachable
+- Break the compiler's background-only analysis
 
 ### Thread Context Reference
 
 | Context | Thread | Allowed |
 |---------|--------|---------|
-| Component render body | Main | ❌ |
-| `useEffect` / `useLayoutEffect` | Background | ✅ |
+| Component render body | Main + background during first render | ❌ |
+| `useEffect` | Background | ✅ |
+| `useLayoutEffect` | Unsupported in ReactLynx | ❌ |
 | `useImperativeHandle` | Background | ✅ |
 | `ref` callback | Background | ✅ |
 | Event handlers (`bindtap`, etc.) | Background | ✅ |
 | `'background only'` functions | Background | ✅ |
+| Module with `import 'background-only'` | Background | ✅ |
 
 **Incorrect (Main Thread - render scope):**
 
@@ -151,6 +151,8 @@ function fetchUser(id: string): Promise<User> {
 | Function calls native modules | ✅ Yes |
 | Function is called from useEffect | ✅ Yes (optional but recommended) |
 | Function is called from event handler | ✅ Yes (optional but recommended) |
+| Function is passed through a custom prop before reaching `bindtap` | ✅ Yes |
+| Callback is passed to a custom hook that eventually calls `useEffect` | ✅ Yes |
 | Function only does pure computation | ❌ No |
 | Function is called during render | ❌ No (will cause error) |
 
@@ -159,3 +161,45 @@ function fetchUser(id: string): Promise<User> {
 1. **Place directive first**: Must be the first statement in the function body
 2. **Use single or double quotes**: Both `'background only'` and `"background only"` work
 3. **Document intent**: The directive serves as documentation for other developers
+4. **Mark boundary callbacks**: Add the directive when callbacks cross custom component or custom hook boundaries because compiler analysis may not infer their background-only use
+5. **Prefer module directives for utility modules**: If every export in a module is background-only, use `import 'background-only'` at the top of that module
+
+### Custom Component Boundary
+
+When an event handler is passed as a custom prop, the compiler may not know that it eventually becomes `bindtap`. Mark the handler explicitly.
+
+```tsx
+function App() {
+  function handleTap() {
+    'background only';
+    NativeModules.Analytics.track('tap');
+  }
+
+  return <Button onClick={handleTap} />;
+}
+
+function Button({ onClick }) {
+  return <view bindtap={onClick} />;
+}
+```
+
+### Custom Hook Boundary
+
+When a custom hook wraps `useEffect`, mark the callback passed into that hook.
+
+```tsx
+function useMount(effect: () => void) {
+  useEffect(() => {
+    effect();
+  }, []);
+}
+
+function App() {
+  useMount(() => {
+    'background only';
+    lynx.getJSModule('Tracker').mount();
+  });
+
+  return <view />;
+}
+```

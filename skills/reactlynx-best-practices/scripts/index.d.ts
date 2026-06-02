@@ -1,5 +1,7 @@
 export declare function analyzeBackgroundOnlyUsage(source: string): Diagnostic[];
 
+export declare function analyzeLifecycleUsage(source: string): Diagnostic[];
+
 export declare function analyzeSource(source: string, options?: {
     generateFixes?: boolean;
 }): DiagnosticWithFix[];
@@ -108,9 +110,39 @@ export declare const rules: {
         severity: "error";
         message: string;
     };
+    'avoid-use-layout-effect': {
+        id: string;
+        severity: "warning";
+        message: string;
+    };
+    'proper-event-handlers': {
+        id: string;
+        severity: "warning";
+        message: string;
+    };
+    'main-thread-scripts-guide': {
+        id: string;
+        severity: "warning";
+        message: string;
+    };
+    'code-splitting': {
+        id: string;
+        severity: "info";
+        message: string;
+    };
+    'performance-profiling': {
+        id: string;
+        severity: "info";
+        message: string;
+    };
+    'hoist-static-jsx': {
+        id: string;
+        severity: "info";
+        message: string;
+    };
 };
 
-export declare function runSkill(source: string): Diagnostic[];
+export declare function runSkill(source: string): DiagnosticWithFix[];
 
 export declare function runSkillWithFixes(source: string): DiagnosticWithFix[];
 

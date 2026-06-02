@@ -202,3 +202,41 @@ function App() {
 | Cannot modify captured variables | Read-only access |
 | No nested main thread function definitions | Not supported |
 | `MainThreadRef.current` only accessible in main thread | Use `useMainThreadRef()` |
+| Class component constructor/getter/setter cannot be main thread functions | Use methods instead |
+
+### Cross-Thread Shared Modules
+
+Main thread functions cannot directly call plain helper functions unless those helpers are also main thread functions or imported through the shared runtime.
+
+```tsx
+import { clamp } from './math.js' with { runtime: 'shared' };
+
+function onScroll(event: MainThread.IScrollEvent) {
+  'main thread';
+  const opacity = clamp(event.detail.scrollTop / 100, 0, 1);
+  event.currentTarget.setStyleProperty('opacity', opacity.toString());
+}
+```
+
+Shared modules solve code sharing, not state sharing. Module variables are isolated between the main and background runtimes. Only identifiers directly imported with `with { runtime: 'shared' }` are recognized as shared; assigning them to a new variable can lose that property.
+
+### Third-Party Libraries
+
+When a main thread function needs a third-party utility, import the original utility as shared and wrap it in a main thread function. This creates a reusable boundary that static analysis can understand.
+
+```tsx
+import { animate as animateShared } from 'motion-dom' with { runtime: 'shared' };
+
+export function animate(...args: Parameters<typeof animateShared>) {
+  'main thread';
+  return animateShared(...args);
+}
+```
+
+### Review Checklist
+
+1. Use MTS for gesture-coupled or scroll-coupled visual updates, not ordinary business logic.
+2. Confirm every `main-thread:` handler points to a function with a top-level `'main thread'` directive.
+3. Check captured values for JSON serializability and avoid mutating captured values.
+4. Use `MainThreadRef` for main-thread state that must persist between calls.
+5. Use `runOnBackground()` when MTS needs to update React state or call background-only APIs.
