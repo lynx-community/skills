@@ -46,20 +46,26 @@ async function main() {
   }
 
   const client = createGitHubClient(token);
-  const existingComment = inputs.updateExisting
-    ? await findExistingComment(client, repository, prNumber, inputs.marker)
-    : undefined;
-  const comment = existingComment
-    ? await updateComment(client, repository, existingComment.id, body)
-    : await createComment(client, repository, prNumber, body);
+  try {
+    const existingComment = inputs.updateExisting
+      ? await findExistingComment(client, repository, prNumber, inputs.marker)
+      : undefined;
+    const comment = existingComment
+      ? await updateComment(client, repository, existingComment.id, body)
+      : await createComment(client, repository, prNumber, body);
 
-  await writeOutput('comment-id', String(comment.id ?? ''));
-  await writeOutput('comment-url', String(comment.html_url ?? ''));
-  console.info(
-    existingComment
-      ? `Updated skill evals comment: ${comment.html_url}`
-      : `Created skill evals comment: ${comment.html_url}`,
-  );
+    await writeOutput('comment-id', String(comment.id ?? ''));
+    await writeOutput('comment-url', String(comment.html_url ?? ''));
+    console.info(
+      existingComment
+        ? `Updated skill evals comment: ${comment.html_url}`
+        : `Created skill evals comment: ${comment.html_url}`,
+    );
+  } catch (error) {
+    console.warn(
+      `Unable to publish skill evals comment; scores remain available in the workflow summary. ${formatErrorMessage(error)}`,
+    );
+  }
 }
 
 function readInputs() {
@@ -558,4 +564,8 @@ function escapeMarkdown(value) {
 
 function escapeTableCell(value) {
   return escapeMarkdown(value).replaceAll('\n', '<br>');
+}
+
+function formatErrorMessage(error) {
+  return error instanceof Error ? error.message : String(error);
 }

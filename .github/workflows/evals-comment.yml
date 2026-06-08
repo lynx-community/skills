@@ -57,7 +57,7 @@ jobs:
         with:
           result-file: artifacts/skill-evals-definition.json
           title: Skill Evals
-          dry-run: ${{ github.event_name != 'pull_request' }}
+          dry-run: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.repository }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Write eval scores to summary
