@@ -1,0 +1,66 @@
+name: Evals Comment
+
+description: Create or update a pull request comment with skill eval scores.
+
+inputs:
+  result-file:
+    description: Path to the skill eval JSON report.
+    required: false
+  result-json:
+    description: Inline skill eval JSON report.
+    required: false
+  pr-number:
+    description: Pull request number. Defaults to the pull_request payload number.
+    required: false
+  title:
+    description: Heading shown in the pull request comment.
+    default: Skill Evals
+    required: false
+  marker:
+    description: Hidden marker used to find and update the previous evals comment.
+    default: <!-- skill-evals-comment -->
+    required: false
+  update-existing:
+    description: Update the previous marked comment instead of creating a new one.
+    default: "true"
+    required: false
+  dry-run:
+    description: Print the rendered comment without calling the GitHub API.
+    default: "false"
+    required: false
+  github-token:
+    description: Token used to create or update the pull request comment.
+    required: false
+
+outputs:
+  body:
+    description: The rendered pull request comment body.
+    value: ${{ steps.comment.outputs.body }}
+  comment-id:
+    description: The created or updated issue comment id.
+    value: ${{ steps.comment.outputs.comment-id }}
+  comment-url:
+    description: The created or updated issue comment URL.
+    value: ${{ steps.comment.outputs.comment-url }}
+
+runs:
+  using: composite
+  steps:
+    - uses: actions/setup-node@v4
+      with:
+        node-version: "24"
+        package-manager-cache: false
+    - name: Create or update evals comment
+      id: comment
+      shell: bash
+      run: node "$GITHUB_ACTION_PATH/comment.mjs"
+      env:
+        INPUT_RESULT_FILE: ${{ inputs.result-file }}
+        INPUT_RESULT_JSON: ${{ inputs.result-json }}
+        INPUT_PR_NUMBER: ${{ inputs.pr-number }}
+        INPUT_TITLE: ${{ inputs.title }}
+        INPUT_MARKER: ${{ inputs.marker }}
+        INPUT_UPDATE_EXISTING: ${{ inputs.update-existing }}
+        INPUT_DRY_RUN: ${{ inputs.dry-run }}
+        INPUT_GITHUB_TOKEN: ${{ inputs.github-token }}
+        GITHUB_TOKEN: ${{ inputs.github-token || github.token }}

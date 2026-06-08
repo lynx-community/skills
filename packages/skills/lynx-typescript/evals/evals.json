@@ -1,0 +1,65 @@
+{
+  "skill_name": "lynx-typescript",
+  "description": "End-to-end task evals for the lynx-typescript skill. These evals cover Rspeedy environment typing, module augmentation, event typing, LynxUI component types, and main-thread ref APIs.",
+  "evals": [
+    {
+      "id": 1,
+      "name": "rspeedy-env-and-jsx-config",
+      "prompt": "我新建了一个 Rspeedy + ReactLynx 项目，TypeScript 不认识 CSS Modules 和 `?lynx-bundle` 静态资源导入，也想确认 JSX 配置。请给 `compilerOptions` 关键字段和 `src/rspeedy-env.d.ts` 内容。",
+      "expected_output": "A tsconfig compilerOptions snippet with `isolatedModules`, `jsx: \"react-jsx\"`, `jsxImportSource: \"@lynx-js/react\"`, and a `src/rspeedy-env.d.ts` containing `/// <reference types=\"@rspeedy/core/client\" />`.",
+      "expectations": [
+        "The tsconfig snippet sets `isolatedModules: true` and mentions Rspeedy uses SWC or isolated module transpilation.",
+        "The tsconfig snippet sets `jsx` to `react-jsx`.",
+        "The tsconfig snippet sets `jsxImportSource` to `@lynx-js/react`.",
+        "The answer provides a file path `src/rspeedy-env.d.ts`.",
+        "The declaration file contains `/// <reference types=\"@rspeedy/core/client\" />`."
+      ],
+      "files": []
+    },
+    {
+      "id": 2,
+      "name": "extend-globalprops-initdata-native-modules",
+      "prompt": "我的 ReactLynx 项目里三处没类型：`lynx.__globalProps.appTheme`、`useInitData().userInfo.name`、`NativeModules.NativeLocalStorageModule.getStorageItem('uid')`。请在 `src/` 下给我 `.d.ts` 声明，appTheme 是 string，userInfo 是 `{ name: string; id: number }`，NativeLocalStorageModule 有 get/set 方法。",
+      "expected_output": "One or more `.d.ts` files under `src/` augmenting `GlobalProps` and `NativeModules` from `@lynx-js/types`, and `InitData` from `@lynx-js/react`, each module file ending with `export {}`.",
+      "expectations": [
+        "The answer uses `declare module '@lynx-js/types'` to extend `GlobalProps`.",
+        "The answer uses `declare module '@lynx-js/react'` to extend `InitData`.",
+        "The answer uses `declare module '@lynx-js/types'` to extend the `NativeModules` interface.",
+        "`appTheme` is typed as `string` and `userInfo` contains `name: string` and `id: number`.",
+        "The native module includes `getStorageItem(key: string): string | null` and `setStorageItem(key: string, value: string): void`.",
+        "The declaration file or files end with `export {}` to keep them as modules."
+      ],
+      "files": []
+    },
+    {
+      "id": 3,
+      "name": "custom-intrinsic-element",
+      "prompt": "原生端给我加了 `<custom-input>`，props 有 `value?: string`、`class`/`className`、`style?: string | CSSProperties`，事件是 `bindcustom-event`，detail 里有 `{ value: string }`。ReactLynx JSX 报 IntrinsicElements 不存在，帮我写 `.d.ts`。",
+      "expected_output": "A `.d.ts` file importing `CSSProperties` and optionally `* as Lynx` from `@lynx-js/types`, augmenting `IntrinsicElements` with `custom-input` and the specified props.",
+      "expectations": [
+        "The code imports `CSSProperties` as a type from `@lynx-js/types`.",
+        "The code augments `declare module '@lynx-js/types'` rather than declaring a global JSX namespace.",
+        "The `custom-input` element includes `value?: string`.",
+        "The `custom-input` element includes both `class?: string` and `className?: string`.",
+        "The `style` prop is typed as `string | CSSProperties`.",
+        "The `bindcustom-event` handler receives an event whose `detail.value` is typed as `string`."
+      ],
+      "files": []
+    },
+    {
+      "id": 4,
+      "name": "lynxui-scrollview-types",
+      "prompt": "我用 `@lynx-js/lynx-ui-scroll-view` 的 `ScrollView`，想让 `useRef` 拿到实例类型，并让独立的 `handleScroll` 从 `ScrollViewProps['onScroll']` 派生类型，不要 `any`。给最小组件示例。",
+      "expected_output": "A component importing `ScrollView`, `ScrollViewRef`, `ScrollViewProps`, and `useRef`, using `useRef<ScrollViewRef>(null)` and `const handleScroll: ScrollViewProps['onScroll'] = ...`.",
+      "expectations": [
+        "The code imports `ScrollView` as a value from `@lynx-js/lynx-ui-scroll-view`.",
+        "The code imports `ScrollViewRef` and `ScrollViewProps` as types from `@lynx-js/lynx-ui-scroll-view`.",
+        "The code imports `useRef` from `@lynx-js/react`.",
+        "The ref is created with `useRef<ScrollViewRef>(null)`.",
+        "The scroll handler type is derived with `ScrollViewProps['onScroll']`.",
+        "The code does not annotate the scroll event as `any`."
+      ],
+      "files": []
+    }
+  ]
+}

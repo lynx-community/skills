@@ -1,0 +1,34 @@
+[
+  {
+    "query": "我想录制 Lynx 首帧性能 trace，命令顺序怎么走？",
+    "should_trigger": true
+  },
+  {
+    "query": "trace_record list-clients 没有设备，录制 trace 前该怎么排查？",
+    "should_trigger": true
+  },
+  {
+    "query": "Tracing is not started, please start tracing first 这个 trace_record 错误怎么修？",
+    "should_trigger": true
+  },
+  {
+    "query": "trace_record end 输出 stream 后，怎么 readData 保存成 pftrace？",
+    "should_trigger": true
+  },
+  {
+    "query": "帮我分析一个已经录好的 Lynx trace 里 FCP 为什么慢。",
+    "should_trigger": false
+  },
+  {
+    "query": "Lynx DevTool 怎么截图当前页面？",
+    "should_trigger": false
+  },
+  {
+    "query": "ReactLynx lazy 和 Suspense 怎么做代码分割？",
+    "should_trigger": false
+  },
+  {
+    "query": "TypeScript 里怎么扩展 JSX.IntrinsicElements？",
+    "should_trigger": false
+  }
+]

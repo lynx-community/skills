@@ -1,0 +1,48 @@
+{
+  "skill_name": "lynx-trace-record",
+  "description": "End-to-end task evals for the external lynx-trace-record skill. These evals cover the required command order for recording and reading Lynx performance traces.",
+  "evals": [
+    {
+      "id": 1,
+      "name": "startup-recording-command-order",
+      "prompt": "我要录制 Lynx 首帧 trace，设备已经连上。请给完整命令顺序，要求能捕获 build/open 前的启动阶段。",
+      "expected_output": "A workflow that runs `list-clients`, then `start --client <client-id>` before building/opening the page, then performs actions, runs `end --client <client-id>`, and finally `readData --client <client-id> --stream <stream-handle> --output <file>`.",
+      "expectations": [
+        "The first step lists connected clients with `trace_record.bundle.cjs list-clients`.",
+        "The `start` command is run before building or opening the page to capture first-frame startup.",
+        "The workflow keeps using the same `--client <client-id>` for start, end, and readData when a client is specified.",
+        "The `end` command is used to obtain a stream handle.",
+        "The final `readData` command passes `--stream <stream-handle>` and an `--output` path."
+      ],
+      "files": []
+    },
+    {
+      "id": 2,
+      "name": "no-clients-troubleshooting",
+      "prompt": "`list-clients` 没有返回任何设备。我只是想录 Lynx trace，应该怎么处理？",
+      "expected_output": "Troubleshooting guidance telling the user to connect the device via USB, open the debugging app, then rerun `list-clients`; if multiple clients appear, pick one and pass it via `--client`.",
+      "expectations": [
+        "The answer tells the user to connect the device via USB or otherwise make it reachable.",
+        "The answer tells the user to open the debugging app or target app before retrying.",
+        "The answer tells the user to rerun `list-clients` after the device/app is ready.",
+        "The answer says to choose a client id when multiple clients are found.",
+        "The answer does not skip directly to `start` without a client discovery step."
+      ],
+      "files": []
+    },
+    {
+      "id": 3,
+      "name": "tracing-not-started-error",
+      "prompt": "我直接执行 `end` 和 `readData`，报 `Tracing is not started, please start tracing first`。正确修复步骤是什么？",
+      "expected_output": "A correction explaining that `start` must be run before `end` and `readData`, then the page/actions happen, then `end` returns the stream, then `readData` downloads it.",
+      "expectations": [
+        "The response identifies the error as caused by not running `start` first.",
+        "The response gives the correct order: start, build/open or perform actions, end, readData.",
+        "The response notes that `end` returns the stream handle used by `readData`.",
+        "The response includes the relevant `trace_record.bundle.cjs start`, `end`, and `readData` commands.",
+        "The response does not recommend reading trace data before a stream handle exists."
+      ],
+      "files": []
+    }
+  ]
+}

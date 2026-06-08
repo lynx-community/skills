@@ -1,0 +1,48 @@
+{
+  "skill_name": "lynx-trace-analysis",
+  "description": "End-to-end task evals for the external lynx-trace-analysis skill. These evals cover startup metrics, jank, NativeModule latency, and evidence-backed trace reporting.",
+  "evals": [
+    {
+      "id": 1,
+      "name": "slow-startup-fcp-analysis",
+      "prompt": "我给你一个 Lynx trace，FCP 很慢并且怀疑白屏。请说明你应该先加载哪个 guide、查询哪些启动阶段数据，以及最终报告要怎么呈现证据。",
+      "expected_output": "A trace-analysis workflow that loads `metrics-analysis`, queries startup/FCP/FMP/TTI or render pipeline stages, reports phase durations in a table, includes event links like `[EventName](id)`, and gives evidence-backed suggestions.",
+      "expectations": [
+        "The answer chooses `metrics-analysis` for FCP/FMP/TTI, startup, or white screen diagnosis.",
+        "The answer says to query startup phases or render pipeline events before giving conclusions.",
+        "The report format includes an executive summary and a data evidence breakdown table.",
+        "The answer preserves trace event identity using `[EventName](id)` style links when referencing concrete events.",
+        "The suggestions are tied to trace data instead of generic performance advice."
+      ],
+      "files": []
+    },
+    {
+      "id": 2,
+      "name": "scroll-jank-long-task",
+      "prompt": "用户反馈 Lynx 页面滚动掉帧，我有 trace。请给分析步骤：要看哪些线程/长任务/帧丢失信息，怎么判断根因并输出建议。",
+      "expected_output": "A jank-analysis flow that loads `jank-analysis`, finds long tasks or dropped-frame windows on JS/main threads, builds a table with thread, task, duration, and root cause, then prioritizes fixes.",
+      "expectations": [
+        "The answer chooses `jank-analysis` for scroll jank, lag, frame drops, or smoothness issues.",
+        "The answer inspects JS thread and main thread activity around dropped frames.",
+        "The evidence table includes thread, long task name, duration, and root cause or equivalent columns.",
+        "The answer identifies long tasks over frame budget as likely bottleneck evidence when present.",
+        "The final suggestions are prioritized by severity or impact."
+      ],
+      "files": []
+    },
+    {
+      "id": 3,
+      "name": "native-module-latency-breakdown",
+      "prompt": "trace 里 NativeModule 调用看起来很慢，怀疑 bridge 通信和平台侧耗时。请说明分析时应该怎么拆分耗时并输出结论。",
+      "expected_output": "A NativeModule analysis flow that loads `nativemodule-analysis`, breaks latency into platform/wait/JS or bridge phases, computes ratios, and identifies the dominant phase from trace evidence.",
+      "expectations": [
+        "The answer chooses `nativemodule-analysis` for NativeModule or bridge latency issues.",
+        "The answer breaks the call into platform, wait, JS, bridge, serialization, or equivalent phases.",
+        "The answer computes or reports duration ratios for the phases.",
+        "The answer identifies the dominant phase as the bottleneck based on data.",
+        "The answer keeps concrete trace event references when discussing the slow call."
+      ],
+      "files": []
+    }
+  ]
+}

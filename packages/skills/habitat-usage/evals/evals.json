@@ -1,0 +1,48 @@
+{
+  "skill_name": "habitat-usage",
+  "description": "End-to-end task evals for the habitat-usage skill. These evals cover pinned Habitat setup, dependency manifest authoring, and troubleshooting common hab sync failures.",
+  "evals": [
+    {
+      "id": 1,
+      "name": "pin-wrapper-and-basic-deps",
+      "prompt": "我要在一个主仓库里引入 Habitat 管理依赖。请给我最小落地方案：固定 Habitat 版本，提交 wrapper，并写出 `.habitat` 和 `DEPS` 的基本示例，主依赖仓库放到 `third_party/lib`。",
+      "expected_output": "A setup plan that pins a Habitat release, commits `hab`, `.habitat`, and `DEPS`, and shows a `DEPS` git dependency under `third_party/lib`.",
+      "expectations": [
+        "The answer recommends pinning a concrete Habitat version instead of downloading `releases/latest` for automation.",
+        "The answer includes committing the Habitat wrapper plus `.habitat` and `DEPS` to the repository.",
+        "The `.habitat` example defines a solution with `deps_file: \"DEPS\"` and the main repository URL.",
+        "The `DEPS` example defines `deps = { ... }` and uses `third_party/lib` as the destination key.",
+        "The dependency entry uses `type: \"git\"` and includes a dependency repository URL."
+      ],
+      "files": []
+    },
+    {
+      "id": 2,
+      "name": "troubleshoot-sync-auth-failure",
+      "prompt": "`./hab sync .` 在 CI 里拉 git 依赖失败，报 permission denied。请告诉我应该先收集哪些信息，以及最可能的排查步骤。不要让我粘贴密钥。",
+      "expected_output": "A troubleshooting checklist that collects Habitat version, OS/arch, exact command and error, `.habitat`/`DEPS` snippets, then checks git auth and URL protocol without exposing secrets.",
+      "expectations": [
+        "The response asks for Habitat version or wrapper distribution information.",
+        "The response asks for OS/architecture and the exact `./hab sync .` command plus full error output.",
+        "The response asks for relevant `.habitat` and `DEPS` snippets while explicitly avoiding secrets.",
+        "The response points to git authentication or credential setup as a likely cause.",
+        "The response checks whether SSH versus HTTPS URLs match the CI environment."
+      ],
+      "files": []
+    },
+    {
+      "id": 3,
+      "name": "http-asset-integrity",
+      "prompt": "我要用 Habitat 下载一个二进制压缩包 `https://example.com/tooling.zip` 到 `tools/tooling`，并且 CI 里要做完整性校验。给我 `DEPS` 片段和同步命令。",
+      "expected_output": "A `DEPS` snippet using an http dependency with `url` and `sha256`, followed by `./hab sync .`.",
+      "expectations": [
+        "The `DEPS` snippet uses destination key `tools/tooling`.",
+        "The dependency entry uses `type: \"http\"`.",
+        "The dependency entry includes the exact URL `https://example.com/tooling.zip`.",
+        "The dependency entry includes a `sha256` field for integrity verification.",
+        "The answer includes the sync command `./hab sync .`."
+      ],
+      "files": []
+    }
+  ]
+}

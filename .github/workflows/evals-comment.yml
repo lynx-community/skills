@@ -1,0 +1,71 @@
+name: Evals Comment
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+  pull-requests: read
+
+jobs:
+  evals-comment:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+
+      - name: Setup Pnpm
+        run: npm install -g corepack@latest && corepack enable
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: "pnpm"
+
+      - name: Install Dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Check skill eval definitions
+        id: check-evals
+        continue-on-error: true
+        run: |
+          mkdir -p artifacts
+          pnpm eval:skill:check:all -- \
+            --json-output artifacts/skill-evals-definition.json
+
+      - name: Upload eval report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: skill-evals-definition
+          path: artifacts/skill-evals-definition.json
+          if-no-files-found: error
+
+      - name: Comment eval scores
+        if: always()
+        id: evals-comment
+        uses: ./.github/actions/evals-comment
+        with:
+          result-file: artifacts/skill-evals-definition.json
+          title: Skill Evals
+          dry-run: ${{ github.event_name != 'pull_request' }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Write eval scores to summary
+        if: always()
+        env:
+          EVALS_COMMENT_BODY: ${{ steps.evals-comment.outputs.body }}
+        run: printf '%s\n' "$EVALS_COMMENT_BODY" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Fail on invalid eval definitions
+        if: steps.check-evals.outcome != 'success'
+        run: exit 1

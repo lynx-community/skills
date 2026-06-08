@@ -1,0 +1,34 @@
+[
+  {
+    "query": "我想不用 ReactLynx，直接用 FiberElement / Element PAPI 写一个 Lynx app。",
+    "should_trigger": true
+  },
+  {
+    "query": "template-webpack 里 main-thread.ts、background.ts、style.css 该怎么组织？",
+    "should_trigger": true
+  },
+  {
+    "query": "__CreatePage、__CreateView、__AppendElement 这些 Element API 怎么创建页面树？",
+    "should_trigger": true
+  },
+  {
+    "query": "FiberElement 双线程数据同步里 background 怎么把 patch 发给 main thread？",
+    "should_trigger": true
+  },
+  {
+    "query": "ReactLynx 里 useLayoutEffect 为什么不适合做布局测量？",
+    "should_trigger": false
+  },
+  {
+    "query": "帮我用 Vue 3 写一个 todo list。",
+    "should_trigger": false
+  },
+  {
+    "query": "Lynx DevTool 怎么拉 console 日志？",
+    "should_trigger": false
+  },
+  {
+    "query": "tsconfig 里 jsxImportSource 应该怎么配置？",
+    "should_trigger": false
+  }
+]

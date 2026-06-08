@@ -1,0 +1,46 @@
+[
+  {
+    "query": "ReactLynx 组件函数体里直接调 NativeModules.Storage.get，运行时卡顿或报错，帮我 review。",
+    "should_trigger": true
+  },
+  {
+    "query": "ReactLynx 双线程里 lynx.getJSModule 应该放 render、useEffect 还是事件里？",
+    "should_trigger": true
+  },
+  {
+    "query": "ReactLynx 里子元素点击不想触发父元素 bindtap，应该用 catchtap 吗？",
+    "should_trigger": true
+  },
+  {
+    "query": "滚动时 header 透明度要跟手动画，ReactLynx main-thread:global-bindscroll 怎么写？",
+    "should_trigger": true
+  },
+  {
+    "query": "ReactLynx 里 useLayoutEffect 做布局测量为什么不生效？",
+    "should_trigger": true
+  },
+  {
+    "query": "ReactLynx lazy Suspense 代码分割有什么最佳实践？",
+    "should_trigger": true
+  },
+  {
+    "query": "Profile 里 ReactLynx::diffFinishNoPatch 很多，怎么优化？",
+    "should_trigger": true
+  },
+  {
+    "query": "帮我配置 Rspeedy 的 tsconfig，让 CSS Modules 有类型。",
+    "should_trigger": false
+  },
+  {
+    "query": "Lynx DevTool 怎么列出当前 session 并抓 console？",
+    "should_trigger": false
+  },
+  {
+    "query": "不用 ReactLynx，直接用 FiberElement 创建页面树怎么写？",
+    "should_trigger": false
+  },
+  {
+    "query": "Habitat 的 DEPS 文件里怎么加一个 git 依赖？",
+    "should_trigger": false
+  }
+]

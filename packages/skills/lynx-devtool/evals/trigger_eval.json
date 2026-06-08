@@ -1,0 +1,34 @@
+[
+  {
+    "query": "我的 Lynx 页面白屏了，想用 devtool 看当前有哪些 connected clients 和 sessions。",
+    "should_trigger": true
+  },
+  {
+    "query": "帮我用 Lynx DevTool 的 CDP 命令拿一下当前页面 DOM 树。",
+    "should_trigger": true
+  },
+  {
+    "query": "Lynx 页面 JS 报错了，用 lynx-devtool CLI 拉一下 console error 和 warning。",
+    "should_trigger": true
+  },
+  {
+    "query": "我想用 lynx-devtool 打开一个 lynx:// URL 并截全屏 screenshot。",
+    "should_trigger": true
+  },
+  {
+    "query": "帮我写一个 React 组件，实现图片轮播。",
+    "should_trigger": false
+  },
+  {
+    "query": "adb devices 没有设备时应该怎么排查安卓驱动？",
+    "should_trigger": false
+  },
+  {
+    "query": "Chrome DevTools Performance 面板怎么录制网页加载？",
+    "should_trigger": false
+  },
+  {
+    "query": "TypeScript 里怎么扩展 NativeModules 的类型？",
+    "should_trigger": false
+  }
+]
