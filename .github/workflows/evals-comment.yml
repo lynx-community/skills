@@ -51,7 +51,7 @@ jobs:
           ARK_MODEL: ${{ vars.SKILL_EVAL_MODEL || vars.ARK_MODEL }}
           SKILL_TASK_EVAL_IDS: ${{ vars.SKILL_EVAL_TASK_EVAL_IDS }}
           SKILL_TASK_GRADER_MODEL: ${{ vars.SKILL_EVAL_TASK_GRADER_MODEL }}
-          SKILL_TASK_MAX_EVALS_PER_SKILL: ${{ vars.SKILL_EVAL_TASK_MAX_EVALS_PER_SKILL || '1' }}
+          SKILL_TASK_MAX_EVALS_PER_SKILL: ${{ vars.SKILL_EVAL_TASK_MAX_EVALS_PER_SKILL }}
           SKILL_TASK_MODEL: ${{ vars.SKILL_EVAL_TASK_MODEL }}
           SKILL_TASK_SKIP_SKILLS: ${{ vars.SKILL_EVAL_TASK_SKIP_SKILLS || 'habitat-usage,lynx-fiber-element' }}
           SKILL_TASK_TIMEOUT: ${{ vars.SKILL_EVAL_TASK_TIMEOUT || '300' }}
@@ -85,7 +85,7 @@ jobs:
           EXTRA_ARGS=""
           if [ -n "$SKILL_TASK_EVAL_IDS" ]; then
             EXTRA_ARGS="$EXTRA_ARGS --eval-ids $SKILL_TASK_EVAL_IDS"
-          else
+          elif [ -n "$SKILL_TASK_MAX_EVALS_PER_SKILL" ]; then
             EXTRA_ARGS="$EXTRA_ARGS --max-evals-per-skill $SKILL_TASK_MAX_EVALS_PER_SKILL"
           fi
 
