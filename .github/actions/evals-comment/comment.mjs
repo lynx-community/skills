@@ -163,9 +163,9 @@ function normalizeReport(payload) {
     throw new Error('Skill eval report did not contain any results.');
   }
 
-  const results = Array.from(rows.values()).sort((left, right) =>
-    left.skillName.localeCompare(right.skillName),
-  );
+  const results = Array.from(rows.values())
+    .filter((result) => hasOnlineScore(result) || hasDefinitionError(result))
+    .sort((left, right) => left.skillName.localeCompare(right.skillName));
   return {
     definitionSummary,
     results,
@@ -225,16 +225,7 @@ function normalizeDefinitionResult(result, index) {
       ? result.errors.map((error) => String(error)).filter(Boolean)
       : [],
     definitionPass,
-    definitionScore: Math.max(
-      0,
-      Math.min(100, numericValue(result.score, definitionPass ? 100 : 0)),
-    ),
     skillName: stringValue(result.skill_name) || `skill-${index + 1}`,
-    taskEvals: numericValue(result.task_evals, 0),
-    taskExpectations: numericValue(result.task_expectations, 0),
-    triggerEvals: numericValue(result.trigger_evals, 0),
-    triggerNegative: numericValue(result.trigger_negative, 0),
-    triggerPositive: numericValue(result.trigger_positive, 0),
   };
 }
 
@@ -251,11 +242,6 @@ function normalizeTaskReport(report) {
   return {
     skillName: stringValue(report.skill_name) || 'unknown',
     taskDelta: delta * 100,
-    taskEvalCases: Array.isArray(report.results) ? report.results.length : 0,
-    taskMinPassRate: numericValue(
-      report.min_pass_rate ?? report.summary?.min_pass_rate,
-      undefined,
-    ),
     withSkillPassed: withSkill.passed,
     withSkillScore: withSkill.passRate * 100,
     withSkillTotal: withSkill.total,
@@ -314,12 +300,8 @@ function emptyRow(skillName) {
   return {
     errors: [],
     skillName,
-    taskEvals: undefined,
-    taskExpectations: undefined,
-    triggerNegative: undefined,
     triggerNegativePassed: undefined,
     triggerNegativeTotal: undefined,
-    triggerPositive: undefined,
     triggerPositivePassed: undefined,
     triggerPositiveTotal: undefined,
     triggerPassed: undefined,
@@ -408,16 +390,18 @@ function formatComment({ marker, report, title }) {
 
   if (failedCount > 0) {
     lines.push(
-      `${failedCount} skill suite definition${failedCount === 1 ? ' needs' : 's need'} attention.`,
+      `${failedCount} skill suite${failedCount === 1 ? ' needs' : 's need'} attention.`,
     );
   }
 
-  lines.push(
-    '',
-    '| Skill | Definition | With skill | Without skill | Δ | Trigger |',
-    '| - | - | -: | -: | -: | -: |',
-    ...report.results.map((result) => formatSuiteRow(result)),
-  );
+  if (report.results.length > 0) {
+    lines.push(
+      '',
+      '| Skill | With skill | Without skill | Δ | Trigger |',
+      '| - | -: | -: | -: | -: |',
+      ...report.results.map((result) => formatSuiteRow(result)),
+    );
+  }
 
   const details = report.results
     .filter((result) => result.errors.length > 0)
@@ -449,7 +433,6 @@ function formatComment({ marker, report, title }) {
 function formatSuiteRow(result) {
   return [
     escapeTableCell(result.skillName),
-    formatDefinition(result),
     formatTaskScore(
       result.withSkillScore,
       result.withSkillPassed,
@@ -470,6 +453,18 @@ function formatSuiteRow(result) {
 
 function isPassing(result) {
   return result.definitionPass !== false;
+}
+
+function hasOnlineScore(result) {
+  return (
+    Number.isFinite(result.withSkillScore) ||
+    Number.isFinite(result.withoutSkillScore) ||
+    Number.isFinite(result.triggerScore)
+  );
+}
+
+function hasDefinitionError(result) {
+  return result.definitionPass === false || result.errors.length > 0;
 }
 
 function getRunLink() {
@@ -650,11 +645,6 @@ function formatTaskScore(score, passed, total) {
     return `${formatScore(score)} (${passed}/${total})`;
   }
   return formatScore(score);
-}
-
-function formatDefinition(result) {
-  if (result.definitionPass === undefined) return '-';
-  return result.definitionPass ? 'Valid' : 'Invalid';
 }
 
 function formatTriggerScore(result) {
