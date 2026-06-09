@@ -18,6 +18,9 @@ async function main() {
   );
   const outputPath = resolveRequired(args.output, '--output');
   const taskReportDir = resolve(args.taskReportDir ?? dirname(outputPath));
+  const taskErrorFile = args.taskErrorFile
+    ? resolve(args.taskErrorFile)
+    : undefined;
 
   const definitionReport = await readJson(definitionReportPath);
   if (definitionReport.kind !== 'skill_eval_definition') {
@@ -30,6 +33,10 @@ async function main() {
 
   const report = {
     reports: [definitionReport, ...taskReports],
+    task_error:
+      taskErrorFile && existsSync(taskErrorFile)
+        ? (await readFile(taskErrorFile, 'utf8')).trim()
+        : undefined,
   };
   await mkdir(dirname(outputPath), { recursive: true });
   await writeFile(outputPath, `${JSON.stringify(report, null, 2)}\n`);
@@ -50,6 +57,10 @@ function parseArgs(argv) {
     }
     if (arg === '--task-report-dir') {
       args.taskReportDir = argv[++index];
+      continue;
+    }
+    if (arg === '--task-error-file') {
+      args.taskErrorFile = argv[++index];
       continue;
     }
     if (arg === '--output') {

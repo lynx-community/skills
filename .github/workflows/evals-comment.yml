@@ -57,8 +57,11 @@ jobs:
           SKILL_TASK_MODEL: ${{ vars.SKILL_EVAL_TASK_MODEL || 'opencode/gpt-5-nano' }}
           SKILL_TASK_TIMEOUT: ${{ vars.SKILL_EVAL_TASK_TIMEOUT || '300' }}
         run: |
+          mkdir -p artifacts
           if [ -z "${OPENCODE_API_KEY:-}${OPENROUTER_API_KEY:-}${OPENAI_API_KEY:-}${ANTHROPIC_API_KEY:-}" ]; then
-            echo "::error::Online skill task evals require a model credential secret. Configure SKILL_EVAL_OPENCODE_API_KEY, OPENCODE_API_KEY, OPENROUTER_API_KEY, OPENAI_API_KEY, or ANTHROPIC_API_KEY."
+            MESSAGE="Online skill task evals require a model credential secret. Configure SKILL_EVAL_OPENCODE_API_KEY, OPENCODE_API_KEY, OPENROUTER_API_KEY, OPENAI_API_KEY, or ANTHROPIC_API_KEY."
+            printf '%s\n' "$MESSAGE" > artifacts/skill-evals-task-error.txt
+            echo "::error::$MESSAGE"
             exit 1
           fi
 
@@ -74,19 +77,27 @@ jobs:
             EXTRA_ARGS="$EXTRA_ARGS --max-evals-per-skill $SKILL_TASK_MAX_EVALS_PER_SKILL"
           fi
 
+          set +e
           pnpm eval:skill:task:online:all -- \
             --model "$SKILL_TASK_MODEL" \
             --grader-model "$SKILL_TASK_GRADER_MODEL" \
             --timeout "$SKILL_TASK_TIMEOUT" \
             --min-pass-rate "$SKILL_TASK_MIN_PASS_RATE" \
             --output-root artifacts \
-            $EXTRA_ARGS
+            $EXTRA_ARGS 2>&1 | tee artifacts/skill-evals-task-online.log
+          TASK_EXIT=${PIPESTATUS[0]}
+          set -e
+          if [ "$TASK_EXIT" -ne 0 ]; then
+            printf 'Online skill task evals exited with %s. See skill-evals-task-online.log in the uploaded artifact.\n' "$TASK_EXIT" > artifacts/skill-evals-task-error.txt
+          fi
+          exit "$TASK_EXIT"
 
       - name: Build eval comment report
         if: always()
         run: |
           pnpm eval:skill:comment-report -- \
             --definition-report artifacts/skill-evals-definition.json \
+            --task-error-file artifacts/skill-evals-task-error.txt \
             --task-report-dir artifacts \
             --output artifacts/skill-evals-comment.json
 

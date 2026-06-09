@@ -113,6 +113,10 @@ function parseJson(content, source) {
 }
 
 function normalizeReport(payload) {
+  const taskError =
+    payload && typeof payload.task_error === 'string'
+      ? payload.task_error.trim()
+      : '';
   const reports = normalizeReportList(payload);
   const rows = new Map();
   let definitionSummary;
@@ -152,6 +156,7 @@ function normalizeReport(payload) {
   return {
     definitionSummary,
     results,
+    taskError,
     taskSummary: buildTaskSummary(results),
   };
 }
@@ -302,6 +307,15 @@ function formatComment({ marker, report, title }) {
   if (report.taskSummary) {
     lines.push(
       `Task eval score: **${formatScore(report.taskSummary.withSkill)} / 100 with skill** vs **${formatScore(report.taskSummary.withoutSkill)} / 100 without skill** (Δ ${formatSignedScore(report.taskSummary.delta)}) across ${report.taskSummary.skills} skill suite${report.taskSummary.skills === 1 ? '' : 's'}.`,
+    );
+    if (report.taskError) {
+      lines.push(
+        `Online task eval finished with errors after producing reports: ${escapeMarkdown(report.taskError)}`,
+      );
+    }
+  } else if (report.taskError) {
+    lines.push(
+      `Task eval score: failed before producing online task reports. ${escapeMarkdown(report.taskError)}`,
     );
   } else {
     lines.push(
