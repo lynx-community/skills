@@ -20,6 +20,7 @@
     "eval:skill:check:all": "node scripts/skill-eval/check_evals.mjs --all",
     "eval:skill:comment-report": "node scripts/skill-eval/build_comment_report.mjs",
     "eval:skill:task:online": "node scripts/skill-eval/run_task_online.mjs",
+    "eval:skill:task:online:all": "node scripts/skill-eval/run_task_online_all.mjs",
     "lint": "eslint . --fix && biome check --write",
     "prepare": "husky && turbo build",
     "release": "turbo build && pnpm run build && pnpm changeset publish",

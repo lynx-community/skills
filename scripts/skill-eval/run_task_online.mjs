@@ -383,16 +383,7 @@ Use exactly this schema:
 }
 
 async function runOpencode({ files, model, prompt, repoRoot, timeout }) {
-  const args = [
-    'run',
-    prompt,
-    '--format',
-    'json',
-    '--dangerously-skip-permissions',
-    '--pure',
-    '--model',
-    model,
-  ];
+  const args = ['run', prompt, '--format', 'json', '--pure', '--model', model];
   for (const file of files ?? []) {
     args.push('--file', file);
   }

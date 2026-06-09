@@ -15,7 +15,7 @@ permissions:
 jobs:
   evals-comment:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 120
     steps:
       - name: Checkout
         uses: actions/checkout@v5
@@ -41,6 +41,46 @@ jobs:
           mkdir -p artifacts
           pnpm eval:skill:check:all -- \
             --json-output artifacts/skill-evals-definition.json
+
+      - name: Run online skill task evals
+        id: task-evals
+        continue-on-error: true
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          OPENCODE_API_KEY: ${{ secrets.SKILL_EVAL_OPENCODE_API_KEY || secrets.OPENCODE_API_KEY }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+          SKILL_TASK_EVAL_IDS: ${{ vars.SKILL_EVAL_TASK_EVAL_IDS }}
+          SKILL_TASK_GRADER_MODEL: ${{ vars.SKILL_EVAL_TASK_GRADER_MODEL || vars.SKILL_EVAL_TASK_MODEL || 'opencode/gpt-5-nano' }}
+          SKILL_TASK_MAX_EVALS_PER_SKILL: ${{ vars.SKILL_EVAL_TASK_MAX_EVALS_PER_SKILL || '1' }}
+          SKILL_TASK_MIN_PASS_RATE: ${{ vars.SKILL_EVAL_TASK_MIN_PASS_RATE || '0.85' }}
+          SKILL_TASK_MODEL: ${{ vars.SKILL_EVAL_TASK_MODEL || 'opencode/gpt-5-nano' }}
+          SKILL_TASK_TIMEOUT: ${{ vars.SKILL_EVAL_TASK_TIMEOUT || '300' }}
+        run: |
+          if [ -z "${OPENCODE_API_KEY:-}${OPENROUTER_API_KEY:-}${OPENAI_API_KEY:-}${ANTHROPIC_API_KEY:-}" ]; then
+            echo "::error::Online skill task evals require a model credential secret. Configure SKILL_EVAL_OPENCODE_API_KEY, OPENCODE_API_KEY, OPENROUTER_API_KEY, OPENAI_API_KEY, or ANTHROPIC_API_KEY."
+            exit 1
+          fi
+
+          if ! command -v opencode >/dev/null 2>&1; then
+            npm --registry=https://registry.npmjs.org install -g opencode-ai@latest
+          fi
+          opencode --version
+
+          EXTRA_ARGS=""
+          if [ -n "$SKILL_TASK_EVAL_IDS" ]; then
+            EXTRA_ARGS="$EXTRA_ARGS --eval-ids $SKILL_TASK_EVAL_IDS"
+          else
+            EXTRA_ARGS="$EXTRA_ARGS --max-evals-per-skill $SKILL_TASK_MAX_EVALS_PER_SKILL"
+          fi
+
+          pnpm eval:skill:task:online:all -- \
+            --model "$SKILL_TASK_MODEL" \
+            --grader-model "$SKILL_TASK_GRADER_MODEL" \
+            --timeout "$SKILL_TASK_TIMEOUT" \
+            --min-pass-rate "$SKILL_TASK_MIN_PASS_RATE" \
+            --output-root artifacts \
+            $EXTRA_ARGS
 
       - name: Build eval comment report
         if: always()
@@ -76,4 +116,8 @@ jobs:
 
       - name: Fail on invalid eval definitions
         if: steps.check-evals.outcome != 'success'
+        run: exit 1
+
+      - name: Fail on online task eval failures
+        if: steps.task-evals.outcome != 'success'
         run: exit 1
