@@ -24,13 +24,12 @@ async function main() {
   for (const suite of suites) {
     const slug = suiteSlug(suite);
     if (skipSkills.has(slug) || skipSkills.has(suite.packageName)) {
-      console.info(`[skill-eval] task_online skip skill=${slug}`);
+      console.info(`[skill-eval] trigger_online skip skill=${slug}`);
       continue;
     }
 
-    const evalIds = await resolveEvalIds(suite, args);
     const commandArgs = [
-      join(repoRoot, 'scripts', 'skill-eval', 'run_task_online.mjs'),
+      join(repoRoot, 'scripts', 'skill-eval', 'run_trigger_online.mjs'),
       '--skill-path',
       suite.skillPath,
       '--eval-path',
@@ -39,22 +38,19 @@ async function main() {
       repoRoot,
       '--model',
       args.model ?? 'opencode/gpt-5-nano',
-      '--grader-model',
-      args.graderModel ?? args.model ?? 'opencode/gpt-5-nano',
+      '--runs-per-query',
+      String(args.runsPerQuery ?? 1),
       '--timeout',
-      String(args.timeout ?? 300),
+      String(args.timeout ?? 90),
+      '--trigger-threshold',
+      String(args.triggerThreshold ?? 0.5),
       '--min-pass-rate',
-      String(args.minPassRate ?? 0.85),
-      '--output-dir',
-      join(outputRoot, slug, 'task-eval'),
+      String(args.minPassRate ?? 0.75),
+      '--output',
+      join(outputRoot, slug, 'trigger-eval', 'trigger-online-report.json'),
     ];
-    if (evalIds.length > 0) {
-      commandArgs.push('--eval-ids', evalIds.join(','));
-    }
 
-    console.info(
-      `[skill-eval] task_online skill=${slug} eval_ids=${evalIds.join(',') || 'all'}`,
-    );
+    console.info(`[skill-eval] trigger_online skill=${slug}`);
     if (args.dryRun) {
       console.info(
         [process.execPath, ...commandArgs]
@@ -76,7 +72,7 @@ async function main() {
 
   if (failures.length > 0) {
     console.error(
-      `[skill-eval] ${failures.length} task eval suite${failures.length === 1 ? '' : 's'} failed: ${failures
+      `[skill-eval] ${failures.length} trigger eval suite${failures.length === 1 ? '' : 's'} failed: ${failures
         .map((failure) => `${failure.slug}(${failure.exitCode})`)
         .join(', ')}`,
     );
@@ -91,13 +87,13 @@ function parseArgs(argv) {
     if (arg === '--') continue;
     if (arg === '--repo-root') args.repoRoot = argv[++index];
     else if (arg === '--model') args.model = argv[++index];
-    else if (arg === '--grader-model') args.graderModel = argv[++index];
+    else if (arg === '--runs-per-query')
+      args.runsPerQuery = Number(argv[++index]);
     else if (arg === '--timeout') args.timeout = Number(argv[++index]);
+    else if (arg === '--trigger-threshold')
+      args.triggerThreshold = Number(argv[++index]);
     else if (arg === '--min-pass-rate')
       args.minPassRate = Number(argv[++index]);
-    else if (arg === '--eval-ids') args.evalIds = argv[++index];
-    else if (arg === '--max-evals-per-skill')
-      args.maxEvalsPerSkill = Number(argv[++index]);
     else if (arg === '--skip-skills') args.skipSkills = argv[++index];
     else if (arg === '--output-root') args.outputRoot = argv[++index];
     else if (arg === '--dry-run') args.dryRun = true;
@@ -177,26 +173,6 @@ async function getSkillDependencies(repoRoot) {
   return Object.keys(dependencies)
     .filter((name) => name.startsWith(SKILL_PACKAGE_PREFIX))
     .sort();
-}
-
-async function resolveEvalIds(suite, args) {
-  if (args.evalIds) {
-    return args.evalIds
-      .split(',')
-      .map((id) => Number(id.trim()))
-      .filter((id) => Number.isInteger(id));
-  }
-
-  if (!Number.isInteger(args.maxEvalsPerSkill) || args.maxEvalsPerSkill <= 0) {
-    return [];
-  }
-
-  const evals = (await readJson(join(suite.evalPath, 'evals.json'))).evals;
-  if (!Array.isArray(evals)) return [];
-  return evals
-    .map((evalItem) => evalItem.id)
-    .filter((id) => Number.isInteger(id))
-    .slice(0, args.maxEvalsPerSkill);
 }
 
 function suiteSlug(suite) {

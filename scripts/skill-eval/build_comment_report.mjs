@@ -21,6 +21,9 @@ async function main() {
   const taskErrorFile = args.taskErrorFile
     ? resolve(args.taskErrorFile)
     : undefined;
+  const triggerErrorFile = args.triggerErrorFile
+    ? resolve(args.triggerErrorFile)
+    : undefined;
 
   const definitionReport = await readJson(definitionReportPath);
   if (definitionReport.kind !== 'skill_eval_definition') {
@@ -29,20 +32,24 @@ async function main() {
     );
   }
 
-  const taskReports = await readTaskReports(taskReportDir);
+  const onlineReports = await readOnlineReports(taskReportDir);
 
   const report = {
-    reports: [definitionReport, ...taskReports],
+    reports: [definitionReport, ...onlineReports],
     task_error:
       taskErrorFile && existsSync(taskErrorFile)
         ? (await readFile(taskErrorFile, 'utf8')).trim()
+        : undefined,
+    trigger_error:
+      triggerErrorFile && existsSync(triggerErrorFile)
+        ? (await readFile(triggerErrorFile, 'utf8')).trim()
         : undefined,
   };
   await mkdir(dirname(outputPath), { recursive: true });
   await writeFile(outputPath, `${JSON.stringify(report, null, 2)}\n`);
 
   console.info(
-    `[skill-eval] comment_report=${outputPath} definition=1 task=${taskReports.length}`,
+    `[skill-eval] comment_report=${outputPath} definition=1 online=${onlineReports.length}`,
   );
 }
 
@@ -63,6 +70,10 @@ function parseArgs(argv) {
       args.taskErrorFile = argv[++index];
       continue;
     }
+    if (arg === '--trigger-error-file') {
+      args.triggerErrorFile = argv[++index];
+      continue;
+    }
     if (arg === '--output') {
       args.output = argv[++index];
       continue;
@@ -81,14 +92,19 @@ async function readJson(path) {
   return JSON.parse(await readFile(path, 'utf8'));
 }
 
-async function readTaskReports(root) {
+async function readOnlineReports(root) {
   if (!existsSync(root)) return [];
 
   const reports = [];
   for (const path of await findJsonFiles(root)) {
-    if (basename(path) !== 'task-online-report.json') continue;
+    if (
+      basename(path) !== 'task-online-report.json' &&
+      basename(path) !== 'trigger-online-report.json'
+    ) {
+      continue;
+    }
     const report = await readJson(path);
-    if (report.kind === 'task_eval') {
+    if (report.kind === 'task_eval' || report.kind === 'trigger_eval') {
       reports.push(report);
     }
   }

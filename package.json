@@ -22,6 +22,8 @@
     "eval:skill:setup-opencode-ark": "node scripts/skill-eval/setup-opencode-ark.mjs",
     "eval:skill:task:online": "node scripts/skill-eval/run_task_online.mjs",
     "eval:skill:task:online:all": "node scripts/skill-eval/run_task_online_all.mjs",
+    "eval:skill:trigger:online": "node scripts/skill-eval/run_trigger_online.mjs",
+    "eval:skill:trigger:online:all": "node scripts/skill-eval/run_trigger_online_all.mjs",
     "lint": "eslint . --fix && biome check --write",
     "prepare": "husky && turbo build",
     "release": "turbo build && pnpm run build && pnpm changeset publish",

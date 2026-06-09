@@ -117,6 +117,10 @@ function normalizeReport(payload) {
     payload && typeof payload.task_error === 'string'
       ? payload.task_error.trim()
       : '';
+  const triggerError =
+    payload && typeof payload.trigger_error === 'string'
+      ? payload.trigger_error.trim()
+      : '';
   const reports = normalizeReportList(payload);
   const rows = new Map();
   let definitionSummary;
@@ -143,6 +147,15 @@ function normalizeReport(payload) {
       continue;
     }
 
+    if (report.kind === 'trigger_eval') {
+      const row = normalizeTriggerReport(report);
+      rows.set(row.skillName, {
+        ...(rows.get(row.skillName) ?? emptyRow(row.skillName)),
+        ...row,
+      });
+      continue;
+    }
+
     throw new Error(`Unsupported skill eval report kind: ${report.kind}`);
   }
 
@@ -158,6 +171,8 @@ function normalizeReport(payload) {
     results,
     taskError,
     taskSummary: buildTaskSummary(results),
+    triggerError,
+    triggerSummary: buildTriggerSummary(results),
   };
 }
 
@@ -250,6 +265,42 @@ function normalizeTaskReport(report) {
   };
 }
 
+function normalizeTriggerReport(report) {
+  assertObject(report, 'Skill trigger eval report');
+  const results = Array.isArray(report.results) ? report.results : [];
+  const computed = computeTriggerSummary(results);
+  const summary = report.summary ?? {};
+  const passed = numericValue(summary.passed, computed.passed);
+  const total = numericValue(summary.total, computed.total);
+  const passRate = numericValue(
+    summary.pass_rate,
+    total === 0 ? 0 : passed / total,
+  );
+
+  return {
+    skillName: stringValue(report.skill_name) || 'unknown',
+    triggerNegativePassed: numericValue(
+      summary.negative?.passed,
+      computed.negative.passed,
+    ),
+    triggerNegativeTotal: numericValue(
+      summary.negative?.total,
+      computed.negative.total,
+    ),
+    triggerPassed: passed,
+    triggerScore: passRate * 100,
+    triggerTotal: total,
+    triggerPositivePassed: numericValue(
+      summary.positive?.passed,
+      computed.positive.passed,
+    ),
+    triggerPositiveTotal: numericValue(
+      summary.positive?.total,
+      computed.positive.total,
+    ),
+  };
+}
+
 function normalizeTaskSection(section) {
   assertObject(section, 'Skill task eval section');
   return {
@@ -265,9 +316,15 @@ function emptyRow(skillName) {
     skillName,
     taskEvals: undefined,
     taskExpectations: undefined,
-    triggerEvals: undefined,
     triggerNegative: undefined,
+    triggerNegativePassed: undefined,
+    triggerNegativeTotal: undefined,
     triggerPositive: undefined,
+    triggerPositivePassed: undefined,
+    triggerPositiveTotal: undefined,
+    triggerPassed: undefined,
+    triggerScore: undefined,
+    triggerTotal: undefined,
   };
 }
 
@@ -291,6 +348,17 @@ function buildTaskSummary(results) {
   };
 }
 
+function buildTriggerSummary(results) {
+  const triggerRows = results.filter((result) =>
+    Number.isFinite(result.triggerScore),
+  );
+  if (triggerRows.length === 0) return undefined;
+  return {
+    score: average(triggerRows.map((result) => result.triggerScore)),
+    skills: triggerRows.length,
+  };
+}
+
 function formatComment({ marker, report, title }) {
   const runLink = getRunLink();
   const failedCount = report.results.filter(
@@ -300,7 +368,7 @@ function formatComment({ marker, report, title }) {
 
   if (report.definitionSummary) {
     lines.push(
-      `Definition score: **${formatScore(report.definitionSummary.score)} / 100** (${report.definitionSummary.passed}/${report.definitionSummary.total} skill suites passing).`,
+      `Eval definitions: **${report.definitionSummary.passed}/${report.definitionSummary.total} valid**.`,
     );
   }
 
@@ -323,16 +391,31 @@ function formatComment({ marker, report, title }) {
     );
   }
 
+  if (report.triggerSummary) {
+    lines.push(
+      `Trigger eval score: **${formatScore(report.triggerSummary.score)} / 100** across ${report.triggerSummary.skills} skill suite${report.triggerSummary.skills === 1 ? '' : 's'}.`,
+    );
+    if (report.triggerError) {
+      lines.push(
+        `Online trigger eval finished with errors after producing reports: ${escapeMarkdown(report.triggerError)}`,
+      );
+    }
+  } else if (report.triggerError) {
+    lines.push(
+      `Trigger eval score: failed before producing online trigger reports. ${escapeMarkdown(report.triggerError)}`,
+    );
+  }
+
   if (failedCount > 0) {
     lines.push(
-      `${failedCount} skill suite${failedCount === 1 ? '' : 's'} need attention.`,
+      `${failedCount} skill suite definition${failedCount === 1 ? ' needs' : 's need'} attention.`,
     );
   }
 
   lines.push(
     '',
-    '| Skill | Definition | With skill | Without skill | Δ | Task evals | Expectations | Trigger evals | Status |',
-    '| - | -: | -: | -: | -: | -: | -: | -: | - |',
+    '| Skill | Definition | With skill | Without skill | Δ | Trigger |',
+    '| - | - | -: | -: | -: | -: |',
     ...report.results.map((result) => formatSuiteRow(result)),
   );
 
@@ -364,10 +447,9 @@ function formatComment({ marker, report, title }) {
 }
 
 function formatSuiteRow(result) {
-  const status = isPassing(result) ? 'Passing' : 'Failing';
   return [
     escapeTableCell(result.skillName),
-    formatOptionalScore(result.definitionScore),
+    formatDefinition(result),
     formatTaskScore(
       result.withSkillScore,
       result.withSkillPassed,
@@ -379,10 +461,7 @@ function formatSuiteRow(result) {
       result.withoutSkillTotal,
     ),
     formatOptionalSignedScore(result.taskDelta),
-    formatOptionalInteger(result.taskEvals ?? result.taskEvalCases),
-    formatOptionalInteger(result.taskExpectations),
-    formatTriggerEvals(result),
-    status,
+    formatTriggerScore(result),
   ]
     .join(' | ')
     .replace(/^/, '| ')
@@ -390,12 +469,7 @@ function formatSuiteRow(result) {
 }
 
 function isPassing(result) {
-  const definitionOk = result.definitionPass !== false;
-  const taskOk =
-    result.taskMinPassRate === undefined ||
-    result.withSkillScore === undefined ||
-    result.withSkillScore >= result.taskMinPassRate * 100;
-  return definitionOk && taskOk;
+  return result.definitionPass !== false;
 }
 
 function getRunLink() {
@@ -538,6 +612,25 @@ function average(values) {
   return values.reduce((sum, value) => sum + value, 0) / values.length;
 }
 
+function computeTriggerSummary(results) {
+  const summary = {
+    negative: { passed: 0, total: 0 },
+    positive: { passed: 0, total: 0 },
+    passed: 0,
+    total: 0,
+  };
+  for (const result of results) {
+    const shouldTrigger = result?.should_trigger === true;
+    const pass = result?.pass === true;
+    const bucket = shouldTrigger ? summary.positive : summary.negative;
+    bucket.total += 1;
+    if (pass) bucket.passed += 1;
+    summary.total += 1;
+    if (pass) summary.passed += 1;
+  }
+  return summary;
+}
+
 function formatScore(value) {
   return Number(value).toFixed(1);
 }
@@ -547,16 +640,8 @@ function formatSignedScore(value) {
   return `${sign}${formatScore(value)}`;
 }
 
-function formatOptionalScore(value) {
-  return Number.isFinite(value) ? formatScore(value) : '-';
-}
-
 function formatOptionalSignedScore(value) {
   return Number.isFinite(value) ? formatSignedScore(value) : '-';
-}
-
-function formatOptionalInteger(value) {
-  return Number.isFinite(value) ? String(value) : '-';
 }
 
 function formatTaskScore(score, passed, total) {
@@ -567,9 +652,20 @@ function formatTaskScore(score, passed, total) {
   return formatScore(score);
 }
 
-function formatTriggerEvals(result) {
-  if (!Number.isFinite(result.triggerEvals)) return '-';
-  return `${result.triggerEvals} (+${result.triggerPositive}/-${result.triggerNegative})`;
+function formatDefinition(result) {
+  if (result.definitionPass === undefined) return '-';
+  return result.definitionPass ? 'Valid' : 'Invalid';
+}
+
+function formatTriggerScore(result) {
+  if (!Number.isFinite(result.triggerScore)) return '-';
+  if (
+    Number.isFinite(result.triggerPassed) &&
+    Number.isFinite(result.triggerTotal)
+  ) {
+    return `${formatScore(result.triggerScore)} (${result.triggerPassed}/${result.triggerTotal})`;
+  }
+  return formatScore(result.triggerScore);
 }
 
 function escapeMarkdown(value) {

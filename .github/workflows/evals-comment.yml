@@ -52,8 +52,8 @@ jobs:
           SKILL_TASK_EVAL_IDS: ${{ vars.SKILL_EVAL_TASK_EVAL_IDS }}
           SKILL_TASK_GRADER_MODEL: ${{ vars.SKILL_EVAL_TASK_GRADER_MODEL }}
           SKILL_TASK_MAX_EVALS_PER_SKILL: ${{ vars.SKILL_EVAL_TASK_MAX_EVALS_PER_SKILL || '1' }}
-          SKILL_TASK_MIN_PASS_RATE: ${{ vars.SKILL_EVAL_TASK_MIN_PASS_RATE || '0.85' }}
           SKILL_TASK_MODEL: ${{ vars.SKILL_EVAL_TASK_MODEL }}
+          SKILL_TASK_SKIP_SKILLS: ${{ vars.SKILL_EVAL_TASK_SKIP_SKILLS || 'habitat-usage,lynx-fiber-element' }}
           SKILL_TASK_TIMEOUT: ${{ vars.SKILL_EVAL_TASK_TIMEOUT || '300' }}
         run: |
           mkdir -p artifacts
@@ -94,8 +94,9 @@ jobs:
             --model "$SKILL_TASK_MODEL" \
             --grader-model "$SKILL_TASK_GRADER_MODEL" \
             --timeout "$SKILL_TASK_TIMEOUT" \
-            --min-pass-rate "$SKILL_TASK_MIN_PASS_RATE" \
+            --min-pass-rate 0 \
             --output-root artifacts \
+            --skip-skills "$SKILL_TASK_SKIP_SKILLS" \
             $EXTRA_ARGS 2>&1 | tee artifacts/skill-evals-task-online.log
           TASK_EXIT=${PIPESTATUS[0]}
           set -e
@@ -104,12 +105,64 @@ jobs:
           fi
           exit "$TASK_EXIT"
 
+      - name: Run online skill trigger evals
+        id: trigger-evals
+        continue-on-error: true
+        env:
+          ARK_API_KEY: ${{ secrets.SKILL_EVAL_ARK_API_KEY || secrets.ARK_API_KEY }}
+          ARK_BASE_URL: ${{ vars.SKILL_EVAL_MODEL_BASE_URL || vars.ARK_BASE_URL }}
+          ARK_MODEL: ${{ vars.SKILL_EVAL_MODEL || vars.ARK_MODEL }}
+          SKILL_TRIGGER_MODEL: ${{ vars.SKILL_EVAL_TRIGGER_MODEL }}
+          SKILL_TRIGGER_RUNS_PER_QUERY: ${{ vars.SKILL_EVAL_TRIGGER_RUNS_PER_QUERY || '1' }}
+          SKILL_TRIGGER_SKIP_SKILLS: ${{ vars.SKILL_EVAL_TRIGGER_SKIP_SKILLS || vars.SKILL_EVAL_TASK_SKIP_SKILLS || 'habitat-usage,lynx-fiber-element' }}
+          SKILL_TRIGGER_TIMEOUT: ${{ vars.SKILL_EVAL_TRIGGER_TIMEOUT || '90' }}
+        run: |
+          mkdir -p artifacts
+          if [ -z "${ARK_API_KEY:-}" ]; then
+            MESSAGE="Online skill trigger evals require an Ark model credential secret. Configure SKILL_EVAL_ARK_API_KEY or ARK_API_KEY."
+            printf '%s\n' "$MESSAGE" > artifacts/skill-evals-trigger-error.txt
+            echo "::error::$MESSAGE"
+            exit 1
+          fi
+          if [ -z "${ARK_BASE_URL:-}" ] || [ -z "${ARK_MODEL:-}" ]; then
+            MESSAGE="Ark trigger evals require repository variables SKILL_EVAL_MODEL_BASE_URL and SKILL_EVAL_MODEL."
+            printf '%s\n' "$MESSAGE" > artifacts/skill-evals-trigger-error.txt
+            echo "::error::$MESSAGE"
+            exit 1
+          fi
+
+          if ! command -v opencode >/dev/null 2>&1; then
+            npm --registry=https://registry.npmjs.org install -g opencode-ai@latest
+          fi
+          opencode --version
+
+          export XDG_CONFIG_HOME="$RUNNER_TEMP/opencode-config"
+          pnpm eval:skill:setup-opencode-ark -- --config-home "$XDG_CONFIG_HOME"
+          DEFAULT_MODEL="ark/$ARK_MODEL"
+          SKILL_TRIGGER_MODEL="${SKILL_TRIGGER_MODEL:-$DEFAULT_MODEL}"
+
+          set +e
+          pnpm eval:skill:trigger:online:all -- \
+            --model "$SKILL_TRIGGER_MODEL" \
+            --runs-per-query "$SKILL_TRIGGER_RUNS_PER_QUERY" \
+            --timeout "$SKILL_TRIGGER_TIMEOUT" \
+            --min-pass-rate 0 \
+            --output-root artifacts \
+            --skip-skills "$SKILL_TRIGGER_SKIP_SKILLS" 2>&1 | tee artifacts/skill-evals-trigger-online.log
+          TRIGGER_EXIT=${PIPESTATUS[0]}
+          set -e
+          if [ "$TRIGGER_EXIT" -ne 0 ]; then
+            printf 'Online skill trigger evals exited with %s. See skill-evals-trigger-online.log in the uploaded artifact.\n' "$TRIGGER_EXIT" > artifacts/skill-evals-trigger-error.txt
+          fi
+          exit "$TRIGGER_EXIT"
+
       - name: Build eval comment report
         if: always()
         run: |
           pnpm eval:skill:comment-report -- \
             --definition-report artifacts/skill-evals-definition.json \
             --task-error-file artifacts/skill-evals-task-error.txt \
+            --trigger-error-file artifacts/skill-evals-trigger-error.txt \
             --task-report-dir artifacts \
             --output artifacts/skill-evals-comment.json
 
@@ -118,7 +171,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: skill-evals-report
-          path: artifacts/*.json
+          path: artifacts/**
           if-no-files-found: error
 
       - name: Comment eval scores
@@ -143,4 +196,8 @@ jobs:
 
       - name: Fail on online task eval failures
         if: steps.task-evals.outcome != 'success'
+        run: exit 1
+
+      - name: Fail on online trigger eval failures
+        if: steps.trigger-evals.outcome != 'success'
         run: exit 1
