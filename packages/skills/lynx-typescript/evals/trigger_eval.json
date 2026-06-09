@@ -1,0 +1,38 @@
+[
+  {
+    "query": "ReactLynx 项目里 lynx.__globalProps.appTheme 报 Property does not exist，要怎么加类型？",
+    "should_trigger": true
+  },
+  {
+    "query": "Rspeedy 项目 TypeScript 不认识 CSS Modules 和 lynx-bundle 静态资源导入，rspeedy-env.d.ts 怎么写？",
+    "should_trigger": true
+  },
+  {
+    "query": "自定义原生元素 custom-input 在 JSX.IntrinsicElements 里不存在，@lynx-js/types 怎么扩展？",
+    "should_trigger": true
+  },
+  {
+    "query": "LynxUI ScrollView 的 ref 和 onScroll 参数类型怎么从包里导出来？",
+    "should_trigger": true
+  },
+  {
+    "query": "ReactLynx 里 NativeModules.NativeLocalStorageModule 没类型提示，怎么声明？",
+    "should_trigger": true
+  },
+  {
+    "query": "Vue 3 的 defineProps 怎么给默认值？",
+    "should_trigger": false
+  },
+  {
+    "query": "Node.js 里用 zod 校验 express req.body 的最佳写法？",
+    "should_trigger": false
+  },
+  {
+    "query": "Flutter ScrollController 的 animateTo 和 jumpTo 有什么区别？",
+    "should_trigger": false
+  },
+  {
+    "query": "Lynx 页面滚动卡顿，帮我看 trace 里的 FCP 和渲染流程。",
+    "should_trigger": false
+  }
+]

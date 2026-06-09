@@ -1,0 +1,34 @@
+[
+  {
+    "query": "我有 Lynx trace，FCP 很慢并且首屏白屏，帮我分析瓶颈。",
+    "should_trigger": true
+  },
+  {
+    "query": "Lynx 页面滚动掉帧，trace 里要怎么看 JS thread 和 main thread 的长任务？",
+    "should_trigger": true
+  },
+  {
+    "query": "NativeModule 调用在 trace 里特别慢，帮我拆平台侧和等待耗时。",
+    "should_trigger": true
+  },
+  {
+    "query": "对比两个 Lynx trace，看看这次 diffVdom 有没有性能回退。",
+    "should_trigger": true
+  },
+  {
+    "query": "帮我录制一份 Lynx performance trace，应该先 start 还是先打开页面？",
+    "should_trigger": false
+  },
+  {
+    "query": "Lynx DevTool 怎么列出当前连接的 clients？",
+    "should_trigger": false
+  },
+  {
+    "query": "ReactLynx 里 NativeModules 能不能写在 render 里？",
+    "should_trigger": false
+  },
+  {
+    "query": "Habitat 的 DEPS 里怎么配置 http 下载？",
+    "should_trigger": false
+  }
+]

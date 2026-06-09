@@ -1,0 +1,48 @@
+{
+  "skill_name": "lynx-ui",
+  "description": "End-to-end task evals for the external lynx-ui skill. These evals cover component routing, reference selection, exact API verification, and unsupported component handling.",
+  "evals": [
+    {
+      "id": 1,
+      "name": "choose-carousel-component",
+      "prompt": "我要在 Lynx 页面里做横向 banner 轮播，有分页/自动播放的 carousel 行为。用 lynx-ui 应该先看哪个组件参考？回答时说明你会读哪些文件。",
+      "expected_output": "A routing answer choosing `Swiper`, reading `reference.md` first if needed, then `references/components/swiper/guide.md`, and using `api.md` only to verify exact props or exports.",
+      "expectations": [
+        "The response chooses `Swiper` for horizontal paging or carousel-style interactions.",
+        "The response says `reference.md` is used for routing when choosing a component.",
+        "The response says to read `references/components/swiper/guide.md` first for usage patterns.",
+        "The response says to read `references/components/swiper/api.md` only when exact props, ref methods, or exports need verification.",
+        "The response does not choose `ScrollView` as the primary component for carousel paging."
+      ],
+      "files": []
+    },
+    {
+      "id": 2,
+      "name": "dialog-versus-sheet-versus-popover",
+      "prompt": "我有三个场景：确认删除的居中弹窗、底部可展开筛选面板、点击按钮旁边的小菜单。lynx-ui 应该分别用什么组件？",
+      "expected_output": "A routing answer choosing `Dialog` for blocking centered modal content, `Sheet` for bottom/side sheet semantics, and `Popover` for anchored floating content near a trigger.",
+      "expectations": [
+        "The response chooses `Dialog` for the centered blocking confirm dialog.",
+        "The response chooses `Sheet` for the bottom expandable filter panel.",
+        "The response chooses `Popover` for the anchored menu near a trigger.",
+        "The response ties each choice to the interaction model rather than only package names.",
+        "The response says to consult each component's `guide.md` before implementation details."
+      ],
+      "files": []
+    },
+    {
+      "id": 3,
+      "name": "verify-public-api-before-answering",
+      "prompt": "用户问 `Sheet` 有没有某个 ref method 可以直接调用。按 lynx-ui skill 的流程，你应该怎么确认并回答？",
+      "expected_output": "A workflow that identifies the Sheet component, reads `references/components/sheet/guide.md` for patterns, reads `api.md` to verify exact public ref methods or props, and refuses to invent unsupported APIs.",
+      "expectations": [
+        "The response identifies `Sheet` as the concrete component.",
+        "The response reads or cites `references/components/sheet/guide.md` for usage patterns.",
+        "The response reads or cites `references/components/sheet/api.md` for exact public ref methods or props.",
+        "The response says not to invent unsupported APIs when the method is not documented.",
+        "The response recommends imports from `@lynx-js/lynx-ui` by default unless the symbol is intentionally excluded."
+      ],
+      "files": []
+    }
+  ]
+}

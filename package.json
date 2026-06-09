@@ -16,6 +16,14 @@
   "scripts": {
     "build": "build-marketplace && node ./export-skills.mjs",
     "check": "biome check && eslint .",
+    "eval:skill:check": "node scripts/skill-eval/check_evals.mjs",
+    "eval:skill:check:all": "node scripts/skill-eval/check_evals.mjs --all",
+    "eval:skill:comment-report": "node scripts/skill-eval/build_comment_report.mjs",
+    "eval:skill:setup-opencode-ark": "node scripts/skill-eval/setup-opencode-ark.mjs",
+    "eval:skill:task:online": "node scripts/skill-eval/run_task_online.mjs",
+    "eval:skill:task:online:all": "node scripts/skill-eval/run_task_online_all.mjs",
+    "eval:skill:trigger:online": "node scripts/skill-eval/run_trigger_online.mjs",
+    "eval:skill:trigger:online:all": "node scripts/skill-eval/run_trigger_online_all.mjs",
     "lint": "eslint . --fix && biome check --write",
     "prepare": "husky && turbo build",
     "release": "turbo build && pnpm run build && pnpm changeset publish",
@@ -37,8 +45,8 @@
     "@lynx-js/skill-lynx-trace-analysis": "0.0.6",
     "@lynx-js/skill-lynx-trace-record": "0.0.3",
     "@lynx-js/skill-lynx-typescript": "workspace:*",
-    "@lynx-js/skill-reactlynx-best-practices": "workspace:*",
-    "@lynx-js/skill-lynx-ui": "3.133.2"
+    "@lynx-js/skill-lynx-ui": "3.133.2",
+    "@lynx-js/skill-reactlynx-best-practices": "workspace:*"
   },
   "devDependencies": {
     "@biomejs/biome": "2.3.8",

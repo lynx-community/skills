@@ -1,0 +1,61 @@
+{
+  "skill_name": "lynx-devtool",
+  "description": "End-to-end task evals for the lynx-devtool skill. These evals cover listing clients and sessions, CDP inspection, console retrieval, app navigation, and screenshots using the commands available in this repository.",
+  "evals": [
+    {
+      "id": 1,
+      "name": "list-clients-and-sessions",
+      "prompt": "I want to know which Lynx apps are currently debuggable and what debug sessions exist. Write a shell script `inspect.sh` that uses the lynx-devtool CLI to print both lists. Do not include unrelated commands.",
+      "expected_output": "A shell script that invokes `node <skill>/scripts/index.mjs list-clients` and `node <skill>/scripts/index.mjs list-sessions`.",
+      "expectations": [
+        "The answer writes or shows a shell script named `inspect.sh`.",
+        "The script invokes the `list-clients` subcommand through `node ... scripts/index.mjs list-clients`.",
+        "The script invokes the `list-sessions` subcommand through `node ... scripts/index.mjs list-sessions`.",
+        "The script does not invoke unrelated subcommands such as `cdp`, `app`, `open`, or `take-screenshot`."
+      ],
+      "files": []
+    },
+    {
+      "id": 2,
+      "name": "inspect-root-dom",
+      "prompt": "I have a Lynx page open and need to inspect the root DOM node. Write `inspect-root.sh` that first lists sessions, then uses `$SESSION` as a placeholder to run `DOM.getDocument` and `DOM.describeNode` for nodeId 1.",
+      "expected_output": "A shell script that chains `list-sessions`, `cdp -s $SESSION -m DOM.getDocument`, and `cdp -s $SESSION -m DOM.describeNode '{\"nodeId\": 1}'`.",
+      "expectations": [
+        "The script invokes `list-sessions` before the CDP commands.",
+        "The script invokes `cdp` with method `DOM.getDocument`.",
+        "The script invokes `cdp` with method `DOM.describeNode`.",
+        "The `DOM.describeNode` call passes a JSON params object containing `\"nodeId\": 1`.",
+        "Both CDP calls target `$SESSION` via `-s` or `--session`."
+      ],
+      "files": []
+    },
+    {
+      "id": 3,
+      "name": "get-console-errors-and-warnings",
+      "prompt": "Give me the exact one-line command that fetches only the last 10 error and warning console messages from the current Lynx session. Put it in `console-cmd.sh` and do not add extra output.",
+      "expected_output": "A one-line command invoking `node <skill>/scripts/index.mjs get-console` with `--level error,warning` and `--limit 10`.",
+      "expectations": [
+        "The response writes or shows a file named `console-cmd.sh`.",
+        "The file content invokes the `get-console` subcommand.",
+        "The command passes `--level` with both `error` and `warning`.",
+        "The command passes `--limit 10`.",
+        "The answer does not use a browser DevTools UI workflow instead of the CLI."
+      ],
+      "files": []
+    },
+    {
+      "id": 4,
+      "name": "open-page-and-screenshot",
+      "prompt": "用 lynx-devtool 打开 `lynx://demo/card`，然后截全屏图保存到 `/tmp/lynx-shot.jpeg`。请给一个 shell script `open-and-shot.sh`。",
+      "expected_output": "A script that runs the `open` command for `lynx://demo/card` and `take-screenshot --fullscreen --output /tmp/lynx-shot.jpeg`.",
+      "expectations": [
+        "The script invokes the `open` subcommand with the exact URL `lynx://demo/card`.",
+        "The script invokes the `take-screenshot` subcommand.",
+        "The screenshot command includes the `--fullscreen` flag.",
+        "The screenshot command writes to `/tmp/lynx-shot.jpeg` via `-o` or `--output`.",
+        "The answer does not use unrelated tools such as adb screencap."
+      ],
+      "files": []
+    }
+  ]
+}

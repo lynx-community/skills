@@ -1,0 +1,90 @@
+{
+  "skill_name": "reactlynx-best-practices",
+  "description": "End-to-end task evals for the reactlynx-best-practices skill. These evals cover thread-boundary review, event propagation, main-thread scripts, lifecycle, code splitting, and profiling guidance.",
+  "evals": [
+    {
+      "id": 1,
+      "name": "review-background-only-render-violation",
+      "prompt": "帮我 review 这段 ReactLynx 代码：\n\n```tsx\nexport function App() {\n  const module = lynx.getJSModule('GlobalEventEmitter');\n  NativeModules.Analytics.track('page_view');\n\n  return <view>Hello</view>;\n}\n```\n\n有没有双线程问题？",
+      "expected_output": "A review identifying that `lynx.getJSModule` and `NativeModules` are called in render scope, which can run on the main thread, and suggesting moving them into `useEffect`, event handlers, or a `'background only'` function.",
+      "expectations": [
+        "The response identifies `lynx.getJSModule('GlobalEventEmitter')` in the component render body as a violation.",
+        "The response identifies `NativeModules.Analytics.track('page_view')` in the component render body as a violation.",
+        "The response explains that render code may run on the main thread in ReactLynx.",
+        "The response references `detect-background-only` or describes the background-only API rule.",
+        "The response suggests moving the calls to `useEffect`, an event handler, or a `'background only'` function."
+      ],
+      "files": []
+    },
+    {
+      "id": 2,
+      "name": "catchtap-propagation-fix",
+      "prompt": "ReactLynx 里我点击内部删除按钮，外层卡片的 `bindtap` 也触发了跳详情。内部现在也是 `bindtap={handleDeleteTap}`，应该怎么修？",
+      "expected_output": "A fix changing the inner delete element from `bindtap` to `catchtap`, with an explanation that `catchtap` stops propagation while event handlers remain background-thread contexts.",
+      "expectations": [
+        "The response explains that `bindtap` bubbles to parent handlers.",
+        "The response recommends changing the inner delete handler to `catchtap={handleDeleteTap}`.",
+        "The response references `proper-event-handlers` or the bindtap/catchtap distinction.",
+        "The response says regular event handlers run on the background thread and can call `NativeModules` or `lynx.getJSModule`.",
+        "The response does not present `event.stopPropagation()` as the primary fix."
+      ],
+      "files": []
+    },
+    {
+      "id": 3,
+      "name": "main-thread-scroll-animation",
+      "prompt": "我要做 ReactLynx 滚动联动动画：scrollTop 从 0 到 200 时 header opacity 从 1 到 0，要求跟手不卡。请给最佳实践写法。",
+      "expected_output": "A ReactLynx example using `main-thread:global-bindscroll` or `main-thread:bindscroll`, a handler whose first statement is `'main thread'`, and `setStyleProperty` to update opacity directly on the main thread.",
+      "expectations": [
+        "The example uses a `main-thread:` event prefix such as `main-thread:global-bindscroll` or `main-thread:bindscroll`.",
+        "The scroll handler includes `'main thread'` as its first statement.",
+        "The handler calculates opacity from `event.detail.scrollTop` and clamps or bounds it between 0 and 1.",
+        "The handler uses `setStyleProperty` or a main-thread ref to update opacity directly on the main thread.",
+        "The explanation says main-thread handling avoids background-to-main thread communication delay for smooth animation."
+      ],
+      "files": []
+    },
+    {
+      "id": 4,
+      "name": "avoid-use-layout-effect",
+      "prompt": "Tooltip 里用了 `useLayoutEffect` 读 ref 的布局高度，ReactLynx 首屏还是闪。这个 hook 能像 React DOM 一样同步测量吗？应该换什么？",
+      "expected_output": "A response saying ReactLynx does not support React DOM-style synchronous `useLayoutEffect`; use `useEffect` for background side effects or `main-thread:bindlayoutchange` / `main-thread:ref` for layout reads on the main thread.",
+      "expectations": [
+        "The response states that ReactLynx does not support React DOM-style `useLayoutEffect` semantics.",
+        "The response explains that lifecycle hooks run asynchronously on the background thread.",
+        "The response says `useLayoutEffect` cannot synchronously measure before paint like React DOM.",
+        "The response suggests `useEffect` for ordinary background side effects.",
+        "The response suggests `main-thread:bindlayoutchange` or `main-thread:ref` when layout must be read on the main thread."
+      ],
+      "files": []
+    },
+    {
+      "id": 5,
+      "name": "code-splitting-heavy-panel",
+      "prompt": "商品详情面板很重，只有用户点开时才展示。ReactLynx 里怎么用 `lazy` 和 `Suspense` 做代码分割？顺便提醒容易踩的坑。",
+      "expected_output": "A render-gated `lazy(() => import(...))` example wrapped in `<Suspense fallback=...>`, noting default exports, CSS bundle scope, and error handling for important lazy chunks.",
+      "expectations": [
+        "The code imports `lazy` and `Suspense` from `@lynx-js/react`.",
+        "The lazy component is created with `lazy(() => import(...))`.",
+        "The answer notes that lazy modules should default export the component.",
+        "The lazy boundary is render-gated so the chunk downloads only when the panel is shown.",
+        "The answer mentions CSS bundle scope or ErrorBoundary/error handling for important lazy chunks."
+      ],
+      "files": []
+    },
+    {
+      "id": 6,
+      "name": "profiling-diff-no-patch",
+      "prompt": "ReactLynx Profile 里反复出现 `ReactLynx::diffFinishNoPatch` 和 `ReactLynx::render::FeedItem`，界面却没变化。应该怎么定位和优化？",
+      "expected_output": "Profiling guidance explaining no-patch diffs, following flow IDs from setState through diff/commit/patch, keeping displayName readable, and applying memoization or narrower state ownership based on trace evidence.",
+      "expectations": [
+        "The response explains that repeated `ReactLynx::diffFinishNoPatch` often means render/diff work produced no UI patch.",
+        "The response suggests following flow IDs from `ReactLynx::setState` through diff, commit, and patch.",
+        "The response suggests keeping readable `displayName` values for hot components.",
+        "The response recommends profiling-driven optimizations such as narrower state ownership, stable props, `React.memo`, or `useMemo`.",
+        "The response warns against guessing optimizations without trace evidence."
+      ],
+      "files": []
+    }
+  ]
+}

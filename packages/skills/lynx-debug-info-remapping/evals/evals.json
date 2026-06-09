@@ -1,0 +1,47 @@
+{
+  "skill_name": "lynx-debug-info-remapping",
+  "description": "End-to-end task evals for remapping Lynx main-thread function_id:pc_index positions using debug-info.json.",
+  "evals": [
+    {
+      "id": 1,
+      "name": "remap-main-thread-frame",
+      "prompt": "Lynx 报错里有一帧 `at App (file:///main-thread.js:1356:13)`，项目路径是 `/repo/app`，`debug-info.json` 在 `/repo/app/dist/.rspeedy/main/debug-info.json`。请告诉我应该运行哪条 remapping 命令，并说明输出如何用于替换 stack trace。",
+      "expected_output": "A command invoking the skill script with debug-info path, function id `1356`, and pc index `13`, plus an explanation that the output line:column replaces `main-thread.js:1356:13`.",
+      "expectations": [
+        "The command uses `node` to run the skill's `scripts/index.mjs` remapping script.",
+        "The command passes `/repo/app/dist/.rspeedy/main/debug-info.json` as the debug info path.",
+        "The command passes `1356` as the function id and `13` as the pc index.",
+        "The answer explains that the script output is a source `line:column` pair.",
+        "The answer says the remapped position should replace the encoded `main-thread.js:1356:13` stack frame."
+      ],
+      "files": []
+    },
+    {
+      "id": 2,
+      "name": "ask-for-missing-debug-info",
+      "prompt": "我只有这个错误：`main-thread.js exception at App (file:///main-thread.js:1002:12)`，还没给你 `debug-info.json`。你应该怎么继续？",
+      "expected_output": "A response that identifies the function_id:pc_index pair, confirms it is a main-thread frame, and asks for the corresponding debug-info.json path before running the script.",
+      "expectations": [
+        "The response extracts `1002:12` as the function_id:pc_index pair.",
+        "The response confirms this is a main-thread stack frame and therefore needs remapping.",
+        "The response asks the user for the corresponding `debug-info.json` path.",
+        "The response suggests the usual rspeedy location `dist/.rspeedy/main/debug-info.json` as a likely place.",
+        "The response does not claim it can remap without debug info."
+      ],
+      "files": []
+    },
+    {
+      "id": 3,
+      "name": "skip-background-stack",
+      "prompt": "这段报错来自 background JS：`background.js exception at doWork (file:///background.js:90:7)`。我需要用 debug-info remap 吗？",
+      "expected_output": "A response saying the skill targets main-thread encoded `main-thread.js` frames, while a background stack generally does not need this debug-info remapping workflow.",
+      "expectations": [
+        "The response says this remapping workflow is for main-thread encoded stacks.",
+        "The response points out that the given frame is `background.js`, not `main-thread.js`.",
+        "The response says debug-info remapping is generally not needed for that background stack.",
+        "The response suggests using normal source map or background debugging context if further investigation is needed."
+      ],
+      "files": []
+    }
+  ]
+}

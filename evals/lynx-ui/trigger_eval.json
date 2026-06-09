@@ -1,0 +1,34 @@
+[
+  {
+    "query": "lynx-ui 里做 banner 轮播应该用 Swiper 还是 ScrollView？",
+    "should_trigger": true
+  },
+  {
+    "query": "我想查 lynx-ui Sheet 组件有哪些公开 ref 方法，应该看哪个 api.md？",
+    "should_trigger": true
+  },
+  {
+    "query": "lynx-ui 里 Dialog、Sheet、Popover 分别适合什么交互场景？",
+    "should_trigger": true
+  },
+  {
+    "query": "用 lynx-ui 的 FeedList 做下拉刷新和加载更多，有没有参考示例？",
+    "should_trigger": true
+  },
+  {
+    "query": "ReactLynx 里 NativeModules 不能写在 render 里吗？",
+    "should_trigger": false
+  },
+  {
+    "query": "Lynx DevTool 怎么调用 DOM.getDocument？",
+    "should_trigger": false
+  },
+  {
+    "query": "Habitat 的 .habitat 和 DEPS 怎么写？",
+    "should_trigger": false
+  },
+  {
+    "query": "帮我录制一份 Lynx performance trace。",
+    "should_trigger": false
+  }
+]

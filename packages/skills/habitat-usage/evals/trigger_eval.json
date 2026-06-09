@@ -1,0 +1,34 @@
+[
+  {
+    "query": "我们想用 Habitat 管理主仓库里的多个 git 依赖，.habitat 和 DEPS 应该怎么写？",
+    "should_trigger": true
+  },
+  {
+    "query": "hab sync 在 CI 里失败，提示 git permission denied，帮我排查。",
+    "should_trigger": true
+  },
+  {
+    "query": "我要用 Habitat 下载一个 http 二进制包并配置 sha256 校验。",
+    "should_trigger": true
+  },
+  {
+    "query": "DEPS 里 action 类型的自定义同步步骤怎么配置？",
+    "should_trigger": true
+  },
+  {
+    "query": "帮我写一个 ReactLynx 组件，点击按钮改变颜色。",
+    "should_trigger": false
+  },
+  {
+    "query": "pnpm workspace 里怎么发布 npm 包？",
+    "should_trigger": false
+  },
+  {
+    "query": "TypeScript 里 interface 和 type 有什么区别？",
+    "should_trigger": false
+  },
+  {
+    "query": "用 ffmpeg 把 mp4 转成 gif 的命令是什么？",
+    "should_trigger": false
+  }
+]

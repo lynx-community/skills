@@ -1,0 +1,203 @@
+name: Evals Comment
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+  pull-requests: write
+
+jobs:
+  evals-comment:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+
+      - name: Setup Pnpm
+        run: npm install -g corepack@latest && corepack enable
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: "pnpm"
+
+      - name: Install Dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Check skill eval definitions
+        id: check-evals
+        continue-on-error: true
+        run: |
+          mkdir -p artifacts
+          pnpm eval:skill:check:all -- \
+            --json-output artifacts/skill-evals-definition.json
+
+      - name: Run online skill task evals
+        id: task-evals
+        continue-on-error: true
+        env:
+          ARK_API_KEY: ${{ secrets.SKILL_EVAL_ARK_API_KEY || secrets.ARK_API_KEY }}
+          ARK_BASE_URL: ${{ vars.SKILL_EVAL_MODEL_BASE_URL || vars.ARK_BASE_URL }}
+          ARK_MODEL: ${{ vars.SKILL_EVAL_MODEL || vars.ARK_MODEL }}
+          SKILL_TASK_EVAL_IDS: ${{ vars.SKILL_EVAL_TASK_EVAL_IDS }}
+          SKILL_TASK_GRADER_MODEL: ${{ vars.SKILL_EVAL_TASK_GRADER_MODEL }}
+          SKILL_TASK_MAX_EVALS_PER_SKILL: ${{ vars.SKILL_EVAL_TASK_MAX_EVALS_PER_SKILL || '1' }}
+          SKILL_TASK_MODEL: ${{ vars.SKILL_EVAL_TASK_MODEL }}
+          SKILL_TASK_SKIP_SKILLS: ${{ vars.SKILL_EVAL_TASK_SKIP_SKILLS || 'habitat-usage,lynx-fiber-element' }}
+          SKILL_TASK_TIMEOUT: ${{ vars.SKILL_EVAL_TASK_TIMEOUT || '300' }}
+        run: |
+          mkdir -p artifacts
+          if [ -z "${ARK_API_KEY:-}" ]; then
+            MESSAGE="Online skill task evals require an Ark model credential secret. Configure SKILL_EVAL_ARK_API_KEY or ARK_API_KEY."
+            printf '%s\n' "$MESSAGE" > artifacts/skill-evals-task-error.txt
+            echo "::error::$MESSAGE"
+            exit 1
+          fi
+          if [ -z "${ARK_BASE_URL:-}" ] || [ -z "${ARK_MODEL:-}" ]; then
+            MESSAGE="Ark task evals require repository variables SKILL_EVAL_MODEL_BASE_URL and SKILL_EVAL_MODEL."
+            printf '%s\n' "$MESSAGE" > artifacts/skill-evals-task-error.txt
+            echo "::error::$MESSAGE"
+            exit 1
+          fi
+
+          if ! command -v opencode >/dev/null 2>&1; then
+            npm --registry=https://registry.npmjs.org install -g opencode-ai@latest
+          fi
+          opencode --version
+
+          export XDG_CONFIG_HOME="$RUNNER_TEMP/opencode-config"
+          pnpm eval:skill:setup-opencode-ark -- --config-home "$XDG_CONFIG_HOME"
+          DEFAULT_MODEL="ark/$ARK_MODEL"
+
+          SKILL_TASK_MODEL="${SKILL_TASK_MODEL:-$DEFAULT_MODEL}"
+          SKILL_TASK_GRADER_MODEL="${SKILL_TASK_GRADER_MODEL:-$SKILL_TASK_MODEL}"
+
+          EXTRA_ARGS=""
+          if [ -n "$SKILL_TASK_EVAL_IDS" ]; then
+            EXTRA_ARGS="$EXTRA_ARGS --eval-ids $SKILL_TASK_EVAL_IDS"
+          else
+            EXTRA_ARGS="$EXTRA_ARGS --max-evals-per-skill $SKILL_TASK_MAX_EVALS_PER_SKILL"
+          fi
+
+          set +e
+          pnpm eval:skill:task:online:all -- \
+            --model "$SKILL_TASK_MODEL" \
+            --grader-model "$SKILL_TASK_GRADER_MODEL" \
+            --timeout "$SKILL_TASK_TIMEOUT" \
+            --min-pass-rate 0 \
+            --output-root artifacts \
+            --skip-skills "$SKILL_TASK_SKIP_SKILLS" \
+            $EXTRA_ARGS 2>&1 | tee artifacts/skill-evals-task-online.log
+          TASK_EXIT=${PIPESTATUS[0]}
+          set -e
+          if [ "$TASK_EXIT" -ne 0 ]; then
+            printf 'Online skill task evals exited with %s. See skill-evals-task-online.log in the uploaded artifact.\n' "$TASK_EXIT" > artifacts/skill-evals-task-error.txt
+          fi
+          exit "$TASK_EXIT"
+
+      - name: Run online skill trigger evals
+        id: trigger-evals
+        continue-on-error: true
+        env:
+          ARK_API_KEY: ${{ secrets.SKILL_EVAL_ARK_API_KEY || secrets.ARK_API_KEY }}
+          ARK_BASE_URL: ${{ vars.SKILL_EVAL_MODEL_BASE_URL || vars.ARK_BASE_URL }}
+          ARK_MODEL: ${{ vars.SKILL_EVAL_MODEL || vars.ARK_MODEL }}
+          SKILL_TRIGGER_MODEL: ${{ vars.SKILL_EVAL_TRIGGER_MODEL }}
+          SKILL_TRIGGER_RUNS_PER_QUERY: ${{ vars.SKILL_EVAL_TRIGGER_RUNS_PER_QUERY || '1' }}
+          SKILL_TRIGGER_SKIP_SKILLS: ${{ vars.SKILL_EVAL_TRIGGER_SKIP_SKILLS || vars.SKILL_EVAL_TASK_SKIP_SKILLS || 'habitat-usage,lynx-fiber-element' }}
+          SKILL_TRIGGER_TIMEOUT: ${{ vars.SKILL_EVAL_TRIGGER_TIMEOUT || '90' }}
+        run: |
+          mkdir -p artifacts
+          if [ -z "${ARK_API_KEY:-}" ]; then
+            MESSAGE="Online skill trigger evals require an Ark model credential secret. Configure SKILL_EVAL_ARK_API_KEY or ARK_API_KEY."
+            printf '%s\n' "$MESSAGE" > artifacts/skill-evals-trigger-error.txt
+            echo "::error::$MESSAGE"
+            exit 1
+          fi
+          if [ -z "${ARK_BASE_URL:-}" ] || [ -z "${ARK_MODEL:-}" ]; then
+            MESSAGE="Ark trigger evals require repository variables SKILL_EVAL_MODEL_BASE_URL and SKILL_EVAL_MODEL."
+            printf '%s\n' "$MESSAGE" > artifacts/skill-evals-trigger-error.txt
+            echo "::error::$MESSAGE"
+            exit 1
+          fi
+
+          if ! command -v opencode >/dev/null 2>&1; then
+            npm --registry=https://registry.npmjs.org install -g opencode-ai@latest
+          fi
+          opencode --version
+
+          export XDG_CONFIG_HOME="$RUNNER_TEMP/opencode-config"
+          pnpm eval:skill:setup-opencode-ark -- --config-home "$XDG_CONFIG_HOME"
+          DEFAULT_MODEL="ark/$ARK_MODEL"
+          SKILL_TRIGGER_MODEL="${SKILL_TRIGGER_MODEL:-$DEFAULT_MODEL}"
+
+          set +e
+          pnpm eval:skill:trigger:online:all -- \
+            --model "$SKILL_TRIGGER_MODEL" \
+            --runs-per-query "$SKILL_TRIGGER_RUNS_PER_QUERY" \
+            --timeout "$SKILL_TRIGGER_TIMEOUT" \
+            --min-pass-rate 0 \
+            --output-root artifacts \
+            --skip-skills "$SKILL_TRIGGER_SKIP_SKILLS" 2>&1 | tee artifacts/skill-evals-trigger-online.log
+          TRIGGER_EXIT=${PIPESTATUS[0]}
+          set -e
+          if [ "$TRIGGER_EXIT" -ne 0 ]; then
+            printf 'Online skill trigger evals exited with %s. See skill-evals-trigger-online.log in the uploaded artifact.\n' "$TRIGGER_EXIT" > artifacts/skill-evals-trigger-error.txt
+          fi
+          exit "$TRIGGER_EXIT"
+
+      - name: Build eval comment report
+        if: always()
+        run: |
+          pnpm eval:skill:comment-report -- \
+            --definition-report artifacts/skill-evals-definition.json \
+            --task-error-file artifacts/skill-evals-task-error.txt \
+            --trigger-error-file artifacts/skill-evals-trigger-error.txt \
+            --task-report-dir artifacts \
+            --output artifacts/skill-evals-comment.json
+
+      - name: Upload eval report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: skill-evals-report
+          path: artifacts/**
+          if-no-files-found: error
+
+      - name: Comment eval scores
+        if: always()
+        id: evals-comment
+        uses: ./.github/actions/evals-comment
+        with:
+          result-file: artifacts/skill-evals-comment.json
+          title: Skill Evals
+          dry-run: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.repository }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Write eval scores to summary
+        if: always()
+        env:
+          EVALS_COMMENT_BODY: ${{ steps.evals-comment.outputs.body }}
+        run: printf '%s\n' "$EVALS_COMMENT_BODY" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Fail on invalid eval definitions
+        if: steps.check-evals.outcome != 'success'
+        run: exit 1
+
+      - name: Fail on online task eval failures
+        if: steps.task-evals.outcome != 'success'
+        run: exit 1
+
+      - name: Fail on online trigger eval failures
+        if: steps.trigger-evals.outcome != 'success'
+        run: exit 1
