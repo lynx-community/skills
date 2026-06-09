@@ -27,25 +27,15 @@ async function main() {
   }
 
   const taskReports = await readTaskReports(taskReportDir);
-  const taskReportsBySkill = new Map(
-    taskReports.map((report) => [report.skill_name, report]),
-  );
-  const estimateReports = [];
-
-  for (const result of definitionReport.results ?? []) {
-    const skillName = stringValue(result.skill_name);
-    if (!skillName || taskReportsBySkill.has(skillName)) continue;
-    estimateReports.push(buildEstimateTaskReport(result));
-  }
 
   const report = {
-    reports: [definitionReport, ...taskReports, ...estimateReports],
+    reports: [definitionReport, ...taskReports],
   };
   await mkdir(dirname(outputPath), { recursive: true });
   await writeFile(outputPath, `${JSON.stringify(report, null, 2)}\n`);
 
   console.info(
-    `[skill-eval] comment_report=${outputPath} definition=1 task=${taskReports.length} estimate=${estimateReports.length}`,
+    `[skill-eval] comment_report=${outputPath} definition=1 task=${taskReports.length}`,
   );
 }
 
@@ -103,54 +93,6 @@ async function findJsonFiles(root) {
     .map((entry) => join(entry.parentPath, entry.name));
 }
 
-function buildEstimateTaskReport(result) {
-  const skillName = stringValue(result.skill_name) || 'unknown';
-  const total = Math.max(1, numericValue(result.task_expectations, 0));
-  const withPassed = result.pass ? total : 0;
-  const withoutPassed = 0;
-  const withPassRate = withPassed / total;
-  const withoutPassRate = withoutPassed / total;
-
-  return {
-    estimate: true,
-    kind: 'task_eval',
-    min_pass_rate: 0,
-    model: 'ci-definition-estimate',
-    report_title: `skills/${skillName} Task Eval Estimate`,
-    results: [],
-    skill_name: skillName,
-    source: 'ci_definition_estimate',
-    summary: {
-      min_pass_rate: 0,
-      pass_rate: round(withPassRate),
-      passed: withPassed,
-      total,
-    },
-    config_summary: {
-      delta: { pass_rate: round(withPassRate - withoutPassRate) },
-      with_skill: {
-        pass_rate: round(withPassRate),
-        passed: withPassed,
-        total,
-      },
-      without_skill: {
-        pass_rate: round(withoutPassRate),
-        passed: withoutPassed,
-        total,
-      },
-    },
-  };
-}
-
 function stringValue(value) {
   return typeof value === 'string' ? value.trim() : '';
-}
-
-function numericValue(value, fallback) {
-  const parsed = typeof value === 'number' ? value : Number(value);
-  return Number.isFinite(parsed) ? parsed : fallback;
-}
-
-function round(value) {
-  return Math.round(value * 1000) / 1000;
 }
