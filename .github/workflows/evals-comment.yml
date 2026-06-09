@@ -46,20 +46,25 @@ jobs:
         id: task-evals
         continue-on-error: true
         env:
-          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
-          OPENCODE_API_KEY: ${{ secrets.SKILL_EVAL_OPENCODE_API_KEY || secrets.OPENCODE_API_KEY }}
-          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+          ARK_API_KEY: ${{ secrets.SKILL_EVAL_ARK_API_KEY || secrets.ARK_API_KEY }}
+          ARK_BASE_URL: ${{ vars.SKILL_EVAL_MODEL_BASE_URL || vars.ARK_BASE_URL }}
+          ARK_MODEL: ${{ vars.SKILL_EVAL_MODEL || vars.ARK_MODEL }}
           SKILL_TASK_EVAL_IDS: ${{ vars.SKILL_EVAL_TASK_EVAL_IDS }}
-          SKILL_TASK_GRADER_MODEL: ${{ vars.SKILL_EVAL_TASK_GRADER_MODEL || vars.SKILL_EVAL_TASK_MODEL || 'opencode/gpt-5-nano' }}
+          SKILL_TASK_GRADER_MODEL: ${{ vars.SKILL_EVAL_TASK_GRADER_MODEL }}
           SKILL_TASK_MAX_EVALS_PER_SKILL: ${{ vars.SKILL_EVAL_TASK_MAX_EVALS_PER_SKILL || '1' }}
           SKILL_TASK_MIN_PASS_RATE: ${{ vars.SKILL_EVAL_TASK_MIN_PASS_RATE || '0.85' }}
-          SKILL_TASK_MODEL: ${{ vars.SKILL_EVAL_TASK_MODEL || 'opencode/gpt-5-nano' }}
+          SKILL_TASK_MODEL: ${{ vars.SKILL_EVAL_TASK_MODEL }}
           SKILL_TASK_TIMEOUT: ${{ vars.SKILL_EVAL_TASK_TIMEOUT || '300' }}
         run: |
           mkdir -p artifacts
-          if [ -z "${OPENCODE_API_KEY:-}${OPENROUTER_API_KEY:-}${OPENAI_API_KEY:-}${ANTHROPIC_API_KEY:-}" ]; then
-            MESSAGE="Online skill task evals require a model credential secret. Configure SKILL_EVAL_OPENCODE_API_KEY, OPENCODE_API_KEY, OPENROUTER_API_KEY, OPENAI_API_KEY, or ANTHROPIC_API_KEY."
+          if [ -z "${ARK_API_KEY:-}" ]; then
+            MESSAGE="Online skill task evals require an Ark model credential secret. Configure SKILL_EVAL_ARK_API_KEY or ARK_API_KEY."
+            printf '%s\n' "$MESSAGE" > artifacts/skill-evals-task-error.txt
+            echo "::error::$MESSAGE"
+            exit 1
+          fi
+          if [ -z "${ARK_BASE_URL:-}" ] || [ -z "${ARK_MODEL:-}" ]; then
+            MESSAGE="Ark task evals require repository variables SKILL_EVAL_MODEL_BASE_URL and SKILL_EVAL_MODEL."
             printf '%s\n' "$MESSAGE" > artifacts/skill-evals-task-error.txt
             echo "::error::$MESSAGE"
             exit 1
@@ -69,6 +74,13 @@ jobs:
             npm --registry=https://registry.npmjs.org install -g opencode-ai@latest
           fi
           opencode --version
+
+          export XDG_CONFIG_HOME="$RUNNER_TEMP/opencode-config"
+          pnpm eval:skill:setup-opencode-ark -- --config-home "$XDG_CONFIG_HOME"
+          DEFAULT_MODEL="ark/$ARK_MODEL"
+
+          SKILL_TASK_MODEL="${SKILL_TASK_MODEL:-$DEFAULT_MODEL}"
+          SKILL_TASK_GRADER_MODEL="${SKILL_TASK_GRADER_MODEL:-$SKILL_TASK_MODEL}"
 
           EXTRA_ARGS=""
           if [ -n "$SKILL_TASK_EVAL_IDS" ]; then
