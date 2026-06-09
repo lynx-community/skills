@@ -42,12 +42,20 @@ jobs:
           pnpm eval:skill:check:all -- \
             --json-output artifacts/skill-evals-definition.json
 
+      - name: Build eval comment report
+        if: always()
+        run: |
+          pnpm eval:skill:comment-report -- \
+            --definition-report artifacts/skill-evals-definition.json \
+            --task-report-dir artifacts \
+            --output artifacts/skill-evals-comment.json
+
       - name: Upload eval report
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: skill-evals-definition
-          path: artifacts/skill-evals-definition.json
+          name: skill-evals-report
+          path: artifacts/*.json
           if-no-files-found: error
 
       - name: Comment eval scores
@@ -55,7 +63,7 @@ jobs:
         id: evals-comment
         uses: ./.github/actions/evals-comment
         with:
-          result-file: artifacts/skill-evals-definition.json
+          result-file: artifacts/skill-evals-comment.json
           title: Skill Evals
           dry-run: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.repository }}
           github-token: ${{ secrets.GITHUB_TOKEN }}

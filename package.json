@@ -18,6 +18,7 @@
     "check": "biome check && eslint .",
     "eval:skill:check": "node scripts/skill-eval/check_evals.mjs",
     "eval:skill:check:all": "node scripts/skill-eval/check_evals.mjs --all",
+    "eval:skill:comment-report": "node scripts/skill-eval/build_comment_report.mjs",
     "eval:skill:task:online": "node scripts/skill-eval/run_task_online.mjs",
     "lint": "eslint . --fix && biome check --write",
     "prepare": "husky && turbo build",

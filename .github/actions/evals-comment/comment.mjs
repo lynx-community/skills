@@ -229,7 +229,13 @@ function normalizeTaskReport(report) {
   );
 
   return {
+    taskEstimated: Boolean(
+      report.estimate ||
+        report.estimated ||
+        report.source === 'ci_definition_estimate',
+    ),
     skillName: stringValue(report.skill_name) || 'unknown',
+    taskSource: stringValue(report.source),
     taskDelta: delta * 100,
     taskEvalCases: Array.isArray(report.results) ? report.results.length : 0,
     taskMinPassRate: numericValue(
@@ -280,6 +286,8 @@ function buildTaskSummary(results) {
   );
   return {
     delta: withSkill - withoutSkill,
+    estimated: taskRows.every((result) => result.taskEstimated),
+    estimatedCount: taskRows.filter((result) => result.taskEstimated).length,
     skills: taskRows.length,
     withSkill,
     withoutSkill,
@@ -300,9 +308,20 @@ function formatComment({ marker, report, title }) {
   }
 
   if (report.taskSummary) {
-    lines.push(
-      `Task eval score: **${formatScore(report.taskSummary.withSkill)} / 100 with skill** vs **${formatScore(report.taskSummary.withoutSkill)} / 100 without skill** (Δ ${formatSignedScore(report.taskSummary.delta)}) across ${report.taskSummary.skills} skill suite${report.taskSummary.skills === 1 ? '' : 's'}.`,
-    );
+    if (report.taskSummary.estimated) {
+      lines.push(
+        `Task eval score (CI estimate): **${formatScore(report.taskSummary.withSkill)} / 100 with skill** vs **${formatScore(report.taskSummary.withoutSkill)} / 100 without skill** (Δ ${formatSignedScore(report.taskSummary.delta)}) across ${report.taskSummary.skills} skill suite${report.taskSummary.skills === 1 ? '' : 's'}.`,
+      );
+    } else {
+      lines.push(
+        `Task eval score: **${formatScore(report.taskSummary.withSkill)} / 100 with skill** vs **${formatScore(report.taskSummary.withoutSkill)} / 100 without skill** (Δ ${formatSignedScore(report.taskSummary.delta)}) across ${report.taskSummary.skills} skill suite${report.taskSummary.skills === 1 ? '' : 's'}.`,
+      );
+      if (report.taskSummary.estimatedCount > 0) {
+        lines.push(
+          `${report.taskSummary.estimatedCount} skill suite${report.taskSummary.estimatedCount === 1 ? '' : 's'} used CI estimates because no online task report was available.`,
+        );
+      }
+    }
   } else {
     lines.push(
       'Task eval score: not run in this report. Online task reports will fill `with_skill`, `without_skill`, and Δ.',
@@ -321,6 +340,13 @@ function formatComment({ marker, report, title }) {
     '| - | -: | -: | -: | -: | -: | -: | -: | - |',
     ...report.results.map((result) => formatSuiteRow(result)),
   );
+
+  if (report.results.some((result) => result.taskEstimated)) {
+    lines.push(
+      '',
+      '_* CI estimate: derived from eval definition expectations because an online task eval report was not available for that skill. Real `task-online-report.json` results replace the estimate automatically._',
+    );
+  }
 
   const details = report.results
     .filter((result) => result.errors.length > 0)
@@ -358,11 +384,13 @@ function formatSuiteRow(result) {
       result.withSkillScore,
       result.withSkillPassed,
       result.withSkillTotal,
+      result.taskEstimated,
     ),
     formatTaskScore(
       result.withoutSkillScore,
       result.withoutSkillPassed,
       result.withoutSkillTotal,
+      result.taskEstimated,
     ),
     formatOptionalSignedScore(result.taskDelta),
     formatOptionalInteger(result.taskEvals ?? result.taskEvalCases),
@@ -545,12 +573,13 @@ function formatOptionalInteger(value) {
   return Number.isFinite(value) ? String(value) : '-';
 }
 
-function formatTaskScore(score, passed, total) {
+function formatTaskScore(score, passed, total, estimated = false) {
   if (!Number.isFinite(score)) return '-';
+  const suffix = estimated ? '*' : '';
   if (Number.isFinite(passed) && Number.isFinite(total) && total > 0) {
-    return `${formatScore(score)} (${passed}/${total})`;
+    return `${formatScore(score)} (${passed}/${total})${suffix}`;
   }
-  return formatScore(score);
+  return `${formatScore(score)}${suffix}`;
 }
 
 function formatTriggerEvals(result) {
