@@ -45,8 +45,8 @@ importers:
         specifier: workspace:*
         version: link:packages/skills/lynx-typescript
       '@lynx-js/skill-lynx-ui':
-        specifier: 3.133.3
-        version: 3.133.3
+        specifier: https://pkg.pr.new/@lynx-js/skill-lynx-ui@9d867e5
+        version: https://pkg.pr.new/@lynx-js/skill-lynx-ui@9d867e5
       '@lynx-js/skill-reactlynx-best-practices':
         specifier: workspace:*
         version: link:packages/skills/reactlynx-best-practices
@@ -685,8 +685,9 @@ packages:
     resolution: {integrity: sha512-gQINVVX4c0OO8wxKLI30jfaLrWY1nRfDQpPipzjYXAVEGRJ0BQ+KwWj76MthK4f9D+LOj6Y8mG31yI+YmGpc4w==}
     engines: {node: '>=18'}
 
-  '@lynx-js/skill-lynx-ui@3.133.3':
-    resolution: {integrity: sha512-wz6rHhOUiXHVMAidZCPdy3fQWT7qczv8LKeIlmOitL5+jLTF7skgVoUrZDAWRubcIy0OYtr4bCn8oeONfMZvwg==}
+  '@lynx-js/skill-lynx-ui@https://pkg.pr.new/@lynx-js/skill-lynx-ui@9d867e5':
+    resolution: {tarball: https://pkg.pr.new/@lynx-js/skill-lynx-ui@9d867e5}
+    version: 3.133.3
 
   '@manypkg/find-root@1.1.0':
     resolution: {integrity: sha512-mki5uBvhHzO8kYYix/WRy2WX8S3B5wdVSc9D6KcU5lQNglP2yt58/VfLuAK49glRXChosY8ap2oJ1qgma3GUVA==}
@@ -1798,6 +1799,7 @@ packages:
   tar@7.5.7:
     resolution: {integrity: sha512-fov56fJiRuThVFXD6o6/Q354S7pnWMJIVlDBYijsTNx6jKSE4pvrDTs6lUnmGvNyfJwFQQwWy3owKz1ucIhveQ==}
     engines: {node: '>=18'}
+    deprecated: Old versions of tar are not supported, and contain widely publicized security vulnerabilities, which have been fixed in the current version. Please update. Support for old versions may be purchased (at exorbitant rates) by contacting i@izs.me
 
   term-size@2.2.1:
     resolution: {integrity: sha512-wK0Ri4fOGjv/XPy8SBHZChl8CM7uMc5VML7SqiQ0zG7+J5Vr+RMQDoHa2CNT6KHUnTGIXH34UDMkPzAUyapBZg==}
@@ -2335,7 +2337,7 @@ snapshots:
 
   '@lynx-js/skill-lynx-trace-record@0.0.3': {}
 
-  '@lynx-js/skill-lynx-ui@3.133.3': {}
+  '@lynx-js/skill-lynx-ui@https://pkg.pr.new/@lynx-js/skill-lynx-ui@9d867e5': {}
 
   '@manypkg/find-root@1.1.0':
     dependencies:
