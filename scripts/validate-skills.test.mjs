@@ -18,7 +18,13 @@ const SKIP_LIST = new Map([
   ['habitat-usage', 'name does not start with an allowed prefix'],
 ]);
 
-const ALLOWED_PREFIXES = ['lynx-', 'reactlynx-', 'ttml-', 'perflab-'];
+const ALLOWED_PREFIXES = [
+  'lynx-',
+  'reactlynx-',
+  'ttml-',
+  'perflab-',
+  'vanilla-lynx',
+];
 const ALLOWED_PREFIX_RE = new RegExp(
   `^(${ALLOWED_PREFIXES.map((prefix) =>
     prefix.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'),

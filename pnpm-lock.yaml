@@ -32,9 +32,6 @@ importers:
       '@lynx-js/skill-lynx-devtool':
         specifier: workspace:*
         version: link:packages/skills/lynx-devtool
-      '@lynx-js/skill-lynx-fiber-element':
-        specifier: workspace:*
-        version: link:packages/skills/lynx-fiber-element
       '@lynx-js/skill-lynx-trace-analysis':
         specifier: 0.0.6
         version: 0.0.6
@@ -50,6 +47,9 @@ importers:
       '@lynx-js/skill-reactlynx-best-practices':
         specifier: workspace:*
         version: link:packages/skills/reactlynx-best-practices
+      '@lynx-js/skill-vanilla-lynx':
+        specifier: workspace:*
+        version: link:packages/skills/vanilla-lynx
     devDependencies:
       '@biomejs/biome':
         specifier: 2.3.8
@@ -188,7 +188,7 @@ importers:
         specifier: '14'
         version: 14.0.3
 
-  packages/skills/lynx-fiber-element: {}
+  packages/skills/vanilla-lynx: {}
 
   packages/skills/lynx-typescript: {}
 

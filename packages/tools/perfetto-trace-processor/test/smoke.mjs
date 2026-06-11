@@ -103,7 +103,7 @@ async function main() {
       }
     }
 
-    // 5) Verify FiberElement Constructor/Destructor balance
+    // 5) Verify element constructor/destructor balance
     const match = await engine.query(`
       SELECT
         (SELECT COUNT(DISTINCT int_value) FROM args JOIN slice USING(arg_set_id)
@@ -123,8 +123,7 @@ async function main() {
 
     const cols = match.columns();
     const it = match.iter({});
-    if (!it.valid())
-      throw new Error('FiberElement balance query returned no rows');
+    if (!it.valid()) throw new Error('Element balance query returned no rows');
 
     /** @type {Record<string, any>} */
     const row = {};
@@ -139,7 +138,7 @@ async function main() {
       );
     }
     if (diff !== 0) {
-      throw new Error(`FiberElement imbalance: diff_count=${row.diff_count}`);
+      throw new Error(`Element imbalance: diff_count=${row.diff_count}`);
     }
 
     console.log(`[trace-processor smoke] PASS (tmp=${dir})`);

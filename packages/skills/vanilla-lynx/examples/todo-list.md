@@ -1,4 +1,4 @@
-# FiberElement Todo List Example
+# Vanilla Lynx Todo List Example
 
 This example shows a minimal todo list with first-screen data, background events, and patch-based updates.
 

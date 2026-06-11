@@ -1,10 +1,10 @@
 # Main Thread Rendering Reference
 
-Use this reference to build the page tree directly on the main thread with FiberElement / Element PAPI.
+Use this reference to build the page tree directly on the main thread with vanilla Lynx Element PAPI.
 
 ## Tree Composition
 
-All FiberElement APIs available on the main thread can be found in [`@lynx-js/type-element-api`](https://www.npmjs.com/package/@lynx-js/type-element-api). The API notes and examples are listed below.
+All Element PAPI APIs available on the main thread can be found in [`@lynx-js/type-element-api`](https://www.npmjs.com/package/@lynx-js/type-element-api). The API notes and examples are listed below.
 
 ### API Notes
 

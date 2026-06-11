@@ -36,7 +36,7 @@
     "should_trigger": false
   },
   {
-    "query": "不用 ReactLynx，直接用 FiberElement 创建页面树怎么写？",
+    "query": "不用 ReactLynx，直接用 vanilla Lynx Element PAPI 创建页面树怎么写？",
     "should_trigger": false
   },
   {

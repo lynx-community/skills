@@ -1,4 +1,4 @@
-# FiberElement Counter App Example
+# Vanilla Lynx Counter App Example
 
 This example shows the smallest counter app built with `@lynx-js/type-element-api`.
 
@@ -22,7 +22,7 @@ function processData(data) {
 function renderPage(data) {
   const title = __CreateText(pageId);
   __SetClasses(title, "title");
-  __AppendElement(title, __CreateRawText("FiberElement Counter"));
+  __AppendElement(title, __CreateRawText("Vanilla Lynx Counter"));
   __AppendElement(page, title);
 
   const button = __CreateView(pageId);
