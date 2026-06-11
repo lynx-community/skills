@@ -2,10 +2,10 @@
 // Licensed under the Apache License Version 2.0 that can be found in the
 // LICENSE file in the root directory of this source tree.
 import { execSync, spawn } from 'node:child_process';
-import { readFileSync } from 'node:fs';
+import { readFileSync, writeFileSync } from 'node:fs';
 import { rm } from 'node:fs/promises';
 import { createRequire } from 'node:module';
-import { dirname, resolve } from 'node:path';
+import { dirname, join, resolve } from 'node:path';
 
 const require = createRequire(import.meta.url);
 
@@ -64,6 +64,24 @@ function runBuildPlugin(skillPath, targetDir) {
   });
 }
 
+/**
+ * @param {string} targetDir
+ * @returns {void}
+ */
+function normalizeSkillFrontmatter(targetDir) {
+  const skillMd = join(targetDir, 'SKILL.md');
+  const content = readFileSync(skillMd, 'utf-8');
+  const updated = content.replace(
+    /^description: ([^\n"'[{|>].*)$/m,
+    (_match, description) =>
+      `description: ${JSON.stringify(description.trim())}`,
+  );
+
+  if (updated !== content) {
+    writeFileSync(skillMd, updated);
+  }
+}
+
 const skillsOutputDir = resolve(process.cwd(), 'skills');
 await rm(skillsOutputDir, { recursive: true, force: true });
 
@@ -74,5 +92,6 @@ for (const skill of skills) {
     name.replace('@lynx-js/skill-', ''),
   );
   await runBuildPlugin(skillPath, targetDir);
+  normalizeSkillFrontmatter(targetDir);
   console.error(`Exported skill: ${name}`);
 }
