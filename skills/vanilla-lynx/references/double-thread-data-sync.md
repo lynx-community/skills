@@ -1,6 +1,6 @@
 # Double-Thread Data Sync Reference
 
-Use this reference when a FiberElement app needs first-screen data, background-side async updates, or event-driven updates. Keep the main thread deterministic: it renders payloads, updates Element PAPI nodes, and flushes. Keep data loading, native updates, timers, and event handling in the background thread.
+Use this reference when a vanilla Lynx app needs first-screen data, background-side async updates, or event-driven updates. Keep the main thread deterministic: it renders payloads, updates Element PAPI nodes, and flushes. Keep data loading, native updates, timers, and event handling in the background thread.
 
 ## Thread Boundaries
 

@@ -1,11 +1,11 @@
 ---
-name: lynx-fiber-element
+name: vanilla-lynx
 description: |
-  Use this Skill when building Lynx applications directly with FiberElement / Element PAPI APIs from @lynx-js/type-element-api, without ReactLynx JSX. It covers project setup, Rspeedy template-webpack bundle assembly, main-thread UI tree creation, background-thread event dispatch, CSS packaging, and common Element API patterns.
+  Use this Skill when building Lynx applications directly with vanilla Lynx Element PAPI APIs from @lynx-js/type-element-api, without ReactLynx JSX. It covers project setup, Rspeedy template-webpack bundle assembly, main-thread UI tree creation, background-thread event dispatch, CSS packaging, and common Element API patterns.
 
   Trigger Scenarios:
   - User wants to build a Lynx app without ReactLynx, JSX, or a framework
-  - User asks to use @lynx-js/type-element-api, Element PAPI, FiberElement, or APIs such as __CreatePage, __CreateView, __CreateText, __AppendElement, __SetAttribute, or __FlushElementTree
+  - User asks to use @lynx-js/type-element-api, Element PAPI, vanilla Lynx, or APIs such as __CreatePage, __CreateView, __CreateText, __AppendElement, __SetAttribute, or __FlushElementTree
   - User needs a template-webpack style Lynx bundle with explicit background, main-thread, and CSS assets
 ---
 
@@ -36,7 +36,7 @@ Prefer the smallest relevant example:
 
 ## Verification
 
-After creating or changing a FiberElement app:
+After creating or changing a vanilla Lynx app:
 
 ```bash
 pnpm dev
