@@ -1,13 +1,13 @@
 # Template Webpack Build Reference
 
-Use this reference for a FiberElement app that bundles main-thread JavaScript, background JavaScript, and CSS through the template-webpack path.
+Use this reference for a vanilla Lynx app that bundles main-thread JavaScript, background JavaScript, and CSS through the template-webpack path.
 
-For a complete reference example, see [lynx-family/lynx-examples/examples/fiber-element](https://github.com/lynx-family/lynx-examples/tree/main/examples/fiber-element).
+For a complete reference example, see [lynx-family/lynx-examples/examples/vanilla-lynx](https://github.com/lynx-family/lynx-examples/tree/main/examples/vanilla-lynx).
 
 ## Minimal Structure
 
 ```text
-my-fiber-element-app/
+my-vanilla-lynx-app/
   package.json
   lynx.config.js
   plugin.js
@@ -23,7 +23,7 @@ my-fiber-element-app/
 
 ```json
 {
-  "name": "my-fiber-element-app",
+  "name": "my-vanilla-lynx-app",
   "private": true,
   "type": "module",
   "scripts": {
@@ -35,7 +35,7 @@ my-fiber-element-app/
 
 ## File Roles
 
-- `src/card/main-thread.ts`: build and update the page tree with FiberElement APIs.
+- `src/card/main-thread.ts`: build and update the page tree with Element PAPI APIs.
 - `src/card/background.ts`: read native init data, handle events, and send patches back to the main thread.
 - `src/card/style.css`: define page and node styles.
 - `src/rspeedy-env.d.ts`: declare Lynx and Element API types.

@@ -1,6 +1,6 @@
 [
   {
-    "query": "我想不用 ReactLynx，直接用 FiberElement / Element PAPI 写一个 Lynx app。",
+    "query": "我想不用 ReactLynx，直接用 vanilla Lynx Element PAPI 写一个 Lynx app。",
     "should_trigger": true
   },
   {
@@ -12,7 +12,7 @@
     "should_trigger": true
   },
   {
-    "query": "FiberElement 双线程数据同步里 background 怎么把 patch 发给 main thread？",
+    "query": "vanilla Lynx 双线程数据同步里 background 怎么把 patch 发给 main thread？",
     "should_trigger": true
   },
   {

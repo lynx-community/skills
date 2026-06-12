@@ -1,11 +1,11 @@
 {
-  "skill_name": "lynx-fiber-element",
-  "description": "End-to-end task evals for building Lynx apps directly with FiberElement / Element PAPI APIs instead of ReactLynx JSX.",
+  "skill_name": "vanilla-lynx",
+  "description": "End-to-end task evals for building Lynx apps directly with vanilla Lynx Element PAPI APIs instead of ReactLynx JSX.",
   "evals": [
     {
       "id": 1,
       "name": "scaffold-template-webpack-layout",
-      "prompt": "我要做一个不用 ReactLynx/JSX 的 Lynx 卡片，直接用 FiberElement / Element PAPI。请告诉我 template-webpack 方案下推荐的文件布局和每个文件负责什么。",
+      "prompt": "我要做一个不用 ReactLynx/JSX 的 Lynx 卡片，直接用 vanilla Lynx Element PAPI。请告诉我 template-webpack 方案下推荐的文件布局和每个文件负责什么。",
       "expected_output": "A file layout containing `src/main-thread.ts`, `src/background.ts`, `src/style.css`, `src/rspeedy-env.d.ts`, `lynx.config.js`, and `plugin.js`, with responsibilities for main-thread tree creation, background events/data, CSS, types, entry config, and bundle assembly.",
       "expectations": [
         "The answer explicitly says not to use ReactLynx, JSX, virtual DOM, or browser DOM APIs for this scenario.",
@@ -19,7 +19,7 @@
     {
       "id": 2,
       "name": "main-thread-counter-tree",
-      "prompt": "给我一个 FiberElement main-thread 计数器骨架：创建 page、view、text，点击区域通过事件发给 background，收到 patch 后更新文本并 flush。只要关键代码结构，不要 React 代码。",
+      "prompt": "给我一个 vanilla Lynx main-thread 计数器骨架：创建 page、view、text，点击区域通过事件发给 background，收到 patch 后更新文本并 flush。只要关键代码结构，不要 React 代码。",
       "expected_output": "A main-thread Element PAPI structure using `__CreatePage`, `__GetElementUniqueID`, `__CreateView`, text creation, `__AppendElement`, patch-driven update, and `__FlushElementTree`.",
       "expectations": [
         "The code uses `__CreatePage` to create the page root.",
@@ -33,7 +33,7 @@
     {
       "id": 3,
       "name": "double-thread-data-sync",
-      "prompt": "FiberElement app 里主线程和后台线程怎么分工？我需要 first-screen data、点击事件、异步更新，然后把 patch 发回主线程。",
+      "prompt": "vanilla Lynx app 里主线程和后台线程怎么分工？我需要 first-screen data、点击事件、异步更新，然后把 patch 发回主线程。",
       "expected_output": "An explanation that main thread owns Element PAPI tree mutations and receives `processData`/`updatePage` render input, while background reads init data, handles events, performs async work, and sends patches through the bridge.",
       "expectations": [
         "The response says the main thread owns UI tree creation and Element PAPI mutations.",
