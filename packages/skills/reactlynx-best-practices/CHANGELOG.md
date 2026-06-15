@@ -1,5 +1,11 @@
 # @lynx-js/skill-reactlynx-best-practices
 
+## 0.1.1
+
+### Patch Changes
+
+- 46746b6: Add ReactLynx globalPropsMode guidance for lynx.\_\_globalProps update behavior.
+
 ## 0.1.0
 
 ### Minor Changes
