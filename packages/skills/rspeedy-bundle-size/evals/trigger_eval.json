@@ -1,0 +1,90 @@
+[
+  {
+    "query": "我这个 rspeedy/Lynx 应用打包出来的 .lynx.bundle 有 14MB,帮我分析下到底大在哪、怎么减小包体积",
+    "should_trigger": true
+  },
+  {
+    "query": "My ReactLynx app's bundle is around 8MB. How do I figure out what's making it so big and cut it down?",
+    "should_trigger": true
+  },
+  {
+    "query": "rsdoctor shows a bunch of background-only tracking/request SDKs sitting in my main-thread.js — how do I strip them off the main thread to shrink the bundle?",
+    "should_trigger": true
+  },
+  {
+    "query": "Lynx 包体积怎么量?我想知道我这个页面的 .lynx.bundle 里到底是图片大还是 JS 大,先搞清楚再优化",
+    "should_trigger": true
+  },
+  {
+    "query": "My production bundle has un-minified names like common_EVENT_NAME and utils_toSomething and it's larger than expected — what causes this and how do I fix it?",
+    "should_trigger": true
+  },
+  {
+    "query": "我们的 i18n 把 57 种语言全打进 bundle 了,占了 main-thread 一大半体积,这块能不能优化掉",
+    "should_trigger": true
+  },
+  {
+    "query": "I want to cut a background-only SDK off the main thread with __BACKGROUND__ or a 'background only' directive — what's the safest way to do it without breaking the build?",
+    "should_trigger": true
+  },
+  {
+    "query": "extractStr 这个配置对减小 Lynx 的 .lynx.bundle 有用吗?该怎么开",
+    "should_trigger": true
+  },
+  {
+    "query": "Will using lazy / dynamic import to split components into dynamic bundles reduce my Lynx app's TOTAL bundle size?",
+    "should_trigger": true
+  },
+  {
+    "query": "我们有 50 多个 Lynx 应用,想批量看哪些工程的包体积还有优化空间,从哪些先下手",
+    "should_trigger": true
+  },
+  {
+    "query": "The .lynx.bundle from my rspeedy build is too big — can you break down its size and give me a prioritized optimization plan?",
+    "should_trigger": true
+  },
+  {
+    "query": "同一个库被打了两个版本进 Lynx bundle,体积翻倍了,怎么 dedup 成一份",
+    "should_trigger": true
+  },
+  {
+    "query": "My Lynx page's first paint is slow and the scrolling list janks — help me debug the runtime render performance.",
+    "should_trigger": false
+  },
+  {
+    "query": "ReactLynx 里 lynx.__globalProps.appTheme 报 TS 类型错误 Property 'appTheme' does not exist,怎么声明类型",
+    "should_trigger": false
+  },
+  {
+    "query": "Rewrite this ReactLynx class component into a function component with hooks.",
+    "should_trigger": false
+  },
+  {
+    "query": "我这个纯 React Web 项目用 webpack 打包,bundle 太大了,帮我做 tree-shaking 和 code splitting 优化",
+    "should_trigger": false
+  },
+  {
+    "query": "I want to decode/analyze the Lynx tasm binary to see how the structures and instructions inside the template file are encoded.",
+    "should_trigger": false
+  },
+  {
+    "query": "Lynx app 线上崩溃了,我有一段 native stacktrace 和 sourcemap,帮我 remap 还原符号",
+    "should_trigger": false
+  },
+  {
+    "query": "I want to dig into rsdoctor-data.json to see exactly which modules tree-shaking retained and which side-effects weren't shaken — a fine-grained per-module analysis.",
+    "should_trigger": false
+  },
+  {
+    "query": "Lynx 应用内存占用偏高,帮我抓个 heap snapshot 分析一下哪里泄漏了",
+    "should_trigger": false
+  },
+  {
+    "query": "How do I optimize a Next.js App Router bundle? After splitting RSC and client components the first-screen JS is still too big.",
+    "should_trigger": false
+  },
+  {
+    "query": "帮我给这个 Lynx 项目配一条 CI/CD 流水线,build 完自动上传产物",
+    "should_trigger": false
+  }
+]

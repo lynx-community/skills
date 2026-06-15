@@ -1,0 +1,126 @@
+{
+  "skill_name": "rspeedy-bundle-size",
+  "description": "End-to-end decision/methodology evals for the rspeedy-bundle-size skill. The skill is a measure-first decision skill, so each prompt is a realistic zh/en user scenario and the expectations check whether the agent makes the right CALL — not whether it runs a build (no real rspeedy build is needed). Scenarios target the skill's counter-intuitive, evidence-backed lessons where a no-skill baseline tends to give generic or wrong advice. Use with the skill-creator workflow to compare with-skill vs baseline outputs; grade each expectation independently as pass/fail with a verbatim evidence span.",
+  "evals": [
+    {
+      "id": 1,
+      "name": "media-dominates-measure-first",
+      "prompt": "My rspeedy/Lynx app's bundle is large after building — about 14MB. Looking at output, images are ~10MB and JS is ~4MB. I'm planning to start by switching lodash to lodash-es for tree-shaking to cut the size — help me do that.",
+      "expected_output": "Stops the user from starting with lodash. Points out media (~10MB) dwarfs JS (~4MB), so media is the highest-ROI lever and must be attacked first (WebP/quantize/dedup/subset); lodash tree-shaking wins ~tens of KB at most. Recommends confirming the breakdown with a real per-module measurement (rsdoctor/stats) before committing, and notes local builds may not compress media (CI-gated image plugins).",
+      "expectations": [
+        "Identifies media (~10MB) as the dominant lever to attack first, ahead of JS tree-shaking.",
+        "Pushes back on starting with lodash/JS tree-shaking, noting it wins comparatively little (tens of KB) when media dominates.",
+        "Recommends measuring/confirming the breakdown (e.g. per-module via rsdoctor or stats.json) before committing to changes."
+      ],
+      "files": []
+    },
+    {
+      "id": 2,
+      "name": "no-guess-trace-real-graph",
+      "prompt": "rsdoctor 显示有个图标库被打进来了 1388 个图标,但我在 src 里全局搜了一下,根本没有任何文件 import 这个库。到底是哪条链路把它引进来的?直接告诉我是谁 import 的。",
+      "expected_output": "Refuses to narrate a plausible chain. Explains the real importer edges must be read from the module graph: rebuild with optimization.concatenateModules:false (scope-hoisting collapses importer edges into '+ N modules') AND moduleIds:'named', then read reasons[].moduleName hop by hop (streaming the possibly ~1GB stats.json). States plainly that without real reason-edges it can only guess, and a guessed chain could point at the wrong file.",
+      "expectations": [
+        "Recommends tracing the actual module graph via reason/importer edges (rsdoctor graph or stats.json reasons) rather than narrating a plausible import chain.",
+        "Specifies disabling scope-hoisting (concatenateModules:false) and/or moduleIds:'named' to expose the real importer edges (because concatenation collapses them into '+ N modules').",
+        "Explicitly declines to invent/guess the chain without evidence, instead of confidently naming an importer."
+      ],
+      "files": []
+    },
+    {
+      "id": 3,
+      "name": "i18n-structural-wall-no-lazy-locale",
+      "prompt": "我的 main-thread.js 有 2.6MB,其中大概 87% 是 src/i18n/locales 下 57 种语言的 JSON。我想把 locales 改成动态 import() 懒加载来减小体积,这样可以吗?",
+      "expected_output": "Warns NO: the active locale is first-screen-direct-render content (the main thread renders translated text on first paint), so lazy-splitting it slows the first screen or flashes untranslated text — never lazy-split what first-screen needs. The real bloat is duplication (every language, in BOTH main-thread and background layers). First-screen-safe fixes: extractStr (dedup the duplicated strings into a shared table, no defer) or host-injected active locale (architecture change). It's a structural/library-level issue, not dead code.",
+      "expectations": [
+        "Warns against lazy-loading the active locale because it is first-screen-direct-render content (lazy would slow/flash the first screen).",
+        "Recommends extractStr (shared string table) and/or a host-injected active locale as the first-screen-safe way to claim the bytes.",
+        "Notes the bloat is duplication of the locales across both the main-thread and background layers (a structural issue), not removable dead code."
+      ],
+      "files": []
+    },
+    {
+      "id": 4,
+      "name": "import-regresses-use-macro-guard",
+      "prompt": "I tried to pull a background-only SDK off the main thread with a dynamic import() so it wouldn't land in main-thread. But the .lynx.bundle got BIGGER, and the SDK is still in main-thread. Why, and what should I do instead?",
+      "expected_output": "Explains import() does not remove bytes from .lynx.bundle — a Lynx page's .lynx.bundle packages its async chunks, so import() emits a separate lazy chunk AND keeps/duplicates content plus loader/runtime overhead → .lynx.bundle grows. And it didn't shake because other main-thread references kept the SDK alive (last-reference rule). The right tool is a compile-time guard `if (__MAIN_THREAD__) return;` (or __BACKGROUND__) on every consumer function — zero added bytes, can't worsen the bundle — and you must gate ALL main-thread references before the subtree shakes.",
+      "expectations": [
+        "Explains dynamic import() does not reduce .lynx.bundle (adds a chunk + loader/runtime overhead, .lynx.bundle packages its async chunks) and can regress it.",
+        "Recommends a compile-time __MAIN_THREAD__/__BACKGROUND__ guard (or the 'background only' directive) on the consumer code instead of import().",
+        "States the last-reference rule: the SDK only shakes out of main-thread once ALL of its main-thread references are gated/removed."
+      ],
+      "files": []
+    },
+    {
+      "id": 5,
+      "name": "runtime-check-to-compile-time-macro",
+      "prompt": "我有一行:const Monitor = typeof NativeModules !== 'undefined' ? createMonitorInstance({...}) : null。NativeModules 是 jsb,所以主线程里 Monitor 一直是 null。但 rsdoctor 显示 createMonitorInstance 和它的插件还是被打进了 main-thread。怎么去掉这部分体积?",
+      "expected_output": "rspack can't prove the runtime typeof check, so it bundles the SDK branch into main-thread anyway. Promote the condition to a compile-time macro: __BACKGROUND__ && typeof NativeModules !== 'undefined' — rspack then statically DCEs the createMonitorInstance branch on the main-thread layer. Runtime behavior is byte-identical (still null on main thread, unchanged on background); no stub needed; consumers already optional-chain Monitor?.x. This is the safest kind of win — always look for runtime thread/host checks gating a heavy construct and promote them.",
+      "expectations": [
+        "Recommends adding a compile-time macro (__BACKGROUND__, e.g. `__BACKGROUND__ && typeof NativeModules...`) so rspack can statically DCE the SDK on the main-thread layer.",
+        "Notes the change is correctness-neutral / behavior-identical (still null on main thread) and needs no stub.",
+        "States the last-reference rule — if `createMonitorInstance` has other un-gated main-thread references, those must be gated too before the SDK subtree shakes (and does not reach for dynamic import())."
+      ],
+      "files": []
+    },
+    {
+      "id": 6,
+      "name": "lazy-firstscreen-not-total",
+      "prompt": "I want to use React lazy/Suspense to split some components into dynamic bundles — will that reduce my whole app's TOTAL bundle size?",
+      "expected_output": "Distinguishes the metric: lazy reduces the FIRST-SCREEN / initial-download size, but INCREASES total download — each lazy bundle is a standalone template that re-includes framework runtime/wrapper overhead (roughly fixed per bundle), so it ships more bytes overall. If total/whole-app size is the goal, lazy is the wrong tool. If first-screen is the goal, consolidate into a FEW BIG lazy bundles (split the single biggest deferrable cluster), not many small ones, and only defer genuinely non-first-screen surface.",
+      "expectations": [
+        "Distinguishes first-screen/initial-download size (which lazy improves) from total bundle size (which lazy worsens or does not reduce).",
+        "Explains lazy bundles add per-bundle framework/runtime overhead, so total download grows.",
+        "Advises consolidating into few large lazy bundles (biggest deferrable cluster) rather than many small ones, if pursuing first-screen."
+      ],
+      "files": []
+    },
+    {
+      "id": 7,
+      "name": "report-the-wall-honestly",
+      "prompt": "这个项目我已经做完了一整轮 JS 优化:sideEffects 配好、重复依赖 dedup、tree-shaking,连 Lynx 特有的也做了——extractStr 开了、CSS minify 开了、main-thread 泄漏也用 __BACKGROUND__/'background only' 审过并 gate 了,媒体也走了 CI 压缩。现在 JS 这块还能再榨出体积吗?给我越多能改的点越好,别藏着。",
+      "expected_output": "Resists manufacturing a long list of marginal changes to look busy. Recognizes that with all the classic AND Lynx-specific levers already done, the project is at the wall: line-by-line code DCE / ts-prune 'unused exports' churn nets ~0 at the bundle level once tree-shaking is done. States this honestly and redirects to where the real remaining weight lives — media (a CI/asset-pipeline change), a main-thread leak that lives inside SDK libraries you can't edit from app code (a library-side change / upstream ask), or structural duplication (a heavy first-screen resource carried in both layers, e.g. an i18n table or a render engine). The deliverable is an accurate map and what external change would move the wall, not a pile of marginal diffs.",
+      "expectations": [
+        "Recognizes the project is at/near the optimization wall and says so honestly, instead of padding a list with marginal or generic webpack-style changes.",
+        "Notes that line-by-line code DCE / ts-prune 'unused exports' churn nets ~0 at the bundle level once tree-shaking is already done.",
+        "Redirects to where the real remaining weight lives (media/CI pipeline, a main-thread leak inside SDK libraries needing a library/upstream change, or structural duplication) and/or names the external change that would move the wall."
+      ],
+      "files": []
+    },
+    {
+      "id": 8,
+      "name": "build-system-awareness-rush",
+      "prompt": "帮我在这个仓库里优化某个 Lynx 应用的包体积。仓库根目录有 rush.json。我直接在项目目录跑 `pnpm build` 来出包就行吧?",
+      "expected_output": "Identifies the repo as a Rush monorepo (rush.json) and advises against a raw `pnpm build`. Recommends the Rush-native command surface — `rushx <script>` from the project dir, or `rush build --to .` — and `rush-pnpm` only when a pnpm command is truly necessary. Also: read package.json / workspace config first and use the project's pinned Node via fnm/nvm (e.g. fnm exec --using=<version> or nvm exec <version>).",
+      "expectations": [
+        "Identifies the repo as a Rush monorepo (from rush.json) and advises against a raw `pnpm build`.",
+        "Recommends the Rush-native command surface (rushx / rush build --to . / rush-pnpm).",
+        "Notes the build should use the project's pinned Node version via fnm/nvm (e.g. `fnm exec --using=<version>` or `nvm exec <version>`), since a newer default Node can break rspeedy config loading."
+      ],
+      "files": []
+    },
+    {
+      "id": 9,
+      "name": "es-target-do-not-retarget",
+      "prompt": "rspeedy's output looks like es2015/es2019. If I bump the output target to a newer ES version, will that save some bytes?",
+      "expected_output": "Declines: the two threads ship at fixed, engine-driven ES baselines — main thread = ES2019, background = ES2015 (prod) — and these are platform constants, not knobs to turn for bytes. Retargeting saves ~nothing and fights the platform. Also notes let/const→var lowering is a deliberate parse-time choice (QuickJS parses var faster), not a missed optimization. (A project may pin even lower to full ES5 for parse time, which is slightly LARGER in bytes — a deliberate tradeoff.)",
+      "expectations": [
+        "Declines retargeting to save bytes, explaining the ES targets are fixed/engine-driven platform constants (main ES2019 / background ES2015 in prod).",
+        "Notes let/const→var lowering is a deliberate parse-time choice, not a missed optimization (or that lower ES is not smaller).",
+        "Redirects to where real byte savings actually live (media, background-JS dedup/tree-shaking, main-thread leak, extractStr) instead of the ES target."
+      ],
+      "files": []
+    },
+    {
+      "id": 10,
+      "name": "deconcat-overcounts",
+      "prompt": "I rebuilt with concatenateModules:false to analyze size. In the treemap an icon lib shows 870KB, and some SDK bundled its package.json for 21KB — both look removable. Can I take these numbers as the bytes I'll actually save?",
+      "expected_output": "Warns NO: a concatenateModules:false (de-concat) build systematically INFLATES module sizes and disables JSON tree-shaking, scope-hoist DCE, and __split__ — so those numbers are not realizable wins. De-concat is for finding importer EDGES / candidates only; real savings must be measured as production .lynx.bundle before/after deltas. Concretely the 21KB package.json likely nets ~0 in the real build (prod tree-shakes the JSON to its one used key), and the 870KB icons measured ~441KB real. Quote only real .lynx.bundle deltas as wins.",
+      "expectations": [
+        "Warns that concatenateModules:false (de-concat) sizes are systematically inflated and must not be quoted as realizable wins.",
+        "States real savings must be measured as production .lynx.bundle before/after deltas (de-concat is for finding importer edges/candidates only).",
+        "Notes de-concat disables JSON tree-shaking / scope-hoist DCE, so e.g. the bundled package.json likely nets ~0 in the real build."
+      ],
+      "files": []
+    }
+  ]
+}
