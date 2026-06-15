@@ -1,3 +1,7 @@
+// Copyright 2026 The Lynx Authors. All rights reserved.
+// Licensed under the Apache License Version 2.0 that can be found in the
+// LICENSE file in the root directory of this source tree.
+
 /**
  * Main-thread-layer ONLY loader: strips background-only telemetry calls from the
  * main-thread bundle. Registered only on the `react:main-thread` layer, so the
@@ -20,6 +24,7 @@
  */
 // jsb-backed telemetry method names live in signatures.cjs (overridable per stack /
 // via the internal overlay). ONLY confirmed jsb-backed methods belong there.
+// eslint-disable-next-line @typescript-eslint/no-require-imports -- CommonJS loader
 const { TELEMETRY_METHODS } = require('./signatures.cjs');
 const METHODS = new Set(TELEMETRY_METHODS);
 const NEEDLE = new RegExp(`\\.(${[...METHODS].join('|')})\\(`);
@@ -30,6 +35,7 @@ module.exports = function stripMtTelemetryLoader(source) {
     // Lazy-require INSIDE the try: SWC-only rspeedy projects often don't have
     // @babel/core installed, and a missing module must not break the build.
     // (If absent, the catch returns source unchanged — telemetry stays, build is fine.)
+    // eslint-disable-next-line @typescript-eslint/no-require-imports -- lazy optional dep
     const babel = require('@babel/core');
     const out = babel.transformSync(source, {
       babelrc: false,

@@ -1,3 +1,7 @@
+// Copyright 2026 The Lynx Authors. All rights reserved.
+// Licensed under the Apache License Version 2.0 that can be found in the
+// LICENSE file in the root directory of this source tree.
+
 // Import-chain analysis of the de-concat main-thread.js:
 // list modules, sizes, background-only flags, and importer edges (who pulls each module).
 import fs from 'node:fs';
@@ -26,7 +30,6 @@ import signatures from './signatures.cjs';
 const { BG_NAME, BG_CONTENT } = signatures;
 const REQ = /[a-zA-Z_$]\("(\(react:(?:main-thread|background)\)\/[^"]+)"\)/g;
 
-const _byPath = new Map(mods.map((x) => [x.path, x]));
 const importers = new Map(); // path -> Set of modules that require it
 for (const mod of mods) {
   const seen = new Set();
