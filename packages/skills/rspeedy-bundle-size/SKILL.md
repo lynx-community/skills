@@ -99,7 +99,9 @@ See [references/three-levers.md](references/three-levers.md) for how to size and
 
 ### Step 1 — Measure (never skip)
 
-Get a real per-module breakdown before proposing anything. The official way for rspeedy is rsdoctor via config — **do not manually install `@rsdoctor/rspack-plugin`**, and do not reverse-engineer internal forks. Add to `lynx.config.ts`:
+Get a real per-module breakdown before proposing anything. **This holds even when the user already hands you rough sizes (e.g. "images ~10MB, JS ~4MB") or asks you to just do a specific change** — a glance at output sizes is a starting hypothesis, not a per-module measurement. **Always confirm the breakdown with rsdoctor (or `stats.json`) and lead with the prioritized recommendation *before* committing to — or implementing — any lever**, including a change the user explicitly requested. If the asked-for change is the wrong (low-ROI) lever, say so first; only proceed with it after the measured breakdown confirms it's worth it.
+
+The official way for rspeedy is rsdoctor via config — **do not manually install `@rsdoctor/rspack-plugin`**, and do not reverse-engineer internal forks. Add to `lynx.config.ts`:
 
 ```ts
 tools: {
