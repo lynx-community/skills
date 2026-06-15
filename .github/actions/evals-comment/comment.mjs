@@ -117,9 +117,17 @@ function normalizeReport(payload) {
     payload && typeof payload.task_error === 'string'
       ? payload.task_error.trim()
       : '';
+  const taskSkip =
+    payload && typeof payload.task_skip === 'string'
+      ? payload.task_skip.trim()
+      : '';
   const triggerError =
     payload && typeof payload.trigger_error === 'string'
       ? payload.trigger_error.trim()
+      : '';
+  const triggerSkip =
+    payload && typeof payload.trigger_skip === 'string'
+      ? payload.trigger_skip.trim()
       : '';
   const reports = normalizeReportList(payload);
   const rows = new Map();
@@ -170,8 +178,10 @@ function normalizeReport(payload) {
     definitionSummary,
     results,
     taskError,
+    taskSkip,
     taskSummary: buildTaskSummary(results),
     triggerError,
+    triggerSkip,
     triggerSummary: buildTriggerSummary(results),
   };
 }
@@ -367,6 +377,8 @@ function formatComment({ marker, report, title }) {
     lines.push(
       `Task eval score: failed before producing online task reports. ${escapeMarkdown(report.taskError)}`,
     );
+  } else if (report.taskSkip) {
+    lines.push(`Task eval score: skipped. ${escapeMarkdown(report.taskSkip)}`);
   } else {
     lines.push(
       'Task eval score: not run in this report. Online task reports will fill `with_skill`, `without_skill`, and Δ.',
@@ -385,6 +397,10 @@ function formatComment({ marker, report, title }) {
   } else if (report.triggerError) {
     lines.push(
       `Trigger eval score: failed before producing online trigger reports. ${escapeMarkdown(report.triggerError)}`,
+    );
+  } else if (report.triggerSkip) {
+    lines.push(
+      `Trigger eval score: skipped. ${escapeMarkdown(report.triggerSkip)}`,
     );
   }
 

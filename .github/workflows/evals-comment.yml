@@ -42,7 +42,17 @@ jobs:
           pnpm eval:skill:check:all -- \
             --json-output artifacts/skill-evals-definition.json
 
+      - name: Note skipped online evals for forked pull requests
+        if: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name != github.repository }}
+        run: |
+          mkdir -p artifacts
+          MESSAGE="Skipped for forked pull request because Ark credentials are unavailable to pull_request workflows from forks."
+          printf '%s\n' "$MESSAGE" > artifacts/skill-evals-task-skip.txt
+          printf '%s\n' "$MESSAGE" > artifacts/skill-evals-trigger-skip.txt
+          echo "::notice::$MESSAGE"
+
       - name: Run online skill task evals
+        if: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository }}
         id: task-evals
         continue-on-error: true
         env:
@@ -106,6 +116,7 @@ jobs:
           exit "$TASK_EXIT"
 
       - name: Run online skill trigger evals
+        if: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository }}
         id: trigger-evals
         continue-on-error: true
         env:
@@ -162,7 +173,9 @@ jobs:
           pnpm eval:skill:comment-report -- \
             --definition-report artifacts/skill-evals-definition.json \
             --task-error-file artifacts/skill-evals-task-error.txt \
+            --task-skip-file artifacts/skill-evals-task-skip.txt \
             --trigger-error-file artifacts/skill-evals-trigger-error.txt \
+            --trigger-skip-file artifacts/skill-evals-trigger-skip.txt \
             --task-report-dir artifacts \
             --output artifacts/skill-evals-comment.json
 
@@ -195,9 +208,9 @@ jobs:
         run: exit 1
 
       - name: Fail on online task eval failures
-        if: steps.task-evals.outcome != 'success'
+        if: steps.task-evals.outcome == 'failure'
         run: exit 1
 
       - name: Fail on online trigger eval failures
-        if: steps.trigger-evals.outcome != 'success'
+        if: steps.trigger-evals.outcome == 'failure'
         run: exit 1

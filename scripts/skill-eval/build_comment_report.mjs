@@ -21,8 +21,14 @@ async function main() {
   const taskErrorFile = args.taskErrorFile
     ? resolve(args.taskErrorFile)
     : undefined;
+  const taskSkipFile = args.taskSkipFile
+    ? resolve(args.taskSkipFile)
+    : undefined;
   const triggerErrorFile = args.triggerErrorFile
     ? resolve(args.triggerErrorFile)
+    : undefined;
+  const triggerSkipFile = args.triggerSkipFile
+    ? resolve(args.triggerSkipFile)
     : undefined;
 
   const definitionReport = await readJson(definitionReportPath);
@@ -40,9 +46,17 @@ async function main() {
       taskErrorFile && existsSync(taskErrorFile)
         ? (await readFile(taskErrorFile, 'utf8')).trim()
         : undefined,
+    task_skip:
+      taskSkipFile && existsSync(taskSkipFile)
+        ? (await readFile(taskSkipFile, 'utf8')).trim()
+        : undefined,
     trigger_error:
       triggerErrorFile && existsSync(triggerErrorFile)
         ? (await readFile(triggerErrorFile, 'utf8')).trim()
+        : undefined,
+    trigger_skip:
+      triggerSkipFile && existsSync(triggerSkipFile)
+        ? (await readFile(triggerSkipFile, 'utf8')).trim()
         : undefined,
   };
   await mkdir(dirname(outputPath), { recursive: true });
@@ -70,8 +84,16 @@ function parseArgs(argv) {
       args.taskErrorFile = argv[++index];
       continue;
     }
+    if (arg === '--task-skip-file') {
+      args.taskSkipFile = argv[++index];
+      continue;
+    }
     if (arg === '--trigger-error-file') {
       args.triggerErrorFile = argv[++index];
+      continue;
+    }
+    if (arg === '--trigger-skip-file') {
+      args.triggerSkipFile = argv[++index];
       continue;
     }
     if (arg === '--output') {
