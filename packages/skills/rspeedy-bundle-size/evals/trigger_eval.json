@@ -1,0 +1,90 @@
+[
+  {
+    "query": "我这个 rspeedy/Lynx 应用打包出来的 .lynx.bundle 有 14MB,帮我分析下到底大在哪、怎么减小包体积",
+    "should_trigger": true
+  },
+  {
+    "query": "My ReactLynx app's bundle is around 8MB. How do I figure out what's making it so big and cut it down?",
+    "should_trigger": true
+  },
+  {
+    "query": "rsdoctor 显示我 main-thread.js 里有一堆 background-only 的埋点/请求 SDK,怎么把它们从主线程剥离掉减小体积",
+    "should_trigger": true
+  },
+  {
+    "query": "Lynx 包体积怎么量?我想知道我这个页面的 .lynx.bundle 里到底是图片大还是 JS 大,先搞清楚再优化",
+    "should_trigger": true
+  },
+  {
+    "query": "production 包里出现了 common_EVENT_NAME、utils_toSomething 这种没被压缩的变量名,体积也偏大,什么原因怎么修",
+    "should_trigger": true
+  },
+  {
+    "query": "我们的 i18n 把 57 种语言全打进 bundle 了,占了 main-thread 一大半体积,这块能不能优化掉",
+    "should_trigger": true
+  },
+  {
+    "query": "想把后台才用的 SDK 用 __BACKGROUND__ 或 'background only' 从主线程裁掉,具体怎么做最稳、会不会改坏",
+    "should_trigger": true
+  },
+  {
+    "query": "extractStr 这个配置对减小 Lynx 的 .lynx.bundle 有用吗?strLength 阈值设多少合适",
+    "should_trigger": true
+  },
+  {
+    "query": "用 lazy / dynamic import 把组件拆成动态 bundle,能把我 Lynx app 的总包体积降下来吗?",
+    "should_trigger": true
+  },
+  {
+    "query": "我们有 50 多个 Lynx 应用,想批量看哪些工程的包体积还有优化空间,从哪些先下手",
+    "should_trigger": true
+  },
+  {
+    "query": "rspeedy build 出来的产物太大了,帮我做个体积拆解和优化优先级排序",
+    "should_trigger": true
+  },
+  {
+    "query": "同一个库被打了两个版本进 Lynx bundle,体积翻倍了,怎么 dedup 成一份",
+    "should_trigger": true
+  },
+  {
+    "query": "我的 Lynx 页面首帧渲染很慢、滑动列表也卡顿,帮我排查运行时渲染性能",
+    "should_trigger": false
+  },
+  {
+    "query": "ReactLynx 里 lynx.__globalProps.appTheme 报 TS 类型错误 Property 'appTheme' does not exist,怎么声明类型",
+    "should_trigger": false
+  },
+  {
+    "query": "帮我把这个 ReactLynx 的 class 组件改写成函数组件 + hooks",
+    "should_trigger": false
+  },
+  {
+    "query": "我这个纯 React Web 项目用 webpack 打包,bundle 太大了,帮我做 tree-shaking 和 code splitting 优化",
+    "should_trigger": false
+  },
+  {
+    "query": "我想解码/分析 Lynx 的 tasm 二进制,看看 template 文件里的结构和指令是怎么编码的",
+    "should_trigger": false
+  },
+  {
+    "query": "Lynx app 线上崩溃了,我有一段 native stacktrace 和 sourcemap,帮我 remap 还原符号",
+    "should_trigger": false
+  },
+  {
+    "query": "我想深入查 rsdoctor-data.json 里 tree-shaking 到底保留了哪些模块、有哪些 side-effects 没摇掉,做细粒度模块分析",
+    "should_trigger": false
+  },
+  {
+    "query": "Lynx 应用内存占用偏高,帮我抓个 heap snapshot 分析一下哪里泄漏了",
+    "should_trigger": false
+  },
+  {
+    "query": "Next.js App Router 的 bundle 怎么优化?RSC 和 client component 拆分后首屏 JS 还是太大",
+    "should_trigger": false
+  },
+  {
+    "query": "帮我给这个 Lynx 项目配一条 CI/CD 流水线,build 完自动上传产物",
+    "should_trigger": false
+  }
+]
