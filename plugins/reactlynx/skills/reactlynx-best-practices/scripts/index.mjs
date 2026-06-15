@@ -598,6 +598,11 @@ const rules = {
         severity: 'warning',
         message: "Use main thread scripts only for low-latency UI work and respect MTS restrictions."
     },
+    'global-props-mode': {
+        id: 'global-props-mode',
+        severity: 'warning',
+        message: "In 'reactive' mode, the framework triggers updates by forceUpdate from the root component; in 'event' mode, updates are no longer framework-driven, so use useGlobalPropsChanged to listen explicitly."
+    },
     'code-splitting': {
         id: 'code-splitting',
         severity: 'info',

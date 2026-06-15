@@ -1,6 +1,6 @@
 ---
 name: reactlynx-best-practices
-description: Review, write, and refactor ReactLynx code using dual-thread, lifecycle, main-thread script, code-splitting, and profiling best practices.
+description: Review, write, and refactor ReactLynx code using dual-thread, lifecycle, main-thread script, lynx.__globalProps, code-splitting, and profiling best practices.
 ---
 
 # ReactLynx Best Practices
@@ -12,7 +12,7 @@ This skill intentionally does not require `@ast-grep/napi` or any native parser 
 ## When to Apply
 
 - Writing new ReactLynx components or application code.
-- Reviewing ReactLynx code for thread-boundary, lifecycle, event, code-splitting, or performance issues.
+- Reviewing ReactLynx code for thread-boundary, lifecycle, event, lynx.__globalProps, code-splitting, or performance issues.
 - Refactoring code that calls `lynx.getJSModule`, `NativeModules`, `runOnMainThread`, `runOnBackground`, `lazy`, `Suspense`, or `useLayoutEffect`.
 - Investigating performance traces that include ReactLynx render, diff, commit, patch, or setState events.
 
@@ -23,6 +23,8 @@ This skill intentionally does not require `@ast-grep/napi` or any native parser 
 - Main Thread Script: https://lynxjs.org/next/react/main-thread-script.html
 - Code Splitting: https://lynxjs.org/next/react/code-splitting.html
 - Performance Profiling: https://lynxjs.org/next/react/performance/profiling
+- lynx.__globalProps: https://lynxjs.org/next/api/lynx-api/lynx/lynx-global-props.html
+- globalPropsMode: https://lynxjs.org/next/zh/api/rspeedy/react-rsbuild-plugin.pluginreactlynxoptions.globalpropsmode.html
 
 ## Workflow
 
@@ -43,7 +45,7 @@ If the mode is not explicit, infer it from the user's wording. Prefer `review` b
 For repository work, search before editing:
 
 ```bash
-rg "lynx.getJSModule|NativeModules|useLayoutEffect|main-thread:|runOnMainThread|runOnBackground|lazy\\(|Suspense|background only" <target>
+rg "lynx.getJSModule|NativeModules|useLayoutEffect|main-thread:|runOnMainThread|runOnBackground|lazy\\(|Suspense|background only|globalPropsMode|__globalProps" <target>
 ```
 
 Read nearby components, custom hooks, custom components that forward event handlers, Rspeedy config, and performance-related code before making changes.
@@ -75,6 +77,8 @@ Always combine scanner output with these manual checks:
 - Events: normal `bind*`/`catch*` handlers run on the background thread; `main-thread:*` handlers require `'main thread'` and have stricter limitations.
 - MTS: captured values must be JSON-serializable, captured variables cannot be modified, nested main-thread functions are unsupported, and cross-thread calls must use `runOnMainThread()` or `runOnBackground()`.
 - Shared modules: import helpers with `with { runtime: 'shared' }` only for code sharing, not state sharing.
+- `lynx.__globalProps`: Host-injected cross-page/global data updated through `updateGlobalProps`.
+- `globalPropsMode`: `'reactive'` triggers root `forceUpdate`; `'event'` requires explicit updates with `useGlobalPropsChanged`. When migrating to `'event'`, scan direct `lynx.__globalProps` reads because root `forceUpdate` no longer applies.
 - Code splitting: lazy components need default exports, `Suspense`, CSS scope awareness, and error handling for important boundaries.
 - Profiling: use trace events and readable `displayName` values to identify hot render/diff/update paths before optimizing.
 
@@ -114,6 +118,7 @@ if (plan) {
 | [avoid-use-layout-effect](./rules/avoid-use-layout-effect.md) | MEDIUM | Lifecycle and layout reads |
 | [proper-event-handlers](./rules/proper-event-handlers.md) | MEDIUM | `bindtap`, `catchtap`, propagation, dataset, custom prop handlers |
 | [main-thread-scripts-guide](./rules/main-thread-scripts-guide.md) | MEDIUM | `main-thread:*`, `useMainThreadRef`, cross-thread calls, shared modules |
+| [global-props-mode](./rules/global-props-mode.md) | MEDIUM | `globalPropsMode` config, direct `lynx.__globalProps` reads, `useGlobalPropsChanged` migration |
 | [code-splitting](./rules/code-splitting.md) | MEDIUM | `lazy`, `Suspense`, standalone lazy bundles, CSS bundle scope |
 | [performance-profiling](./rules/performance-profiling.md) | MEDIUM | ReactLynx trace events, flow IDs, displayName |
 | [hoist-static-jsx](./rules/hoist-static-jsx.md) | LOW | Static JSX and render cost |
