@@ -1,6 +1,6 @@
 {
   "skill_name": "reactlynx-best-practices",
-  "description": "End-to-end task evals for the reactlynx-best-practices skill. These evals cover thread-boundary review, event propagation, main-thread scripts, lifecycle, code splitting, and profiling guidance.",
+  "description": "End-to-end task evals for the reactlynx-best-practices skill. These evals cover thread-boundary review, event propagation, main-thread scripts, lifecycle, lynx.__globalProps update mode, code splitting, and profiling guidance.",
   "evals": [
     {
       "id": 1,
@@ -83,6 +83,24 @@
         "The response suggests keeping readable `displayName` values for hot components.",
         "The response recommends profiling-driven optimizations such as narrower state ownership, stable props, `React.memo`, or `useMemo`.",
         "The response warns against guessing optimizations without trace evidence."
+      ],
+      "files": []
+    },
+    {
+      "id": 7,
+      "name": "global-props-mode-event-migration",
+      "prompt": "我准备在一个已有 ReactLynx 项目里把 Rspeedy 配置从默认行为改成：\n\n```ts\npluginReactLynx({\n  globalPropsMode: 'event',\n})\n```\n\n项目里有不少地方直接读 `lynx.__globalProps.appTheme` / `lynx.__globalProps.locale`。review 这个改动时应该重点检查什么？",
+      "expected_output": "A review explaining that `lynx.__globalProps` is cross-page/global data injected by the Host Environment and updated through `updateGlobalProps`, while `globalPropsMode` controls the rendering update mode for that data. It should explain that changing from omitted/default reactive behavior to `globalPropsMode: 'event'` requires scanning all `lynx.__globalProps` usages, classifying which reads need to respond to later `UpdateGlobalProps`, and migrating update-sensitive reads to `useGlobalPropsChanged`; it should also explain that `useGlobalPropsChanged` can respond in either mode, while direct reads lose framework `forceUpdate` re-renders from the root component in event mode.",
+      "expectations": [
+        "The response explains that `lynx.__globalProps` is cross-page/global data injected by the Host Environment.",
+        "The response explains that `globalPropsMode` controls the rendering update mode for `lynx.__globalProps`.",
+        "The response identifies this as a migration from default or `reactive` behavior to `globalPropsMode: 'event'`.",
+        "The response says to scan all `lynx.__globalProps` usages, for example with `rg \"lynx\\\\.__globalProps\"`.",
+        "The response says each usage should be classified by whether it needs to respond to later `UpdateGlobalProps` calls.",
+        "The response recommends using `useGlobalPropsChanged` for `lynx.__globalProps`-derived state that must respond to updates.",
+        "The response states that `useGlobalPropsChanged` can respond to `lynx.__globalProps` changes regardless of `globalPropsMode`.",
+        "The response explains that direct `lynx.__globalProps` reads not backed by `useGlobalPropsChanged` will no longer get framework `forceUpdate` re-renders from the root component after switching to `'event'`.",
+        "The response says existing projects may keep the default `reactive` behavior if they are not intentionally migrating update semantics."
       ],
       "files": []
     }
