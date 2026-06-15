@@ -3,9 +3,11 @@
 # (references `core.` ) or calls jsb directly (.bridge / NativeModules /
 # getJSModule / GlobalEventEmitter). Pure helpers (env/version/babel-runtime)
 # are left untouched so main-thread render that calls them still works.
-# PREREQUISITE: prettier-expand the input first — `prettier --no-config --write lib.lynx.js`.
+# PREREQUISITE: prettier-expand the input first. NOTE prettier does NOT recognize the
+# `.lynx.js` extension and silently skips it — copy to a `.js` first:
+#   `cp lib.lynx.js /tmp/lib.js && prettier --no-config --write /tmp/lib.js` (or `--parser babel`).
 # It gates per-function by LINE; a compact `function f(){...}` body (brace not at end of
-# line) is left as-is with a WARN. Real-tested on one jsb lib: raw 1/77 gated, prettier 77/77.
+# line) is left as-is with a WARN. Real-tested on one jsb lib: raw all-WARN (compact), prettier 77/77.
 # SCOPE LIMIT: only matches TOP-LEVEL `function foo(){}` declarations. jsb that lives in
 # class methods (`foo(){ ... }`) or arrow exports (`const f = () => ...`) is INVISIBLE here.
 # Such a lib will report GATED=0 even though it calls the bridge — so this END warns when the
