@@ -28,6 +28,10 @@
     "should_trigger": true
   },
   {
+    "query": "ReactLynx 项目把 globalPropsMode 从默认值改成 event，lynx.__globalProps 的使用点要怎么 review？",
+    "should_trigger": true
+  },
+  {
     "query": "帮我配置 Rspeedy 的 tsconfig，让 CSS Modules 有类型。",
     "should_trigger": false
   },
