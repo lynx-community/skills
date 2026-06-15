@@ -13,7 +13,10 @@ export function pluginStripMtTelemetry(): RsbuildPlugin {
     setup(api) {
       api.modifyBundlerChain({
         order: 'post',
-        handler: (chain, util = {} as { CHAIN_ID?: any }) => {
+        handler: (
+          chain,
+          util = {} as { CHAIN_ID?: Record<string, Record<string, string>> },
+        ) => {
           const { CHAIN_ID } = util || {};
           const jsRule = chain.module.rule(CHAIN_ID?.RULE?.JS || '');
           // The chain keys ('react:main-thread', CHAIN_ID.RULE.JS, CHAIN_ID.USE.SWC)
@@ -28,8 +31,13 @@ export function pluginStripMtTelemetry(): RsbuildPlugin {
           }
           const oneOfRule = jsRule.oneOf(MAIN_THREAD_LAYER);
           const swcUse = CHAIN_ID?.USE?.SWC || '';
-          const loaderPath = path.resolve(__dirname, './strip-mt-telemetry-loader.cjs');
-          const useChain = oneOfRule.use('strip-mt-telemetry').loader(loaderPath);
+          const loaderPath = path.resolve(
+            __dirname,
+            './strip-mt-telemetry-loader.cjs',
+          );
+          const useChain = oneOfRule
+            .use('strip-mt-telemetry')
+            .loader(loaderPath);
           if (swcUse && oneOfRule.uses.has(swcUse)) useChain.before(swcUse);
         },
       });

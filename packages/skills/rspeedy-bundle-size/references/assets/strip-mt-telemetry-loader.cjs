@@ -22,7 +22,7 @@
 // via the internal overlay). ONLY confirmed jsb-backed methods belong there.
 const { TELEMETRY_METHODS } = require('./signatures.cjs');
 const METHODS = new Set(TELEMETRY_METHODS);
-const NEEDLE = new RegExp('\\.(' + [...METHODS].join('|') + ')\\(');
+const NEEDLE = new RegExp(`\\.(${[...METHODS].join('|')})\\(`);
 
 module.exports = function stripMtTelemetryLoader(source) {
   if (!NEEDLE.test(source)) return source; // fast path
@@ -36,23 +36,36 @@ module.exports = function stripMtTelemetryLoader(source) {
       configFile: false,
       compact: false,
       sourceMaps: false,
-      parserOpts: { sourceType: 'unambiguous', allowReturnOutsideFunction: true },
+      parserOpts: {
+        sourceType: 'unambiguous',
+        allowReturnOutsideFunction: true,
+      },
       plugins: [
         function stripPlugin({ types: t }) {
           const isTelemetry = (node) => {
-            const c = node && node.callee;
+            const c = node?.callee;
             if (!c) return false;
-            const member = c.type === 'MemberExpression' || c.type === 'OptionalMemberExpression';
-            return member && c.property && c.property.type === 'Identifier' && METHODS.has(c.property.name);
+            const member =
+              c.type === 'MemberExpression' ||
+              c.type === 'OptionalMemberExpression';
+            return (
+              member &&
+              c.property &&
+              c.property.type === 'Identifier' &&
+              METHODS.has(c.property.name)
+            );
           };
           const handle = (path) => {
-            if (isTelemetry(path.node)) path.replaceWith(t.unaryExpression('void', t.numericLiteral(0)));
+            if (isTelemetry(path.node))
+              path.replaceWith(t.unaryExpression('void', t.numericLiteral(0)));
           };
-          return { visitor: { CallExpression: handle, OptionalCallExpression: handle } };
+          return {
+            visitor: { CallExpression: handle, OptionalCallExpression: handle },
+          };
         },
       ],
     });
-    return out && out.code ? out.code : source;
+    return out?.code ? out.code : source;
   } catch {
     return source; // never break the build
   }
