@@ -2,10 +2,6 @@
 
 ### Basic
 
-Origin: oss
-
-Source: `apps/examples/LazyComponent/Basic/index.tsx`
-
 ```tsx
 // Copyright 2026 The Lynx Authors. All rights reserved.
 // Licensed under the Apache License Version 2.0 that can be found in the
@@ -103,10 +99,6 @@ export default App
 ```
 
 ### VisibilityMargin
-
-Origin: oss
-
-Source: `apps/examples/LazyComponent/VisibilityMargin/index.tsx`
 
 ```tsx
 // Copyright 2026 The Lynx Authors. All rights reserved.

@@ -2,10 +2,6 @@
 
 ### Basic
 
-Origin: oss
-
-Source: `apps/examples/Swiper/Basic/index.tsx`
-
 ```tsx
 // Copyright 2026 The Lynx Authors. All rights reserved.
 // Licensed under the Apache License Version 2.0 that can be found in the
@@ -119,10 +115,6 @@ export default SwiperEntry
 ```
 
 ### BasicDynamic
-
-Origin: oss
-
-Source: `apps/examples/Swiper/BasicDynamic/index.tsx`
 
 ```tsx
 // Copyright 2026 The Lynx Authors. All rights reserved.
@@ -251,10 +243,6 @@ export default SwiperEntry
 
 ### BasicUpdateSize
 
-Origin: oss
-
-Source: `apps/examples/Swiper/BasicUpdateSize/index.tsx`
-
 ```tsx
 // Copyright 2026 The Lynx Authors. All rights reserved.
 // Licensed under the Apache License Version 2.0 that can be found in the
@@ -381,10 +369,6 @@ export default SwiperEntry
 
 ### Bounces
 
-Origin: oss
-
-Source: `apps/examples/Swiper/Bounces/index.tsx`
-
 ```tsx
 // Copyright 2026 The Lynx Authors. All rights reserved.
 // Licensed under the Apache License Version 2.0 that can be found in the
@@ -479,10 +463,6 @@ export default SwiperEntry
 
 ### Custom
 
-Origin: oss
-
-Source: `apps/examples/Swiper/Custom/index.tsx`
-
 ```tsx
 // Copyright 2026 The Lynx Authors. All rights reserved.
 // Licensed under the Apache License Version 2.0 that can be found in the
@@ -576,10 +556,6 @@ export default SwiperEntry
 ```
 
 ### CustomScale
-
-Origin: oss
-
-Source: `apps/examples/Swiper/CustomScale/index.tsx`
 
 ```tsx
 // Copyright 2026 The Lynx Authors. All rights reserved.
@@ -704,10 +680,6 @@ export default SwiperEntry
 
 ### CustomTinder
 
-Origin: oss
-
-Source: `apps/examples/Swiper/CustomTinder/index.tsx`
-
 ```tsx
 // Copyright 2026 The Lynx Authors. All rights reserved.
 // Licensed under the Apache License Version 2.0 that can be found in the
@@ -824,10 +796,6 @@ export default SwiperEntry
 
 ### DifferentHeight
 
-Origin: oss
-
-Source: `apps/examples/Swiper/DifferentHeight/index.tsx`
-
 ```tsx
 // Copyright 2026 The Lynx Authors. All rights reserved.
 // Licensed under the Apache License Version 2.0 that can be found in the
@@ -927,10 +895,6 @@ export default SwiperEntry
 ```
 
 ### Direction
-
-Origin: oss
-
-Source: `apps/examples/Swiper/Direction/index.tsx`
 
 ```tsx
 // Copyright 2026 The Lynx Authors. All rights reserved.
@@ -1055,10 +1019,6 @@ export default SwiperEntry
 ```
 
 ### EmptyDataBug
-
-Origin: oss
-
-Source: `apps/examples/Swiper/EmptyDataBug/index.tsx`
 
 ```tsx
 // Copyright 2026 The Lynx Authors. All rights reserved.
@@ -1437,10 +1397,6 @@ export default EmptyDataBugExample
 
 ### Indicator
 
-Origin: oss
-
-Source: `apps/examples/Swiper/Indicator/index.tsx`
-
 ```tsx
 // Copyright 2026 The Lynx Authors. All rights reserved.
 // Licensed under the Apache License Version 2.0 that can be found in the
@@ -1518,10 +1474,6 @@ export default SwiperEntry
 ```
 
 ### Lazy
-
-Origin: oss
-
-Source: `apps/examples/Swiper/Lazy/index.tsx`
 
 ```tsx
 // Copyright 2026 The Lynx Authors. All rights reserved.
@@ -1615,10 +1567,6 @@ export default SwiperEntry
 
 ### Loop
 
-Origin: oss
-
-Source: `apps/examples/Swiper/Loop/index.tsx`
-
 ```tsx
 // Copyright 2026 The Lynx Authors. All rights reserved.
 // Licensed under the Apache License Version 2.0 that can be found in the
@@ -1703,10 +1651,6 @@ export default SwiperEntry
 ```
 
 ### RTL
-
-Origin: oss
-
-Source: `apps/examples/Swiper/RTL/index.tsx`
 
 ```tsx
 // Copyright 2026 The Lynx Authors. All rights reserved.
@@ -1837,10 +1781,6 @@ export default SwiperEntry
 
 ### RTLCustom
 
-Origin: oss
-
-Source: `apps/examples/Swiper/RTLCustom/index.tsx`
-
 ```tsx
 // Copyright 2026 The Lynx Authors. All rights reserved.
 // Licensed under the Apache License Version 2.0 that can be found in the
@@ -1963,10 +1903,6 @@ export default SwiperEntry
 
 ### RTLLoop
 
-Origin: oss
-
-Source: `apps/examples/Swiper/RTLLoop/index.tsx`
-
 ```tsx
 // Copyright 2026 The Lynx Authors. All rights reserved.
 // Licensed under the Apache License Version 2.0 that can be found in the
@@ -2079,10 +2015,6 @@ export default SwiperEntry
 
 ### RTLLoopLynxRTL
 
-Origin: oss
-
-Source: `apps/examples/Swiper/RTLLoopLynxRTL/index.tsx`
-
 ```tsx
 // Copyright 2026 The Lynx Authors. All rights reserved.
 // Licensed under the Apache License Version 2.0 that can be found in the
@@ -2194,10 +2126,6 @@ export default SwiperEntry
 ```
 
 ### WithGap
-
-Origin: oss
-
-Source: `apps/examples/Swiper/WithGap/index.tsx`
 
 ```tsx
 // Copyright 2026 The Lynx Authors. All rights reserved.

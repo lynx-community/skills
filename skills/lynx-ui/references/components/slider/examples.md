@@ -2,10 +2,6 @@
 
 ### Basic
 
-Origin: oss
-
-Source: `apps/examples/Slider/Basic/index.tsx`
-
 ```tsx
 // Copyright 2026 The Lynx Authors. All rights reserved.
 // Licensed under the Apache License Version 2.0 that can be found in the
@@ -115,10 +111,6 @@ export default App
 ```
 
 ### Controlled
-
-Origin: oss
-
-Source: `apps/examples/Slider/Controlled/index.tsx`
 
 ```tsx
 // Copyright 2026 The Lynx Authors. All rights reserved.
@@ -241,10 +233,6 @@ export default App
 
 ### DynamicWidth
 
-Origin: oss
-
-Source: `apps/examples/Slider/DynamicWidth/index.tsx`
-
 ```tsx
 // Copyright 2026 The Lynx Authors. All rights reserved.
 // Licensed under the Apache License Version 2.0 that can be found in the
@@ -335,10 +323,6 @@ export default App
 ```
 
 ### Facade
-
-Origin: oss
-
-Source: `apps/examples/Slider/Facade/index.tsx`
 
 ```tsx
 // Copyright 2026 The Lynx Authors. All rights reserved.
@@ -468,10 +452,6 @@ export default App
 
 ### Progress
 
-Origin: oss
-
-Source: `apps/examples/Slider/Progress/index.tsx`
-
 ```tsx
 // Copyright 2026 The Lynx Authors. All rights reserved.
 // Licensed under the Apache License Version 2.0 that can be found in the
@@ -597,10 +577,6 @@ export default App
 ```
 
 ### Shapes
-
-Origin: oss
-
-Source: `apps/examples/Slider/Shapes/index.tsx`
 
 ```tsx
 // Copyright 2026 The Lynx Authors. All rights reserved.
@@ -754,10 +730,6 @@ export default App
 ```
 
 ### WithScrollView
-
-Origin: oss
-
-Source: `apps/examples/Slider/WithScrollView/index.tsx`
 
 ```tsx
 // Copyright 2026 The Lynx Authors. All rights reserved.

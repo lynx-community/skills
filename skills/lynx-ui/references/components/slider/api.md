@@ -1,7 +1,5 @@
 ## API Definition
 
-### packages/lynx-ui-slider/src/types/index.docs.ts
-
 ```typescript
 // Copyright 2026 The Lynx Authors. All rights reserved.
 // Licensed under the Apache License Version 2.0 that can be found in the

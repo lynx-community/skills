@@ -1,0 +1,142 @@
+## Examples
+
+### Basic
+
+```tsx
+// Copyright 2026 The Lynx Authors. All rights reserved.
+// Licensed under the Apache License Version 2.0 that can be found in the
+// LICENSE file in the root directory of this source tree.
+
+import { root, useState } from '@lynx-js/react'
+
+import { Radio, RadioGroupRoot, RadioIndicator } from '@lynx-js/lynx-ui'
+import { clsx } from 'clsx'
+
+import { hitSlop } from '../shared/hitSlop'
+import './index.css'
+
+const radioTags = ['lunaris-dark', 'lunaris-light', 'luna-dark', 'luna-light']
+
+function App() {
+  const [value, setValue] = useState(radioTags[0])
+
+  return (
+    <view className={clsx('demo-container luna-gradient-rose', value)}>
+      <view className='demo-canvas'>
+        <RadioGroupRoot
+          value={value}
+          onValueChange={setValue}
+        >
+          <view className='radio-group-root'>
+            {radioTags.map((tag) => (
+              <view key={tag} className='radio-option'>
+                <Radio
+                  className='radio-item'
+                  value={tag}
+                  radioProps={hitSlop}
+                >
+                  <RadioIndicator className='radio-indicator'>
+                    <view className='radio-indicator-dot' />
+                  </RadioIndicator>
+                </Radio>
+                <text className='label'>{tag}</text>
+              </view>
+            ))}
+          </view>
+        </RadioGroupRoot>
+      </view>
+    </view>
+  )
+}
+
+root.render(<App />)
+
+export default App
+```
+
+### Disabled
+
+```tsx
+// Copyright 2026 The Lynx Authors. All rights reserved.
+// Licensed under the Apache License Version 2.0 that can be found in the
+// LICENSE file in the root directory of this source tree.
+
+import { root, useState } from '@lynx-js/react'
+
+import { Button, Radio, RadioGroupRoot, RadioIndicator } from '@lynx-js/lynx-ui'
+import { clsx } from 'clsx'
+
+import { hitSlop } from '../shared/hitSlop'
+import './index.css'
+
+const radioTags = ['Dawn', 'Bloom', 'Glow', 'Fade', 'Rest']
+
+function App() {
+  const [value, setValue] = useState(radioTags[0])
+  const [disabled, setDisabled] = useState(false)
+
+  return (
+    <view className='demo-container lunaris-dark luna-gradient-rose'>
+      <view className='demo-canvas'>
+        <view className='section'>
+          <text className='label'>
+            Status: {disabled ? 'Disabled' : 'Enabled'}
+          </text>
+          <text className='label'>
+            Selected Value: {value}
+          </text>
+        </view>
+
+        <view className='section'>
+          <RadioGroupRoot
+            value={value}
+            onValueChange={setValue}
+            disabled={disabled}
+          >
+            <view className='radio-group-root'>
+              {radioTags.map((tag) => {
+                const itemDisabled = tag === 'Glow' // item-level disabled
+                return (
+                  <view key={tag} className='radio-option'>
+                    <Radio
+                      className='radio-item'
+                      value={tag}
+                      disabled={itemDisabled}
+                      radioProps={hitSlop}
+                    >
+                      <RadioIndicator className='radio-indicator'>
+                        <view className='radio-indicator-dot' />
+                      </RadioIndicator>
+                    </Radio>
+                    <text
+                      className={clsx(
+                        'label',
+                        (itemDisabled || disabled) && 'disabled',
+                      )}
+                    >
+                      {tag}
+                      {itemDisabled ? ' (disabled)' : ''}
+                    </text>
+                  </view>
+                )
+              })}
+            </view>
+          </RadioGroupRoot>
+        </view>
+        {/* toggle group disabled */}
+        <view className='section'>
+          <Button className='button' onClick={() => setDisabled((v) => !v)}>
+            <text className='button-text'>
+              {disabled ? 'Enable group' : 'Disable group'}
+            </text>
+          </Button>
+        </view>
+      </view>
+    </view>
+  )
+}
+
+root.render(<App />)
+
+export default App
+```

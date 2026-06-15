@@ -2,10 +2,6 @@
 
 ### Backdrop
 
-Origin: oss
-
-Source: `apps/examples/Popover/Backdrop/index.tsx`
-
 ```tsx
 // Copyright 2026 The Lynx Authors. All rights reserved.
 // Licensed under the Apache License Version 2.0 that can be found in the
@@ -76,10 +72,6 @@ export default App
 
 ### Basic
 
-Origin: oss
-
-Source: `apps/examples/Popover/Basic/index.tsx`
-
 ```tsx
 // Copyright 2026 The Lynx Authors. All rights reserved.
 // Licensed under the Apache License Version 2.0 that can be found in the
@@ -129,10 +121,6 @@ export default App
 ```
 
 ### BasicTailwind
-
-Origin: oss
-
-Source: `apps/examples/Popover/BasicTailwind/index.tsx`
 
 ```tsx
 // Copyright 2026 The Lynx Authors. All rights reserved.
@@ -191,10 +179,6 @@ export default App
 ```
 
 ### Controlled
-
-Origin: oss
-
-Source: `apps/examples/Popover/Controlled/index.tsx`
 
 ```tsx
 // Copyright 2026 The Lynx Authors. All rights reserved.
@@ -269,10 +253,6 @@ export default App
 
 ### CustomArrow
 
-Origin: oss
-
-Source: `apps/examples/Popover/CustomArrow/index.tsx`
-
 ```tsx
 // Copyright 2026 The Lynx Authors. All rights reserved.
 // Licensed under the Apache License Version 2.0 that can be found in the
@@ -337,10 +317,6 @@ export default App
 
 ### ExtraAnchor
 
-Origin: oss
-
-Source: `apps/examples/Popover/ExtraAnchor/index.tsx`
-
 ```tsx
 // Copyright 2026 The Lynx Authors. All rights reserved.
 // Licensed under the Apache License Version 2.0 that can be found in the
@@ -400,10 +376,6 @@ export default App
 
 ### OffsetAdjustment
 
-Origin: oss
-
-Source: `apps/examples/Popover/OffsetAdjustment/index.tsx`
-
 ```tsx
 // Copyright 2026 The Lynx Authors. All rights reserved.
 // Licensed under the Apache License Version 2.0 that can be found in the
@@ -454,10 +426,6 @@ export default App
 ```
 
 ### WithScrollView
-
-Origin: oss
-
-Source: `apps/examples/Popover/WithScrollView/index.tsx`
 
 ```tsx
 // Copyright 2026 The Lynx Authors. All rights reserved.

@@ -2,10 +2,6 @@
 
 ### Basic
 
-Origin: oss
-
-Source: `apps/examples/Button/Basic/index.tsx`
-
 ```tsx
 // Copyright 2026 The Lynx Authors. All rights reserved.
 // Licensed under the Apache License Version 2.0 that can be found in the
@@ -50,10 +46,6 @@ export default App
 ```
 
 ### Disabled
-
-Origin: oss
-
-Source: `apps/examples/Button/Disabled/index.tsx`
 
 ```tsx
 // Copyright 2026 The Lynx Authors. All rights reserved.
@@ -120,10 +112,6 @@ export default App
 ```
 
 ### PropagateTapEvent
-
-Origin: oss
-
-Source: `apps/examples/Button/PropagateTapEvent/index.tsx`
 
 ```tsx
 // Copyright 2026 The Lynx Authors. All rights reserved.

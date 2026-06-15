@@ -2,10 +2,6 @@
 
 ### AutoHeight
 
-Origin: oss
-
-Source: `apps/examples/Sheet/AutoHeight/index.tsx`
-
 ```tsx
 // Copyright 2026 The Lynx Authors. All rights reserved.
 // Licensed under the Apache License Version 2.0 that can be found in the
@@ -143,10 +139,6 @@ export default App
 
 ### Basic
 
-Origin: oss
-
-Source: `apps/examples/Sheet/Basic/index.tsx`
-
 ```tsx
 // Copyright 2026 The Lynx Authors. All rights reserved.
 // Licensed under the Apache License Version 2.0 that can be found in the
@@ -214,10 +206,6 @@ export default App
 ```
 
 ### Controlled
-
-Origin: oss
-
-Source: `apps/examples/Sheet/Controlled/index.tsx`
 
 ```tsx
 // Copyright 2026 The Lynx Authors. All rights reserved.
@@ -320,10 +308,6 @@ export default App
 
 ### ControlledOpen
 
-Origin: oss
-
-Source: `apps/examples/Sheet/ControlledOpen/index.tsx`
-
 ```tsx
 // Copyright 2026 The Lynx Authors. All rights reserved.
 // Licensed under the Apache License Version 2.0 that can be found in the
@@ -408,10 +392,6 @@ export default App
 
 ### DefaultOpen
 
-Origin: oss
-
-Source: `apps/examples/Sheet/DefaultOpen/index.tsx`
-
 ```tsx
 // Copyright 2026 The Lynx Authors. All rights reserved.
 // Licensed under the Apache License Version 2.0 that can be found in the
@@ -495,10 +475,6 @@ export default App
 ```
 
 ### Directional
-
-Origin: oss
-
-Source: `apps/examples/Sheet/Directional/index.tsx`
 
 ```tsx
 // Copyright 2026 The Lynx Authors. All rights reserved.
@@ -788,10 +764,6 @@ export default App
 
 ### Imperative
 
-Origin: oss
-
-Source: `apps/examples/Sheet/Imperative/index.tsx`
-
 ```tsx
 // Copyright 2026 The Lynx Authors. All rights reserved.
 // Licensed under the Apache License Version 2.0 that can be found in the
@@ -896,10 +868,6 @@ export default App
 ```
 
 ### InternalTest
-
-Origin: oss
-
-Source: `apps/examples/Sheet/InternalTest/index.tsx`
 
 ```tsx
 // Copyright 2026 The Lynx Authors. All rights reserved.
@@ -1138,10 +1106,6 @@ export default App
 ```
 
 ### Tablet
-
-Origin: oss
-
-Source: `apps/examples/Sheet/Tablet/index.tsx`
 
 ```tsx
 // Copyright 2026 The Lynx Authors. All rights reserved.

@@ -2,10 +2,6 @@
 
 ### Basic
 
-Origin: oss
-
-Source: `apps/examples/FeedList/Basic/index.tsx`
-
 ```tsx
 // Copyright 2026 The Lynx Authors. All rights reserved.
 // Licensed under the Apache License Version 2.0 that can be found in the
@@ -130,10 +126,6 @@ export default App
 
 ### Horizontal
 
-Origin: oss
-
-Source: `apps/examples/FeedList/Horizontal/index.tsx`
-
 ```tsx
 // Copyright 2026 The Lynx Authors. All rights reserved.
 // Licensed under the Apache License Version 2.0 that can be found in the
@@ -215,10 +207,6 @@ export default App
 
 ### HorizontalRTL
 
-Origin: oss
-
-Source: `apps/examples/FeedList/HorizontalRTL/index.tsx`
-
 ```tsx
 // Copyright 2026 The Lynx Authors. All rights reserved.
 // Licensed under the Apache License Version 2.0 that can be found in the
@@ -298,10 +286,6 @@ export default App
 ```
 
 ### Refresh
-
-Origin: oss
-
-Source: `apps/examples/FeedList/Refresh/index.tsx`
 
 ```tsx
 // Copyright 2026 The Lynx Authors. All rights reserved.

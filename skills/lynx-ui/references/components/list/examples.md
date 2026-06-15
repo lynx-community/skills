@@ -2,10 +2,6 @@
 
 ### Basic
 
-Origin: oss
-
-Source: `apps/examples/List/Basic/index.tsx`
-
 ```tsx
 // Copyright 2026 The Lynx Authors. All rights reserved.
 // Licensed under the Apache License Version 2.0 that can be found in the
@@ -95,10 +91,6 @@ export default App
 ```
 
 ### MaxSize
-
-Origin: oss
-
-Source: `apps/examples/List/MaxSize/index.tsx`
 
 ```tsx
 // Copyright 2026 The Lynx Authors. All rights reserved.
