@@ -5,7 +5,7 @@
     {
       "id": 1,
       "name": "media-dominates-measure-first",
-      "prompt": "我的 rspeedy/Lynx 应用打包后 template 很大,大概 14MB。我看了下 output,图片资源大概 10MB,JS 大概 4MB。我打算先把 lodash 换成 lodash-es 做 tree-shaking 来减小体积,帮我搞一下。",
+      "prompt": "My rspeedy/Lynx app's bundle is large after building — about 14MB. Looking at output, images are ~10MB and JS is ~4MB. I'm planning to start by switching lodash to lodash-es for tree-shaking to cut the size — help me do that.",
       "expected_output": "Stops the user from starting with lodash. Points out media (~10MB) dwarfs JS (~4MB), so media is the highest-ROI lever and must be attacked first (WebP/quantize/dedup/subset); lodash tree-shaking wins ~tens of KB at most. Recommends confirming the breakdown with a real per-module measurement (rsdoctor/stats) before committing, and notes local builds may not compress media (CI-gated image plugins).",
       "expectations": [
         "Identifies media (~10MB) as the dominant lever to attack first, ahead of JS tree-shaking.",
@@ -41,7 +41,7 @@
     {
       "id": 4,
       "name": "import-regresses-use-macro-guard",
-      "prompt": "我把一个后台才会用到的 SDK 用 dynamic import() 拆出主线程,想让它别进 main-thread。结果 .lynx.bundle 反而变大了,而且这个 SDK 还在 main-thread 里没走掉。为什么?应该怎么做?",
+      "prompt": "I tried to pull a background-only SDK off the main thread with a dynamic import() so it wouldn't land in main-thread. But the .lynx.bundle got BIGGER, and the SDK is still in main-thread. Why, and what should I do instead?",
       "expected_output": "Explains import() does not remove bytes from .lynx.bundle — a Lynx page's .lynx.bundle packages its async chunks, so import() emits a separate lazy chunk AND keeps/duplicates content plus loader/runtime overhead → .lynx.bundle grows. And it didn't shake because other main-thread references kept the SDK alive (last-reference rule). The right tool is a compile-time guard `if (__MAIN_THREAD__) return;` (or __BACKGROUND__) on every consumer function — zero added bytes, can't worsen the bundle — and you must gate ALL main-thread references before the subtree shakes.",
       "expectations": [
         "Explains dynamic import() does not reduce .lynx.bundle (adds a chunk + loader/runtime overhead, .lynx.bundle packages its async chunks) and can regress it.",
@@ -65,7 +65,7 @@
     {
       "id": 6,
       "name": "lazy-firstscreen-not-total",
-      "prompt": "我想用 React 的 lazy/Suspense 把一些组件拆成动态 bundle,这样能把整个 app 的总包体积降下来吗?",
+      "prompt": "I want to use React lazy/Suspense to split some components into dynamic bundles — will that reduce my whole app's TOTAL bundle size?",
       "expected_output": "Distinguishes the metric: lazy reduces the FIRST-SCREEN / initial-download size, but INCREASES total download — each lazy bundle is a standalone template that re-includes framework runtime/wrapper overhead (roughly fixed per bundle), so it ships more bytes overall. If total/whole-app size is the goal, lazy is the wrong tool. If first-screen is the goal, consolidate into a FEW BIG lazy bundles (split the single biggest deferrable cluster), not many small ones, and only defer genuinely non-first-screen surface.",
       "expectations": [
         "Distinguishes first-screen/initial-download size (which lazy improves) from total bundle size (which lazy worsens or does not reduce).",
@@ -101,7 +101,7 @@
     {
       "id": 9,
       "name": "es-target-do-not-retarget",
-      "prompt": "rspeedy 的输出看起来像 es2015/es2019。我把 output target 调到更新的 ES 版本,是不是就能省一点体积?",
+      "prompt": "rspeedy's output looks like es2015/es2019. If I bump the output target to a newer ES version, will that save some bytes?",
       "expected_output": "Declines: the two threads ship at fixed, engine-driven ES baselines — main thread = ES2019, background = ES2015 (prod) — and these are platform constants, not knobs to turn for bytes. Retargeting saves ~nothing and fights the platform. Also notes let/const→var lowering is a deliberate parse-time choice (QuickJS parses var faster), not a missed optimization. (A project may pin even lower to full ES5 for parse time, which is slightly LARGER in bytes — a deliberate tradeoff.)",
       "expectations": [
         "Declines retargeting to save bytes, explaining the ES targets are fixed/engine-driven platform constants (main ES2019 / background ES2015 in prod).",
@@ -113,7 +113,7 @@
     {
       "id": 10,
       "name": "deconcat-overcounts",
-      "prompt": "我用 concatenateModules:false 重新 build 了一版来分析体积,treemap 里看到一个图标库占 870KB,还有某个 SDK 把它的 package.json 也打进来了占 21KB,看着都像能省下来的。这些数字我能直接当成能省的体积吗?",
+      "prompt": "I rebuilt with concatenateModules:false to analyze size. In the treemap an icon lib shows 870KB, and some SDK bundled its package.json for 21KB — both look removable. Can I take these numbers as the bytes I'll actually save?",
       "expected_output": "Warns NO: a concatenateModules:false (de-concat) build systematically INFLATES module sizes and disables JSON tree-shaking, scope-hoist DCE, and __split__ — so those numbers are not realizable wins. De-concat is for finding importer EDGES / candidates only; real savings must be measured as production .lynx.bundle before/after deltas. Concretely the 21KB package.json likely nets ~0 in the real build (prod tree-shakes the JSON to its one used key), and the 870KB icons measured ~441KB real. Quote only real .lynx.bundle deltas as wins.",
       "expectations": [
         "Warns that concatenateModules:false (de-concat) sizes are systematically inflated and must not be quoted as realizable wins.",
