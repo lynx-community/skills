@@ -28,8 +28,8 @@ module.exports = {
       'nativeEvents',
       /\b(GlobalEventEmitter|subscribeEvent|addGlobalEventListener)\b/,
     ],
-    // monitor / telemetry — background-only ONLY when jsb-backed (customize these)
-    ['monitor', /\b(reportMonitor|hybridMonitor)\b/],
+    // monitor / telemetry — background-only ONLY when jsb-backed (customize these to your stack)
+    ['monitor', /\b(reportMonitor|appMonitor)\b/],
     ['telemetry', /\.(reportEvent|reportError|logEvent|track)\s*\(/],
   ],
 
