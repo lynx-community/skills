@@ -23,6 +23,7 @@ const ALLOWED_PREFIXES = [
   'reactlynx-',
   'ttml-',
   'perflab-',
+  'rspeedy-',
   'vanilla-lynx',
 ];
 const ALLOWED_PREFIX_RE = new RegExp(
