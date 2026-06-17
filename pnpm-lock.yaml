@@ -47,6 +47,9 @@ importers:
       '@lynx-js/skill-reactlynx-best-practices':
         specifier: workspace:*
         version: link:packages/skills/reactlynx-best-practices
+      '@lynx-js/skill-rspeedy-bundle-size':
+        specifier: workspace:*
+        version: link:packages/skills/rspeedy-bundle-size
       '@lynx-js/skill-vanilla-lynx':
         specifier: workspace:*
         version: link:packages/skills/vanilla-lynx
@@ -210,6 +213,8 @@ importers:
       typescript:
         specifier: ^5.9.3
         version: 5.9.3
+
+  packages/skills/rspeedy-bundle-size: {}
 
   packages/skills/vanilla-lynx: {}
 
