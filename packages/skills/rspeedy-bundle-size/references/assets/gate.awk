@@ -3,8 +3,9 @@
 # (references `core.` ) or calls jsb directly (.bridge / NativeModules /
 # getJSModule / GlobalEventEmitter). Pure helpers (env/version/babel-runtime)
 # are left untouched so main-thread render that calls them still works.
-# PREREQUISITE: prettier-expand the input first. NOTE prettier does NOT recognize the
-# `.lynx.js` extension and silently skips it — copy to a `.js` first:
+# PREREQUISITE: prettier-expand the input first. NOTE: run prettier OUTSIDE the project dir —
+# the project's own prettier config (`.prettierrc` / `.prettierignore`) can silently skip or
+# reflow the file when run in-tree. Copy it out to `/tmp` and pass `--no-config`:
 #   `cp lib.lynx.js /tmp/lib.js && prettier --no-config --write /tmp/lib.js` (or `--parser babel`).
 # It gates per-function by LINE; a compact `function f(){...}` body (brace not at end of
 # line) is left as-is with a WARN. Real-tested on one jsb lib: raw all-WARN (compact), prettier 77/77.
