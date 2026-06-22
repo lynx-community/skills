@@ -4,20 +4,11 @@
   "private": true,
   "type": "module",
   "exports": {
-    ".": {
-      "import": "./scripts/sdk.mjs",
-      "types": "./scripts/sdk.d.ts",
-      "default": "./scripts/sdk.mjs"
-    },
-    "./cli": "./scripts/index.mjs",
     "./sdk": {
       "import": "./scripts/sdk.mjs",
       "types": "./scripts/sdk.d.ts",
       "default": "./scripts/sdk.mjs"
     }
-  },
-  "bin": {
-    "lynx-devtool": "./scripts/index.mjs"
   },
   "files": [
     "SKILL.md",
