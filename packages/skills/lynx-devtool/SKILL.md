@@ -9,6 +9,8 @@ This skill allows you to interact with Lynx applications running on connected de
 
 ## Usage
 
+### CLI
+
 The CLI is located at `<path_to_the_skill>/scripts/index.mjs` relative to this skill's directory. You can run it using `node`.
 
 In the skill directory, use:
@@ -16,6 +18,8 @@ In the skill directory, use:
 ```bash
 node <path_to_the_skill>/scripts/index.mjs <command>
 ```
+
+When installed as a package, the CLI is also exposed as `lynx-devtool`.
 
 **Note:** All command outputs are multi-line JSON. You can use `jq` or Node.js to process the data.
 
@@ -32,6 +36,33 @@ node <path_to_the_skill>/scripts/index.mjs <command>
 - [Open URL](examples/open.md): Open a target URL in the Lynx app.
 - [Get Sources](examples/get-sources.md): List parsed scripts for later debugger operations.
 - [Take Screenshot](examples/take-screenshot.md): Capture the current page as a screenshot.
+
+### Node SDK
+
+Other Node.js projects can import the same core capability used by the CLI:
+
+```ts
+import { createDevtoolClient } from '@lynx-js/skill-lynx-devtool/sdk';
+
+const client = createDevtoolClient();
+
+try {
+  const clients = await client.listClients();
+  const sessions = await client.listSessions();
+  const result = await client.cdp({
+    method: 'Runtime.evaluate',
+    params: {
+      expression: '2 + 2',
+      returnByValue: true,
+    },
+  });
+
+  console.log(result);
+  console.log({ clients, sessions });
+} finally {
+  await client.close();
+}
+```
 
 ## Example List
 

@@ -14,6 +14,30 @@ export default defineConfig({
       format: 'esm',
       syntax: 'es2022',
       dts: false,
+      source: {
+        entry: {
+          index: './src/index.ts',
+        },
+      },
+      output: {
+        filename: {
+          js: '[name].mjs',
+        },
+        distPath: './scripts',
+      },
+      autoExtension: false,
+    },
+    {
+      format: 'esm',
+      syntax: 'es2022',
+      dts: {
+        bundle: true,
+      },
+      source: {
+        entry: {
+          sdk: './src/sdk.ts',
+        },
+      },
       output: {
         filename: {
           js: '[name].mjs',

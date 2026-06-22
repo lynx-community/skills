@@ -3,6 +3,13 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
+  "exports": {
+    "./sdk": {
+      "import": "./scripts/sdk.mjs",
+      "types": "./scripts/sdk.d.ts",
+      "default": "./scripts/sdk.mjs"
+    }
+  },
   "files": [
     "SKILL.md",
     "scripts",

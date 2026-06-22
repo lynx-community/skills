@@ -2,16 +2,12 @@
 // Licensed under the Apache License Version 2.0 that can be found in the
 // LICENSE file in the root directory of this source tree.
 
-import fs from 'node:fs/promises';
-import { ReadableStream } from 'node:stream/web';
-import { setTimeout } from 'node:timers/promises';
-import type { Connector } from '@lynx-js/devtool-connector';
 import type { Command } from 'commander';
-import { getFirstClient, getLatestSession } from './utils.ts';
+import type { DevtoolClient } from '../sdk.ts';
 
 export function registerTakeScreenshotCommand(
   program: Command,
-  connector: Connector,
+  client: DevtoolClient,
 ) {
   program
     .command('take-screenshot')
@@ -33,64 +29,12 @@ export function registerTakeScreenshotCommand(
       'Output file path (default: screenshot-<timestamp>.jpeg)',
     )
     .action(async (options) => {
-      let { client: clientId, session: sessionId } = options;
-      const { output, fullscreen } = options;
-
-      if (!clientId) {
-        clientId = await getFirstClient(connector);
-      }
-
-      if (!sessionId) {
-        sessionId = await getLatestSession(connector, clientId);
-      }
-
-      const numericSessionId = Number(sessionId);
-      const signal = AbortSignal.timeout(10_000);
-      const { promise, resolve } = Promise.withResolvers<void>();
-
-      await using stream = await connector.sendCDPStream(
-        clientId,
-        new ReadableStream({
-          async start(controller) {
-            controller.enqueue({
-              method: 'Page.startScreencast',
-              params: {
-                format: 'jpeg',
-                quality: 80,
-                mode: fullscreen ? 'fullscreen' : 'lynxview',
-              },
-              sessionId: numericSessionId,
-            });
-            await Promise.race([
-              promise,
-              setTimeout(10_000, void 0, { ref: false }),
-            ]);
-            controller.enqueue({
-              method: 'Page.stopScreencast',
-              sessionId: numericSessionId,
-            });
-            controller.close();
-          },
-        }),
-        { signal },
-      );
-
-      for await (const { method, params: eventParams } of stream) {
-        if (method === 'Page.screencastFrame') {
-          const { data } = eventParams as { data: string };
-          if (data) {
-            resolve();
-
-            const fileName = output ?? `screenshot-${Date.now()}.jpeg`;
-            await fs.writeFile(fileName, Buffer.from(data, 'base64'));
-            console.log(`Screenshot saved to ${fileName}`);
-            return;
-          }
-        }
-      }
-
-      throw new Error(
-        'Failed to capture screenshot, no Page.screencastFrame event received within 10 seconds.',
-      );
+      const result = await client.takeScreenshot({
+        clientId: options.client,
+        sessionId: options.session,
+        output: options.output,
+        fullscreen: options.fullscreen,
+      });
+      console.log(`Screenshot saved to ${result.output}`);
     });
 }

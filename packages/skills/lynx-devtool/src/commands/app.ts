@@ -2,11 +2,10 @@
 // Licensed under the Apache License Version 2.0 that can be found in the
 // LICENSE file in the root directory of this source tree.
 
-import type { Connector } from '@lynx-js/devtool-connector';
 import type { Command } from 'commander';
-import { getFirstClient } from './utils.ts';
+import type { DevtoolClient } from '../sdk.ts';
 
-export function registerAppCommand(program: Command, connector: Connector) {
+export function registerAppCommand(program: Command, client: DevtoolClient) {
   program
     .command('app')
     .description('Send an App request')
@@ -18,14 +17,12 @@ export function registerAppCommand(program: Command, connector: Connector) {
     .argument('[params]', 'JSON string of parameters')
     .action(async (paramsStr, options) => {
       const { method } = options;
-      let { client: clientId } = options;
-
-      if (!clientId) {
-        clientId = await getFirstClient(connector);
-      }
-
       const params = paramsStr ? JSON.parse(paramsStr) : {};
-      const result = await connector.sendAppMessage(clientId, method, params);
+      const result = await client.app({
+        clientId: options.client,
+        method,
+        params,
+      });
       console.log(JSON.stringify(result, null, 2));
     });
 }
