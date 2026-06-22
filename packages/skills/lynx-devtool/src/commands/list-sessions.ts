@@ -2,13 +2,12 @@
 // Licensed under the Apache License Version 2.0 that can be found in the
 // LICENSE file in the root directory of this source tree.
 
-import type { Connector } from '@lynx-js/devtool-connector';
 import type { Command } from 'commander';
-import { getFirstClient } from './utils.ts';
+import type { DevtoolClient } from '../sdk.ts';
 
 export function registerListSessionsCommand(
   program: Command,
-  connector: Connector,
+  client: DevtoolClient,
 ) {
   program
     .command('list-sessions')
@@ -18,13 +17,9 @@ export function registerListSessionsCommand(
       'Client ID (optional, will auto-discover if not provided)',
     )
     .action(async (options) => {
-      let { client: clientId } = options;
-
-      if (!clientId) {
-        clientId = await getFirstClient(connector);
-      }
-
-      const sessions = await connector.sendListSessionMessage(clientId);
+      const sessions = await client.listSessions({
+        clientId: options.client,
+      });
       console.log(JSON.stringify(sessions, null, 2));
     });
 }

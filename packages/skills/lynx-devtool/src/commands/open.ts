@@ -2,11 +2,10 @@
 // Licensed under the Apache License Version 2.0 that can be found in the
 // LICENSE file in the root directory of this source tree.
 
-import type { Connector } from '@lynx-js/devtool-connector';
 import type { Command } from 'commander';
-import { getFirstClient } from './utils.ts';
+import type { DevtoolClient } from '../sdk.ts';
 
-export function registerOpenCommand(program: Command, connector: Connector) {
+export function registerOpenCommand(program: Command, client: DevtoolClient) {
   program
     .command('open')
     .description('Open page')
@@ -16,38 +15,10 @@ export function registerOpenCommand(program: Command, connector: Connector) {
     )
     .argument('<url>', 'The url of the page')
     .action(async (url, options) => {
-      let { client: clientId } = options;
-
-      if (!clientId) {
-        clientId = await getFirstClient(connector);
-      }
-
-      const openCardMessage = {
-        event: 'Customized',
-        data: {
-          type: 'OpenCard',
-          data: {
-            type: 'url',
-            url,
-          },
-          sender: -1,
-        },
-        from: -1,
-      } as const;
-
-      let result: unknown;
-      try {
-        result = await connector.sendMessage(clientId, openCardMessage);
-      } catch (error) {
-        console.warn(
-          `OpenCard failed, falling back to App.openPage for ${url}`,
-          error,
-        );
-        result = await connector.sendAppMessage(clientId, 'App.openPage', {
-          url,
-        });
-      }
-
+      const result = await client.open({
+        clientId: options.client,
+        url,
+      });
       console.log(JSON.stringify(result, null, 2));
     });
 }

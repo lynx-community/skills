@@ -2,41 +2,12 @@
 // Licensed under the Apache License Version 2.0 that can be found in the
 // LICENSE file in the root directory of this source tree.
 
-import { ReadableStream } from 'node:stream/web';
-import { setTimeout } from 'node:timers/promises';
-import type { Connector } from '@lynx-js/devtool-connector';
 import type { Command } from 'commander';
-import { getFirstClient, getLatestSession } from './utils.ts';
-
-interface ConsoleCallFrame {
-  url: string;
-  lineNumber: number;
-  columnNumber: number;
-}
-
-interface ConsoleStackTrace {
-  callFrames: ConsoleCallFrame[];
-}
-
-interface ConsoleArg {
-  type: string;
-  value?: unknown;
-  className?: string;
-  description?: string;
-  objectId?: string;
-  subtype?: string;
-}
-
-interface ConsoleMessage {
-  type: string;
-  args: ConsoleArg[];
-  stackTrace?: ConsoleStackTrace;
-  url?: string;
-}
+import type { ConsoleMessage, DevtoolClient } from '../sdk.ts';
 
 export function registerGetConsoleCommand(
   program: Command,
-  connector: Connector,
+  client: DevtoolClient,
 ) {
   program
     .command('get-console')
@@ -69,110 +40,41 @@ export function registerGetConsoleCommand(
       (value) => value.split(',').map((s) => s.trim()),
     )
     .action(async (options) => {
-      let { client: clientId, session: sessionId, limit } = options;
-      const { offset = 0, includeStackTraces, level } = options;
+      const messages = await client.getConsole({
+        clientId: options.client,
+        sessionId: options.session,
+        offset: options.offset,
+        limit: options.limit,
+        includeStackTraces: options.includeStackTraces,
+        level: options.level,
+      });
 
-      if (limit) {
-        limit = Math.max(1, Math.min(100, limit));
-      }
-
-      if (!clientId) {
-        clientId = await getFirstClient(connector);
-      }
-
-      if (!sessionId) {
-        sessionId = await getLatestSession(connector, clientId);
-      }
-
-      const numericSessionId = Number(sessionId);
-
-      await using stream = await connector.sendCDPStream(
-        clientId,
-        ReadableStream.from([
-          {
-            sessionId: numericSessionId,
-            method: 'Page.enable',
-          },
-          {
-            sessionId: numericSessionId,
-            method: 'Runtime.enable',
-          },
-        ]),
-      );
-
-      const messages: ConsoleMessage[] = [];
-      const defaultLevels = ['info', 'log', 'warning', 'error'];
-      const allowedLevels = level || defaultLevels;
-      let skipped = 0;
-
-      const reader = stream.getReader();
-      const IDLE_TIMEOUT = 500;
-      const MAX_TOTAL_TIME = 5000;
-      const startTime = Date.now();
-
-      try {
-        while (Date.now() - startTime < MAX_TOTAL_TIME) {
-          const result = await Promise.race([
-            reader.read(),
-            setTimeout(IDLE_TIMEOUT, 'timeout' as const),
-          ]);
-          if (result === 'timeout') {
-            await reader.cancel();
-            break;
-          }
-
-          const { done, value } = result;
-          if (done) break;
-
-          if (value.method === 'Runtime.consoleAPICalled') {
-            const params = value.params as ConsoleMessage;
-            if (allowedLevels.includes(params.type)) {
-              if (skipped < offset) {
-                skipped++;
-                continue;
-              }
-
-              if (!includeStackTraces && params.type !== 'error') {
-                delete params.stackTrace;
-              }
-
-              messages.push(params);
-
-              if (limit && messages.length >= limit) {
-                await reader.cancel();
-                break;
-              }
-            }
-          }
-        }
-      } finally {
-        reader.releaseLock();
-      }
-
-      console.log(
-        messages
-          .map(
-            ({ type, args, stackTrace }) =>
-              `- [${type}]: ${args
-                .map((arg) => {
-                  if (arg.objectId) {
-                    return `<${arg.description || arg.className || 'Object'} (objectId:${arg.objectId})>`;
-                  }
-                  return arg.value;
-                })
-                .join(' ')}${
-                stackTrace
-                  ? '\n' +
-                    stackTrace.callFrames
-                      .map(
-                        ({ url, lineNumber, columnNumber }) =>
-                          `    at ${url}:${lineNumber}:${columnNumber}`,
-                      )
-                      .join('\n')
-                  : ''
-              }`,
-          )
-          .join('\n'),
-      );
+      console.log(formatConsoleMessages(messages));
     });
+}
+
+function formatConsoleMessages(messages: ConsoleMessage[]): string {
+  return messages
+    .map(
+      ({ type, args, stackTrace }) =>
+        `- [${type}]: ${args
+          .map((arg) => {
+            if (arg.objectId) {
+              return `<${arg.description || arg.className || 'Object'} (objectId:${arg.objectId})>`;
+            }
+            return arg.value;
+          })
+          .join(' ')}${
+          stackTrace
+            ? '\n' +
+              stackTrace.callFrames
+                .map(
+                  ({ url, lineNumber, columnNumber }) =>
+                    `    at ${url}:${lineNumber}:${columnNumber}`,
+                )
+                .join('\n')
+            : ''
+        }`,
+    )
+    .join('\n');
 }

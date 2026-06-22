@@ -2,18 +2,18 @@
 // Licensed under the Apache License Version 2.0 that can be found in the
 // LICENSE file in the root directory of this source tree.
 
-import type { Connector } from '@lynx-js/devtool-connector';
 import type { Command } from 'commander';
+import type { DevtoolClient } from '../sdk.ts';
 
 export function registerListClientsCommand(
   program: Command,
-  connector: Connector,
+  client: DevtoolClient,
 ) {
   program
     .command('list-clients')
     .description('List all available clients')
     .action(async () => {
-      const clients = await connector.listClients();
+      const clients = await client.listClients();
       console.log(JSON.stringify(clients, null, 2));
     });
 }

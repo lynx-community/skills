@@ -2,11 +2,10 @@
 // Licensed under the Apache License Version 2.0 that can be found in the
 // LICENSE file in the root directory of this source tree.
 
-import type { Connector } from '@lynx-js/devtool-connector';
 import type { Command } from 'commander';
-import { getFirstClient, getLatestSession } from './utils.ts';
+import type { DevtoolClient } from '../sdk.ts';
 
-export function registerCdpCommand(program: Command, connector: Connector) {
+export function registerCdpCommand(program: Command, client: DevtoolClient) {
   program
     .command('cdp')
     .description('Send a CDP request')
@@ -25,24 +24,13 @@ export function registerCdpCommand(program: Command, connector: Connector) {
     .argument('[params]', 'JSON string of parameters')
     .action(async (paramsStr, options) => {
       const { method } = options;
-      let { client: clientId, session: sessionId } = options;
-
-      if (!clientId) {
-        clientId = await getFirstClient(connector);
-      }
-
-      if (!sessionId) {
-        sessionId = await getLatestSession(connector, clientId);
-      }
-
       const params = paramsStr ? JSON.parse(paramsStr) : {};
-
-      const result = await connector.sendCDPMessage(
-        clientId,
-        Number(sessionId),
+      const result = await client.cdp({
+        clientId: options.client,
+        sessionId: options.session,
         method,
         params,
-      );
+      });
 
       console.log(JSON.stringify(result, null, 2));
     });
