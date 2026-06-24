@@ -19,15 +19,18 @@ on:
 
 env:
   EMBEDDED_LYNX_TARBALL: https://github.com/lynx-community/skills/releases/download/embedded-lynx-202606041609/embedded-lynx-linux-x86_64.tar.gz
+  EMBEDDED_LYNX_BINARY: /tmp/embedded-lynx-linux-x86_64/embedded_lynx
   LYNX_DEVTOOL_MCP_TESTING_TRANSPORTS: EmbeddedLynx
   LYNX_DEVTOOL_MCP_TESTING_APP_PACKAGE: EmbeddedLynx
-  LYNX_DEVTOOL_MCP_TESTING_PAGE_URL: https://lynxjs.org/lynx-examples/swiper/dist/Swiper.lynx.bundle
-  LYNX_DEVTOOL_MCP_TESTING_OPEN_URL: https://lynxjs.org/lynx-examples/swiper/dist/Swiper.lynx.bundle
+  # Generic Lynx page for connector / mcp-server tools.
+  SWIPER_BUNDLE_URL: https://lynxjs.org/lynx-examples/swiper/dist/Swiper.lynx.bundle
+  # ReactLynx page bundled with @lynx-js/preact-devtools for reactlynx tooling.
+  REACT_DEVTOOL_BUNDLE_URL: https://unpkg.com/@lynx-example/react-devtool@0.2.0/dist/main.lynx.bundle
 
 jobs:
   e2e:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 25
     steps:
       - name: Checkout
         uses: actions/checkout@v5
@@ -44,50 +47,65 @@ jobs:
       - name: Install Dependencies
         run: pnpm install
 
-      - name: Start EmbeddedLynx runtime
+      - name: Download EmbeddedLynx
         run: |
           set -euo pipefail
           curl -sL "$EMBEDDED_LYNX_TARBALL" | tar -xzf - -C /tmp
-          BINARY="/tmp/embedded-lynx-linux-x86_64/embedded_lynx"
-          chmod +x "$BINARY"
-          # Launch the headless Lynx runtime in its own session so it survives
-          # the end of this step. It loads the page and exposes a debug-router
-          # on 127.0.0.1:8901 that DesktopTransport (EmbeddedLynx) connects to.
-          setsid "$BINARY" --url "$LYNX_DEVTOOL_MCP_TESTING_PAGE_URL" \
-            < /dev/null > /tmp/embedded-lynx.log 2>&1 &
-          echo "EMBEDDED_LYNX_PID=$!" >> "$GITHUB_ENV"
+          chmod +x "$EMBEDDED_LYNX_BINARY"
 
-      - name: Wait for debug-router port
+      # --- Generic tools: connector + mcp-server against the Swiper bundle ---
+
+      - name: Start EmbeddedLynx (Swiper bundle)
         run: |
           set -euo pipefail
-          for i in $(seq 1 30); do
-            if (exec 3<>/dev/tcp/127.0.0.1/8901) 2>/dev/null; then
-              exec 3>&- 3<&-
-              echo "EmbeddedLynx debug-router is up on port 8901"
-              exit 0
-            fi
-            sleep 1
-          done
-          echo "EmbeddedLynx did not open port 8901 in time" >&2
-          cat /tmp/embedded-lynx.log >&2 || true
-          exit 1
+          setsid "$EMBEDDED_LYNX_BINARY" --url "$SWIPER_BUNDLE_URL" \
+            < /dev/null > /tmp/embedded-lynx-swiper.log 2>&1 &
+          echo "EMBEDDED_LYNX_PID=$!" >> "$GITHUB_ENV"
+          ./.github/scripts/wait-debug-router.sh /tmp/embedded-lynx-swiper.log
 
       - name: E2E (devtool-connector)
         working-directory: packages/mcp-servers/devtool-connector
+        env:
+          LYNX_DEVTOOL_MCP_TESTING_PAGE_URL: ${{ env.SWIPER_BUNDLE_URL }}
+          LYNX_DEVTOOL_MCP_TESTING_OPEN_URL: ${{ env.SWIPER_BUNDLE_URL }}
         run: node --test --test-concurrency=1 'e2e/**/*.test.ts'
 
       - name: E2E (devtool-mcp-server)
         working-directory: packages/mcp-servers/devtool-mcp-server
+        env:
+          LYNX_DEVTOOL_MCP_TESTING_PAGE_URL: ${{ env.SWIPER_BUNDLE_URL }}
+          LYNX_DEVTOOL_MCP_TESTING_OPEN_URL: ${{ env.SWIPER_BUNDLE_URL }}
         run: node --test --test-concurrency=1 'e2e/**/*.test.ts'
 
-      - name: Stop EmbeddedLynx runtime
+      - name: Stop EmbeddedLynx (Swiper bundle)
         if: always()
         run: kill "${EMBEDDED_LYNX_PID}" 2>/dev/null || true
 
-      - name: Upload EmbeddedLynx log
+      # --- ReactLynx: skill against the preact-devtools-enabled bundle ---
+
+      - name: Start EmbeddedLynx (ReactLynx bundle)
+        run: |
+          set -euo pipefail
+          setsid "$EMBEDDED_LYNX_BINARY" --url "$REACT_DEVTOOL_BUNDLE_URL" \
+            < /dev/null > /tmp/embedded-lynx-reactlynx.log 2>&1 &
+          echo "EMBEDDED_LYNX_REACT_PID=$!" >> "$GITHUB_ENV"
+          ./.github/scripts/wait-debug-router.sh /tmp/embedded-lynx-reactlynx.log
+
+      - name: E2E (skill reactlynx)
+        working-directory: packages/skills/lynx-devtool
+        env:
+          LYNX_DEVTOOL_MCP_TESTING_PAGE_URL: ${{ env.REACT_DEVTOOL_BUNDLE_URL }}
+          LYNX_DEVTOOL_MCP_TESTING_OPEN_URL: ${{ env.REACT_DEVTOOL_BUNDLE_URL }}
+        run: node --test --test-concurrency=1 'e2e/**/*.test.ts'
+
+      - name: Stop EmbeddedLynx (ReactLynx bundle)
+        if: always()
+        run: kill "${EMBEDDED_LYNX_REACT_PID}" 2>/dev/null || true
+
+      - name: Upload EmbeddedLynx logs
         if: failure()
         uses: actions/upload-artifact@v4
         with:
-          name: embedded-lynx-log
-          path: /tmp/embedded-lynx.log
+          name: embedded-lynx-logs
+          path: /tmp/embedded-lynx-*.log
           if-no-files-found: ignore

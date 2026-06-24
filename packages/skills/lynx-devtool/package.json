@@ -11,7 +11,8 @@
     "examples.md"
   ],
   "scripts": {
-    "build": "rslib build"
+    "build": "rslib build",
+    "test:e2e": "node --test --test-concurrency=1 'e2e/**/*.test.ts'"
   },
   "devDependencies": {
     "@lynx-js/devtool-connector": "workspace:*",
