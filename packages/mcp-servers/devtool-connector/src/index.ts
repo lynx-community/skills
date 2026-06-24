@@ -2,25 +2,43 @@
 // Licensed under the Apache License Version 2.0 that can be found in the
 // LICENSE file in the root directory of this source tree.
 
-/* eslint-disable n/no-unpublished-import */
-import { randomInt } from "node:crypto";
-import { ReadableStream, TransformStream } from "node:stream/web";
-import { createDebug } from "obug";
-import { CDPOutputTransformStream, CDPRequestTransformStream, CDPResponseTransformStream } from "./streams/cdp.ts";
+import { randomInt } from 'node:crypto';
+import { ReadableStream, type TransformStream } from 'node:stream/web';
+import { createDebug } from 'obug';
+import {
+  CDPOutputTransformStream,
+  CDPRequestTransformStream,
+  CDPResponseTransformStream,
+} from './streams/cdp.ts';
 import {
   AppResponseTransformStream,
   CustomizedClientIdTransformStream,
   CustomizedRequestTransformStream,
   CustomizedResponseTransformStream,
   GlobalSwitchRequestTransformStream,
-} from "./streams/customized.ts";
-import { FilterTransformStream, InspectStream, SessionGuardTransformStream } from "./streams/utils.ts";
+} from './streams/customized.ts';
+import {
+  FilterTransformStream,
+  InspectStream,
+  SessionGuardTransformStream,
+} from './streams/utils.ts';
 
-export { CDPOutputTransformStream, CDPRequestTransformStream, CDPResponseTransformStream } from "./streams/cdp.ts";
+export {
+  CDPOutputTransformStream,
+  CDPRequestTransformStream,
+  CDPResponseTransformStream,
+} from './streams/cdp.ts';
 
-import { ClientId } from "./client-id.ts";
-import { DaemonTransport } from "./transport/daemon.ts";
-import type { App, Client, Device, OpenAppOptions, Transport, TransportConnectOptions } from "./transport/transport.ts";
+import { ClientId } from './client-id.ts';
+import { DaemonTransport } from './transport/daemon.ts';
+import type {
+  App,
+  Client,
+  Device,
+  OpenAppOptions,
+  Transport,
+  TransportConnectOptions,
+} from './transport/transport.ts';
 import {
   type AppInfo,
   type CDPRequestMessage,
@@ -39,9 +57,9 @@ import {
   type ListSessionRequest,
   type ListSessionResponse,
   type Session,
-} from "./types.ts";
+} from './types.ts';
 
-const debug = createDebug("devtool-mcp-server:connector");
+const debug = createDebug('devtool-mcp-server:connector');
 
 interface OutputStream<O> extends AsyncDisposable, ReadableStream<O> {
   inputClosed: Promise<void>;
@@ -59,7 +77,7 @@ type ClientListTransport = Transport & {
 };
 
 function hasClientList(transport: Transport): transport is ClientListTransport {
-  return typeof transport.listClients === "function";
+  return typeof transport.listClients === 'function';
 }
 
 export class Connector {
@@ -68,7 +86,9 @@ export class Connector {
 
   constructor(transports: Transport[]) {
     this.#transports = transports;
-    this.#daemonTransports = transports.filter((t): t is DaemonTransport => t instanceof DaemonTransport);
+    this.#daemonTransports = transports.filter(
+      (t): t is DaemonTransport => t instanceof DaemonTransport,
+    );
   }
 
   async listClients(): Promise<Client[]> {
@@ -82,19 +102,20 @@ export class Connector {
         return clients;
       }),
     );
-    const fulfilledDaemonClientResults = daemonClientResults
-      .filter((r) => r.status === "fulfilled");
+    const fulfilledDaemonClientResults = daemonClientResults.filter(
+      (r) => r.status === 'fulfilled',
+    );
     const daemonClients = fulfilledDaemonClientResults.flatMap((r) => r.value);
 
     if (fulfilledDaemonClientResults.length > 0) {
-      debug("Using clients from daemon transport: %o", daemonClients);
+      debug('Using clients from daemon transport: %o', daemonClients);
       return daemonClients;
     }
 
     // 1. Try direct connection for other transports.
     const transportDevices = await Promise.allSettled(
       this.#transports
-        .filter(t => !(t instanceof DaemonTransport))
+        .filter((t) => !(t instanceof DaemonTransport))
         .map(async (transport) => ({
           transport,
           devices: await transport.listDevices(),
@@ -102,30 +123,37 @@ export class Connector {
     );
 
     for (const result of transportDevices) {
-      if (result.status === "rejected") {
-        debug("listClients: listDevices failed on one transport: %O", result.reason);
+      if (result.status === 'rejected') {
+        debug(
+          'listClients: listDevices failed on one transport: %O',
+          result.reason,
+        );
       }
     }
 
     const results = await Promise.allSettled(
       transportDevices
-        .filter(r => r.status === "fulfilled")
-        .map(r => r.value)
-        .flatMap(({ transport, devices }) => devices.flatMap(({ id }) => this.#listClientsForDevice(transport, id))),
+        .filter((r) => r.status === 'fulfilled')
+        .map((r) => r.value)
+        .flatMap(({ transport, devices }) =>
+          devices.flatMap(({ id }) =>
+            this.#listClientsForDevice(transport, id),
+          ),
+        ),
     );
 
     return results
-      .filter((r) => r.status === "fulfilled")
+      .filter((r) => r.status === 'fulfilled')
       .flatMap((r) => r.value);
   }
 
   async listDevices(): Promise<Device[]> {
     const results = await Promise.allSettled(
-      this.#transports.map(t => t.listDevices()),
+      this.#transports.map((t) => t.listDevices()),
     );
 
     return results
-      .filter(result => result.status === "fulfilled")
+      .filter((result) => result.status === 'fulfilled')
       .flatMap(({ value }) => value);
   }
 
@@ -135,29 +163,36 @@ export class Connector {
     return await transport.listAvailableApps(deviceId);
   }
 
-  async openApp(deviceId: string, packageName: string, options?: OpenAppOptions): Promise<void> {
+  async openApp(
+    deviceId: string,
+    packageName: string,
+    options?: OpenAppOptions,
+  ): Promise<void> {
     const transport = await this.#findTransportWithDeviceId(deviceId);
 
     await transport.openApp(deviceId, packageName, options);
 
-    const signal = AbortSignal.any([
-      options?.signal,
-      AbortSignal.timeout(60_000),
-    ].filter(i => i !== undefined));
+    const signal = AbortSignal.any(
+      [options?.signal, AbortSignal.timeout(60_000)].filter(
+        (i) => i !== undefined,
+      ),
+    );
 
-    const { setTimeout } = await import("node:timers/promises");
+    const { setTimeout } = await import('node:timers/promises');
     while (!signal.aborted) {
       try {
         const clients = hasClientList(transport)
-          ? (await transport.listClients())
-            .filter(({ id }) => ClientId.deserialize(id)?.deviceId === deviceId)
+          ? (await transport.listClients()).filter(
+              ({ id }) => ClientId.deserialize(id)?.deviceId === deviceId,
+            )
           : await this.#listClientsForDevice(transport, deviceId);
 
         if (
-          clients.some(({ info }) =>
-            /** Android */ info.AppProcessName === packageName
-              /** iOS */ || info.bundleId === packageName
-              || info.bundleName === packageName
+          clients.some(
+            ({ info }) =>
+              /** Android */ info.AppProcessName === packageName ||
+              /** iOS */ info.bundleId === packageName ||
+              info.bundleName === packageName,
           )
         ) {
           break;
@@ -186,10 +221,7 @@ export class Connector {
    * disposes of the connection. This is useful for fire-and-forget messages
    * such as `xdb_proxy_config` where the device does not send a reply.
    */
-  async sendMessageNoReply<T>(
-    clientId: string,
-    message: T,
-  ): Promise<void> {
+  async sendMessageNoReply<T>(clientId: string, message: T): Promise<void> {
     const { deviceId, port } = this.#resolveClientId(clientId);
     const transport = await this.#findTransportWithDeviceId(deviceId);
     const signal = AbortSignal.timeout(5_000);
@@ -201,11 +233,13 @@ export class Connector {
       const inputStream = [
         new CustomizedClientIdTransformStream(port),
         new InspectStream((msg: unknown) =>
-          debug(`sendMessageNoReply ${deviceId}:${port} send %o`, JSON.stringify(msg))
+          debug(
+            `sendMessageNoReply ${deviceId}:${port} send %o`,
+            JSON.stringify(msg),
+          ),
         ),
       ].reduce(
         (stream, transform) => stream.pipeThrough(transform),
-        // eslint-disable-next-line n/no-unsupported-features/node-builtins
         ReadableStream.from([message]),
       );
 
@@ -223,22 +257,28 @@ export class Connector {
   ): Promise<Output> {
     const id = randomInt(10_000, 50_000);
 
-    return await this.#sendMessage<Record<string, unknown>, Output>(clientId, {
-      method,
-      params: /** App message requires params to be an object */ { ...params },
-    }, {
-      input: [
-        new CustomizedRequestTransformStream({
-          type: "App",
-          sessionId: -1,
-          messageBuilder: (message) => ({ id, ...message }),
-        }),
-      ],
-      output: [
-        new CustomizedResponseTransformStream("App", id),
-        new AppResponseTransformStream(method),
-      ],
-    });
+    return await this.#sendMessage<Record<string, unknown>, Output>(
+      clientId,
+      {
+        method,
+        params: /** App message requires params to be an object */ {
+          ...params,
+        },
+      },
+      {
+        input: [
+          new CustomizedRequestTransformStream({
+            type: 'App',
+            sessionId: -1,
+            messageBuilder: (message) => ({ id, ...message }),
+          }),
+        ],
+        output: [
+          new CustomizedResponseTransformStream('App', id),
+          new AppResponseTransformStream(method),
+        ],
+      },
+    );
   }
 
   async sendCDPMessage<Output, Params = never>(
@@ -250,32 +290,40 @@ export class Connector {
   ): Promise<Output> {
     const id = randomInt(10_000, 50_000);
 
-    const SUPPORTED_DOMAIN = ["Debugger", "Runtime", "HeapProfiler", "Profiler"];
+    const SUPPORTED_DOMAIN = [
+      'Debugger',
+      'Runtime',
+      'HeapProfiler',
+      'Profiler',
+    ];
 
-    if (isMainThread && !SUPPORTED_DOMAIN.some(domain => method.startsWith(domain + "."))) {
+    if (
+      isMainThread &&
+      !SUPPORTED_DOMAIN.some((domain) => method.startsWith(domain + '.'))
+    ) {
       throw new Error(
-        `Method ${method} is not supported for main thread. Supported domains: ${SUPPORTED_DOMAIN.join(", ")}`,
+        `Method ${method} is not supported for main thread. Supported domains: ${SUPPORTED_DOMAIN.join(', ')}`,
       );
     }
 
-    return await this.#sendMessage<Record<string, unknown>, Output>(clientId, {
-      method,
-      params,
-      sessionId: isMainThread ? "Main" : undefined,
-    }, {
-      input: [
-        new CDPRequestTransformStream(sessionId, id),
-      ],
-      output: [
-        new CDPResponseTransformStream(id),
-        new CDPOutputTransformStream(),
-      ],
-    });
+    return await this.#sendMessage<Record<string, unknown>, Output>(
+      clientId,
+      {
+        method,
+        params,
+        sessionId: isMainThread ? 'Main' : undefined,
+      },
+      {
+        input: [new CDPRequestTransformStream(sessionId, id)],
+        output: [
+          new CDPResponseTransformStream(id),
+          new CDPOutputTransformStream(),
+        ],
+      },
+    );
   }
 
-  async sendListSessionMessage(
-    clientId: string,
-  ): Promise<Session[]> {
+  async sendListSessionMessage(clientId: string): Promise<Session[]> {
     return await this.#sendListSessionMessage(clientId);
   }
 
@@ -287,20 +335,23 @@ export class Connector {
    * request that could be cut off mid-download.
    */
   async prepareHeadless(clientId: string): Promise<HeadlessPrepareState> {
-    const { data: { data: state } } = await this.#sendMessage<HeadlessPrepareRequest, HeadlessPrepareResponse>(
+    const {
+      data: { data: state },
+    } = await this.#sendMessage<
+      HeadlessPrepareRequest,
+      HeadlessPrepareResponse
+    >(
       clientId,
       {
-        event: "Customized",
+        event: 'Customized',
         data: {
-          type: "HeadlessPrepare",
+          type: 'HeadlessPrepare',
           data: {},
         },
       },
       {
         input: [],
-        output: [
-          new FilterTransformStream(isHeadlessPrepareResponse),
-        ],
+        output: [new FilterTransformStream(isHeadlessPrepareResponse)],
       },
     );
 
@@ -322,14 +373,14 @@ export class Connector {
   ): Promise<void> {
     const timeoutMs = options.timeoutMs ?? 5 * 60_000;
     const pollIntervalMs = options.pollIntervalMs ?? 1_000;
-    const { setTimeout: delay } = await import("node:timers/promises");
+    const { setTimeout: delay } = await import('node:timers/promises');
     const deadline = Date.now() + timeoutMs;
     let lastError: string | undefined;
     for (;;) {
       const state = await this.prepareHeadless(clientId);
-      if (state.status === "ready") return;
-      if (state.status === "error") {
-        lastError = state.message ?? "unknown error";
+      if (state.status === 'ready') return;
+      if (state.status === 'error') {
+        lastError = state.message ?? 'unknown error';
       }
       if (Date.now() >= deadline) {
         throw new Error(
@@ -342,51 +393,48 @@ export class Connector {
     }
   }
 
-  async #sendListSessionMessage(
-    clientId: string,
-  ): Promise<Session[]> {
-    const { data: { data: sessions } } = await this.#sendMessage<ListSessionRequest, ListSessionResponse>(
+  async #sendListSessionMessage(clientId: string): Promise<Session[]> {
+    const {
+      data: { data: sessions },
+    } = await this.#sendMessage<ListSessionRequest, ListSessionResponse>(
       clientId,
       {
-        event: "Customized",
+        event: 'Customized',
         data: {
-          type: "ListSession",
+          type: 'ListSession',
           data: {},
         },
       },
       {
         input: [],
-        output: [
-          new FilterTransformStream(isListSessionResponse),
-        ],
+        output: [new FilterTransformStream(isListSessionResponse)],
       },
     );
 
-    return sessions.map(session => ({
+    return sessions.map((session) => ({
       ...session,
-      type: session.type === "" ? "lynx" : session.type,
+      type: session.type === '' ? 'lynx' : session.type,
     }));
   }
 
-  async getGlobalSwitch(
-    clientId: string,
-    key: GlobalKeys,
-  ): Promise<boolean> {
+  async getGlobalSwitch(clientId: string, key: GlobalKeys): Promise<boolean> {
     const {
-      data: { data: { message } },
-    } = await this.#sendMessage<{ key: GlobalKeys }, GetGlobalSwitchResponse>(clientId, { key }, {
-      input: [
-        new GlobalSwitchRequestTransformStream("GetGlobalSwitch"),
-      ],
-      output: [
-        new FilterTransformStream(isGetGlobalSwitchResponse),
-      ],
-    });
+      data: {
+        data: { message },
+      },
+    } = await this.#sendMessage<{ key: GlobalKeys }, GetGlobalSwitchResponse>(
+      clientId,
+      { key },
+      {
+        input: [new GlobalSwitchRequestTransformStream('GetGlobalSwitch')],
+        output: [new FilterTransformStream(isGetGlobalSwitchResponse)],
+      },
+    );
 
-    if (typeof message === "object") {
-      return message?.global_value === "true" || message?.global_value === true;
+    if (typeof message === 'object') {
+      return message?.global_value === 'true' || message?.global_value === true;
     } else {
-      return message === "true" || message === true;
+      return message === 'true' || message === true;
     }
   }
 
@@ -395,20 +443,26 @@ export class Connector {
     key: GlobalKeys,
     value: boolean,
   ): Promise<void> {
-    await this.#sendMessage(clientId, { key, value }, {
-      input: [
-        new GlobalSwitchRequestTransformStream("SetGlobalSwitch"),
-      ],
-      output: [
-        new FilterTransformStream(isSetGlobalSwitchResponse),
-      ],
-    });
+    await this.#sendMessage(
+      clientId,
+      { key, value },
+      {
+        input: [new GlobalSwitchRequestTransformStream('SetGlobalSwitch')],
+        output: [new FilterTransformStream(isSetGlobalSwitchResponse)],
+      },
+    );
   }
 
   async sendStream<I, O>(
     clientId: string,
     inputStream: ReadableStream<I>,
-    { signal, pipeline }: { signal?: AbortSignal | undefined; pipeline?: Pipeline | undefined } = {},
+    {
+      signal,
+      pipeline,
+    }: {
+      signal?: AbortSignal | undefined;
+      pipeline?: Pipeline | undefined;
+    } = {},
   ): Promise<OutputStream<O>> {
     const { deviceId, port } = this.#resolveClientId(clientId);
     const transport = await this.#findTransportWithDeviceId(deviceId);
@@ -430,9 +484,7 @@ export class Connector {
     return await this.sendStream(clientId, inputStream, {
       signal,
       pipeline: {
-        input: [
-          new CDPRequestTransformStream(sessionId),
-        ],
+        input: [new CDPRequestTransformStream(sessionId)],
         output: [
           new SessionGuardTransformStream(sessionId),
           new CDPResponseTransformStream<CDPRequestMessage>(),
@@ -454,13 +506,16 @@ export class Connector {
     // this device, stick to it for follow-up requests. Otherwise a faster direct
     // transport can win the race here and bypass the stable daemon path that was
     // used during discovery, which is exactly what made list-sessions flaky.
-    const daemonTransport = await this.#findTransportWithDeviceIdInPool(this.#daemonTransports, deviceId);
+    const daemonTransport = await this.#findTransportWithDeviceIdInPool(
+      this.#daemonTransports,
+      deviceId,
+    );
     if (daemonTransport) {
       return daemonTransport;
     }
 
     const transport = await this.#findTransportWithDeviceIdInPool(
-      this.#transports.filter(t => !(t instanceof DaemonTransport)),
+      this.#transports.filter((t) => !(t instanceof DaemonTransport)),
       deviceId,
     );
     if (transport) {
@@ -470,12 +525,15 @@ export class Connector {
     throw new Error(`Device with id: ${deviceId} not found`);
   }
 
-  async #findTransportWithDeviceIdInPool(transports: Transport[], deviceId: string): Promise<Transport | null> {
+  async #findTransportWithDeviceIdInPool(
+    transports: Transport[],
+    deviceId: string,
+  ): Promise<Transport | null> {
     return await Promise.any(
       transports.map(async (transport) => {
         const devices = await transport.listDevices();
         if (devices.some(({ id }) => id === deviceId)) return transport;
-        throw new Error("Not found in this transport");
+        throw new Error('Not found in this transport');
       }),
     ).catch(() => null);
   }
@@ -495,20 +553,32 @@ export class Connector {
     const inputClosed = [
       ...pipeline.input,
       new CustomizedClientIdTransformStream(port),
-      new InspectStream((msg) => debug(`connect ${deviceId}:${port} input stream send %o`, JSON.stringify(msg))),
-    ].reduce((stream, transform) => stream.pipeThrough(transform), inputStream)
-      .pipeTo(conn.writable, { preventClose: true, signal: inputAbortController.signal })
+      new InspectStream((msg) =>
+        debug(
+          `connect ${deviceId}:${port} input stream send %o`,
+          JSON.stringify(msg),
+        ),
+      ),
+    ]
+      .reduce((stream, transform) => stream.pipeThrough(transform), inputStream)
+      .pipeTo(conn.writable, {
+        preventClose: true,
+        signal: inputAbortController.signal,
+      })
       .catch((err) => {
-        if (err?.name !== "AbortError") {
+        if (err?.name !== 'AbortError') {
           debug(`connect ${deviceId}:${port} input stream err %O`, err);
         }
       });
 
     const outputStream = [
-      new InspectStream((msg) => debug(`connect ${deviceId}:${port} output stream receive %O`, msg)),
+      new InspectStream((msg) =>
+        debug(`connect ${deviceId}:${port} output stream receive %O`, msg),
+      ),
       ...pipeline.output,
     ].reduce(
-      (stream, transform) => stream.pipeThrough(transform, { preventCancel: true }),
+      (stream, transform) =>
+        stream.pipeThrough(transform, { preventCancel: true }),
       conn.readable,
     );
 
@@ -551,7 +621,6 @@ export class Connector {
       transport,
       options,
       // We have polyfill for this
-      // eslint-disable-next-line n/no-unsupported-features/node-builtins
       ReadableStream.from([input]),
       pipeline,
     );
@@ -573,53 +642,55 @@ export class Connector {
     const MIN_PORT = 8901;
     const PORTS = Array.from({ length: 10 }, (_, i) => MIN_PORT + i);
     const signal = AbortSignal.timeout(5_000);
-    const results = await Promise.allSettled(PORTS.map(async (port: number) => {
-      const { data: { info } } = await this.#sendMessageWithTransport<InitializeRequest, InitializeResponse>(
-        transport,
-        { deviceId, port, signal },
-        { event: "Initialize", data: port },
-        {
-          input: [],
-          output: [
-            new FilterTransformStream(isInitializeResponse),
-          ],
-        },
-      );
+    const results = await Promise.allSettled(
+      PORTS.map(async (port: number) => {
+        const {
+          data: { info },
+        } = await this.#sendMessageWithTransport<
+          InitializeRequest,
+          InitializeResponse
+        >(
+          transport,
+          { deviceId, port, signal },
+          { event: 'Initialize', data: port },
+          {
+            input: [],
+            output: [new FilterTransformStream(isInitializeResponse)],
+          },
+        );
 
-      const clientId = ClientId.serialize(deviceId, port);
-      await this.#setupClient(transport, clientId);
+        const clientId = ClientId.serialize(deviceId, port);
+        await this.#setupClient(transport, clientId);
 
-      return { id: clientId, info, port };
-    }));
+        return { id: clientId, info, port };
+      }),
+    );
 
     return results
-      .filter(result => result.status === "fulfilled")
-      .map(result => result.value);
+      .filter((result) => result.status === 'fulfilled')
+      .map((result) => result.value);
   }
 
   async #setupClient(transport: Transport, clientId: string): Promise<void> {
     const { deviceId, port } = this.#resolveClientId(clientId);
-    for (
-      const input of [
-        { key: "enable_devtool", value: true },
-        // `enable_quickjs_debug` is required for `Runtime.*` and `HeapProfiler.*` to work,
-        // so we enable it by default. It won't have effect if the devtool doesn't support quickjs debug.
-        // And it will not turn off `enable_v8` if it's already on, so it won't break v8 debug.
-        { key: "enable_quickjs_debug", value: true },
-      ] as const
-    ) {
+    for (const input of [
+      { key: 'enable_devtool', value: true },
+      // `enable_quickjs_debug` is required for `Runtime.*` and `HeapProfiler.*` to work,
+      // so we enable it by default. It won't have effect if the devtool doesn't support quickjs debug.
+      // And it will not turn off `enable_v8` if it's already on, so it won't break v8 debug.
+      { key: 'enable_quickjs_debug', value: true },
+    ] as const) {
       try {
-        await this.#sendMessageWithTransport<{ key: GlobalKeys; value: boolean }, never>(
+        await this.#sendMessageWithTransport<
+          { key: GlobalKeys; value: boolean },
+          never
+        >(
           transport,
           { deviceId, port, signal: AbortSignal.timeout(3_000) },
           input,
           {
-            input: [
-              new GlobalSwitchRequestTransformStream("SetGlobalSwitch"),
-            ],
-            output: [
-              new FilterTransformStream(isSetGlobalSwitchResponse),
-            ],
+            input: [new GlobalSwitchRequestTransformStream('SetGlobalSwitch')],
+            output: [new FilterTransformStream(isSetGlobalSwitchResponse)],
           },
         );
       } catch (err) {
@@ -629,4 +700,4 @@ export class Connector {
   }
 }
 
-export * from "./types.ts";
+export * from './types.ts';

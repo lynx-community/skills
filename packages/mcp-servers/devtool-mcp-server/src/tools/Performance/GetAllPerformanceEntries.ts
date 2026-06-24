@@ -2,12 +2,12 @@
 // Licensed under the Apache License Version 2.0 that can be found in the
 // LICENSE file in the root directory of this source tree.
 
-import { clientId, sessionId } from "../../schema/index.ts";
-import { defineTool } from "../defineTool.ts";
+import { clientId, sessionId } from '../../schema/index.ts';
+import { defineTool } from '../defineTool.ts';
 
 export const GetAllPerformanceEntries = /*#__PURE__*/ defineTool({
-  name: "Performance_getAllPerformanceEntries",
-  description: "Get all cached PerformanceEntry objects from the current page.",
+  name: 'Performance_getAllPerformanceEntries',
+  description: 'Get all cached PerformanceEntry objects from the current page.',
   schema: {
     clientId,
     sessionId,
@@ -21,14 +21,14 @@ export const GetAllPerformanceEntries = /*#__PURE__*/ defineTool({
     await connector.sendCDPMessage(
       params.clientId,
       params.sessionId,
-      "Performance.enable",
+      'Performance.enable',
       {},
     );
 
     const result = await connector.sendCDPMessage(
       params.clientId,
       params.sessionId,
-      "Performance.getAllPerformanceEntries",
+      'Performance.getAllPerformanceEntries',
       {},
     );
 

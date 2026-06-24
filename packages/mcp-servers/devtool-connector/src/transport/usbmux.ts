@@ -2,11 +2,11 @@
 // Licensed under the Apache License Version 2.0 that can be found in the
 // LICENSE file in the root directory of this source tree.
 
-import { on, once } from "node:events";
-import * as net from "node:net";
-import { Duplex } from "node:stream";
-import { ReadableStream, WritableStream } from "node:stream/web";
-import { build, parse, type PlistValue } from "plist";
+import { on, once } from 'node:events';
+import * as net from 'node:net';
+import { Duplex } from 'node:stream';
+import type { ReadableStream, WritableStream } from 'node:stream/web';
+import { build, type PlistValue, parse } from 'plist';
 
 const HEADER_SIZE = 16;
 const USBMUXD_VERSION = 1;
@@ -29,19 +29,21 @@ export interface UsbmuxdDeviceRecord {
   Properties: UsbmuxdDeviceProperties;
 }
 
-export type UsbmuxdResponse = UsbmuxdListDevicesResponse | UsbmuxdResultResponse;
+export type UsbmuxdResponse =
+  | UsbmuxdListDevicesResponse
+  | UsbmuxdResultResponse;
 
 export interface UsbmuxdListDevicesResponse {
   DeviceList: UsbmuxdDeviceRecord[];
 }
 
 export interface UsbmuxdResultResponse {
-  MessageType: "Result";
+  MessageType: 'Result';
   Number: number;
 }
 
 export interface UsbmuxdConnectRequest {
-  MessageType: "Connect";
+  MessageType: 'Connect';
   ClientVersionString: string;
   ProgName: string;
   DeviceID: number;
@@ -49,7 +51,7 @@ export interface UsbmuxdConnectRequest {
 }
 
 export interface UsbmuxdListDevicesRequest {
-  MessageType: "ListDevices";
+  MessageType: 'ListDevices';
   ClientVersionString: string;
   ProgName: string;
 }
@@ -66,24 +68,29 @@ export class Usbmux {
   private connectOptions: net.NetConnectOpts;
 
   constructor(connectOptions?: net.NetConnectOpts | string) {
-    if (typeof connectOptions === "string") {
+    if (typeof connectOptions === 'string') {
       this.connectOptions = { path: connectOptions };
     } else if (connectOptions) {
       this.connectOptions = connectOptions;
     } else {
-      this.connectOptions = { path: "/var/run/usbmuxd" };
+      this.connectOptions = { path: '/var/run/usbmuxd' };
     }
   }
 
-  public async listDevices(signal?: AbortSignal): Promise<UsbmuxdDeviceRecord[]> {
+  public async listDevices(
+    signal?: AbortSignal,
+  ): Promise<UsbmuxdDeviceRecord[]> {
     const { socket, response } = await this.#sendAndReceive<
       UsbmuxdListDevicesRequest,
       UsbmuxdListDevicesResponse
-    >({
-      MessageType: "ListDevices",
-      ClientVersionString: "usbmux-driver",
-      ProgName: "usbmux-driver",
-    }, signal);
+    >(
+      {
+        MessageType: 'ListDevices',
+        ClientVersionString: 'usbmux-driver',
+        ProgName: 'usbmux-driver',
+      },
+      signal,
+    );
 
     socket.destroy();
 
@@ -96,20 +103,23 @@ export class Usbmux {
     signal?: AbortSignal,
   ): Promise<UsbmuxConnection> {
     // Port must be in network byte order (big-endian)
-    const networkPort = ((port >> 8) & 0xFF) | ((port << 8) & 0xFF00);
+    const networkPort = ((port >> 8) & 0xff) | ((port << 8) & 0xff00);
 
     const { socket, response, tail } = await this.#sendAndReceive<
       UsbmuxdConnectRequest,
       UsbmuxdResultResponse
-    >({
-      MessageType: "Connect",
-      ClientVersionString: "usbmux-driver",
-      ProgName: "usbmux-driver",
-      DeviceID: Number(deviceId),
-      PortNumber: networkPort,
-    }, signal);
+    >(
+      {
+        MessageType: 'Connect',
+        ClientVersionString: 'usbmux-driver',
+        ProgName: 'usbmux-driver',
+        DeviceID: Number(deviceId),
+        PortNumber: networkPort,
+      },
+      signal,
+    );
 
-    if (response.MessageType === "Result" && response.Number === 0) {
+    if (response.MessageType === 'Result' && response.Number === 0) {
       if (tail.length > 0) {
         socket.unshift(tail);
       }
@@ -123,7 +133,9 @@ export class Usbmux {
     }
 
     socket.destroy();
-    throw new Error(`Invalid response for Connect: ${JSON.stringify(response)}`);
+    throw new Error(
+      `Invalid response for Connect: ${JSON.stringify(response)}`,
+    );
   }
 
   async #sendAndReceive<T, R>(
@@ -134,12 +146,14 @@ export class Usbmux {
 
     if (signal) {
       const abortHandler = () => socket.destroy();
-      signal.addEventListener("abort", abortHandler, { once: true });
-      socket.once("close", () => signal.removeEventListener("abort", abortHandler));
+      signal.addEventListener('abort', abortHandler, { once: true });
+      socket.once('close', () =>
+        signal.removeEventListener('abort', abortHandler),
+      );
     }
 
     try {
-      await once(socket, "connect", { signal });
+      await once(socket, 'connect', { signal });
 
       socket.write(encodeRequest());
 
@@ -148,7 +162,7 @@ export class Usbmux {
       // We still use Node.js streams for the handshake part because `Duplex.toWeb`
       // consumes the stream, making it hard to "peek" or "unshift" without extra overhead.
       // Once handshake is done, we convert to Web Streams in `connect`.
-      for await (const [chunk] of on(socket, "data", { signal })) {
+      for await (const [chunk] of on(socket, 'data', { signal })) {
         buffer = Buffer.concat([buffer, chunk]);
         if (buffer.length < HEADER_SIZE) continue;
 
@@ -158,11 +172,11 @@ export class Usbmux {
         const responseBuffer = buffer.subarray(HEADER_SIZE, length);
         const tail = buffer.subarray(length);
 
-        const response = parse(responseBuffer.toString("utf8")) as R;
+        const response = parse(responseBuffer.toString('utf8')) as R;
         return { socket, response, tail };
       }
 
-      throw new Error("Connection closed before response received");
+      throw new Error('Connection closed before response received');
     } catch (error) {
       socket.destroy();
       throw error;
@@ -170,7 +184,7 @@ export class Usbmux {
 
     function encodeRequest(): Buffer {
       const xml = build(payload as PlistValue);
-      const body = Buffer.from(xml, "utf8");
+      const body = Buffer.from(xml, 'utf8');
       const length = HEADER_SIZE + body.length;
       const header = Buffer.alloc(HEADER_SIZE);
       header.writeUInt32LE(length, 0);

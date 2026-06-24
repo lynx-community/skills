@@ -6,35 +6,40 @@ import {
   DaemonTransport,
   DesktopTransport,
   iOSTransport,
-} from "@lynx-js/devtool-connector/transport";
-import { Command } from "commander";
-import pkg from "../package.json" with { type: "json" };
-import { registerAppCommand } from "./commands/app.ts";
-import { registerCdpCommand } from "./commands/cdp.ts";
-import { registerGetConsoleCommand } from "./commands/get-console.ts";
-import { registerGetSourcesCommand } from "./commands/get-sources.ts";
-import { registerGlobalSwitchCommand } from "./commands/global-switch.ts";
-import { registerInspectCommand } from "./commands/inspect.ts";
-import { registerListClientsCommand } from "./commands/list-clients.ts";
-import { registerListSessionsCommand } from "./commands/list-sessions.ts";
-import { registerOpenCommand } from "./commands/open.ts";
-import { registerReactLynxCommand } from "./commands/reactlynx/index.ts";
-import { registerEndCommand } from "./commands/recorder-end.ts";
-import { registerStartCommand } from "./commands/recorder-start.ts";
-import { registerTakeHeapSnapshotCommand } from "./commands/take-heap-snapshot.ts";
-import { registerTakeScreenshotCommand } from "./commands/take-screenshot.ts";
-import type { Context } from "./commands/utils.ts";
+} from '@lynx-js/devtool-connector/transport';
+import { Command } from 'commander';
+import pkg from '../package.json' with { type: 'json' };
+import { registerAppCommand } from './commands/app.ts';
+import { registerCdpCommand } from './commands/cdp.ts';
+import { registerGetConsoleCommand } from './commands/get-console.ts';
+import { registerGetSourcesCommand } from './commands/get-sources.ts';
+import { registerGlobalSwitchCommand } from './commands/global-switch.ts';
+import { registerInspectCommand } from './commands/inspect.ts';
+import { registerListClientsCommand } from './commands/list-clients.ts';
+import { registerListSessionsCommand } from './commands/list-sessions.ts';
+import { registerOpenCommand } from './commands/open.ts';
+import { registerReactLynxCommand } from './commands/reactlynx/index.ts';
+import { registerEndCommand } from './commands/recorder-end.ts';
+import { registerStartCommand } from './commands/recorder-start.ts';
+import { registerTakeHeapSnapshotCommand } from './commands/take-heap-snapshot.ts';
+import { registerTakeScreenshotCommand } from './commands/take-screenshot.ts';
+import type { Context } from './commands/utils.ts';
 
-function getAndroidTransportSpec(env: NodeJS.ProcessEnv): { host: string; port: number } {
-  const port = Number.parseInt(env["ADB_SERVER_PORT"] ?? "5037", 10);
+function getAndroidTransportSpec(env: NodeJS.ProcessEnv): {
+  host: string;
+  port: number;
+} {
+  const port = Number.parseInt(env['ADB_SERVER_PORT'] ?? '5037', 10);
 
   return {
-    host: env["ADB_SERVER_HOST"] ?? "127.0.0.1",
+    host: env['ADB_SERVER_HOST'] ?? '127.0.0.1',
     port: Number.isInteger(port) && port > 0 ? port : 5037,
   };
 }
 
-export function createProgram(options: { env?: NodeJS.ProcessEnv } = {}): Command {
+export function createProgram(
+  options: { env?: NodeJS.ProcessEnv } = {},
+): Command {
   const env = options.env ?? process.env;
   const program = new Command();
   const context: Context = {
@@ -46,21 +51,21 @@ export function createProgram(options: { env?: NodeJS.ProcessEnv } = {}): Comman
   };
 
   program
-    .name("lynx-devtool")
-    .description("CLI to interact with Lynx DevTool Connector")
+    .name('lynx-devtool')
+    .description('CLI to interact with Lynx DevTool Connector')
     .version(pkg.version)
     .option(
-      "--no-daemon",
-      "Run in non-daemon mode, which will not start the background service",
+      '--no-daemon',
+      'Run in non-daemon mode, which will not start the background service',
     )
-    .hook("preAction", async (thisCommand) => {
+    .hook('preAction', async (thisCommand) => {
       const rootOptions = thisCommand.opts<{ daemon?: boolean }>();
       if (rootOptions.daemon) {
         context.transports.push(new DaemonTransport());
       }
     })
-    .hook("postAction", async () => {
-      await Promise.allSettled(context.transports.map(t => t.close()));
+    .hook('postAction', async () => {
+      await Promise.allSettled(context.transports.map((t) => t.close()));
     });
 
   registerListClientsCommand(program, context);
@@ -75,7 +80,7 @@ export function createProgram(options: { env?: NodeJS.ProcessEnv } = {}): Comman
   registerTakeHeapSnapshotCommand(program, context);
   registerGlobalSwitchCommand(program, context);
 
-  const record = program.command("recorder");
+  const record = program.command('recorder');
   registerStartCommand(record, context);
   registerEndCommand(record, context);
 

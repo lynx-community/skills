@@ -2,27 +2,48 @@
 // Licensed under the Apache License Version 2.0 that can be found in the
 // LICENSE file in the root directory of this source tree.
 
-import type { TransformStream } from "node:stream/web";
-import { takeoverDebugRouterLock } from "../takeover.ts";
-import { MessageToPeertalkTransformStream, PeertalkToMessageTransformStream } from "./peertalk.ts";
-import type { Connection, TransportConnectOptions } from "./transport.ts";
+import type { TransformStream } from 'node:stream/web';
+import { takeoverDebugRouterLock } from '../takeover.ts';
+import {
+  MessageToPeertalkTransformStream,
+  PeertalkToMessageTransformStream,
+} from './peertalk.ts';
+import type { Connection, TransportConnectOptions } from './transport.ts';
 
 export interface MessageCodecFactory {
-  createEncodeTransformStream<TInput = unknown>(): TransformStream<TInput, Uint8Array>;
-  createDecodeTransformStream<TOutput = unknown>(): TransformStream<Uint8Array, TOutput>;
+  createEncodeTransformStream<TInput = unknown>(): TransformStream<
+    TInput,
+    Uint8Array
+  >;
+  createDecodeTransformStream<TOutput = unknown>(): TransformStream<
+    Uint8Array,
+    TOutput
+  >;
 }
 
 export const peertalkCodecFactory: MessageCodecFactory = {
-  createEncodeTransformStream<TInput = unknown>(): TransformStream<TInput, Uint8Array> {
+  createEncodeTransformStream<TInput = unknown>(): TransformStream<
+    TInput,
+    Uint8Array
+  > {
     return new MessageToPeertalkTransformStream<TInput>();
   },
 
-  createDecodeTransformStream<TOutput = unknown>(): TransformStream<Uint8Array, TOutput> {
-    return new PeertalkToMessageTransformStream() as TransformStream<Uint8Array, TOutput>;
+  createDecodeTransformStream<TOutput = unknown>(): TransformStream<
+    Uint8Array,
+    TOutput
+  > {
+    return new PeertalkToMessageTransformStream() as TransformStream<
+      Uint8Array,
+      TOutput
+    >;
   },
 };
 
-export async function createMessageConnection<TInput = unknown, TOutput = unknown>(
+export async function createMessageConnection<
+  TInput = unknown,
+  TOutput = unknown,
+>(
   connectRaw: (options: TransportConnectOptions) => Promise<Connection>,
   codecFactory: MessageCodecFactory,
   options: TransportConnectOptions,
@@ -32,15 +53,20 @@ export async function createMessageConnection<TInput = unknown, TOutput = unknow
 
   const pipeAbortController = new AbortController();
 
-  void encoder.readable.pipeTo(conn.writable, { preventClose: true, signal: pipeAbortController.signal }).catch(
-    (err) => {
-      if (err?.name !== "AbortError") {
+  void encoder.readable
+    .pipeTo(conn.writable, {
+      preventClose: true,
+      signal: pipeAbortController.signal,
+    })
+    .catch((err) => {
+      if (err?.name !== 'AbortError') {
         void conn[Symbol.asyncDispose]();
       }
-    },
-  );
+    });
 
-  const readable = conn.readable.pipeThrough(codecFactory.createDecodeTransformStream<TOutput>());
+  const readable = conn.readable.pipeThrough(
+    codecFactory.createDecodeTransformStream<TOutput>(),
+  );
 
   return {
     readable,
@@ -57,5 +83,9 @@ export async function connectWithPeertalk<TInput = unknown, TOutput = unknown>(
   options: TransportConnectOptions,
 ): Promise<Connection<TOutput, TInput>> {
   await takeoverDebugRouterLock();
-  return createMessageConnection<TInput, TOutput>(connectRaw, peertalkCodecFactory, options);
+  return createMessageConnection<TInput, TOutput>(
+    connectRaw,
+    peertalkCodecFactory,
+    options,
+  );
 }

@@ -2,10 +2,13 @@
 // Licensed under the Apache License Version 2.0 that can be found in the
 // LICENSE file in the root directory of this source tree.
 
-import { TransformStream } from "node:stream/web";
-import type { Response } from "../types.ts";
+import { TransformStream } from 'node:stream/web';
+import type { Response } from '../types.ts';
 
-export class PeertalkToMessageTransformStream extends TransformStream<Uint8Array, Response> {
+export class PeertalkToMessageTransformStream extends TransformStream<
+  Uint8Array,
+  Response
+> {
   constructor() {
     let buffer = new Uint8Array(0);
     const decoder = new TextDecoder();
@@ -24,7 +27,9 @@ export class PeertalkToMessageTransformStream extends TransformStream<Uint8Array
           if (buffer.length < 20 + len) break;
 
           try {
-            c.enqueue(JSON.parse(decoder.decode(buffer.subarray(20, 20 + len))));
+            c.enqueue(
+              JSON.parse(decoder.decode(buffer.subarray(20, 20 + len))),
+            );
           } catch (e) {
             c.error(e);
           }
@@ -36,10 +41,9 @@ export class PeertalkToMessageTransformStream extends TransformStream<Uint8Array
   }
 }
 
-export class MessageToPeertalkTransformStream<TMessage = unknown> extends TransformStream<
-  TMessage,
-  Uint8Array
-> {
+export class MessageToPeertalkTransformStream<
+  TMessage = unknown,
+> extends TransformStream<TMessage, Uint8Array> {
   constructor() {
     const encoder = new TextEncoder();
 

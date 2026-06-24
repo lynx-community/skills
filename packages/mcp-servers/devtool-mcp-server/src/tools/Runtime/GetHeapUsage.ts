@@ -2,12 +2,12 @@
 // Licensed under the Apache License Version 2.0 that can be found in the
 // LICENSE file in the root directory of this source tree.
 
-import { clientId, sessionId, thread } from "../../schema/index.ts";
-import { defineTool } from "../defineTool.ts";
+import { clientId, sessionId, thread } from '../../schema/index.ts';
+import { defineTool } from '../defineTool.ts';
 
 export const GetHeapUsage = /*#__PURE__*/ defineTool({
-  name: "Runtime_getHeapUsage",
-  description: "Returns the JavaScript heap usage for the given session.",
+  name: 'Runtime_getHeapUsage',
+  description: 'Returns the JavaScript heap usage for the given session.',
   schema: {
     clientId,
     sessionId,
@@ -22,17 +22,17 @@ export const GetHeapUsage = /*#__PURE__*/ defineTool({
     await connector.sendCDPMessage(
       params.clientId,
       params.sessionId,
-      "Runtime.enable",
+      'Runtime.enable',
       {},
-      params.thread === "main",
+      params.thread === 'main',
     );
 
     const result = await connector.sendCDPMessage(
       params.clientId,
       params.sessionId,
-      "Runtime.getHeapUsage",
+      'Runtime.getHeapUsage',
       {},
-      params.thread === "main",
+      params.thread === 'main',
     );
 
     response.appendLines(JSON.stringify(result, null, 2));

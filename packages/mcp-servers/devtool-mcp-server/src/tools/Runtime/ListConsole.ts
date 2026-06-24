@@ -2,11 +2,11 @@
 // Licensed under the Apache License Version 2.0 that can be found in the
 // LICENSE file in the root directory of this source tree.
 
-import { ReadableStream } from "node:stream/web";
-import { setTimeout } from "node:timers/promises";
-import * as z from "zod";
-import { clientId, sessionId, thread } from "../../schema/index.ts";
-import { defineTool } from "../defineTool.ts";
+import { ReadableStream } from 'node:stream/web';
+import { setTimeout } from 'node:timers/promises';
+import * as z from 'zod';
+import { clientId, sessionId, thread } from '../../schema/index.ts';
+import { defineTool } from '../defineTool.ts';
 
 interface ConsoleCallFrame {
   url: string;
@@ -33,21 +33,40 @@ interface ConsoleMessage {
 }
 
 export const ListConsole = /*#__PURE__*/ defineTool({
-  name: "Runtime_listConsole",
-  description: "List all console messages.",
+  name: 'Runtime_listConsole',
+  description: 'List all console messages.',
   schema: {
     clientId,
     sessionId,
 
-    offset: z.number().optional().describe("The number of console messages to skip before returning results."),
-    limit: z.number().min(1).max(100).optional().describe("The maximum number of console messages to return."),
-    includeStackTraces: z.boolean().optional().describe(
-      "By default, only error messages would contain stack traces. Set this to true to include stack traces for all messages in the output.",
-    ),
-    level: z.array(z.enum(["log", "info", "warning", "error"])).optional().describe(
-      "The log level to filter messages. Defaults to ['info', 'log', 'warning', 'error']",
-    ),
-    thread: z.array(thread).optional().describe("VM thread to target: background or main. Defaults to both."),
+    offset: z
+      .number()
+      .optional()
+      .describe(
+        'The number of console messages to skip before returning results.',
+      ),
+    limit: z
+      .number()
+      .min(1)
+      .max(100)
+      .optional()
+      .describe('The maximum number of console messages to return.'),
+    includeStackTraces: z
+      .boolean()
+      .optional()
+      .describe(
+        'By default, only error messages would contain stack traces. Set this to true to include stack traces for all messages in the output.',
+      ),
+    level: z
+      .array(z.enum(['log', 'info', 'warning', 'error']))
+      .optional()
+      .describe(
+        "The log level to filter messages. Defaults to ['info', 'log', 'warning', 'error']",
+      ),
+    thread: z
+      .array(thread)
+      .optional()
+      .describe('VM thread to target: background or main. Defaults to both.'),
   },
   annotations: {
     readOnlyHint: true,
@@ -59,8 +78,8 @@ export const ListConsole = /*#__PURE__*/ defineTool({
       offset = 0,
       limit,
       includeStackTraces = false,
-      level = ["info", "log", "warning", "error"],
-      thread: threads = ["background", "main"],
+      level = ['info', 'log', 'warning', 'error'],
+      thread: threads = ['background', 'main'],
     } = params;
 
     await using stream = await connector.sendCDPStream(
@@ -68,11 +87,11 @@ export const ListConsole = /*#__PURE__*/ defineTool({
       params.sessionId,
       ReadableStream.from([
         {
-          method: "Page.enable",
+          method: 'Page.enable',
         },
-        ...threads.map((t: "background" | "main") => ({
-          method: "Runtime.enable",
-          sessionId: t === "main" ? "Main" : undefined,
+        ...threads.map((t: 'background' | 'main') => ({
+          method: 'Runtime.enable',
+          sessionId: t === 'main' ? 'Main' : undefined,
         })),
       ]),
     );
@@ -89,9 +108,9 @@ export const ListConsole = /*#__PURE__*/ defineTool({
       while (Date.now() - startTime < MAX_TOTAL_TIME) {
         const result = await Promise.race([
           reader.read(),
-          setTimeout(IDLE_TIMEOUT, "timeout" as const),
+          setTimeout(IDLE_TIMEOUT, 'timeout' as const),
         ]);
-        if (result === "timeout") {
+        if (result === 'timeout') {
           await reader.cancel();
           break;
         }
@@ -99,9 +118,13 @@ export const ListConsole = /*#__PURE__*/ defineTool({
         const { done, value } = result;
         if (done) break;
 
-        if (value.method === "Runtime.consoleAPICalled") {
+        if (value.method === 'Runtime.consoleAPICalled') {
           const message = value.params as ConsoleMessage;
-          if (!level.includes(message.type as "log" | "info" | "warning" | "error")) {
+          if (
+            !level.includes(
+              message.type as 'log' | 'info' | 'warning' | 'error',
+            )
+          ) {
             continue;
           }
 
@@ -110,7 +133,7 @@ export const ListConsole = /*#__PURE__*/ defineTool({
             continue;
           }
 
-          if (!includeStackTraces && message.type !== "error") {
+          if (!includeStackTraces && message.type !== 'error') {
             delete message.stackTrace;
           }
 
@@ -127,27 +150,26 @@ export const ListConsole = /*#__PURE__*/ defineTool({
     }
 
     response.appendLines(
-      ...messages
-        .map(({ type, args, stackTrace, consoleTag }) =>
-          `- [${type}/${consoleTag === "Lepus" ? "main-thread" : "background"}]: ${
-            args
-              .map(arg => {
-                if (arg.objectId) {
-                  return `<${arg.description || arg.className || "Object"} (objectId:${arg.objectId})>`;
-                }
-                return String(arg.value);
-              })
-              .join(" ")
-          }${
+      ...messages.map(
+        ({ type, args, stackTrace, consoleTag }) =>
+          `- [${type}/${consoleTag === 'Lepus' ? 'main-thread' : 'background'}]: ${args
+            .map((arg) => {
+              if (arg.objectId) {
+                return `<${arg.description || arg.className || 'Object'} (objectId:${arg.objectId})>`;
+              }
+              return String(arg.value);
+            })
+            .join(' ')}${
             stackTrace
-              ? `\n${
-                stackTrace.callFrames
-                  .map(({ url, lineNumber, columnNumber }) => `    at ${url}:${lineNumber}:${columnNumber}`)
-                  .join("\n")
-              }`
-              : ""
-          }`
-        ),
+              ? `\n${stackTrace.callFrames
+                  .map(
+                    ({ url, lineNumber, columnNumber }) =>
+                      `    at ${url}:${lineNumber}:${columnNumber}`,
+                  )
+                  .join('\n')}`
+              : ''
+          }`,
+      ),
     );
   },
 });

@@ -2,14 +2,17 @@
 // Licensed under the Apache License Version 2.0 that can be found in the
 // LICENSE file in the root directory of this source tree.
 
-import http from "node:http";
-import type { AddressInfo } from "node:net";
-import { setTimeout as sleep } from "node:timers/promises";
-import { createDebug } from "obug";
-import { type WebSocket, WebSocketServer } from "ws";
-import { ClientId } from "../client-id.ts";
-import type { Device, Transport } from "../transport/transport.ts";
-import { DeviceConnection, type DeviceConnectionSubscriber } from "./device-connection.ts";
+import http from 'node:http';
+import type { AddressInfo } from 'node:net';
+import { setTimeout as sleep } from 'node:timers/promises';
+import { createDebug } from 'obug';
+import { type WebSocket, WebSocketServer } from 'ws';
+import { ClientId } from '../client-id.ts';
+import type { Device, Transport } from '../transport/transport.ts';
+import {
+  DeviceConnection,
+  type DeviceConnectionSubscriber,
+} from './device-connection.ts';
 import {
   type ClientListEntry,
   type ControlRequest,
@@ -22,11 +25,11 @@ import {
   isListClientsRequest,
   isPingEvent,
   isRegisterEvent,
-} from "./protocol.ts";
-import { StaticServer } from "./static-server.ts";
-import { CONNECTOR_VERSION } from "./version.ts";
+} from './protocol.ts';
+import { StaticServer } from './static-server.ts';
+import { CONNECTOR_VERSION } from './version.ts';
 
-const debug = createDebug("devtool-mcp-server:daemon:server");
+const debug = createDebug('devtool-mcp-server:daemon:server');
 
 const IDLE_TIMEOUT_MS = 300_000;
 /** Grace period before disposing an unsubscribed device connection. */
@@ -53,7 +56,10 @@ export class DevtoolDaemon {
   #transports: Transport[];
   #deviceConnections = new Map<string, DeviceConnection>();
   #pendingDeviceConnections = new Map<string, Promise<DeviceConnection>>();
-  #deviceConnectionCleanupTimers = new Map<string, ReturnType<typeof setTimeout>>();
+  #deviceConnectionCleanupTimers = new Map<
+    string,
+    ReturnType<typeof setTimeout>
+  >();
   #wsClients = new Map<number, WsClientSession>();
   #nextClientId = 0;
   #idleTimer: ReturnType<typeof setTimeout> | null = null;
@@ -62,12 +68,15 @@ export class DevtoolDaemon {
   #onShutdown: (() => void) | undefined;
   #staticServer = new StaticServer();
 
-  constructor(transports: Transport[], options?: { onIdle?: () => void; onShutdown?: () => void }) {
+  constructor(
+    transports: Transport[],
+    options?: { onIdle?: () => void; onShutdown?: () => void },
+  ) {
     this.#transports = transports;
     this.#onIdle = options?.onIdle;
     this.#onShutdown = options?.onShutdown;
     this.#httpServer = http.createServer((req, res) => {
-      if (req.method === "GET" && this.#isVersionRequest(req.url)) {
+      if (req.method === 'GET' && this.#isVersionRequest(req.url)) {
         this.#sendJson(res, 200, { version: CONNECTOR_VERSION });
         return;
       }
@@ -76,11 +85,11 @@ export class DevtoolDaemon {
         return;
       }
 
-      if (req.method === "POST" && this.#isShutdownRequest(req.url)) {
+      if (req.method === 'POST' && this.#isShutdownRequest(req.url)) {
         this.#sendJson(res, 202, { ok: true }, () => {
           void this.close()
             .catch((err: unknown) => {
-              debug("failed to close daemon after shutdown request: %O", err);
+              debug('failed to close daemon after shutdown request: %O', err);
             })
             .finally(() => {
               this.#onShutdown?.();
@@ -98,7 +107,7 @@ export class DevtoolDaemon {
     const wss = new WebSocketServer({ noServer: true });
     this.#wss = wss;
 
-    this.#httpServer.on("upgrade", (request, socket, head) => {
+    this.#httpServer.on('upgrade', (request, socket, head) => {
       if (!request.url?.startsWith(DAEMON_WS_PATH)) {
         socket.destroy();
         return;
@@ -109,12 +118,16 @@ export class DevtoolDaemon {
     });
 
     return new Promise<number>((resolve, reject) => {
-      this.#httpServer.once("error", reject);
-      this.#httpServer.listen(port, "127.0.0.1", () => {
-        this.#httpServer.removeListener("error", reject);
+      this.#httpServer.once('error', reject);
+      this.#httpServer.listen(port, '127.0.0.1', () => {
+        this.#httpServer.removeListener('error', reject);
         this.#resetIdleTimer();
         const address = this.#httpServer.address() as AddressInfo;
-        debug("daemon listening on ws://127.0.0.1:%d%s", address.port, DAEMON_WS_PATH);
+        debug(
+          'daemon listening on ws://127.0.0.1:%d%s',
+          address.port,
+          DAEMON_WS_PATH,
+        );
         resolve(address.port);
       });
     });
@@ -155,26 +168,35 @@ export class DevtoolDaemon {
   // ---------------------------------------------------------------------------
 
   #isVersionRequest(url: string | undefined): boolean {
-    return new URL(url ?? "/", "http://127.0.0.1").pathname === DAEMON_VERSION_PATH;
+    return (
+      new URL(url ?? '/', 'http://127.0.0.1').pathname === DAEMON_VERSION_PATH
+    );
   }
 
   #isShutdownRequest(url: string | undefined): boolean {
-    return new URL(url ?? "/", "http://127.0.0.1").pathname === DAEMON_SHUTDOWN_PATH;
+    return (
+      new URL(url ?? '/', 'http://127.0.0.1').pathname === DAEMON_SHUTDOWN_PATH
+    );
   }
 
-  #sendJson(res: http.ServerResponse, statusCode: number, data: unknown, callback?: () => void): void {
+  #sendJson(
+    res: http.ServerResponse,
+    statusCode: number,
+    data: unknown,
+    callback?: () => void,
+  ): void {
     const body = JSON.stringify(data);
     res.writeHead(statusCode, {
-      "content-type": "application/json; charset=utf-8",
-      "content-length": Buffer.byteLength(body),
-      "cache-control": "no-store",
+      'content-type': 'application/json; charset=utf-8',
+      'content-length': Buffer.byteLength(body),
+      'cache-control': 'no-store',
     });
     res.end(body, callback);
   }
 
   #handleConnection(ws: WebSocket): void {
     const clientId = ++this.#nextClientId;
-    debug("new ws client %d", clientId);
+    debug('new ws client %d', clientId);
     this.#clearIdleTimer();
 
     const session: WsClientSession = {
@@ -187,24 +209,24 @@ export class DevtoolDaemon {
         }
       },
       close() {
-        ws.close(1001, "device disconnected");
+        ws.close(1001, 'device disconnected');
       },
     };
 
     // Standard debug-router handshake: send Initialize
-    session.send({ event: "Initialize", data: clientId });
+    session.send({ event: 'Initialize', data: clientId });
 
-    ws.on("message", (raw: Buffer | string) => {
+    ws.on('message', (raw: Buffer | string) => {
       try {
         const msg: unknown = JSON.parse(String(raw));
         this.#handleMessage(session, msg);
       } catch (err) {
-        debug("failed to parse message from client %d: %O", clientId, err);
+        debug('failed to parse message from client %d: %O', clientId, err);
       }
     });
 
-    ws.on("close", () => {
-      debug("ws client %d disconnected", clientId);
+    ws.on('close', () => {
+      debug('ws client %d disconnected', clientId);
       this.#wsClients.delete(clientId);
 
       for (const key of session.subscriptions) {
@@ -219,8 +241,8 @@ export class DevtoolDaemon {
       this.#resetIdleTimer();
     });
 
-    ws.on("error", (err: Error) => {
-      debug("ws client %d error: %O", clientId, err);
+    ws.on('error', (err: Error) => {
+      debug('ws client %d error: %O', clientId, err);
     });
   }
 
@@ -231,7 +253,7 @@ export class DevtoolDaemon {
   #handleMessage(session: WsClientSession, msg: unknown): void {
     if (isRegisterEvent(msg)) {
       this.#wsClients.set(session.id, session);
-      debug("client %d registered", session.id);
+      debug('client %d registered', session.id);
       return;
     }
     if (isListClientsRequest(msg)) {
@@ -239,7 +261,7 @@ export class DevtoolDaemon {
       return;
     }
     if (isPingEvent(msg)) {
-      session.send({ event: "Pong" });
+      session.send({ event: 'Pong' });
       return;
     }
     if (isControlRequest(msg)) {
@@ -250,19 +272,22 @@ export class DevtoolDaemon {
       void this.#handleCustomizedMessage(session, msg);
       return;
     }
-    debug("unknown message from client %d: %O", session.id, msg);
+    debug('unknown message from client %d: %O', session.id, msg);
   }
 
   // ---------------------------------------------------------------------------
   // Customized message forwarding (Client → Device)
   // ---------------------------------------------------------------------------
 
-  async #handleCustomizedMessage(session: WsClientSession, msg: CustomizedMessage): Promise<void> {
+  async #handleCustomizedMessage(
+    session: WsClientSession,
+    msg: CustomizedMessage,
+  ): Promise<void> {
     // DaemonTransport sets `to` = port.
     // CustomizedClientIdTransformStream also sets client_id = port.
     const targetPort = msg.to ?? msg.data?.data?.client_id;
-    if (typeof targetPort !== "number") {
-      debug("cannot determine target port from message: %O", msg);
+    if (typeof targetPort !== 'number') {
+      debug('cannot determine target port from message: %O', msg);
       return;
     }
 
@@ -281,65 +306,85 @@ export class DevtoolDaemon {
             },
           });
         } catch (err) {
-          debug("failed to forward message to %s: %O", key, err);
+          debug('failed to forward message to %s: %O', key, err);
         }
         return;
       }
     }
 
-    debug("no matching device connection for client %d, port %d", session.id, targetPort);
+    debug(
+      'no matching device connection for client %d, port %d',
+      session.id,
+      targetPort,
+    );
   }
 
   // ---------------------------------------------------------------------------
   // Control RPC
   // ---------------------------------------------------------------------------
 
-  async #handleControlRequest(session: WsClientSession, req: ControlRequest): Promise<void> {
+  async #handleControlRequest(
+    session: WsClientSession,
+    req: ControlRequest,
+  ): Promise<void> {
     const { id, method, params } = req.data;
 
     try {
       let result: unknown;
 
       switch (method) {
-        case "listClients": {
+        case 'listClients': {
           result = await this.#discoverClients();
           break;
         }
 
-        case "listDevices": {
+        case 'listDevices': {
           const devices: Device[] = [];
           const allResults = await Promise.allSettled(
-            this.#transports.map(t => t.listDevices()),
+            this.#transports.map((t) => t.listDevices()),
           );
           for (const r of allResults) {
-            if (r.status === "fulfilled") devices.push(...r.value);
+            if (r.status === 'fulfilled') devices.push(...r.value);
           }
           result = devices;
           break;
         }
 
-        case "listAvailableApps": {
-          const deviceId = (params as { deviceId?: string } | undefined)?.deviceId;
-          if (!deviceId) throw new Error("deviceId is required");
+        case 'listAvailableApps': {
+          const deviceId = (params as { deviceId?: string } | undefined)
+            ?.deviceId;
+          if (!deviceId) throw new Error('deviceId is required');
           const transport = await this.#findTransportWithDeviceId(deviceId);
           result = await transport.listAvailableApps(deviceId);
           break;
         }
 
-        case "openApp": {
-          const p = (params ?? {}) as { deviceId?: string; packageName?: string; withDataCleared?: boolean };
-          if (!p.deviceId || !p.packageName) throw new Error("deviceId and packageName are required");
+        case 'openApp': {
+          const p = (params ?? {}) as {
+            deviceId?: string;
+            packageName?: string;
+            withDataCleared?: boolean;
+          };
+          if (!p.deviceId || !p.packageName)
+            throw new Error('deviceId and packageName are required');
           const transport = await this.#findTransportWithDeviceId(p.deviceId);
-          await transport.openApp(p.deviceId, p.packageName, { withDataCleared: p.withDataCleared });
+          await transport.openApp(p.deviceId, p.packageName, {
+            withDataCleared: p.withDataCleared,
+          });
           result = null;
           break;
         }
 
-        case "subscribe": {
+        case 'subscribe': {
           const s = (params ?? {}) as { deviceId?: string; port?: number };
-          if (!s.deviceId || s.port === undefined) throw new Error("deviceId and port are required");
+          if (!s.deviceId || s.port === undefined)
+            throw new Error('deviceId and port are required');
           const transport = await this.#findTransportWithDeviceId(s.deviceId);
-          const conn = await this.#getOrCreateDeviceConnection(transport, s.deviceId, s.port);
+          const conn = await this.#getOrCreateDeviceConnection(
+            transport,
+            s.deviceId,
+            s.port,
+          );
           conn.addSubscriber(session);
           session.subscriptions.add(conn.key);
           result = null;
@@ -350,10 +395,10 @@ export class DevtoolDaemon {
           throw new Error(`Unknown control method: ${method}`);
       }
 
-      session.send({ event: "ControlResponse", data: { id, result } });
+      session.send({ event: 'ControlResponse', data: { id, result } });
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
-      session.send({ event: "ControlResponse", data: { id, error: message } });
+      session.send({ event: 'ControlResponse', data: { id, error: message } });
     }
   }
 
@@ -364,10 +409,10 @@ export class DevtoolDaemon {
   async #sendClientList(session: WsClientSession): Promise<void> {
     try {
       const clients = await this.#discoverClients();
-      session.send({ event: "ClientList", data: clients });
+      session.send({ event: 'ClientList', data: clients });
     } catch (err) {
-      debug("failed to send client list: %O", err);
-      session.send({ event: "ClientList", data: [] });
+      debug('failed to send client list: %O', err);
+      session.send({ event: 'ClientList', data: [] });
     }
   }
 
@@ -376,16 +421,19 @@ export class DevtoolDaemon {
 
     // 0. Collect clients from transports with listClients() capability.
     const clientListTransports = this.#transports.filter(
-      (t): t is Transport & { listClients(): Promise<{ id: string; info: Record<string, unknown> }[]> } =>
-        typeof t.listClients === "function",
+      (
+        t,
+      ): t is Transport & {
+        listClients(): Promise<{ id: string; info: Record<string, unknown> }[]>;
+      } => typeof t.listClients === 'function',
     );
     const clientListResults = await Promise.allSettled(
-      clientListTransports.map(t => t.listClients()),
+      clientListTransports.map((t) => t.listClients()),
     );
     for (const r of clientListResults) {
-      if (r.status === "fulfilled") {
+      if (r.status === 'fulfilled') {
         for (const { id, info } of r.value) {
-          entries.push({ id, info, type: "runtime" });
+          entries.push({ id, info, type: 'runtime' });
         }
       }
     }
@@ -398,7 +446,7 @@ export class DevtoolDaemon {
         entries.push({
           id,
           info: conn.appInfo,
-          type: "runtime",
+          type: 'runtime',
         });
       }
     }
@@ -407,14 +455,14 @@ export class DevtoolDaemon {
     const allDevices: { transport: Transport; devices: Device[] }[] = [];
     const transportResults = await Promise.allSettled(
       this.#transports
-        .filter(transport => typeof transport.listClients !== "function")
+        .filter((transport) => typeof transport.listClients !== 'function')
         .map(async (transport) => ({
           transport,
           devices: await transport.listDevices(),
         })),
     );
     for (const r of transportResults) {
-      if (r.status === "fulfilled") allDevices.push(r.value);
+      if (r.status === 'fulfilled') allDevices.push(r.value);
     }
 
     const MIN_PORT = 8901;
@@ -424,29 +472,37 @@ export class DevtoolDaemon {
     const probeResults = await Promise.allSettled(
       allDevices.flatMap(({ transport, devices }) =>
         devices.flatMap((device) =>
-          PORTS
-            .filter((port) => !existingKeys.has(`${device.id}:${port}`))
-            .map(async (port) => {
-              const conn = await this.#getOrCreateDeviceConnection(transport, device.id, port);
+          PORTS.filter((port) => !existingKeys.has(`${device.id}:${port}`)).map(
+            async (port) => {
+              const conn = await this.#getOrCreateDeviceConnection(
+                transport,
+                device.id,
+                port,
+              );
               // Match direct transport discovery timeout so cold-start daemon scans
               // do not give up before the device finishes the Initialize/Register handshake.
               const deadline = Date.now() + DEVICE_DISCOVERY_TIMEOUT_MS;
-              while (!conn.appInfo && !conn.isDisposed && Date.now() < deadline) {
+              while (
+                !conn.appInfo &&
+                !conn.isDisposed &&
+                Date.now() < deadline
+              ) {
                 await new Promise<void>((resolve) => setTimeout(resolve, 100));
               }
               return conn;
-            })
-        )
+            },
+          ),
+        ),
       ),
     );
 
     for (const r of probeResults) {
-      if (r.status === "fulfilled") {
+      if (r.status === 'fulfilled') {
         const conn = r.value;
         if (conn.appInfo && !conn.isDisposed) {
           const clientId = ClientId.serialize(conn.deviceId, conn.port);
           if (!entries.some((e) => e.id === clientId)) {
-            entries.push({ id: clientId, info: conn.appInfo, type: "runtime" });
+            entries.push({ id: clientId, info: conn.appInfo, type: 'runtime' });
           }
         }
       }
@@ -481,7 +537,9 @@ export class DevtoolDaemon {
       // The signal is passed into transports, so keep the setup deadline clearable.
       // AbortSignal.timeout() would abort later even after this pooled connection succeeds.
       const setupTimeout = setTimeout(() => {
-        setupAbortController.abort(createDeviceConnectionSetupTimeoutError(key));
+        setupAbortController.abort(
+          createDeviceConnectionSetupTimeoutError(key),
+        );
       }, DEVICE_CONN_SETUP_TIMEOUT_MS);
       const conn = new DeviceConnection(transport, {
         deviceId,
@@ -494,13 +552,13 @@ export class DevtoolDaemon {
         await withAbortSignal(connectPromise, setupAbortController.signal);
         // Trigger the Initialize handshake so the device sends back Register
         await withAbortSignal(
-          conn.send({ event: "Initialize", data: port }),
+          conn.send({ event: 'Initialize', data: port }),
           setupAbortController.signal,
         );
         this.#deviceConnections.set(key, conn);
         return conn;
       } catch (err) {
-        debug("failed to connect to %s: %O", key, err);
+        debug('failed to connect to %s: %O', key, err);
         this.#deviceConnections.delete(key);
         await this.#disposeDeviceConnectionBestEffort(key, conn);
         throw err;
@@ -514,10 +572,17 @@ export class DevtoolDaemon {
     return await connectionPromise;
   }
 
-  async #disposeDeviceConnectionBestEffort(key: string, conn: DeviceConnection): Promise<void> {
+  async #disposeDeviceConnectionBestEffort(
+    key: string,
+    conn: DeviceConnection,
+  ): Promise<void> {
     const timeoutAbortController = new AbortController();
     const disposePromise = conn.dispose().catch((err: unknown) => {
-      debug("failed to dispose device connection %s after setup failure: %O", key, err);
+      debug(
+        'failed to dispose device connection %s after setup failure: %O',
+        key,
+        err,
+      );
     });
     const timeoutPromise = sleep(DEVICE_CONN_DISPOSE_TIMEOUT_MS, undefined, {
       signal: timeoutAbortController.signal,
@@ -526,12 +591,9 @@ export class DevtoolDaemon {
     });
 
     try {
-      await Promise.race([
-        disposePromise,
-        timeoutPromise,
-      ]);
+      await Promise.race([disposePromise, timeoutPromise]);
     } catch (err) {
-      debug("best-effort dispose for %s did not complete: %O", key, err);
+      debug('best-effort dispose for %s did not complete: %O', key, err);
     } finally {
       timeoutAbortController.abort();
     }
@@ -544,17 +606,17 @@ export class DevtoolDaemon {
       // connection on this key, otherwise it could later dispose this
       // persistent connection — contradicting "persistent is never cleaned up".
       this.#clearDeviceConnectionCleanup(key);
-      debug("skipping cleanup for persistent connection %s", key);
+      debug('skipping cleanup for persistent connection %s', key);
       return;
     }
-    debug("scheduling cleanup for %s in %dms", key, DEVICE_CONN_GRACE_MS);
+    debug('scheduling cleanup for %s in %dms', key, DEVICE_CONN_GRACE_MS);
     this.#clearDeviceConnectionCleanup(key);
 
     const timer = setTimeout(() => {
       this.#deviceConnectionCleanupTimers.delete(key);
       const conn = this.#deviceConnections.get(key);
       if (conn && conn.subscriberCount === 0) {
-        debug("disposing idle device connection %s", key);
+        debug('disposing idle device connection %s', key);
         this.#deviceConnections.delete(key);
         void conn.dispose();
       }
@@ -590,10 +652,13 @@ export class DevtoolDaemon {
   #resetIdleTimer(): void {
     this.#clearIdleTimer();
     if (this.#wsClients.size === 0 && !this.#closed) {
-      debug("no clients connected, starting idle timer (%dms)", IDLE_TIMEOUT_MS);
+      debug(
+        'no clients connected, starting idle timer (%dms)',
+        IDLE_TIMEOUT_MS,
+      );
       this.#idleTimer = setTimeout(() => {
         if (this.#wsClients.size === 0) {
-          debug("idle timeout reached, shutting down daemon");
+          debug('idle timeout reached, shutting down daemon');
           this.#onIdle?.();
         }
       }, IDLE_TIMEOUT_MS);
@@ -614,22 +679,25 @@ function createDeviceConnectionSetupTimeoutError(key: string): Error {
   );
 }
 
-async function withAbortSignal<T>(promise: Promise<T>, signal: AbortSignal): Promise<T> {
+async function withAbortSignal<T>(
+  promise: Promise<T>,
+  signal: AbortSignal,
+): Promise<T> {
   signal.throwIfAborted();
 
   return await new Promise<T>((resolve, reject) => {
     const abortHandler = () => {
-      reject(signal.reason ?? new Error("The operation was aborted"));
+      reject(signal.reason ?? new Error('The operation was aborted'));
     };
 
-    signal.addEventListener("abort", abortHandler, { once: true });
+    signal.addEventListener('abort', abortHandler, { once: true });
     promise.then(
       (value) => {
-        signal.removeEventListener("abort", abortHandler);
+        signal.removeEventListener('abort', abortHandler);
         resolve(value);
       },
       (error: unknown) => {
-        signal.removeEventListener("abort", abortHandler);
+        signal.removeEventListener('abort', abortHandler);
         reject(error);
       },
     );

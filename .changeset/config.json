@@ -3,7 +3,11 @@
   "changelog": "@changesets/cli/changelog",
   "commit": false,
   "fixed": [
-    ["@lynx-js/devtool-connector", "@lynx-js/devtool-mcp-server", "@lynx-js/skill-lynx-devtool"]
+    [
+      "@lynx-js/devtool-connector",
+      "@lynx-js/devtool-mcp-server",
+      "@lynx-js/skill-lynx-devtool"
+    ]
   ],
   "linked": [],
   "access": "public",

@@ -2,12 +2,12 @@
 // Licensed under the Apache License Version 2.0 that can be found in the
 // LICENSE file in the root directory of this source tree.
 
-import { randomInt } from "node:crypto";
-import { TransformStream, WritableStream } from "node:stream/web";
-import type { ReadableStream } from "node:stream/web";
-import { createDebug } from "obug";
-import { DaemonManager, DEFAULT_DAEMON_PORT } from "../daemon/manager.ts";
-import type { ClientListEntry, ControlResponse } from "../daemon/protocol.ts";
+import { randomInt } from 'node:crypto';
+import type { ReadableStream } from 'node:stream/web';
+import { TransformStream, WritableStream } from 'node:stream/web';
+import { createDebug } from 'obug';
+import { DaemonManager, DEFAULT_DAEMON_PORT } from '../daemon/manager.ts';
+import type { ClientListEntry, ControlResponse } from '../daemon/protocol.ts';
 import type {
   App,
   Client,
@@ -16,9 +16,9 @@ import type {
   OpenAppOptions,
   Transport,
   TransportConnectOptions,
-} from "./transport.ts";
+} from './transport.ts';
 
-const debug = createDebug("devtool-mcp-server:daemon:transport");
+const debug = createDebug('devtool-mcp-server:daemon:transport');
 
 /**
  * A Transport implementation that communicates with devices through the
@@ -42,22 +42,33 @@ export class DaemonTransport implements Transport {
   }
 
   async listDevices(): Promise<Device[]> {
-    const result = await this.#controlRequest<Device[]>("listDevices");
+    const result = await this.#controlRequest<Device[]>('listDevices');
     return result;
   }
 
   async listAvailableApps(deviceId: string): Promise<App[]> {
-    const result = await this.#controlRequest<App[]>("listAvailableApps", { deviceId });
+    const result = await this.#controlRequest<App[]>('listAvailableApps', {
+      deviceId,
+    });
     return result;
   }
 
-  async openApp(deviceId: string, packageName: string, options?: OpenAppOptions): Promise<void> {
-    await this.#controlRequest("openApp", { deviceId, packageName, withDataCleared: options?.withDataCleared });
+  async openApp(
+    deviceId: string,
+    packageName: string,
+    options?: OpenAppOptions,
+  ): Promise<void> {
+    await this.#controlRequest('openApp', {
+      deviceId,
+      packageName,
+      withDataCleared: options?.withDataCleared,
+    });
   }
 
   async listClients(): Promise<Client[]> {
-    const entries = await this.#controlRequest<ClientListEntry[]>("listClients");
-    debug("received ClientList with %d entries", entries.length);
+    const entries =
+      await this.#controlRequest<ClientListEntry[]>('listClients');
+    debug('received ClientList with %d entries', entries.length);
     return entries.map(({ id, info }) => ({ id, info }));
   }
 
@@ -65,20 +76,19 @@ export class DaemonTransport implements Transport {
     options: TransportConnectOptions,
   ): Promise<Connection<TOutput, TInput>> {
     const { deviceId, port, signal } = options;
-    debug("connect to %s:%d via daemon", deviceId, port);
+    debug('connect to %s:%d via daemon', deviceId, port);
 
     await DaemonManager.ensureRunning(this.#port);
     const conn = await this.#createWebSocketConnection(signal);
 
     try {
       // Subscribe this WS session to the target device:port on the daemon
-      await this.#controlRequestOnConn(conn, "subscribe", { deviceId, port });
+      await this.#controlRequestOnConn(conn, 'subscribe', { deviceId, port });
     } catch (error) {
       await conn[Symbol.asyncDispose]();
-      throw new Error(
-        `Failed to subscribe to ${deviceId}:${port}`,
-        { cause: error },
-      );
+      throw new Error(`Failed to subscribe to ${deviceId}:${port}`, {
+        cause: error,
+      });
     }
 
     const writable = new WritableStream<TInput>({
@@ -92,8 +102,9 @@ export class DaemonTransport implements Transport {
     });
 
     // Set up output pipeline: WS → JSON parse → TOutput
-    const outputReadable = conn.readable
-      .pipeThrough(new JSONStringToObjectStream()) as ReadableStream<TOutput>;
+    const outputReadable = conn.readable.pipeThrough(
+      new JSONStringToObjectStream(),
+    ) as ReadableStream<TOutput>;
 
     return {
       readable: outputReadable,
@@ -124,7 +135,10 @@ export class DaemonTransport implements Transport {
    * the matching ControlResponse.
    */
   async #controlRequestOnConn<T>(
-    conn: { readable: ReadableStream<string>; writable: WritableStream<string> },
+    conn: {
+      readable: ReadableStream<string>;
+      writable: WritableStream<string>;
+    },
     method: string,
     params?: Record<string, unknown>,
   ): Promise<T> {
@@ -135,7 +149,7 @@ export class DaemonTransport implements Transport {
     await this.#writeMessage(
       conn.writable,
       JSON.stringify({
-        event: "Control",
+        event: 'Control',
         data: { id, method, params },
       }),
       signal,
@@ -144,8 +158,8 @@ export class DaemonTransport implements Transport {
     for await (const value of this.#readMessages(conn.readable, signal)) {
       const msg = value as { event: string; data: unknown };
 
-      if (msg.event === "ControlResponse") {
-        const resp = msg.data as ControlResponse["data"];
+      if (msg.event === 'ControlResponse') {
+        const resp = msg.data as ControlResponse['data'];
         if (resp.id === id) {
           if (resp.error) {
             throw new Error(resp.error);
@@ -168,20 +182,23 @@ export class DaemonTransport implements Transport {
 
     signal?.throwIfAborted();
 
-    const { wsStreams } = await import("./ws-stream.ts");
+    const { wsStreams } = await import('./ws-stream.ts');
     const wss = wsStreams.create(url);
 
     const abortHandler = () => {
       wss.close();
     };
-    signal?.addEventListener("abort", abortHandler, { once: true });
+    signal?.addEventListener('abort', abortHandler, { once: true });
 
     wss.closed.catch(() => {
-      debug("WebSocket to daemon closed");
+      debug('WebSocket to daemon closed');
     });
 
     try {
-      const { readable, writable } = await this.#withAbortSignal(wss.opened, signal);
+      const { readable, writable } = await this.#withAbortSignal(
+        wss.opened,
+        signal,
+      );
 
       // Read Initialize message
       const reader = readable.getReader();
@@ -189,11 +206,14 @@ export class DaemonTransport implements Transport {
       reader.releaseLock();
 
       if (done) {
-        throw new Error("WebSocket closed before initialization.");
+        throw new Error('WebSocket closed before initialization.');
       }
 
-      const initMsg = JSON.parse(value as string) as { event: "Initialize"; data: number };
-      if (initMsg.event !== "Initialize") {
+      const initMsg = JSON.parse(value as string) as {
+        event: 'Initialize';
+        data: number;
+      };
+      if (initMsg.event !== 'Initialize') {
         throw new Error(`Expected Initialize, got ${initMsg.event}`);
       }
 
@@ -203,8 +223,8 @@ export class DaemonTransport implements Transport {
       await this.#writeMessage(
         writable,
         JSON.stringify({
-          event: "Register",
-          data: { id: assignedId, type: "Driver" },
+          event: 'Register',
+          data: { id: assignedId, type: 'Driver' },
         }),
         signal,
       );
@@ -214,29 +234,36 @@ export class DaemonTransport implements Transport {
         readable,
         writable,
         async [Symbol.asyncDispose]() {
-          signal?.removeEventListener("abort", abortHandler);
+          signal?.removeEventListener('abort', abortHandler);
           wss.close();
           await wss.closed.catch(() => {});
         },
       };
     } catch (err) {
-      signal?.removeEventListener("abort", abortHandler);
+      signal?.removeEventListener('abort', abortHandler);
       try {
         wss.close();
-      } catch { /* ignore */ }
+      } catch {
+        /* ignore */
+      }
       try {
         await wss.closed;
-      } catch { /* ignore */ }
+      } catch {
+        /* ignore */
+      }
       throw err;
     }
   }
 
-  async *#readMessages(readable: ReadableStream<string>, signal: AbortSignal): AsyncGenerator<unknown> {
+  async *#readMessages(
+    readable: ReadableStream<string>,
+    signal: AbortSignal,
+  ): AsyncGenerator<unknown> {
     const reader = readable.getReader();
     const abortHandler = () => {
       void reader.cancel(signal.reason);
     };
-    signal.addEventListener("abort", abortHandler, { once: true });
+    signal.addEventListener('abort', abortHandler, { once: true });
 
     try {
       while (!signal.aborted) {
@@ -249,16 +276,23 @@ export class DaemonTransport implements Transport {
         }
       }
     } finally {
-      signal.removeEventListener("abort", abortHandler);
+      signal.removeEventListener('abort', abortHandler);
       reader.releaseLock();
     }
   }
 
-  async #writeMessage(writable: WritableStream, chunk: string, signal?: AbortSignal) {
+  async #writeMessage(
+    writable: WritableStream,
+    chunk: string,
+    signal?: AbortSignal,
+  ) {
     await writeMessage(writable, chunk, signal);
   }
 
-  async #withAbortSignal<T>(promise: Promise<T>, signal?: AbortSignal): Promise<T> {
+  async #withAbortSignal<T>(
+    promise: Promise<T>,
+    signal?: AbortSignal,
+  ): Promise<T> {
     if (!signal) return promise;
     signal.throwIfAborted();
 
@@ -266,14 +300,14 @@ export class DaemonTransport implements Transport {
       const abortHandler = () => {
         reject(signal.reason);
       };
-      signal.addEventListener("abort", abortHandler, { once: true });
+      signal.addEventListener('abort', abortHandler, { once: true });
       promise.then(
         (value) => {
-          signal.removeEventListener("abort", abortHandler);
+          signal.removeEventListener('abort', abortHandler);
           resolve(value);
         },
         (error: unknown) => {
-          signal.removeEventListener("abort", abortHandler);
+          signal.removeEventListener('abort', abortHandler);
           reject(error);
         },
       );
@@ -281,9 +315,13 @@ export class DaemonTransport implements Transport {
   }
 }
 
-function routeDaemonMessage<T>(chunk: T, sender: number, port: number): unknown {
-  if (isRecord(chunk) && chunk["event"] === "Customized") {
-    const data = isRecord(chunk["data"]) ? chunk["data"] : {};
+function routeDaemonMessage<T>(
+  chunk: T,
+  sender: number,
+  port: number,
+): unknown {
+  if (isRecord(chunk) && chunk['event'] === 'Customized') {
+    const data = isRecord(chunk['data']) ? chunk['data'] : {};
     return {
       ...chunk,
       data: {
@@ -301,29 +339,36 @@ function stringifyMessage(message: unknown): string {
   try {
     return JSON.stringify(message);
   } catch (err) {
-    throw new Error(`Failed to stringify object: ${err instanceof Error ? err.message : String(err)}`, {
-      cause: err,
-    });
+    throw new Error(
+      `Failed to stringify object: ${err instanceof Error ? err.message : String(err)}`,
+      {
+        cause: err,
+      },
+    );
   }
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === "object" && value !== null;
+  return typeof value === 'object' && value !== null;
 }
 
-async function writeMessage(writable: WritableStream, chunk: string, signal?: AbortSignal) {
+async function writeMessage(
+  writable: WritableStream,
+  chunk: string,
+  signal?: AbortSignal,
+) {
   signal?.throwIfAborted();
   const writer = writable.getWriter();
   const abortHandler = () => {
     void writer.abort(signal?.reason);
   };
 
-  signal?.addEventListener("abort", abortHandler, { once: true });
+  signal?.addEventListener('abort', abortHandler, { once: true });
 
   try {
     await writer.write(chunk);
   } finally {
-    signal?.removeEventListener("abort", abortHandler);
+    signal?.removeEventListener('abort', abortHandler);
     writer.releaseLock();
   }
 }
@@ -335,7 +380,11 @@ class JSONStringToObjectStream extends TransformStream<string, unknown> {
         try {
           controller.enqueue(JSON.parse(chunk));
         } catch (err) {
-          controller.error(new Error(`Failed to parse JSON: ${err instanceof Error ? err.message : String(err)}`));
+          controller.error(
+            new Error(
+              `Failed to parse JSON: ${err instanceof Error ? err.message : String(err)}`,
+            ),
+          );
         }
       },
     });

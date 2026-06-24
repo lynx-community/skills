@@ -2,12 +2,12 @@
 // Licensed under the Apache License Version 2.0 that can be found in the
 // LICENSE file in the root directory of this source tree.
 
-import { clientId, depth, sessionId } from "../../schema/index.ts";
-import { defineTool } from "../defineTool.ts";
+import { clientId, depth, sessionId } from '../../schema/index.ts';
+import { defineTool } from '../defineTool.ts';
 
 export const GetDocument = /*#__PURE__*/ defineTool({
-  name: "DOM_getDocument",
-  description: "Get the document tree of the page.",
+  name: 'DOM_getDocument',
+  description: 'Get the document tree of the page.',
   schema: {
     clientId,
     sessionId,
@@ -19,14 +19,14 @@ export const GetDocument = /*#__PURE__*/ defineTool({
   async handler({ params: { clientId, sessionId, depth } }, response, context) {
     const connector = context.connector();
 
-    await connector.sendCDPMessage(clientId, sessionId, "DOM.enable", {
+    await connector.sendCDPMessage(clientId, sessionId, 'DOM.enable', {
       useCompression: false,
     });
 
     const tree = await connector.sendCDPMessage(
       clientId,
       sessionId,
-      "DOM.getDocument",
+      'DOM.getDocument',
       depth === undefined ? undefined : { depth },
     );
 

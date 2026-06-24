@@ -2,15 +2,15 @@
 // Licensed under the Apache License Version 2.0 that can be found in the
 // LICENSE file in the root directory of this source tree.
 
-import { ReadableStream } from "node:stream/web";
-import { setTimeout } from "node:timers/promises";
-import { clientId, sessionId } from "../../schema/index.ts";
-import { defineTool } from "../defineTool.ts";
+import { ReadableStream } from 'node:stream/web';
+import { setTimeout } from 'node:timers/promises';
+import { clientId, sessionId } from '../../schema/index.ts';
+import { defineTool } from '../defineTool.ts';
 
 export const ListScripts = /*#__PURE__*/ defineTool({
-  name: "Debugger_listScripts",
+  name: 'Debugger_listScripts',
   description:
-    "List all parsed scripts. If no scripts found, it means that the page is opened before the DevTool connected. Use `Page_reload` to reload the page and get the scripts again.",
+    'List all parsed scripts. If no scripts found, it means that the page is opened before the DevTool connected. Use `Page_reload` to reload the page and get the scripts again.',
   schema: {
     clientId,
     sessionId,
@@ -24,9 +24,11 @@ export const ListScripts = /*#__PURE__*/ defineTool({
     await using stream = await connector.sendCDPStream(
       params.clientId,
       params.sessionId,
-      ReadableStream.from([{
-        method: "Debugger.enable",
-      }]),
+      ReadableStream.from([
+        {
+          method: 'Debugger.enable',
+        },
+      ]),
       { signal: extra.signal },
     );
 
@@ -41,9 +43,9 @@ export const ListScripts = /*#__PURE__*/ defineTool({
       while (Date.now() - startTime < MAX_TOTAL_TIME) {
         const result = await Promise.race([
           reader.read(),
-          setTimeout(IDLE_TIMEOUT, "timeout" as const),
+          setTimeout(IDLE_TIMEOUT, 'timeout' as const),
         ]);
-        if (result === "timeout") {
+        if (result === 'timeout') {
           await reader.cancel();
           break;
         }
@@ -51,7 +53,7 @@ export const ListScripts = /*#__PURE__*/ defineTool({
         const { done, value } = result;
         if (done) break;
 
-        if (value.method === "Debugger.scriptParsed") {
+        if (value.method === 'Debugger.scriptParsed') {
           scripts.push(value.params as never);
         }
       }
@@ -60,7 +62,9 @@ export const ListScripts = /*#__PURE__*/ defineTool({
     }
 
     response.appendLines(
-      ...scripts.map(({ scriptId, url }) => `- scriptId: ${scriptId}, url: ${url}`),
+      ...scripts.map(
+        ({ scriptId, url }) => `- scriptId: ${scriptId}, url: ${url}`,
+      ),
     );
   },
 });

@@ -2,18 +2,25 @@
 // Licensed under the Apache License Version 2.0 that can be found in the
 // LICENSE file in the root directory of this source tree.
 
-import { Adb, AdbServerClient } from "@yume-chan/adb";
-import { AdbServerNodeTcpConnector } from "@yume-chan/adb-server-node-tcp";
-import type { SocketConnectOpts } from "node:net";
-import { createDebug } from "obug";
-import { connectWithPeertalk } from "./base.ts";
-import type { App, Connection, Device, OpenAppOptions, Transport, TransportConnectOptions } from "./transport.ts";
+import type { SocketConnectOpts } from 'node:net';
+import { type Adb, AdbServerClient } from '@yume-chan/adb';
+import { AdbServerNodeTcpConnector } from '@yume-chan/adb-server-node-tcp';
+import { createDebug } from 'obug';
+import { connectWithPeertalk } from './base.ts';
+import type {
+  App,
+  Connection,
+  Device,
+  OpenAppOptions,
+  Transport,
+  TransportConnectOptions,
+} from './transport.ts';
 
-const debug = createDebug("devtool-mcp-server:connector:android");
+const debug = createDebug('devtool-mcp-server:connector:android');
 
 const KNOWNS_APPS: Array<App> = [
-  { packageName: "com.lynx.uiapp", name: "Lynx Example" },
-  { packageName: "com.lynx.explorer", name: "Lynx Explorer" },
+  { packageName: 'com.lynx.uiapp', name: 'Lynx Example' },
+  { packageName: 'com.lynx.explorer', name: 'Lynx Explorer' },
 ];
 
 export class AndroidTransport implements Transport {
@@ -26,7 +33,10 @@ export class AndroidTransport implements Transport {
   async connect<TInput = unknown, TOutput = unknown>(
     options: TransportConnectOptions,
   ): Promise<Connection<TOutput, TInput>> {
-    return connectWithPeertalk<TInput, TOutput>(opts => this.#connectRaw(opts), options);
+    return connectWithPeertalk<TInput, TOutput>(
+      (opts) => this.#connectRaw(opts),
+      options,
+    );
   }
 
   async #createAdb(deviceId: string): Promise<Adb & AsyncDisposable> {
@@ -40,13 +50,15 @@ export class AndroidTransport implements Transport {
 
   async close(): Promise<void> {
     // noop
-    debug("Android transport closed");
+    debug('Android transport closed');
     return;
   }
 
-  async #connectRaw(
-    { deviceId, port, signal }: TransportConnectOptions,
-  ): Promise<Connection> {
+  async #connectRaw({
+    deviceId,
+    port,
+    signal,
+  }: TransportConnectOptions): Promise<Connection> {
     const adb = await this.client.createAdb({ serial: deviceId });
 
     debug(`connect: create connection to deviceId: ${deviceId}, port: ${port}`);
@@ -55,7 +67,7 @@ export class AndroidTransport implements Transport {
 
     const service = `tcp:${port}`;
 
-    let socket: Awaited<ReturnType<Adb["createSocket"]>>;
+    let socket: Awaited<ReturnType<Adb['createSocket']>>;
     try {
       socket = await adb.createSocket(service);
     } catch (err) {
@@ -75,7 +87,7 @@ export class AndroidTransport implements Transport {
         debug(`connect: socket ${service} close on abort err: %o`, err);
       });
     };
-    signal?.addEventListener("abort", abortHandler, { once: true });
+    signal?.addEventListener('abort', abortHandler, { once: true });
 
     void Promise.resolve(socket.closed).catch((err: unknown) => {
       debug(`connect: socket ${service} closed with err: %o`, err);
@@ -85,8 +97,10 @@ export class AndroidTransport implements Transport {
       readable: socket.readable as never,
       writable: socket.writable as never,
       async [Symbol.asyncDispose]() {
-        signal?.removeEventListener("abort", abortHandler);
-        debug(`connect: close connection to deviceId: ${deviceId}, port: ${port}`);
+        signal?.removeEventListener('abort', abortHandler);
+        debug(
+          `connect: close connection to deviceId: ${deviceId}, port: ${port}`,
+        );
         try {
           await socket.close();
         } finally {
@@ -99,10 +113,10 @@ export class AndroidTransport implements Transport {
   async listDevices(): Promise<Device[]> {
     const devices = await this.client.getDevices();
 
-    debug("listDevices: devices %o", devices);
+    debug('listDevices: devices %o', devices);
 
     return devices.map(({ serial }) => ({
-      os: "Android",
+      os: 'Android',
       id: serial,
     }));
   }
@@ -111,16 +125,16 @@ export class AndroidTransport implements Transport {
     await using adb = await this.#createAdb(deviceId);
     const output = await adb.subprocess.noneProtocol.spawnWaitText([
       // adb shell pm list packages
-      "pm",
-      "list",
-      "packages",
-      "-3", // third-party apps only
+      'pm',
+      'list',
+      'packages',
+      '-3', // third-party apps only
     ]);
     const packages = new Set(
       output
-        .split("\n")
-        .map((line) => line.replace("package:", "").trim())
-        .filter(i => i !== ""),
+        .split('\n')
+        .map((line) => line.replace('package:', '').trim())
+        .filter((i) => i !== ''),
     );
     debug(`listAvailableApps all packages: %o`, packages);
 
@@ -142,8 +156,8 @@ export class AndroidTransport implements Transport {
     if (withDataCleared) {
       const output = await adb.subprocess.noneProtocol.spawnWaitText([
         // adb shell pm clear <package_name>
-        "pm",
-        "clear",
+        'pm',
+        'clear',
         packageName,
       ]);
       debug(`openApp clear data output ${output}`);
@@ -151,18 +165,20 @@ export class AndroidTransport implements Transport {
 
     const output = await adb.subprocess.noneProtocol.spawnWaitText([
       // adb shell monkey -p <package_name> -c android.intent.category.LAUNCHER 1
-      "monkey",
-      "-p",
+      'monkey',
+      '-p',
       packageName,
-      "-c",
-      "android.intent.category.LAUNCHER",
-      "1",
+      '-c',
+      'android.intent.category.LAUNCHER',
+      '1',
     ]);
     debug(`openApp LAUNCHER output ${output}`);
-    if (output.includes("No activities found")) {
-      throw new Error(`No launchable activity found for package ${packageName}.`);
+    if (output.includes('No activities found')) {
+      throw new Error(
+        `No launchable activity found for package ${packageName}.`,
+      );
     }
-    if (output.includes("monkey aborted")) {
+    if (output.includes('monkey aborted')) {
       throw new Error(`Failed to open app ${packageName}.`);
     }
   }

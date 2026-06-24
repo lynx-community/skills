@@ -75,7 +75,7 @@
     let ws = null;
     let registered = false;
     let controlIdCounter = 0;
-    let pendingControlCallbacks = new Map();
+    const pendingControlCallbacks = new Map();
     let currentClientId = null;
     let currentPort = null;
     let currentSessionId = null;

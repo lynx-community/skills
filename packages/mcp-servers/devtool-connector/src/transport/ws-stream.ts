@@ -2,8 +2,8 @@
 // Licensed under the Apache License Version 2.0 that can be found in the
 // LICENSE file in the root directory of this source tree.
 
-import { ReadableStream, WritableStream } from "node:stream/web";
-import { WebSocket } from "ws";
+import { ReadableStream, WritableStream } from 'node:stream/web';
+import { WebSocket } from 'ws';
 
 /**
  * A lightweight wrapper around the `ws` WebSocket that exposes a
@@ -41,26 +41,28 @@ export class WsWebSocketStream {
 
       const onClose = () => {
         cleanup();
-        reject(new Error("WebSocket closed before opening."));
+        reject(new Error('WebSocket closed before opening.'));
         this.#resolveClosed();
       };
 
       const cleanup = () => {
-        ws.removeListener("error", onError);
-        ws.removeListener("close", onClose);
+        ws.removeListener('error', onError);
+        ws.removeListener('close', onClose);
       };
 
-      ws.once("open", () => {
+      ws.once('open', () => {
         cleanup();
 
         // --- readable ---
         const readable = new ReadableStream<string>({
           start(controller) {
-            ws.on("message", (data) => {
-              controller.enqueue(typeof data === "string" ? data : data.toString());
+            ws.on('message', (data) => {
+              controller.enqueue(
+                typeof data === 'string' ? data : data.toString(),
+              );
             });
 
-            ws.on("close", () => {
+            ws.on('close', () => {
               try {
                 controller.close();
               } catch {
@@ -68,7 +70,7 @@ export class WsWebSocketStream {
               }
             });
 
-            ws.on("error", (err) => {
+            ws.on('error', (err) => {
               try {
                 controller.error(err);
               } catch {
@@ -102,17 +104,17 @@ export class WsWebSocketStream {
         resolve({ readable, writable });
 
         // Wire up closed promise
-        ws.on("close", () => {
+        ws.on('close', () => {
           this.#resolveClosed();
         });
 
-        ws.on("error", (err) => {
+        ws.on('error', (err) => {
           this.#rejectClosed(err);
         });
       });
 
-      ws.once("error", onError);
-      ws.once("close", onClose);
+      ws.once('error', onError);
+      ws.once('close', onClose);
     });
   }
 

@@ -2,20 +2,20 @@
 // Licensed under the Apache License Version 2.0 that can be found in the
 // LICENSE file in the root directory of this source tree.
 
-import { TransformStream } from "node:stream/web";
+import { TransformStream } from 'node:stream/web';
 import {
   type AppResponseMessage,
   type CustomizedResponseMap,
   type CustomizedResponseMessageMap,
   isCustomizedResponseWithType,
   type Response,
-} from "../types.ts";
+} from '../types.ts';
 
 export class CustomizedClientIdTransformStream extends TransformStream {
   constructor(clientId: number) {
     super({
       transform(chunk, controller) {
-        if (chunk.event === "Customized") {
+        if (chunk.event === 'Customized') {
           controller.enqueue({
             ...chunk,
             data: {
@@ -35,7 +35,9 @@ export class CustomizedClientIdTransformStream extends TransformStream {
   }
 }
 
-export class CustomizedRequestTransformStream<T = unknown> extends TransformStream<T, unknown> {
+export class CustomizedRequestTransformStream<
+  T = unknown,
+> extends TransformStream<T, unknown> {
   constructor(options: {
     type: string;
     sessionId?: number | ((chunk: T) => number);
@@ -44,9 +46,10 @@ export class CustomizedRequestTransformStream<T = unknown> extends TransformStre
     const { type, sessionId = -1, messageBuilder } = options;
     super({
       transform(chunk, controller) {
-        const sid = typeof sessionId === "function" ? sessionId(chunk) : sessionId;
+        const sid =
+          typeof sessionId === 'function' ? sessionId(chunk) : sessionId;
         controller.enqueue({
-          event: "Customized",
+          event: 'Customized',
           data: {
             type,
             data: {
@@ -72,7 +75,9 @@ export class CustomizedResponseTransformStream<
         }
 
         try {
-          const message = JSON.parse(response.data.data.message) as Output & { id?: number };
+          const message = JSON.parse(response.data.data.message) as Output & {
+            id?: number;
+          };
           if (id === undefined || message?.id === id) {
             controller.enqueue(message);
           }
@@ -91,7 +96,10 @@ export class CustomizedResponseTransformStream<
 /**
  * Common response parser that handles JSON parsing and error checking in the payload.
  */
-export class ResponseParserTransformStream<Input, Output> extends TransformStream<Input, Output> {
+export class ResponseParserTransformStream<
+  Input,
+  Output,
+> extends TransformStream<Input, Output> {
   constructor(options: {
     parseResult: (input: Input) => Output;
     checkError: (input: Input) => Error | null;
@@ -115,18 +123,30 @@ export class ResponseParserTransformStream<Input, Output> extends TransformStrea
   }
 }
 
-export class AppResponseTransformStream<Output> extends ResponseParserTransformStream<AppResponseMessage, Output> {
+export class AppResponseTransformStream<
+  Output,
+> extends ResponseParserTransformStream<AppResponseMessage, Output> {
   constructor(method: string) {
     super({
       checkError: (message) => {
         try {
-          const result = JSON.parse(message.result) as { code: number | string; message: string };
-          if (/** Android */ result.code !== 0 && /** iOS */ result.code !== "0") {
-            return new Error(`App request ${method} error: ${result.message}`, { cause: message });
+          const result = JSON.parse(message.result) as {
+            code: number | string;
+            message: string;
+          };
+          if (
+            /** Android */ result.code !== 0 &&
+            /** iOS */ result.code !== '0'
+          ) {
+            return new Error(`App request ${method} error: ${result.message}`, {
+              cause: message,
+            });
           }
           return null;
         } catch (err) {
-          return new Error("Failed to parse App response message", { cause: err });
+          return new Error('Failed to parse App response message', {
+            cause: err,
+          });
         }
       },
       parseResult: (message) => {
@@ -140,11 +160,14 @@ export class GlobalSwitchRequestTransformStream extends CustomizedRequestTransfo
   key: string;
   value?: boolean;
 }> {
-  constructor(type: "SetGlobalSwitch" | "GetGlobalSwitch") {
+  constructor(type: 'SetGlobalSwitch' | 'GetGlobalSwitch') {
     super({
       type,
       sessionId: -1,
-      messageBuilder: ({ key, value }) => ({ global_key: key, global_value: value }),
+      messageBuilder: ({ key, value }) => ({
+        global_key: key,
+        global_value: value,
+      }),
     });
   }
 }

@@ -2,20 +2,18 @@
 // Licensed under the Apache License Version 2.0 that can be found in the
 // LICENSE file in the root directory of this source tree.
 
-import { randomInt } from "node:crypto";
-import type { CDPRequestMessage, CDPResponseMessage } from "../types.ts";
+import { randomInt } from 'node:crypto';
+import type { CDPRequestMessage, CDPResponseMessage } from '../types.ts';
 import {
   CustomizedRequestTransformStream,
   CustomizedResponseTransformStream,
   ResponseParserTransformStream,
-} from "./customized.ts";
+} from './customized.ts';
 
-export class CDPRequestTransformStream extends CustomizedRequestTransformStream<
-  CDPRequestMessage
-> {
+export class CDPRequestTransformStream extends CustomizedRequestTransformStream<CDPRequestMessage> {
   constructor(sessionId: number, fixedId?: number) {
     super({
-      type: "CDP",
+      type: 'CDP',
       sessionId,
       messageBuilder: (chunk) => {
         const id = fixedId ?? randomInt(10_000, 50_000);
@@ -25,31 +23,34 @@ export class CDPRequestTransformStream extends CustomizedRequestTransformStream<
   }
 }
 
-export class CDPResponseTransformStream<Output = CDPResponseMessage>
-  extends CustomizedResponseTransformStream<"CDP", Output>
-{
+export class CDPResponseTransformStream<
+  Output = CDPResponseMessage,
+> extends CustomizedResponseTransformStream<'CDP', Output> {
   constructor(id?: number) {
-    super("CDP", id);
+    super('CDP', id);
   }
 }
 
-export class CDPOutputTransformStream<Output> extends ResponseParserTransformStream<CDPResponseMessage, Output> {
+export class CDPOutputTransformStream<
+  Output,
+> extends ResponseParserTransformStream<CDPResponseMessage, Output> {
   constructor() {
     super({
       checkError: (message) => {
-        if ("error" in message) {
-          return new Error(
-            `CDP request error: ${message.error.message}`,
-            { cause: message },
-          );
+        if ('error' in message) {
+          return new Error(`CDP request error: ${message.error.message}`, {
+            cause: message,
+          });
         }
         return null;
       },
       parseResult: (message) => {
-        if ("result" in message) {
+        if ('result' in message) {
           return message.result as Output;
         }
-        throw new Error("No result in CDP response message", { cause: message });
+        throw new Error('No result in CDP response message', {
+          cause: message,
+        });
       },
     });
   }

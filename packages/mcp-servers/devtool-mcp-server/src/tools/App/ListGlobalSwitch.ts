@@ -2,13 +2,13 @@
 // Licensed under the Apache License Version 2.0 that can be found in the
 // LICENSE file in the root directory of this source tree.
 
-import { clientId } from "../../schema/index.ts";
-import { defineTool } from "../defineTool.ts";
-import { GLOBAL_SWITCH_KEYS } from "./globalSwitch.ts";
+import { clientId } from '../../schema/index.ts';
+import { defineTool } from '../defineTool.ts';
+import { GLOBAL_SWITCH_KEYS } from './globalSwitch.ts';
 
 export const ListGlobalSwitch = /*#__PURE__*/ defineTool({
-  name: "App_listGlobalSwitch",
-  description: "List all global switch states by querying each supported key.",
+  name: 'App_listGlobalSwitch',
+  description: 'List all global switch states by querying each supported key.',
   schema: {
     clientId,
   },
@@ -17,7 +17,8 @@ export const ListGlobalSwitch = /*#__PURE__*/ defineTool({
   },
   async handler({ params }, response, context) {
     const connector = context.connector();
-    const switches: Array<{ key: string; value?: boolean; error?: string }> = [];
+    const switches: Array<{ key: string; value?: boolean; error?: string }> =
+      [];
 
     for (const key of GLOBAL_SWITCH_KEYS) {
       try {

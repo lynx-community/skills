@@ -2,11 +2,12 @@
 // Licensed under the Apache License Version 2.0 that can be found in the
 // LICENSE file in the root directory of this source tree.
 
-import { defineTool } from "../defineTool.ts";
+import { defineTool } from '../defineTool.ts';
 
 export const ListClients = /*#__PURE__*/ defineTool({
-  name: "Device_listClients",
-  description: "List all connected clients. This tool may timeout if no clients are connected or just started.",
+  name: 'Device_listClients',
+  description:
+    'List all connected clients. This tool may timeout if no clients are connected or just started.',
   schema: {},
   annotations: {
     readOnlyHint: true,

@@ -2,13 +2,13 @@
 // Licensed under the Apache License Version 2.0 that can be found in the
 // LICENSE file in the root directory of this source tree.
 
-import path from "node:path";
-import zlib from "node:zlib";
-import { createDebug } from "obug";
+import path from 'node:path';
+import zlib from 'node:zlib';
+import { createDebug } from 'obug';
 
-const debug = createDebug("devtool-mcp-server:daemon:tarball-cache");
+const debug = createDebug('devtool-mcp-server:daemon:tarball-cache');
 
-const TAR_FILTER_PREFIX = "";
+const TAR_FILTER_PREFIX = '';
 
 export interface TarballEntry {
   gzipped: Buffer;
@@ -22,7 +22,13 @@ export interface TarballEntry {
  */
 export class TarballCache {
   #files = new Map<string, TarballEntry>();
-  #pending = new Map<string, Array<{ resolve: (entry: TarballEntry | null) => void; reject: (err: Error) => void }>>();
+  #pending = new Map<
+    string,
+    Array<{
+      resolve: (entry: TarballEntry | null) => void;
+      reject: (err: Error) => void;
+    }>
+  >();
   #done = false;
   #error: Error | null = null;
   #loading: Promise<void> | null = null;
@@ -57,13 +63,13 @@ export class TarballCache {
 
   async #load(url: string): Promise<void> {
     try {
-      // eslint-disable-next-line n/no-unsupported-features/node-builtins -- Node 18+ exposes fetch; keep undici out of the bundle.
       const response = await fetch(url);
-      if (!response.ok) throw new Error(`Failed to fetch tarball: ${response.status}`);
-      if (!response.body) throw new Error("No response body");
+      if (!response.ok)
+        throw new Error(`Failed to fetch tarball: ${response.status}`);
+      if (!response.body) throw new Error('No response body');
 
       const gunzip = zlib.createGunzip();
-      const { Readable } = await import("node:stream");
+      const { Readable } = await import('node:stream');
       Readable.fromWeb(response.body as never).pipe(gunzip);
 
       let buf: Buffer = Buffer.alloc(0);
@@ -74,7 +80,7 @@ export class TarballCache {
       this.#consumeTar(buf);
     } catch (err) {
       this.#error = err instanceof Error ? err : new Error(String(err));
-      debug("tarball stream error: %O", this.#error);
+      debug('tarball stream error: %O', this.#error);
     } finally {
       this.#done = true;
       for (const [, waiters] of this.#pending) {
@@ -84,7 +90,7 @@ export class TarballCache {
         }
       }
       this.#pending.clear();
-      debug("tarball cache done: %d files", this.#files.size);
+      debug('tarball cache done: %d files', this.#files.size);
     }
   }
 
@@ -96,21 +102,36 @@ export class TarballCache {
         continue;
       }
 
-      const rawName = header.subarray(0, 100).toString("utf-8").replace(/\0.*$/, "");
-      const prefix = header.subarray(345, 500).toString("utf-8").replace(/\0.*$/, "");
+      const rawName = header
+        .subarray(0, 100)
+        .toString('utf-8')
+        .replace(/\0.*$/, '');
+      const prefix = header
+        .subarray(345, 500)
+        .toString('utf-8')
+        .replace(/\0.*$/, '');
       const name = prefix ? `${prefix}/${rawName}` : rawName;
-      const sizeStr = header.subarray(124, 136).toString("utf-8").replace(/\0.*$/, "").trim();
+      const sizeStr = header
+        .subarray(124, 136)
+        .toString('utf-8')
+        .replace(/\0.*$/, '')
+        .trim();
       const size = parseInt(sizeStr, 8) || 0;
       const typeFlag = header[156];
       const paddedSize = Math.ceil(size / 512) * 512;
 
       if (buf.length < 512 + paddedSize) break;
 
-      if ((typeFlag === 48 || typeFlag === 0) && name.startsWith(TAR_FILTER_PREFIX)) {
+      if (
+        (typeFlag === 48 || typeFlag === 0) &&
+        name.startsWith(TAR_FILTER_PREFIX)
+      ) {
         const fileData = buf.subarray(512, 512 + size);
         const ext = path.extname(name).toLowerCase();
-        if (ext !== ".map") {
-          const gzipped = zlib.gzipSync(fileData, { level: zlib.constants.Z_BEST_SPEED });
+        if (ext !== '.map') {
+          const gzipped = zlib.gzipSync(fileData, {
+            level: zlib.constants.Z_BEST_SPEED,
+          });
           const entry: TarballEntry = { gzipped, rawSize: size };
           this.#files.set(name, entry);
           const waiters = this.#pending.get(name);

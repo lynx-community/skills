@@ -2,11 +2,11 @@
 // Licensed under the Apache License Version 2.0 that can be found in the
 // LICENSE file in the root directory of this source tree.
 
-import { defineTool } from "../defineTool.ts";
+import { defineTool } from '../defineTool.ts';
 
 export const ListDevices = /*#__PURE__*/ defineTool({
-  name: "Device_listDevices",
-  description: "List all connected devices.",
+  name: 'Device_listDevices',
+  description: 'List all connected devices.',
   schema: {},
   annotations: {
     readOnlyHint: true,
@@ -16,10 +16,12 @@ export const ListDevices = /*#__PURE__*/ defineTool({
 
     const devices = await connector.listDevices();
 
-    response.appendLines(JSON.stringify(
-      devices.map(({ id }) => id),
-      null,
-      2,
-    ));
+    response.appendLines(
+      JSON.stringify(
+        devices.map(({ id }) => id),
+        null,
+        2,
+      ),
+    );
   },
 });

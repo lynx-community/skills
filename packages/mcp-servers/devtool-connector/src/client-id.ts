@@ -7,9 +7,11 @@ export class ClientId {
     return `${encodeURIComponent(deviceId)}:${port}`;
   }
 
-  static deserialize(clientId: string): { deviceId: string; port: number } | null {
+  static deserialize(
+    clientId: string,
+  ): { deviceId: string; port: number } | null {
     try {
-      const lastColonIndex = clientId.lastIndexOf(":");
+      const lastColonIndex = clientId.lastIndexOf(':');
       if (lastColonIndex === -1) return null;
 
       const port = Number.parseInt(clientId.substring(lastColonIndex + 1), 10);

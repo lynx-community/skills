@@ -3,19 +3,20 @@
 // Licensed under the Apache License Version 2.0 that can be found in the
 // LICENSE file in the root directory of this source tree.
 
+import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
+import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 
-import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
-
-import pkg from "../package.json" with { type: "json" };
+import pkg from '../package.json' with { type: 'json' };
 
 async function main() {
-  const { setupServer } = await import("./index.ts");
-  const mcpServer = new McpServer({
-    name: "Lynx DevTool",
-    version: pkg.version,
-  }, {
-    instructions: `The Lynx DevTool MCP Server provides tools to interact with Lynx-based applications.
+  const { setupServer } = await import('./index.ts');
+  const mcpServer = new McpServer(
+    {
+      name: 'Lynx DevTool',
+      version: pkg.version,
+    },
+    {
+      instructions: `The Lynx DevTool MCP Server provides tools to interact with Lynx-based applications.
 
 Glossary:
   1. Device: The DevTool MCP Server can connect to multiple devices (simulators or real devices).
@@ -28,7 +29,8 @@ Tool selection guidance:
 Tool usage guidance:
   1. Most of the tools would require a 'clientId' and a 'sessionId' parameter to identify the target client and session. You can get the list of connected devices, clients and sessions using the 'Device.listDevices', 'Device.listClients' and 'Device.listSessions' tools.
 `,
-  });
+    },
+  );
 
   setupServer(mcpServer);
 

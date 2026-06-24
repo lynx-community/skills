@@ -39,7 +39,7 @@
 
     "rootDir": "./src",
 
-    "noEmit": true,
+    "noEmit": true
   },
-  "include": ["src"],
+  "include": ["src"]
 }

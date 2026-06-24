@@ -2,11 +2,14 @@
 // Licensed under the Apache License Version 2.0 that can be found in the
 // LICENSE file in the root directory of this source tree.
 
-import { TransformStream } from "node:stream/web";
-import type { Response, Session } from "../types.ts";
-import { isListSessionResponse } from "../types.ts";
+import { TransformStream } from 'node:stream/web';
+import type { Response, Session } from '../types.ts';
+import { isListSessionResponse } from '../types.ts';
 
-export class FilterTransformStream<T, P extends T> extends TransformStream<T, P> {
+export class FilterTransformStream<T, P extends T> extends TransformStream<
+  T,
+  P
+> {
   constructor(filter: (chunk: T) => chunk is P) {
     super({
       transform(chunk, controller) {
@@ -36,7 +39,10 @@ export class InspectStream<T> extends TransformStream<T, T> {
  * though the underlying transport connection remains open (shared with other
  * sessions on the same device:port).
  */
-export class SessionGuardTransformStream extends TransformStream<Response, Response> {
+export class SessionGuardTransformStream extends TransformStream<
+  Response,
+  Response
+> {
   constructor(sessionId: number) {
     super({
       transform(chunk, controller) {
@@ -46,7 +52,7 @@ export class SessionGuardTransformStream extends TransformStream<Response, Respo
             controller.enqueue(chunk);
             return;
           }
-          if (!sessions.some(s => s?.session_id === sessionId)) {
+          if (!sessions.some((s) => s?.session_id === sessionId)) {
             controller.terminate();
             return;
           }

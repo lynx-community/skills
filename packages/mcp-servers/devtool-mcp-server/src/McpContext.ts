@@ -2,8 +2,8 @@
 // Licensed under the Apache License Version 2.0 that can be found in the
 // LICENSE file in the root directory of this source tree.
 
-import type { Connector } from "@lynx-js/devtool-connector";
-import type { Context } from "./tools/defineTool.ts";
+import type { Connector } from '@lynx-js/devtool-connector';
+import type { Context } from './tools/defineTool.ts';
 
 export class McpContext implements Context {
   #connector: Connector;

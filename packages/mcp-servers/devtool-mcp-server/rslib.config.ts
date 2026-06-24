@@ -1,18 +1,19 @@
-import { defineConfig } from "@rslib/core";
-import { pluginPublint } from "rsbuild-plugin-publint";
+// Copyright 2026 The Lynx Authors. All rights reserved.
+// Licensed under the Apache License Version 2.0 that can be found in the
+// LICENSE file in the root directory of this source tree.
+import { defineConfig } from '@rslib/core';
+import { pluginPublint } from 'rsbuild-plugin-publint';
 
 export default defineConfig({
-  plugins: [
-    pluginPublint({ throwOn: "suggestion" }),
-  ],
+  plugins: [pluginPublint({ throwOn: 'suggestion' })],
   lib: [
     {
-      format: "esm",
-      syntax: "es2022",
+      format: 'esm',
+      syntax: 'es2022',
       source: {
         entry: {
-          connector: "./src/connector.ts",
-          index: "./src/index.ts",
+          connector: './src/connector.ts',
+          index: './src/index.ts',
         },
       },
       dts: {
@@ -22,12 +23,12 @@ export default defineConfig({
       },
     },
     {
-      format: "esm",
-      syntax: "es2022",
+      format: 'esm',
+      syntax: 'es2022',
       dts: false,
       source: {
         entry: {
-          main: "./src/main.ts",
+          main: './src/main.ts',
         },
       },
       autoExternal: {

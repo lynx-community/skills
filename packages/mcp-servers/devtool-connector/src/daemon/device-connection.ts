@@ -2,11 +2,15 @@
 // Licensed under the Apache License Version 2.0 that can be found in the
 // LICENSE file in the root directory of this source tree.
 
-import { createDebug } from "obug";
-import type { Connection, Transport, TransportConnectOptions } from "../transport/transport.ts";
-import { type AppInfo, isInitializeResponse, type Response } from "../types.ts";
+import { createDebug } from 'obug';
+import type {
+  Connection,
+  Transport,
+  TransportConnectOptions,
+} from '../transport/transport.ts';
+import { type AppInfo, isInitializeResponse, type Response } from '../types.ts';
 
-const debug = createDebug("devtool-mcp-server:daemon:device-connection");
+const debug = createDebug('devtool-mcp-server:daemon:device-connection');
 
 export interface DeviceConnectionSubscriber {
   readonly id: number;
@@ -28,7 +32,6 @@ export class DeviceConnection {
   readonly port: number;
 
   #conn: Connection<unknown, unknown> | null = null;
-  // eslint-disable-next-line n/no-unsupported-features/node-builtins
   #writer: WritableStreamDefaultWriter<unknown> | null = null;
   #subscribers = new Map<number, DeviceConnectionSubscriber>();
   #transport: Transport;
@@ -52,31 +55,45 @@ export class DeviceConnection {
    * in a try/catch — a failure means the device:port is unreachable.
    */
   async connect(): Promise<void> {
-    debug("connecting to %s", this.key);
+    debug('connecting to %s', this.key);
     if (this.#disposed) {
-      throw new Error(`DeviceConnection ${this.key} was disposed before connect started`);
+      throw new Error(
+        `DeviceConnection ${this.key} was disposed before connect started`,
+      );
     }
 
     const conn = await this.#transport.connect(this.#options);
     if (this.#disposed) {
       await conn[Symbol.asyncDispose]();
-      throw new Error(`DeviceConnection ${this.key} was disposed before connect completed`);
+      throw new Error(
+        `DeviceConnection ${this.key} was disposed before connect completed`,
+      );
     }
 
     this.#conn = conn;
     this.#writer = this.#conn.writable.getWriter();
     this.#readLoopPromise = this.#readLoop();
-    debug("connected to %s", this.key);
+    debug('connected to %s', this.key);
   }
 
   addSubscriber(subscriber: DeviceConnectionSubscriber): void {
     this.#subscribers.set(subscriber.id, subscriber);
-    debug("subscriber %d added to %s (total: %d)", subscriber.id, this.key, this.#subscribers.size);
+    debug(
+      'subscriber %d added to %s (total: %d)',
+      subscriber.id,
+      this.key,
+      this.#subscribers.size,
+    );
   }
 
   removeSubscriber(id: number): void {
     this.#subscribers.delete(id);
-    debug("subscriber %d removed from %s (total: %d)", id, this.key, this.#subscribers.size);
+    debug(
+      'subscriber %d removed from %s (total: %d)',
+      id,
+      this.key,
+      this.#subscribers.size,
+    );
   }
 
   get subscriberCount(): number {
@@ -98,7 +115,7 @@ export class DeviceConnection {
     try {
       await this.#writer.write(message);
     } catch (err) {
-      debug("send to %s failed: %O", this.key, err);
+      debug('send to %s failed: %O', this.key, err);
       throw err;
     }
   }
@@ -106,7 +123,7 @@ export class DeviceConnection {
   async dispose(): Promise<void> {
     if (this.#disposed) return;
     this.#disposed = true;
-    debug("disposing device connection %s", this.key);
+    debug('disposing device connection %s', this.key);
 
     try {
       this.#writer?.releaseLock();
@@ -117,7 +134,7 @@ export class DeviceConnection {
     try {
       await this.#conn?.[Symbol.asyncDispose]();
     } catch (err) {
-      debug("error disposing connection %s: %O", this.key, err);
+      debug('error disposing connection %s: %O', this.key, err);
     }
 
     await this.#readLoopPromise;
@@ -133,7 +150,7 @@ export class DeviceConnection {
           const response = message as Response;
           if (isInitializeResponse(response)) {
             this.appInfo = response.data.info;
-            debug("captured appInfo for %s: %O", this.key, this.appInfo);
+            debug('captured appInfo for %s: %O', this.key, this.appInfo);
             continue;
           }
         }
@@ -142,12 +159,12 @@ export class DeviceConnection {
       }
     } catch (err) {
       if (!this.#disposed) {
-        debug("read loop error on %s: %O", this.key, err);
+        debug('read loop error on %s: %O', this.key, err);
       }
     }
 
     if (!this.#disposed) {
-      debug("device connection %s closed by remote", this.key);
+      debug('device connection %s closed by remote', this.key);
       this.#disposed = true;
       this.#closeAllSubscribers();
     }
@@ -158,7 +175,7 @@ export class DeviceConnection {
       try {
         subscriber.close();
       } catch (err) {
-        debug("failed to close subscriber %d: %O", subscriber.id, err);
+        debug('failed to close subscriber %d: %O', subscriber.id, err);
       }
     }
   }
@@ -168,7 +185,7 @@ export class DeviceConnection {
       try {
         subscriber.send(message);
       } catch (err) {
-        debug("failed to send to subscriber %d: %O", subscriber.id, err);
+        debug('failed to send to subscriber %d: %O', subscriber.id, err);
       }
     }
   }

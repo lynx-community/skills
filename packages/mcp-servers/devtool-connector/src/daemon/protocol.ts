@@ -2,56 +2,61 @@
 // Licensed under the Apache License Version 2.0 that can be found in the
 // LICENSE file in the root directory of this source tree.
 
-import type { AppInfo } from "../types.ts";
+import type { AppInfo } from '../types.ts';
 
 // ===== Standard debug-router protocol (reused from HDT) =====
 
 export interface InitializeEvent {
-  event: "Initialize";
+  event: 'Initialize';
   data: number;
 }
 
 export interface RegisterEvent {
-  event: "Register";
-  data: { id: number; type: "Driver" };
+  event: 'Register';
+  data: { id: number; type: 'Driver' };
 }
 
 export interface ClientListEvent {
-  event: "ClientList";
+  event: 'ClientList';
   data: ClientListEntry[];
 }
 
 export interface ClientListEntry {
   id: string;
   info: AppInfo;
-  type: "runtime";
+  type: 'runtime';
 }
 
 export interface ListClientsRequest {
-  event: "ListClients";
+  event: 'ListClients';
 }
 
 export interface PingEvent {
-  event: "Ping";
+  event: 'Ping';
 }
 
 export interface PongEvent {
-  event: "Pong";
+  event: 'Pong';
 }
 
 // ===== Extended control protocol (daemon-specific) =====
 
 export interface ControlRequest {
-  event: "Control";
+  event: 'Control';
   data: {
     id: number;
-    method: "listClients" | "listDevices" | "listAvailableApps" | "openApp" | "subscribe";
+    method:
+      | 'listClients'
+      | 'listDevices'
+      | 'listAvailableApps'
+      | 'openApp'
+      | 'subscribe';
     params?: Record<string, unknown>;
   };
 }
 
 export interface ControlResponse {
-  event: "ControlResponse";
+  event: 'ControlResponse';
   data: {
     id: number;
     result?: unknown;
@@ -76,7 +81,7 @@ export type DaemonOutgoingMessage =
   | CustomizedMessage;
 
 export interface CustomizedMessage {
-  event: "Customized";
+  event: 'Customized';
   data: {
     type: string;
     data: {
@@ -92,29 +97,49 @@ export interface CustomizedMessage {
 }
 
 export function isCustomizedMessage(msg: unknown): msg is CustomizedMessage {
-  return typeof msg === "object" && msg !== null && (msg as { event?: string }).event === "Customized";
+  return (
+    typeof msg === 'object' &&
+    msg !== null &&
+    (msg as { event?: string }).event === 'Customized'
+  );
 }
 
 export function isControlRequest(msg: unknown): msg is ControlRequest {
-  return typeof msg === "object" && msg !== null && (msg as { event?: string }).event === "Control";
+  return (
+    typeof msg === 'object' &&
+    msg !== null &&
+    (msg as { event?: string }).event === 'Control'
+  );
 }
 
 export function isListClientsRequest(msg: unknown): msg is ListClientsRequest {
-  return typeof msg === "object" && msg !== null && (msg as { event?: string }).event === "ListClients";
+  return (
+    typeof msg === 'object' &&
+    msg !== null &&
+    (msg as { event?: string }).event === 'ListClients'
+  );
 }
 
 export function isPingEvent(msg: unknown): msg is PingEvent {
-  return typeof msg === "object" && msg !== null && (msg as { event?: string }).event === "Ping";
+  return (
+    typeof msg === 'object' &&
+    msg !== null &&
+    (msg as { event?: string }).event === 'Ping'
+  );
 }
 
 export function isRegisterEvent(msg: unknown): msg is RegisterEvent {
-  return typeof msg === "object" && msg !== null && (msg as { event?: string }).event === "Register";
+  return (
+    typeof msg === 'object' &&
+    msg !== null &&
+    (msg as { event?: string }).event === 'Register'
+  );
 }
 
 // ===== Constants =====
 
 export const DEFAULT_DAEMON_PORT = 21783;
-export const DAEMON_WS_PATH = "/devtool/connector";
+export const DAEMON_WS_PATH = '/devtool/connector';
 export const DAEMON_VERSION_PATH: string = `${DAEMON_WS_PATH}/version`;
 export const DAEMON_SHUTDOWN_PATH: string = `${DAEMON_WS_PATH}/shutdown`;
 export const DAEMON_INSPECTOR_PATH: string = `${DAEMON_WS_PATH}/inspector`;

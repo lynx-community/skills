@@ -2,9 +2,9 @@
 // Licensed under the Apache License Version 2.0 that can be found in the
 // LICENSE file in the root directory of this source tree.
 
-import * as z from "zod";
-import { clientId } from "../../schema/index.ts";
-import { defineTool } from "../defineTool.ts";
+import * as z from 'zod';
+import { clientId } from '../../schema/index.ts';
+import { defineTool } from '../defineTool.ts';
 
 const GLOBAL_CDP_SESSION_ID = -1;
 const MAX_MEMORY_USAGE_TIMEOUT_MS = 300_000;
@@ -14,7 +14,7 @@ const globalSessionId = z
   .int()
   .optional()
   .describe(
-    "CDP session ID. Defaults to -1 for the global DevTool handler. Override only for platform-specific routing.",
+    'CDP session ID. Defaults to -1 for the global DevTool handler. Override only for platform-specific routing.',
   );
 
 const timeoutMs = z
@@ -28,8 +28,9 @@ const timeoutMs = z
   );
 
 export const GetAllMemoryUsage = /*#__PURE__*/ defineTool({
-  name: "Memory_getAllMemoryUsage",
-  description: "Get global Lynx-attributed memory usage across live registered Lynx instances.",
+  name: 'Memory_getAllMemoryUsage',
+  description:
+    'Get global Lynx-attributed memory usage across live registered Lynx instances.',
   schema: {
     clientId,
     sessionId: globalSessionId,
@@ -40,12 +41,13 @@ export const GetAllMemoryUsage = /*#__PURE__*/ defineTool({
   },
   async handler({ params }, response, context) {
     const connector = context.connector();
-    const requestParams = params.timeoutMs === undefined ? {} : { timeoutMs: params.timeoutMs };
+    const requestParams =
+      params.timeoutMs === undefined ? {} : { timeoutMs: params.timeoutMs };
 
     const result = await connector.sendCDPMessage(
       params.clientId,
       params.sessionId ?? GLOBAL_CDP_SESSION_ID,
-      "Memory.getAllMemoryUsage",
+      'Memory.getAllMemoryUsage',
       requestParams,
     );
 

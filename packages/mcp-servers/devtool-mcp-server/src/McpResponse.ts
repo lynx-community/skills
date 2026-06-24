@@ -2,9 +2,12 @@
 // Licensed under the Apache License Version 2.0 that can be found in the
 // LICENSE file in the root directory of this source tree.
 
-import type { ImageContent, TextContent } from "@modelcontextprotocol/sdk/types.js";
-import type { McpContext } from "./McpContext.ts";
-import type { ImageContentData, Response } from "./tools/defineTool.ts";
+import type {
+  ImageContent,
+  TextContent,
+} from '@modelcontextprotocol/sdk/types.js';
+import type { McpContext } from './McpContext.ts';
+import type { ImageContentData, Response } from './tools/defineTool.ts';
 
 export class McpResponse implements Response {
   #additionalLines: string[] = [];
@@ -18,16 +21,18 @@ export class McpResponse implements Response {
   }
 
   async handle(
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     _toolName: string,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     _context: McpContext,
   ): Promise<Array<TextContent | ImageContent>> {
     return [
       {
-        type: "text",
-        text: this.#additionalLines.join("\n"),
+        type: 'text',
+        text: this.#additionalLines.join('\n'),
       },
-      ...this.#images.map(img => ({
-        type: "image" as const,
+      ...this.#images.map((img) => ({
+        type: 'image' as const,
         ...img,
       })),
     ];

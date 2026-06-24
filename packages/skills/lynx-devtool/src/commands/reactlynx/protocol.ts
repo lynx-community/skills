@@ -59,13 +59,13 @@ function parseStringTable(slice: number[]): string[] {
       const strLen = slice[i]!;
       let start = i + 1;
       const end = i + strLen + 1;
-      let str = "";
+      let str = '';
       for (; start < end; start++) {
         const code = slice[start];
-        if (typeof code === "number" && code >= 0 && code <= 0x10FFFF) {
+        if (typeof code === 'number' && code >= 0 && code <= 0x10ffff) {
           str += String.fromCodePoint(code);
         } else {
-          str += "?";
+          str += '?';
         }
       }
       strings.push(str);
@@ -106,8 +106,8 @@ export function applyOperationV2(state: RendererState, ops: number[]): void {
         tree.set(id, {
           id,
           type,
-          name: strings[nameId - 1] ?? "",
-          key: keyId > 0 ? (strings[keyId - 1] ?? "") : "",
+          name: strings[nameId - 1] ?? '',
+          key: keyId > 0 ? (strings[keyId - 1] ?? '') : '',
           parent: parentId,
           owner,
           children: [],
@@ -174,7 +174,7 @@ export function applyOperationV2(state: RendererState, ops: number[]): void {
       }
       case MsgType.COMMIT_STATS: {
         throw new Error(
-          "operation_v2 commit-stats not implemented; enable stats parsing if needed",
+          'operation_v2 commit-stats not implemented; enable stats parsing if needed',
         );
       }
       case MsgType.HOC_NODES: {
@@ -195,26 +195,26 @@ export function applyRootOrder(state: RendererState, rootOrder: ID[]): void {
 export function typeTag(type: DevNodeType): string {
   switch (type) {
     case DevNodeType.FunctionComponent:
-      return "fn";
+      return 'fn';
     case DevNodeType.ClassComponent:
-      return "cls";
+      return 'cls';
     case DevNodeType.ForwardRef:
-      return "fRef";
+      return 'fRef';
     case DevNodeType.Memo:
-      return "memo";
+      return 'memo';
     case DevNodeType.Suspense:
-      return "susp";
+      return 'susp';
     case DevNodeType.Context:
-      return "ctx";
+      return 'ctx';
     case DevNodeType.Consumer:
-      return "cons";
+      return 'cons';
     case DevNodeType.Portal:
-      return "portal";
+      return 'portal';
     case DevNodeType.Element:
-      return "host";
+      return 'host';
     case DevNodeType.Group:
-      return "group";
+      return 'group';
     default:
-      return "?";
+      return '?';
   }
 }

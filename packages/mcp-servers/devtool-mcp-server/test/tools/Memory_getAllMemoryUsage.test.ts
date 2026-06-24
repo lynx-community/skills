@@ -2,10 +2,10 @@
 // Licensed under the Apache License Version 2.0 that can be found in the
 // LICENSE file in the root directory of this source tree.
 
-import assert from "node:assert";
-import { describe, test } from "node:test";
-import { GetAllMemoryUsage } from "../../src/tools/Memory/GetAllMemoryUsage.ts";
-import { createToolContext } from "../utils/testTool.ts";
+import assert from 'node:assert';
+import { describe, test } from 'node:test';
+import { GetAllMemoryUsage } from '../../src/tools/Memory/GetAllMemoryUsage.ts';
+import { createToolContext } from '../utils/testTool.ts';
 
 type SentCDPMessage = {
   clientId: string;
@@ -14,8 +14,8 @@ type SentCDPMessage = {
   params: Record<string, unknown>;
 };
 
-describe("Memory.getAllMemoryUsage", () => {
-  test("uses the global DevTool session by default", async () => {
+describe('Memory.getAllMemoryUsage', () => {
+  test('uses the global DevTool session by default', async () => {
     const sentMessages: SentCDPMessage[] = [];
     const connector = {
       sendCDPMessage: async (
@@ -26,39 +26,49 @@ describe("Memory.getAllMemoryUsage", () => {
       ) => {
         sentMessages.push({ clientId, sessionId, method, params });
 
-        assert.strictEqual(method, "Memory.getAllMemoryUsage");
+        assert.strictEqual(method, 'Memory.getAllMemoryUsage');
         return {
-          collectionStatus: "completed",
+          collectionStatus: 'completed',
           totalBytes: 1024,
           instances: [],
         };
       },
       sendListSessionMessage: async () => {
-        throw new Error("Memory.getAllMemoryUsage should not require a LynxView session");
+        throw new Error(
+          'Memory.getAllMemoryUsage should not require a LynxView session',
+        );
       },
     };
 
-    const { call } = createToolContext(GetAllMemoryUsage, connector as never, "test-client-id:9999");
-    const result = await call<{ collectionStatus: string; totalBytes: number; instances: unknown[] }>({
+    const { call } = createToolContext(
+      GetAllMemoryUsage,
+      connector as never,
+      'test-client-id:9999',
+    );
+    const result = await call<{
+      collectionStatus: string;
+      totalBytes: number;
+      instances: unknown[];
+    }>({
       timeoutMs: 50_000,
     });
 
     assert.deepStrictEqual(sentMessages, [
       {
-        clientId: "test-client-id:9999",
+        clientId: 'test-client-id:9999',
         sessionId: -1,
-        method: "Memory.getAllMemoryUsage",
+        method: 'Memory.getAllMemoryUsage',
         params: { timeoutMs: 50_000 },
       },
     ]);
     assert.deepStrictEqual(result, {
-      collectionStatus: "completed",
+      collectionStatus: 'completed',
       totalBytes: 1024,
       instances: [],
     });
   });
 
-  test("supports explicit session override", async () => {
+  test('supports explicit session override', async () => {
     const sentMessages: SentCDPMessage[] = [];
     const connector = {
       sendCDPMessage: async (
@@ -69,9 +79,9 @@ describe("Memory.getAllMemoryUsage", () => {
       ) => {
         sentMessages.push({ clientId, sessionId, method, params });
 
-        assert.strictEqual(method, "Memory.getAllMemoryUsage");
+        assert.strictEqual(method, 'Memory.getAllMemoryUsage');
         return {
-          collectionStatus: "timeout",
+          collectionStatus: 'timeout',
           totalBytes: 2048,
           instances: [],
         };
@@ -79,21 +89,29 @@ describe("Memory.getAllMemoryUsage", () => {
       sendListSessionMessage: async () => [{ session_id: 1 }],
     };
 
-    const { call } = createToolContext(GetAllMemoryUsage, connector as never, "test-client-id:9999");
-    const result = await call<{ collectionStatus: string; totalBytes: number; instances: unknown[] }>({
+    const { call } = createToolContext(
+      GetAllMemoryUsage,
+      connector as never,
+      'test-client-id:9999',
+    );
+    const result = await call<{
+      collectionStatus: string;
+      totalBytes: number;
+      instances: unknown[];
+    }>({
       sessionId: 7,
     });
 
     assert.deepStrictEqual(sentMessages, [
       {
-        clientId: "test-client-id:9999",
+        clientId: 'test-client-id:9999',
         sessionId: 7,
-        method: "Memory.getAllMemoryUsage",
+        method: 'Memory.getAllMemoryUsage',
         params: {},
       },
     ]);
     assert.deepStrictEqual(result, {
-      collectionStatus: "timeout",
+      collectionStatus: 'timeout',
       totalBytes: 2048,
       instances: [],
     });

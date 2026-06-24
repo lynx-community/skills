@@ -2,30 +2,41 @@
 // Licensed under the Apache License Version 2.0 that can be found in the
 // LICENSE file in the root directory of this source tree.
 
-import { clientId, nodeId, selector, sessionId } from "../../schema/index.ts";
-import { defineTool } from "../defineTool.ts";
+import { clientId, nodeId, selector, sessionId } from '../../schema/index.ts';
+import { defineTool } from '../defineTool.ts';
 
 export const QuerySelectorAll = /*#__PURE__*/ defineTool({
-  name: "DOM_querySelectorAll",
-  description: "Find all elements matching the CSS selector.",
+  name: 'DOM_querySelectorAll',
+  description: 'Find all elements matching the CSS selector.',
   schema: {
     clientId,
     sessionId,
-    nodeId: nodeId.optional().describe(
-      "Identifier of the node. Unique DOM node identifier. Defaults to root node if not specified.",
-    ),
+    nodeId: nodeId
+      .optional()
+      .describe(
+        'Identifier of the node. Unique DOM node identifier. Defaults to root node if not specified.',
+      ),
     selector,
   },
   annotations: {
     readOnlyHint: true,
   },
-  async handler({ params: { clientId, sessionId, nodeId, selector } }, response, context) {
+  async handler(
+    { params: { clientId, sessionId, nodeId, selector } },
+    response,
+    context,
+  ) {
     const connector = context.connector();
 
-    const result = await connector.sendCDPMessage(clientId, sessionId, "DOM.querySelectorAll", {
-      nodeId,
-      selector,
-    });
+    const result = await connector.sendCDPMessage(
+      clientId,
+      sessionId,
+      'DOM.querySelectorAll',
+      {
+        nodeId,
+        selector,
+      },
+    );
 
     response.appendLines(JSON.stringify(result));
   },

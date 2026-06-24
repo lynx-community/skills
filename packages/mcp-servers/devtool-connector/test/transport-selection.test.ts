@@ -2,23 +2,23 @@
 // Licensed under the Apache License Version 2.0 that can be found in the
 // LICENSE file in the root directory of this source tree.
 
-import { ReadableStream, WritableStream } from "node:stream/web";
-import { describe, test } from "node:test";
-import type { TestContext } from "node:test";
-import { setTimeout as sleep } from "node:timers/promises";
-import { ClientId, Connector } from "../src/index.ts";
-import { DaemonTransport } from "../src/transport/daemon.ts";
-import type { Connection, Transport } from "../src/transport/transport.ts";
+import { ReadableStream, WritableStream } from 'node:stream/web';
+import type { TestContext } from 'node:test';
+import { describe, test } from 'node:test';
+import { setTimeout as sleep } from 'node:timers/promises';
+import { ClientId, Connector } from '../src/index.ts';
+import { DaemonTransport } from '../src/transport/daemon.ts';
+import type { Connection, Transport } from '../src/transport/transport.ts';
 
 class SlowDaemonSessionTransport extends DaemonTransport {
-  readonly #deviceId = "device under:test";
+  readonly #deviceId = 'device under:test';
   connectCalls = 0;
 
   async close(): Promise<void> {}
 
   async listDevices() {
     await sleep(10);
-    return [{ id: this.#deviceId, os: "Android" as const }];
+    return [{ id: this.#deviceId, os: 'Android' as const }];
   }
 
   async listAvailableApps() {
@@ -48,14 +48,14 @@ class SlowDaemonSessionTransport extends DaemonTransport {
         }
 
         enqueueResponse?.({
-          event: "Customized",
+          event: 'Customized',
           data: {
-            type: "SessionList",
+            type: 'SessionList',
             data: [
               {
                 session_id: 101,
-                type: "lynx",
-                url: "https://example.test/session/101",
+                type: 'lynx',
+                url: 'https://example.test/session/101',
               },
             ],
           },
@@ -75,26 +75,28 @@ class SlowDaemonSessionTransport extends DaemonTransport {
   }
 
   #isListSessionRequest(message: unknown): boolean {
-    return typeof message === "object"
-      && message !== null
-      && "event" in message
-      && message.event === "Customized"
-      && "data" in message
-      && typeof message.data === "object"
-      && message.data !== null
-      && "type" in message.data
-      && message.data.type === "ListSession";
+    return (
+      typeof message === 'object' &&
+      message !== null &&
+      'event' in message &&
+      message.event === 'Customized' &&
+      'data' in message &&
+      typeof message.data === 'object' &&
+      message.data !== null &&
+      'type' in message.data &&
+      message.data.type === 'ListSession'
+    );
   }
 }
 
 class FastDirectNoResponseTransport implements Transport {
-  readonly #deviceId = "device under:test";
+  readonly #deviceId = 'device under:test';
   connectCalls = 0;
 
   async close(): Promise<void> {}
 
   async listDevices() {
-    return [{ id: this.#deviceId, os: "Android" as const }];
+    return [{ id: this.#deviceId, os: 'Android' as const }];
   }
 
   async listAvailableApps() {
@@ -131,19 +133,23 @@ class FastDirectNoResponseTransport implements Transport {
   }
 }
 
-describe("Connector transport selection", () => {
-  test("prefers daemon transports over other transports for the same device", async (t: TestContext) => {
+describe('Connector transport selection', () => {
+  test('prefers daemon transports over other transports for the same device', async (t: TestContext) => {
     const daemonTransport = new SlowDaemonSessionTransport();
     const directTransport = new FastDirectNoResponseTransport();
     const connector = new Connector([directTransport, daemonTransport]);
 
-    const sessions = await connector.sendListSessionMessage(ClientId.serialize("device under:test", 8901));
+    const sessions = await connector.sendListSessionMessage(
+      ClientId.serialize('device under:test', 8901),
+    );
 
-    t.assert.deepStrictEqual(sessions, [{
-      session_id: 101,
-      type: "lynx",
-      url: "https://example.test/session/101",
-    }]);
+    t.assert.deepStrictEqual(sessions, [
+      {
+        session_id: 101,
+        type: 'lynx',
+        url: 'https://example.test/session/101',
+      },
+    ]);
     t.assert.equal(daemonTransport.connectCalls, 1);
     t.assert.equal(directTransport.connectCalls, 0);
   });
