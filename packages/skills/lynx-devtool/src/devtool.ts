@@ -1,41 +1,85 @@
-// Copyright 2026 The Lynx Authors. All rights reserved.
+// Copyright 2025 The Lynx Authors. All rights reserved.
 // Licensed under the Apache License Version 2.0 that can be found in the
 // LICENSE file in the root directory of this source tree.
-import type { Connector } from '@lynx-js/devtool-connector';
-import type { Transport } from '@lynx-js/devtool-connector/transport';
-import { Command } from 'commander';
-import pkg from '../package.json' with { type: 'json' };
-import { registerAppCommand } from './commands/app.ts';
-import { registerCdpCommand } from './commands/cdp.ts';
-import { registerGetConsoleCommand } from './commands/get-console.ts';
-import { registerGetSourcesCommand } from './commands/get-sources.ts';
-import { registerListClientsCommand } from './commands/list-clients.ts';
-import { registerListSessionsCommand } from './commands/list-sessions.ts';
-import { registerOpenCommand } from './commands/open.ts';
-import { registerTakeScreenshotCommand } from './commands/take-screenshot.ts';
+import {
+  AndroidTransport,
+  DaemonTransport,
+  DesktopTransport,
+  iOSTransport,
+} from "@lynx-js/devtool-connector/transport";
+import { Command } from "commander";
+import pkg from "../package.json" with { type: "json" };
+import { registerAppCommand } from "./commands/app.ts";
+import { registerCdpCommand } from "./commands/cdp.ts";
+import { registerGetConsoleCommand } from "./commands/get-console.ts";
+import { registerGetSourcesCommand } from "./commands/get-sources.ts";
+import { registerGlobalSwitchCommand } from "./commands/global-switch.ts";
+import { registerInspectCommand } from "./commands/inspect.ts";
+import { registerListClientsCommand } from "./commands/list-clients.ts";
+import { registerListSessionsCommand } from "./commands/list-sessions.ts";
+import { registerOpenCommand } from "./commands/open.ts";
+import { registerReactLynxCommand } from "./commands/reactlynx/index.ts";
+import { registerEndCommand } from "./commands/recorder-end.ts";
+import { registerStartCommand } from "./commands/recorder-start.ts";
+import { registerTakeHeapSnapshotCommand } from "./commands/take-heap-snapshot.ts";
+import { registerTakeScreenshotCommand } from "./commands/take-screenshot.ts";
+import type { Context } from "./commands/utils.ts";
 
-export function createProgram(
-  connector: Connector,
-  transports: Transport[],
-): Command {
+function getAndroidTransportSpec(env: NodeJS.ProcessEnv): { host: string; port: number } {
+  const port = Number.parseInt(env["ADB_SERVER_PORT"] ?? "5037", 10);
+
+  return {
+    host: env["ADB_SERVER_HOST"] ?? "127.0.0.1",
+    port: Number.isInteger(port) && port > 0 ? port : 5037,
+  };
+}
+
+export function createProgram(options: { env?: NodeJS.ProcessEnv } = {}): Command {
+  const env = options.env ?? process.env;
   const program = new Command();
+  const context: Context = {
+    transports: [
+      new AndroidTransport(getAndroidTransportSpec(env)),
+      new DesktopTransport(),
+      new iOSTransport(),
+    ],
+  };
 
   program
-    .name('devtool')
-    .description('CLI to interact with Lynx DevTool Connector')
+    .name("lynx-devtool")
+    .description("CLI to interact with Lynx DevTool Connector")
     .version(pkg.version)
-    .hook('postAction', async () => {
-      await Promise.allSettled(transports.map((t) => t.close()));
+    .option(
+      "--no-daemon",
+      "Run in non-daemon mode, which will not start the background service",
+    )
+    .hook("preAction", async (thisCommand) => {
+      const rootOptions = thisCommand.opts<{ daemon?: boolean }>();
+      if (rootOptions.daemon) {
+        context.transports.push(new DaemonTransport());
+      }
+    })
+    .hook("postAction", async () => {
+      await Promise.allSettled(context.transports.map(t => t.close()));
     });
 
-  registerListClientsCommand(program, connector);
-  registerListSessionsCommand(program, connector);
-  registerCdpCommand(program, connector);
-  registerAppCommand(program, connector);
-  registerOpenCommand(program, connector);
-  registerGetConsoleCommand(program, connector);
-  registerGetSourcesCommand(program, connector);
-  registerTakeScreenshotCommand(program, connector);
+  registerListClientsCommand(program, context);
+  registerListSessionsCommand(program, context);
+  registerCdpCommand(program, context);
+  registerAppCommand(program, context);
+  registerOpenCommand(program, context);
+  registerInspectCommand(program, context);
+  registerGetConsoleCommand(program, context);
+  registerGetSourcesCommand(program, context);
+  registerTakeScreenshotCommand(program, context);
+  registerTakeHeapSnapshotCommand(program, context);
+  registerGlobalSwitchCommand(program, context);
+
+  const record = program.command("recorder");
+  registerStartCommand(record, context);
+  registerEndCommand(record, context);
+
+  registerReactLynxCommand(program, context);
 
   return program;
 }
