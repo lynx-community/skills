@@ -1,0 +1,93 @@
+name: Lynx DevTool E2E
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "mcp-servers/devtool-connector/**"
+      - "mcp-servers/devtool-mcp-server/**"
+      - "packages/skills/lynx-devtool/**"
+      - ".github/workflows/lynx-devtool.yml"
+  push:
+    branches: [main]
+    paths:
+      - "mcp-servers/devtool-connector/**"
+      - "mcp-servers/devtool-mcp-server/**"
+      - "packages/skills/lynx-devtool/**"
+      - ".github/workflows/lynx-devtool.yml"
+  workflow_dispatch:
+
+env:
+  EMBEDDED_LYNX_TARBALL: https://github.com/lynx-community/skills/releases/download/embedded-lynx-202606041609/embedded-lynx-linux-x86_64.tar.gz
+  LYNX_DEVTOOL_MCP_TESTING_TRANSPORTS: EmbeddedLynx
+  LYNX_DEVTOOL_MCP_TESTING_APP_PACKAGE: EmbeddedLynx
+  LYNX_DEVTOOL_MCP_TESTING_PAGE_URL: https://lynxjs.org/lynx-examples/swiper/dist/Swiper.lynx.bundle
+  LYNX_DEVTOOL_MCP_TESTING_OPEN_URL: https://lynxjs.org/lynx-examples/swiper/dist/Swiper.lynx.bundle
+
+jobs:
+  e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Install Pnpm
+        run: npm i -g corepack@latest --force && corepack enable
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: "pnpm"
+
+      - name: Install Dependencies
+        run: pnpm install
+
+      - name: Start EmbeddedLynx runtime
+        run: |
+          set -euo pipefail
+          curl -sL "$EMBEDDED_LYNX_TARBALL" | tar -xzf - -C /tmp
+          BINARY="/tmp/embedded-lynx-linux-x86_64/embedded_lynx"
+          chmod +x "$BINARY"
+          # Launch the headless Lynx runtime in its own session so it survives
+          # the end of this step. It loads the page and exposes a debug-router
+          # on 127.0.0.1:8901 that DesktopTransport (EmbeddedLynx) connects to.
+          setsid "$BINARY" --url "$LYNX_DEVTOOL_MCP_TESTING_PAGE_URL" \
+            < /dev/null > /tmp/embedded-lynx.log 2>&1 &
+          echo "EMBEDDED_LYNX_PID=$!" >> "$GITHUB_ENV"
+
+      - name: Wait for debug-router port
+        run: |
+          set -euo pipefail
+          for i in $(seq 1 30); do
+            if (exec 3<>/dev/tcp/127.0.0.1/8901) 2>/dev/null; then
+              exec 3>&- 3<&-
+              echo "EmbeddedLynx debug-router is up on port 8901"
+              exit 0
+            fi
+            sleep 1
+          done
+          echo "EmbeddedLynx did not open port 8901 in time" >&2
+          cat /tmp/embedded-lynx.log >&2 || true
+          exit 1
+
+      - name: E2E (devtool-connector)
+        working-directory: mcp-servers/devtool-connector
+        run: node --test --test-concurrency=1 'e2e/**/*.test.ts'
+
+      - name: E2E (devtool-mcp-server)
+        working-directory: mcp-servers/devtool-mcp-server
+        run: node --test --test-concurrency=1 'e2e/**/*.test.ts'
+
+      - name: Stop EmbeddedLynx runtime
+        if: always()
+        run: kill "${EMBEDDED_LYNX_PID}" 2>/dev/null || true
+
+      - name: Upload EmbeddedLynx log
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: embedded-lynx-log
+          path: /tmp/embedded-lynx.log
+          if-no-files-found: ignore
