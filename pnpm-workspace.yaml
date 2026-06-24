@@ -5,7 +5,7 @@ packages:
   - packages/cmd/*
   - packages/skills/*
   - packages/plugins/*
-  - mcp-servers/*
+  - packages/mcp-servers/*
 
 catalogs:
   rstack:

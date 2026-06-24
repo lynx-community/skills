@@ -4,15 +4,15 @@ on:
   pull_request:
     branches: [main]
     paths:
-      - "mcp-servers/devtool-connector/**"
-      - "mcp-servers/devtool-mcp-server/**"
+      - "packages/mcp-servers/devtool-connector/**"
+      - "packages/mcp-servers/devtool-mcp-server/**"
       - "packages/skills/lynx-devtool/**"
       - ".github/workflows/lynx-devtool.yml"
   push:
     branches: [main]
     paths:
-      - "mcp-servers/devtool-connector/**"
-      - "mcp-servers/devtool-mcp-server/**"
+      - "packages/mcp-servers/devtool-connector/**"
+      - "packages/mcp-servers/devtool-mcp-server/**"
       - "packages/skills/lynx-devtool/**"
       - ".github/workflows/lynx-devtool.yml"
   workflow_dispatch:
@@ -73,11 +73,11 @@ jobs:
           exit 1
 
       - name: E2E (devtool-connector)
-        working-directory: mcp-servers/devtool-connector
+        working-directory: packages/mcp-servers/devtool-connector
         run: node --test --test-concurrency=1 'e2e/**/*.test.ts'
 
       - name: E2E (devtool-mcp-server)
-        working-directory: mcp-servers/devtool-mcp-server
+        working-directory: packages/mcp-servers/devtool-mcp-server
         run: node --test --test-concurrency=1 'e2e/**/*.test.ts'
 
       - name: Stop EmbeddedLynx runtime

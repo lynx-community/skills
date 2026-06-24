@@ -104,68 +104,6 @@ importers:
         specifier: ^2.8.2
         version: 2.8.2
 
-  mcp-servers/devtool-connector:
-    dependencies:
-      ws:
-        specifier: ^8.21.0
-        version: 8.21.0
-    devDependencies:
-      '@rslib/core':
-        specifier: catalog:rstack
-        version: 0.19.2(@microsoft/api-extractor@7.56.2(@types/node@24.13.2))(typescript@5.9.3)
-      '@types/node':
-        specifier: ^24.13.2
-        version: 24.13.2
-      '@types/ws':
-        specifier: ^8.18.1
-        version: 8.18.1
-      '@yume-chan/adb':
-        specifier: catalog:adb
-        version: 2.6.0
-      '@yume-chan/adb-server-node-tcp':
-        specifier: catalog:adb
-        version: 2.5.2
-      '@yume-chan/stream-extra':
-        specifier: catalog:adb
-        version: 2.6.1
-      obug:
-        specifier: ^2.1.3
-        version: 2.1.3
-      plist:
-        specifier: ^5.0.0
-        version: 5.0.0
-      rsbuild-plugin-publint:
-        specifier: ^1.0.0
-        version: 1.0.0(@rsbuild/core@1.7.1)
-      typescript:
-        specifier: ^5.9.3
-        version: 5.9.3
-
-  mcp-servers/devtool-mcp-server:
-    dependencies:
-      '@lynx-js/devtool-connector':
-        specifier: workspace:*
-        version: link:../devtool-connector
-    devDependencies:
-      '@modelcontextprotocol/sdk':
-        specifier: ^1.25.2
-        version: 1.29.0(zod@3.25.76)
-      '@rslib/core':
-        specifier: catalog:rstack
-        version: 0.19.2(@microsoft/api-extractor@7.56.2(@types/node@24.13.2))(typescript@5.9.3)
-      core-js:
-        specifier: ^3.49.0
-        version: 3.49.0
-      obug:
-        specifier: ^2.1.3
-        version: 2.1.3
-      rsbuild-plugin-publint:
-        specifier: ^1.0.0
-        version: 1.0.0(@rsbuild/core@1.7.1)
-      zod:
-        specifier: ^3.25.76
-        version: 3.25.76
-
   packages/cmd/build-marketplace:
     dependencies:
       npm-packlist:
@@ -203,6 +141,68 @@ importers:
       commander:
         specifier: '14'
         version: 14.0.3
+
+  packages/mcp-servers/devtool-connector:
+    dependencies:
+      ws:
+        specifier: ^8.21.0
+        version: 8.21.0
+    devDependencies:
+      '@rslib/core':
+        specifier: catalog:rstack
+        version: 0.19.2(@microsoft/api-extractor@7.56.2(@types/node@24.13.2))(typescript@5.9.3)
+      '@types/node':
+        specifier: ^24.13.2
+        version: 24.13.2
+      '@types/ws':
+        specifier: ^8.18.1
+        version: 8.18.1
+      '@yume-chan/adb':
+        specifier: catalog:adb
+        version: 2.6.0
+      '@yume-chan/adb-server-node-tcp':
+        specifier: catalog:adb
+        version: 2.5.2
+      '@yume-chan/stream-extra':
+        specifier: catalog:adb
+        version: 2.6.1
+      obug:
+        specifier: ^2.1.3
+        version: 2.1.3
+      plist:
+        specifier: ^5.0.0
+        version: 5.0.0
+      rsbuild-plugin-publint:
+        specifier: ^1.0.0
+        version: 1.0.0(@rsbuild/core@1.7.1)
+      typescript:
+        specifier: ^5.9.3
+        version: 5.9.3
+
+  packages/mcp-servers/devtool-mcp-server:
+    dependencies:
+      '@lynx-js/devtool-connector':
+        specifier: workspace:*
+        version: link:../devtool-connector
+    devDependencies:
+      '@modelcontextprotocol/sdk':
+        specifier: ^1.25.2
+        version: 1.29.0(zod@3.25.76)
+      '@rslib/core':
+        specifier: catalog:rstack
+        version: 0.19.2(@microsoft/api-extractor@7.56.2(@types/node@24.13.2))(typescript@5.9.3)
+      core-js:
+        specifier: ^3.49.0
+        version: 3.49.0
+      obug:
+        specifier: ^2.1.3
+        version: 2.1.3
+      rsbuild-plugin-publint:
+        specifier: ^1.0.0
+        version: 1.0.0(@rsbuild/core@1.7.1)
+      zod:
+        specifier: ^3.25.76
+        version: 3.25.76
 
   packages/plugins/lynx-debug:
     dependencies:
@@ -252,7 +252,7 @@ importers:
     devDependencies:
       '@lynx-js/devtool-connector':
         specifier: workspace:*
-        version: link:../../../mcp-servers/devtool-connector
+        version: link:../../mcp-servers/devtool-connector
       '@rslib/core':
         specifier: catalog:rstack
         version: 0.19.2(@microsoft/api-extractor@7.56.2(@types/node@24.10.10))(typescript@5.9.3)
