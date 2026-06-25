@@ -1,6 +1,6 @@
 {
   "name": "@lynx-js/skill-lynx-devtool",
-  "version": "0.13.3",
+  "version": "0.13.4",
   "type": "module",
   "imports": {
     "#daemon-entry": "./scripts/daemon-entry.mjs"
