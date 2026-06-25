@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <title>Lynx Inspector Wrapper</title>
+    <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    html, body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+    }
+    #toolbar {
+      height: 36px;
+      background: #f3f3f3;
+      border-bottom: 1px solid #ccc;
+      display: flex;
+      align-items: center;
+      padding: 0 12px;
+      gap: 8px;
+      font-size: 12px;
+    }
+    #toolbar select, #toolbar button {
+      font-size: 12px;
+      padding: 2px 8px;
+      border-radius: 4px;
+      border: 1px solid #bbb;
+    }
+    #toolbar button {
+      cursor: pointer;
+      background: #fff;
+    }
+    #toolbar button:hover {
+      background: #e8e8e8;
+    }
+    #status {
+      margin-left: auto;
+      color: #666;
+    }
+    #inspector-frame {
+      width: 100%;
+      height: calc(100% - 36px);
+      border: none;
+    }
+    </style>
+  </head>
+  <body>
+    <div id="toolbar">
+      <button id="btn-connect">Connect</button>
+      <select id="client-select">
+        <option value="">-- select client --</option>
+      </select>
+      <select id="session-select">
+        <option value="">-- select session --</option>
+      </select>
+      <button id="btn-load">Load Inspector</button>
+      <span id="status">Disconnected</span>
+    </div>
+    <iframe id="inspector-frame"></iframe>
+
+    <script>
+    const DAEMON_WS_URL = (() => {
+      const url = new URL("/devtool/connector", window.location.href);
+      url.protocol = url.protocol === "https:" ? "wss:" : "ws:";
+      return url.toString();
+    })();
+    const INSPECTOR_BASE_URL =
+      "/devtool-frontend/inspector.html";
+
+    let ws = null;
+    let registered = false;
+    let controlIdCounter = 0;
+    const pendingControlCallbacks = new Map();
+    let currentClientId = null;
+    let currentPort = null;
+    let currentSessionId = null;
+    let currentDeviceId = null;
+    let currentClientInfo = null;
+    let subscribedPort = null;
+    let inspectorReady = false;
+
+    const statusEl = document.getElementById("status");
+    const clientSelect = document.getElementById("client-select");
+    const sessionSelect = document.getElementById("session-select");
+    const inspectorFrame = document.getElementById("inspector-frame");
+
+    function setStatus(text) {
+      statusEl.textContent = text;
+    }
+    function log(...args) {
+      console.log("[wrapper]", ...args);
+    }
+
+    // --- Daemon WebSocket ---
+
+    document.getElementById("btn-connect").addEventListener(
+      "click",
+      connectDaemon,
+    );
+
+    function connectDaemon() {
+      if (ws && ws.readyState === WebSocket.OPEN) {
+        ws.close();
+      }
+      setStatus("Connecting...");
+      ws = new WebSocket(DAEMON_WS_URL);
+      ws.onopen = () => {
+        setStatus("Connected (handshaking...)");
+      };
+      ws.onclose = () => {
+        setStatus("Disconnected");
+        registered = false;
+      };
+      ws.onerror = (e) => {
+        setStatus("Error");
+        console.error("WS error", e);
+      };
+      ws.onmessage = (ev) => {
+        const msg = JSON.parse(ev.data);
+        handleDaemonMessage(msg);
+      };
+    }
+
+    function sendToDaemon(msg) {
+      if (ws && ws.readyState === WebSocket.OPEN) {
+        log("→ daemon:", msg.event, msg.data?.type || "");
+        ws.send(JSON.stringify(msg));
+      }
+    }
+
+    function sendControl(method, params) {
+      return new Promise((resolve, reject) => {
+        const id = ++controlIdCounter;
+        pendingControlCallbacks.set(id, { resolve, reject });
+        sendToDaemon({ event: "Control", data: { id, method, params } });
+        setTimeout(() => {
+          if (pendingControlCallbacks.has(id)) {
+            pendingControlCallbacks.delete(id);
+            reject(new Error("Control timeout"));
+          }
+        }, 10000);
+      });
+    }
+
+    function handleDaemonMessage(msg) {
+      switch (msg.event) {
+        case "Initialize":
+          sendToDaemon({
+            event: "Register",
+            data: { id: msg.data, type: "Driver" },
+          });
+          registered = true;
+          setStatus("Registered");
+          sendToDaemon({ event: "ListClients" });
+          break;
+
+        case "ClientList":
+          populateClients(msg.data || []);
+          break;
+
+        case "ControlResponse":
+          handleControlResponse(msg.data);
+          break;
+
+        case "Customized":
+          handleCustomizedFromDevice(msg);
+          break;
+
+        case "Pong":
+          break;
+
+        default:
+          log("daemon msg:", msg);
+      }
+    }
+
+    function handleControlResponse(data) {
+      const cb = pendingControlCallbacks.get(data.id);
+      if (cb) {
+        pendingControlCallbacks.delete(data.id);
+        if (data.error) cb.reject(new Error(data.error));
+        else cb.resolve(data.result);
+      }
+    }
+
+    // --- Client / Session Selection ---
+
+    function populateClients(clients) {
+      clientSelect.innerHTML =
+        "<option value=\"\">-- select client --</option>";
+      for (const c of clients) {
+        const opt = document.createElement("option");
+        opt.value = c.id;
+        opt.dataset.info = JSON.stringify(c.info || {});
+        opt.textContent = `${c.info.App} (${c.info.sdkVersion}) [${c.id}]`;
+        clientSelect.appendChild(opt);
+      }
+      if (clients.length > 0) {
+        setStatus(`Registered - ${clients.length} client(s)`);
+      }
+      autoSelectClient(clients);
+    }
+
+    clientSelect.addEventListener("change", async () => {
+      const selected = clientSelect.value;
+      if (!selected) return;
+      currentClientId = selected;
+
+      const selectedOpt = clientSelect.selectedOptions[0];
+      currentClientInfo = selectedOpt?.dataset.info
+        ? JSON.parse(selectedOpt.dataset.info)
+        : {};
+
+      const lastColon = selected.lastIndexOf(":");
+      currentDeviceId = decodeURIComponent(
+        selected.substring(0, lastColon),
+      );
+      currentPort = parseInt(selected.substring(lastColon + 1), 10);
+
+      try {
+        await sendControl("subscribe", {
+          deviceId: currentDeviceId,
+          port: currentPort,
+        });
+        subscribedPort = currentPort;
+        setStatus(`Subscribed to ${currentDeviceId}:${currentPort}`);
+      } catch (e) {
+        setStatus(`Subscribe failed: ${e.message}`);
+        return;
+      }
+
+      sendToDaemon({
+        event: "Customized",
+        data: {
+          type: "ListSession",
+          data: { client_id: currentPort, session_id: 0 },
+        },
+        to: currentPort,
+      });
+    });
+
+    function handleCustomizedFromDevice(msg) {
+      const { type, data } = msg.data;
+
+      if (type === "SessionList") {
+        populateSessions(Array.isArray(data) ? data : []);
+        return;
+      }
+
+      if (type === "CDP") {
+        forwardCDPToInspector(data.message);
+        return;
+      }
+
+      forwardCustomizedToInspector(type, data);
+    }
+
+    function populateSessions(sessions) {
+      sessionSelect.innerHTML =
+        "<option value=\"\">-- select session --</option>";
+      for (const s of sessions) {
+        const opt = document.createElement("option");
+        opt.value = s.session_id;
+        opt.textContent = `[${s.session_id}] ${s.type || "unknown"} - ${
+          s.url || "(no url)"
+        }`;
+        sessionSelect.appendChild(opt);
+      }
+      if (sessions.length > 0) {
+        setStatus(`${sessions.length} session(s) found`);
+      }
+      autoSelectSession(sessions);
+    }
+
+    // --- Inspector iframe loading ---
+
+    document.getElementById("btn-load").addEventListener(
+      "click",
+      loadInspector,
+    );
+
+    function loadInspector() {
+      const sessionId = sessionSelect.value;
+      if (!sessionId || currentPort === null || Number.isNaN(currentPort)) {
+        alert("Select a client and session first");
+        return;
+      }
+      currentSessionId = parseInt(sessionId, 10);
+      inspectorReady = false;
+
+      const params = new URLSearchParams({
+        sessionId: String(currentSessionId),
+        // clientId: String(currentPort),
+        hdtVersion: "1.0.0",
+        // showPanels: 'elements,console,sources,network',
+      });
+
+      const url = `${INSPECTOR_BASE_URL}?${params.toString()}`;
+      inspectorFrame.src = url;
+      setStatus(`Loading inspector for session ${currentSessionId}...`);
+    }
+
+    // --- postMessage bridge: Inspector <-> Daemon ---
+
+    window.addEventListener("message", (ev) => {
+      const msg = ev.data;
+      if (!msg || !msg.type) return;
+
+      switch (msg.type) {
+        case "iframe_init":
+          log("inspector: iframe_init");
+          sendInjectData();
+          break;
+
+        case "iframe_loaded":
+          log("inspector: iframe_loaded");
+          inspectorReady = true;
+          sendLynxOpen();
+          break;
+
+        case "send_message":
+          handleInspectorOutbound(msg.content);
+          break;
+
+        case "update_loading_progress":
+        case "devtool_stats":
+        case "slardar":
+          break;
+
+        default:
+          log("iframe msg:", msg.type);
+          break;
+      }
+    });
+
+    const DEFAULT_INFO = {
+      App: "LynxPlayground",
+      AppVersion: "1.0.0",
+      sdkVersion: "0.0.1",
+      hdtVersion: "3.0.0",
+      osVersion: "16",
+      deviceModel: "OnePlus IN2020",
+      network: "WIFI",
+    };
+
+    function getClientInfo() {
+      const info = currentClientInfo || {};
+      return {
+        ...DEFAULT_INFO,
+        ...info,
+        sdkVersion: info.sdkVersion || DEFAULT_INFO.sdkVersion,
+        hdtVersion: info.hdtVersion || info.ldtVersion
+          || DEFAULT_INFO.hdtVersion,
+      };
+    }
+
+    function sendInjectData() {
+      if (!inspectorFrame.contentWindow) return;
+      inspectorFrame.contentWindow.postMessage({
+        type: "inject_data",
+        content: {
+          info: getClientInfo(),
+          plugins: [
+            {
+              url:
+                "https://unpkg.com/@lynx-js/preact-devtools@5.0.1-20260525112551-dfe2d03/dist/index.js",
+              _id: "preact-devtools",
+              name: "PreactDevtools",
+              location: "panel",
+              isValid: true,
+              type: "lynx",
+            },
+          ],
+        },
+      }, "*");
+      log("sent inject_data");
+    }
+
+    function sendLynxOpen() {
+      if (!inspectorFrame.contentWindow || currentSessionId === null) {
+        return;
+      }
+      inspectorFrame.contentWindow.postMessage({
+        type: "lynx_open",
+        content: {
+          wsUrl: DAEMON_WS_URL,
+          roomId: "",
+          sessionId: currentSessionId,
+          info: getClientInfo(),
+          sessionUrl: "",
+        },
+      }, "*");
+      setStatus(`Inspector connected (session ${currentSessionId})`);
+      log("sent lynx_open");
+    }
+
+    function handleInspectorOutbound(content) {
+      if (!content || !ws || ws.readyState !== WebSocket.OPEN) return;
+
+      if (content.type === "CDP") {
+        const cdpMessage = typeof content.message === "string"
+          ? JSON.parse(content.message)
+          : content.message;
+        log("→ CDP:", cdpMessage.method || `id:${cdpMessage.id}`);
+        sendToDaemon({
+          event: "Customized",
+          data: {
+            type: "CDP",
+            data: {
+              client_id: currentPort,
+              session_id: currentSessionId,
+              message: cdpMessage,
+            },
+          },
+          to: currentPort,
+        });
+      } else {
+        const message = typeof content.message === "string"
+          ? JSON.parse(content.message)
+          : (content.message || {});
+        sendToDaemon({
+          event: "Customized",
+          data: {
+            type: content.type,
+            data: {
+              client_id: currentPort,
+              session_id: currentSessionId,
+              message: message,
+            },
+          },
+          to: currentPort,
+        });
+      }
+    }
+
+    function forwardCDPToInspector(message) {
+      if (!inspectorFrame.contentWindow || !inspectorReady) return;
+      const msgStr = typeof message === "string"
+        ? message
+        : JSON.stringify(message);
+      log("← CDP to inspector:", msgStr.substring(0, 100));
+      inspectorFrame.contentWindow.postMessage({
+        type: "lynx_message",
+        content: {
+          type: "CDP",
+          message: msgStr,
+        },
+      }, "*");
+    }
+
+    function forwardCustomizedToInspector(type, data) {
+      if (!inspectorFrame.contentWindow || !inspectorReady) return;
+      const message = data.message != null ? data.message : data;
+      const msgStr = typeof message === "string"
+        ? message
+        : JSON.stringify(message);
+      log("← customized to inspector:", type, msgStr.substring(0, 80));
+      inspectorFrame.contentWindow.postMessage({
+        type: "lynx_message",
+        content: {
+          type: type,
+          message: msgStr,
+        },
+      }, "*");
+    }
+
+    // --- Auto-select from URL query params ---
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const autoClientId = urlParams.get("clientId");
+    const autoSessionId = urlParams.get("sessionId");
+    let autoStarted = false;
+
+    async function autoSelectClient(clients) {
+      if (!autoClientId || autoStarted) return;
+      const match = clients.find((c) => c.id === autoClientId);
+      if (!match) return;
+      autoStarted = true;
+
+      clientSelect.value = autoClientId;
+      currentClientId = autoClientId;
+      currentClientInfo = match.info || {};
+      const lastColon = autoClientId.lastIndexOf(":");
+      currentDeviceId = decodeURIComponent(
+        autoClientId.substring(0, lastColon),
+      );
+      currentPort = parseInt(autoClientId.substring(lastColon + 1), 10);
+
+      try {
+        await sendControl("subscribe", {
+          deviceId: currentDeviceId,
+          port: currentPort,
+        });
+        subscribedPort = currentPort;
+        setStatus(`Subscribed to ${currentDeviceId}:${currentPort}`);
+      } catch (e) {
+        setStatus(`Subscribe failed: ${e.message}`);
+        return;
+      }
+
+      sendToDaemon({
+        event: "Customized",
+        data: {
+          type: "ListSession",
+          data: { client_id: currentPort, session_id: 0 },
+        },
+        to: currentPort,
+      });
+    }
+
+    function autoSelectSession(sessions) {
+      if (
+        !autoSessionId || currentPort === null || Number.isNaN(currentPort)
+      ) return;
+      const sid = parseInt(autoSessionId, 10);
+      const match = sessions.find((s) => s.session_id === sid);
+      if (!match) return;
+
+      sessionSelect.value = String(sid);
+      currentSessionId = sid;
+      inspectorReady = false;
+
+      const params = new URLSearchParams({
+        sessionId: String(currentSessionId),
+        hdtVersion: "1.0.0",
+      });
+      inspectorFrame.src = `${INSPECTOR_BASE_URL}?${params.toString()}`;
+      setStatus(`Loading inspector for session ${currentSessionId}...`);
+    }
+
+    connectDaemon();
+    </script>
+  </body>
+</html>

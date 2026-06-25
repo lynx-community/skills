@@ -1,7 +1,8 @@
 import * as __rspack_external_node_process_786449bf from "node:process";
 import { __webpack_require__ } from "./rslib-runtime.mjs";
-import node_zlib from "node:zlib";
-import { web_ReadableStream, promises_setTimeout, isListSessionResponse, DaemonTransport, CDPResponseTransformStream, DesktopTransport, promises, randomInt, AndroidTransport, node_os, FilterTransformStream, Connector, iOSTransport, node_createDebug, tmpdir } from "./854.mjs";
+import "./374.mjs";
+import "./10.mjs";
+import { DaemonTransport, FilterTransformStream, Connector, randomInt, CDPResponseTransformStream } from "./854.mjs";
 __webpack_require__.add({
     "node:process" (module) {
         module.exports = __rspack_external_node_process_786449bf;
@@ -2655,6 +2656,7 @@ const { program: esm_program, createCommand: createCommand, createArgument: crea
 var package_namespaceObject = {
     rE: "0.13.3"
 };
+const promises_ = __webpack_require__("node:timers/promises");
 const CLIENT_OPTION = [
     '-c, --client <clientId>',
     'Client ID (optional, auto-discovered if omitted).'
@@ -2735,7 +2737,7 @@ function parseOnOff(input, optionName = '--status') {
 }
 async function readOrTimeout(reader, idleMs) {
     const idleAbortController = new AbortController();
-    const idle = promises_setTimeout(idleMs, 'timeout', {
+    const idle = (0, promises_.setTimeout)(idleMs, 'timeout', {
         signal: idleAbortController.signal
     });
     try {
@@ -2793,6 +2795,7 @@ function registerCdpCommand(program, context) {
         console.log(JSON.stringify(result, null, 2));
     });
 }
+const web_ = __webpack_require__("node:stream/web");
 function _ts_add_disposable_resource(env, value, async) {
     if (null != value) {
         if ("object" != typeof value && "function" != typeof value) throw new TypeError("Object expected.");
@@ -2879,7 +2882,7 @@ function registerGetConsoleCommand(program, context) {
             if (!thread.every((t)=>'background' === t || 'main' === t)) throw new Error(`Invalid thread: ${thread}. Expected 'background' or 'main'.`);
             if (limit) limit = Math.max(1, Math.min(100, limit));
             const { connector, clientId, sessionId } = await resolveClientAndSession(context, options);
-            const stream = _ts_add_disposable_resource(env, await connector.sendCDPStream(clientId, Number(sessionId), web_ReadableStream.from([
+            const stream = _ts_add_disposable_resource(env, await connector.sendCDPStream(clientId, Number(sessionId), web_.ReadableStream.from([
                 {
                     method: 'Page.enable'
                 },
@@ -3043,7 +3046,7 @@ function registerGetSourcesCommand(program, context) {
                     method: 'Debugger.enable'
                 }
             ];
-            const stream = get_sources_ts_add_disposable_resource(env, await connector.sendCDPStream(clientId, numericSessionId, web_ReadableStream.from(messages)), true);
+            const stream = get_sources_ts_add_disposable_resource(env, await connector.sendCDPStream(clientId, numericSessionId, web_.ReadableStream.from(messages)), true);
             const scripts = [];
             for await (const value of readUntilIdle(stream, {
                 idleMs: 2000,
@@ -3154,6 +3157,7 @@ function registerListSessionsCommand(program, context) {
         console.log(JSON.stringify(sessions, null, 2));
     });
 }
+const types_0 = __webpack_require__("../../mcp-servers/devtool-connector/src/types.ts");
 function registerOpenCommand(program, context) {
     program.command('open').description('Open page').option(...CLIENT_OPTION).option(...CLIENT_NAME_OPTION).argument('<url>', 'The url of the page').action(async (url, options)=>{
         const { connector, clientId } = await resolveClient(context, options);
@@ -3171,7 +3175,7 @@ function registerOpenCommand(program, context) {
         }, {
             input: [],
             output: [
-                new FilterTransformStream(isListSessionResponse)
+                new FilterTransformStream(types_0.gF)
             ]
         });
         console.log(JSON.stringify(result, null, 2));
@@ -3427,6 +3431,7 @@ function formatTree(state, options = {}) {
         labels: ctx.labels
     };
 }
+const node_0 = __webpack_require__("../../../node_modules/.pnpm/obug@2.1.3/node_modules/obug/dist/node.js");
 function transport_ts_add_disposable_resource(env, value, async) {
     if (null != value) {
         if ("object" != typeof value && "function" != typeof value) throw new TypeError("Object expected.");
@@ -3488,7 +3493,7 @@ function transport_ts_dispose_resources(env) {
         return next();
     })(env);
 }
-const debug = node_createDebug('devtool-mcp-server:reactlynx');
+const debug = (0, node_0.U)('devtool-mcp-server:reactlynx');
 const PREACT_EVENT = 'PreactDevtools';
 const SOURCE_PAGE_HOOK = 'preact-page-hook';
 const SOURCE_DEVTOOLS_TO_CLIENT = 'preact-devtools-to-client';
@@ -3518,7 +3523,7 @@ async function runReactLynxSession(options) {
         const { connector, clientId, sessionId, outbound, sendInit = true, onEnvelope = ()=>'continue', idleMs = DEFAULT_IDLE_MS, maxMs = DEFAULT_MAX_MS, signal } = options;
         let stopRequested = false;
         let cancelInput = ()=>{};
-        const input = new web_ReadableStream({
+        const input = new web_.ReadableStream({
             start (controller) {
                 if (sendInit) controller.enqueue(buildOutboundFrame('init'));
                 for (const frame of outbound)controller.enqueue(frame);
@@ -3952,6 +3957,7 @@ function registerReactLynxCommand(program, context) {
     registerUpdateCommands(reactlynx, context);
 }
 const external_node_path_ = __webpack_require__("node:path");
+const external_node_zlib_ = __webpack_require__("node:zlib");
 function analyzeRecordingBuffer(filePath, buffer) {
     const fileSizeBytes = buffer.byteLength;
     let recording;
@@ -3961,7 +3967,7 @@ function analyzeRecordingBuffer(filePath, buffer) {
         if (raw.startsWith('{') || raw.startsWith('[')) recording = JSON.parse(raw);
         else {
             const decoded = Buffer.from(raw, 'base64');
-            const inflated = node_zlib.inflateSync(decoded);
+            const inflated = external_node_zlib_["default"].inflateSync(decoded);
             recording = JSON.parse(inflated.toString('utf-8'));
         }
     } catch  {
@@ -4016,6 +4022,8 @@ function recordingOutputPath(basePath, sessionId, index) {
     const parsed = external_node_path_["default"].parse(basePath);
     return external_node_path_["default"].join(parsed.dir, `${parsed.name}${suffix}${parsed.ext || '.json'}`);
 }
+const promises__0 = __webpack_require__("node:fs/promises");
+const external_node_os_ = __webpack_require__("node:os");
 function recorder_end_ts_add_disposable_resource(env, value, async) {
     if (null != value) {
         if ("object" != typeof value && "function" != typeof value) throw new TypeError("Object expected.");
@@ -4106,10 +4114,10 @@ async function runRecordingEnd(connector, clientId, output) {
         const signal = AbortSignal.timeout(RECORDING_END_TIMEOUT_MS);
         const data = await readStreamFully(connector, clientId, streamHandle, signal);
         const filePath = recordingOutputPath(baseOutputPath, sessionId, savedFiles.length);
-        await promises.mkdir(external_node_path_["default"].dirname(filePath), {
+        await promises__0["default"].mkdir(external_node_path_["default"].dirname(filePath), {
             recursive: true
         });
-        await promises.writeFile(filePath, data);
+        await promises__0["default"].writeFile(filePath, data);
         savedFiles.push(filePath);
         diagnostics.push(analyzeRecordingBuffer(filePath, data));
     }
@@ -4148,7 +4156,7 @@ async function readRecordingCompleteEvent(connector, clientId) {
             hasError: false
         };
         try {
-            const stream = recorder_end_ts_add_disposable_resource(env, await connector.sendCDPStream(clientId, -1, web_ReadableStream.from([
+            const stream = recorder_end_ts_add_disposable_resource(env, await connector.sendCDPStream(clientId, -1, web_.ReadableStream.from([
                 {
                     method: 'Recording.end',
                     params: {}
@@ -4211,12 +4219,12 @@ function abortable(promise, signal, message) {
 }
 async function resolveRecordingBaseOutputPath(output, clientId) {
     const defaultFileName = `recording-${clientId.replace(/[<>:"/\\|?*()]/g, '_')}-${Date.now()}.json`;
-    if (!output) return external_node_path_["default"].resolve(node_os.homedir(), '.lynx-devtool', 'files', 'lynxrecorder', defaultFileName);
+    if (!output) return external_node_path_["default"].resolve(external_node_os_["default"].homedir(), '.lynx-devtool', 'files', 'lynxrecorder', defaultFileName);
     const resolvedOutput = external_node_path_["default"].resolve(output);
     const outputLooksLikeDirectory = output.endsWith(external_node_path_["default"].sep) || output.endsWith('/') || output.endsWith('\\');
-    const outputIsDirectory = outputLooksLikeDirectory || await promises.stat(resolvedOutput).then((stats)=>stats.isDirectory()).catch(()=>false);
+    const outputIsDirectory = outputLooksLikeDirectory || await promises__0["default"].stat(resolvedOutput).then((stats)=>stats.isDirectory()).catch(()=>false);
     if (outputIsDirectory) {
-        await promises.mkdir(resolvedOutput, {
+        await promises__0["default"].mkdir(resolvedOutput, {
             recursive: true
         });
         return external_node_path_["default"].join(resolvedOutput, defaultFileName);
@@ -4340,7 +4348,7 @@ function registerTakeHeapSnapshotCommand(program, context) {
             } : {};
             const timeoutSignal = AbortSignal.timeout(60000);
             const requestId = randomInt(10000, 50000);
-            const stream = take_heap_snapshot_ts_add_disposable_resource(env, await connector.sendStream(clientId, web_ReadableStream.from([
+            const stream = take_heap_snapshot_ts_add_disposable_resource(env, await connector.sendStream(clientId, web_.ReadableStream.from([
                 {
                     event: 'Customized',
                     data: {
@@ -4386,7 +4394,7 @@ function registerTakeHeapSnapshotCommand(program, context) {
             }), true);
             const chunks = [];
             let didReceiveSnapshotResponse = false;
-            const fileName = output ?? external_node_path_["default"].join(tmpdir(), `heap-${thread}-${Date.now()}.heapsnapshot`);
+            const fileName = output ?? external_node_path_["default"].join((0, external_node_os_.tmpdir)(), `heap-${thread}-${Date.now()}.heapsnapshot`);
             for await (const value of readUntilIdle(stream, {
                 idleMs: 15000,
                 maxMs: 60000
@@ -4405,7 +4413,7 @@ function registerTakeHeapSnapshotCommand(program, context) {
                 }
             }
             if (0 === chunks.length) throw new Error('Failed to capture heap snapshot, no chunks received or timed out.');
-            await promises.writeFile(fileName, chunks.join(''));
+            await promises__0["default"].writeFile(fileName, chunks.join(''));
             console.log(`Heap snapshot saved to ${fileName}`);
         } catch (e) {
             env.error = e;
@@ -4491,7 +4499,7 @@ function registerTakeScreenshotCommand(program, context) {
             const signal = AbortSignal.timeout(10000);
             const { promise: framePromise, resolve: resolveFrame } = Promise.withResolvers();
             const { promise: ackPromise, resolve: resolveAck } = Promise.withResolvers();
-            const stream = take_screenshot_ts_add_disposable_resource(env, await connector.sendCDPStream(clientId, numericSessionId, new web_ReadableStream({
+            const stream = take_screenshot_ts_add_disposable_resource(env, await connector.sendCDPStream(clientId, numericSessionId, new web_.ReadableStream({
                 async start (controller) {
                     controller.enqueue({
                         method: 'Page.startScreencast',
@@ -4503,7 +4511,7 @@ function registerTakeScreenshotCommand(program, context) {
                     });
                     const hasFrame = await Promise.race([
                         framePromise.then(()=>true),
-                        promises_setTimeout(10000, false, {
+                        (0, promises_.setTimeout)(10000, false, {
                             ref: false
                         })
                     ]);
@@ -4522,7 +4530,7 @@ function registerTakeScreenshotCommand(program, context) {
                     resolveFrame();
                     await ackPromise;
                     const fileName = output ?? `screenshot-${Date.now()}.jpeg`;
-                    await promises.writeFile(fileName, Buffer.from(data, 'base64'));
+                    await promises__0["default"].writeFile(fileName, Buffer.from(data, 'base64'));
                     console.log(`Screenshot saved to ${fileName}`);
                     return;
                 }
@@ -4537,6 +4545,9 @@ function registerTakeScreenshotCommand(program, context) {
         }
     });
 }
+const android = __webpack_require__("../../mcp-servers/devtool-connector/src/transport/android.ts");
+const desktop = __webpack_require__("../../mcp-servers/devtool-connector/src/transport/desktop.ts");
+const ios = __webpack_require__("../../mcp-servers/devtool-connector/src/transport/ios.ts");
 function getAndroidTransportSpec(env) {
     const port = Number.parseInt(env['ADB_SERVER_PORT'] ?? '5037', 10);
     return {
@@ -4549,9 +4560,9 @@ function createProgram(options = {}) {
     const program = new Command();
     const context = {
         transports: [
-            new AndroidTransport(getAndroidTransportSpec(env)),
-            new DesktopTransport(),
-            new iOSTransport()
+            new android.R(getAndroidTransportSpec(env)),
+            new desktop.y(),
+            new ios.H()
         ]
     };
     program.name('lynx-devtool').description('CLI to interact with Lynx DevTool Connector').version(package_namespaceObject.rE).option('--no-daemon', 'Run in non-daemon mode, which will not start the background service').hook('preAction', async (thisCommand)=>{
