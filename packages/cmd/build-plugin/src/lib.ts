@@ -2,13 +2,30 @@
 // Licensed under the Apache License Version 2.0 that can be found in the
 // LICENSE file in the root directory of this source tree.
 
-import { copyFile, mkdir, stat, writeFile } from 'node:fs/promises';
+import { copyFile, mkdir, readFile, stat, writeFile } from 'node:fs/promises';
 import { dirname, resolve } from 'node:path';
 import { default as packList } from 'npm-packlist';
 
+async function packageFilesIncludesPackageJSON(pkgDir: string) {
+  const pkg = JSON.parse(
+    await readFile(resolve(pkgDir, 'package.json'), 'utf-8'),
+  ) as { files?: unknown };
+
+  return (
+    Array.isArray(pkg.files) &&
+    pkg.files.some(
+      (file) =>
+        typeof file === 'string' &&
+        file.replaceAll('\\', '/').replace(/^\.\//, '') === 'package.json',
+    )
+  );
+}
+
 /**
  * Copy files in a package (defined by package.json `files`)
- * to target dir, should mirror the behavior of `npm pack`
+ * to target dir, should mirror the behavior of `npm pack`.
+ * When skipPackageJSON is true, package.json is copied only if `files`
+ * explicitly includes package.json.
  * @param pkgDir path of dir of the package
  * @param targetDir copy to
  */
@@ -18,12 +35,12 @@ export async function copyPackageFiles(
   skipPackageJSON: boolean = false,
 ) {
   const files = await packList({ path: pkgDir });
+  const skipImplicitPackageJSON =
+    skipPackageJSON && !(await packageFilesIncludesPackageJSON(pkgDir));
 
   for (const file of files) {
-    if (skipPackageJSON) {
-      if (file === 'package.json') {
-        continue;
-      }
+    if (skipImplicitPackageJSON && file === 'package.json') {
+      continue;
     }
     const sourcePath = resolve(pkgDir, file);
     const targetPath = resolve(targetDir, file);
