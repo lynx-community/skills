@@ -2,7 +2,13 @@
   "$schema": "https://unpkg.com/@changesets/config@3.1.2/schema.json",
   "changelog": "@changesets/cli/changelog",
   "commit": false,
-  "fixed": [],
+  "fixed": [
+    [
+      "@lynx-js/devtool-connector",
+      "@lynx-js/devtool-mcp-server",
+      "@lynx-js/skill-lynx-devtool"
+    ]
+  ],
   "linked": [],
   "access": "public",
   "baseBranch": "main",

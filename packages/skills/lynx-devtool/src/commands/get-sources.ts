@@ -1,12 +1,17 @@
-// Copyright 2026 The Lynx Authors. All rights reserved.
+// Copyright 2025 The Lynx Authors. All rights reserved.
 // Licensed under the Apache License Version 2.0 that can be found in the
 // LICENSE file in the root directory of this source tree.
 
 import { ReadableStream } from 'node:stream/web';
-import { setTimeout } from 'node:timers/promises';
-import type { Connector } from '@lynx-js/devtool-connector';
 import type { Command } from 'commander';
-import { getFirstClient, getLatestSession } from './utils.ts';
+import {
+  CLIENT_NAME_OPTION,
+  CLIENT_OPTION,
+  type Context,
+  readUntilIdle,
+  resolveClientAndSession,
+  SESSION_OPTION,
+} from './utils.ts';
 
 interface ScriptParsedEvent {
   scriptId: string;
@@ -14,77 +19,41 @@ interface ScriptParsedEvent {
   [key: string]: unknown;
 }
 
-export function registerGetSourcesCommand(
-  program: Command,
-  connector: Connector,
-) {
+export function registerGetSourcesCommand(program: Command, context: Context) {
   program
     .command('get-sources')
     .description('List all parsed scripts.')
-    .option(
-      '-c, --client <clientId>',
-      'Client ID (optional, will auto-discover if not provided)',
-    )
-    .option(
-      '-s, --session <sessionId>',
-      'Session ID (optional, will auto-discover if not provided)',
-    )
+    .option(...CLIENT_OPTION)
+    .option(...CLIENT_NAME_OPTION)
+    .option(...SESSION_OPTION)
     .action(async (options) => {
-      let { client: clientId, session: sessionId } = options;
-
-      if (!clientId) {
-        clientId = await getFirstClient(connector);
-      }
-
-      if (!sessionId) {
-        sessionId = await getLatestSession(connector, clientId);
-      }
+      const { connector, clientId, sessionId } = await resolveClientAndSession(
+        context,
+        options,
+      );
 
       const numericSessionId = Number(sessionId);
 
-      const messages: { sessionId: number; method: string }[] = [
-        {
-          sessionId: numericSessionId,
-          method: 'Debugger.disable',
-        },
-        {
-          sessionId: numericSessionId,
-          method: 'Debugger.enable',
-        },
+      const messages: { method: string }[] = [
+        { method: 'Debugger.disable' },
+        { method: 'Debugger.enable' },
       ];
 
       await using stream = await connector.sendCDPStream(
         clientId,
+        numericSessionId,
         ReadableStream.from(messages),
       );
 
       const scripts: ScriptParsedEvent[] = [];
 
-      const reader = stream.getReader();
-      const IDLE_TIMEOUT = 2000; // Increased timeout for reload
-      const MAX_TOTAL_TIME = 5000; // Increased max time for reload
-      const startTime = Date.now();
-
-      try {
-        while (Date.now() - startTime < MAX_TOTAL_TIME) {
-          const result = await Promise.race([
-            reader.read(),
-            setTimeout(IDLE_TIMEOUT, 'timeout' as const),
-          ]);
-          if (result === 'timeout') {
-            await reader.cancel();
-            break;
-          }
-
-          const { done, value } = result;
-          if (done) break;
-
-          if (value.method === 'Debugger.scriptParsed') {
-            scripts.push(value.params as ScriptParsedEvent);
-          }
+      for await (const value of readUntilIdle(stream, {
+        idleMs: 2000,
+        maxMs: 5000,
+      })) {
+        if (value.method === 'Debugger.scriptParsed') {
+          scripts.push(value.params as ScriptParsedEvent);
         }
-      } finally {
-        reader.releaseLock();
       }
 
       console.log(

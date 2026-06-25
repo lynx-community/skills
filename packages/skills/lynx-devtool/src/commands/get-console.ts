@@ -1,12 +1,17 @@
-// Copyright 2026 The Lynx Authors. All rights reserved.
+// Copyright 2025 The Lynx Authors. All rights reserved.
 // Licensed under the Apache License Version 2.0 that can be found in the
 // LICENSE file in the root directory of this source tree.
 
 import { ReadableStream } from 'node:stream/web';
-import { setTimeout } from 'node:timers/promises';
-import type { Connector } from '@lynx-js/devtool-connector';
 import type { Command } from 'commander';
-import { getFirstClient, getLatestSession } from './utils.ts';
+import {
+  CLIENT_NAME_OPTION,
+  CLIENT_OPTION,
+  type Context,
+  readUntilIdle,
+  resolveClientAndSession,
+  SESSION_OPTION,
+} from './utils.ts';
 
 interface ConsoleCallFrame {
   url: string;
@@ -32,23 +37,42 @@ interface ConsoleMessage {
   args: ConsoleArg[];
   stackTrace?: ConsoleStackTrace;
   url?: string;
+  consoleTag?: string;
 }
 
-export function registerGetConsoleCommand(
-  program: Command,
-  connector: Connector,
-) {
+function formatConsoleMessage({
+  type,
+  args,
+  stackTrace,
+  consoleTag,
+}: ConsoleMessage): string {
+  return `- [${type}/${consoleTag === 'Lepus' ? 'main-thread' : 'background'}]: ${args
+    .map((arg) => {
+      if (arg.objectId) {
+        return `<${arg.description || arg.className || 'Object'} (objectId:${arg.objectId})>`;
+      }
+      return arg.value;
+    })
+    .join(' ')}${
+    stackTrace
+      ? '\n' +
+        stackTrace.callFrames
+          .map(
+            ({ url, lineNumber, columnNumber }) =>
+              `    at ${url}:${lineNumber}:${columnNumber}`,
+          )
+          .join('\n')
+      : ''
+  }`;
+}
+
+export function registerGetConsoleCommand(program: Command, context: Context) {
   program
     .command('get-console')
     .description('Capture console logs from the device')
-    .option(
-      '-c, --client <clientId>',
-      'Client ID (optional, will auto-discover if not provided)',
-    )
-    .option(
-      '-s, --session <sessionId>',
-      'Session ID (optional, will auto-discover if not provided)',
-    )
+    .option(...CLIENT_OPTION)
+    .option(...CLIENT_NAME_OPTION)
+    .option(...SESSION_OPTION)
     .option(
       '--offset <number>',
       'The number of console messages to skip before returning results.',
@@ -68,111 +92,129 @@ export function registerGetConsoleCommand(
       "The log level to filter messages. Defaults to ['info', 'log', 'warning', 'error']",
       (value) => value.split(',').map((s) => s.trim()),
     )
+    .option('--thread <thread...>', 'VM thread to target: background or main', [
+      'background',
+      'main',
+    ])
+    .option(
+      '-w, --watch',
+      'Stream console logs as they arrive, printing each message immediately, until interrupted (Ctrl+C) or --limit is reached',
+      false,
+    )
     .action(async (options) => {
-      let { client: clientId, session: sessionId, limit } = options;
-      const { offset = 0, includeStackTraces, level } = options;
+      const { offset = 0, includeStackTraces, level, watch } = options;
+      let { limit, thread } = options;
+
+      if (!Array.isArray(thread)) {
+        thread = [thread];
+      }
+
+      if (!thread.every((t: string) => t === 'background' || t === 'main')) {
+        throw new Error(
+          `Invalid thread: ${thread}. Expected 'background' or 'main'.`,
+        );
+      }
 
       if (limit) {
         limit = Math.max(1, Math.min(100, limit));
       }
 
-      if (!clientId) {
-        clientId = await getFirstClient(connector);
-      }
-
-      if (!sessionId) {
-        sessionId = await getLatestSession(connector, clientId);
-      }
-
-      const numericSessionId = Number(sessionId);
+      const { connector, clientId, sessionId } = await resolveClientAndSession(
+        context,
+        options,
+      );
 
       await using stream = await connector.sendCDPStream(
         clientId,
+        Number(sessionId),
         ReadableStream.from([
-          {
-            sessionId: numericSessionId,
-            method: 'Page.enable',
-          },
-          {
-            sessionId: numericSessionId,
+          { method: 'Page.enable' },
+          { method: 'Page.getResourceTree' },
+          ...thread.map((t: string) => ({
+            method: 'Debugger.enable',
+            sessionId: t === 'main' ? 'Main' : undefined,
+          })),
+          ...thread.map((t: string) => ({
             method: 'Runtime.enable',
-          },
+            sessionId: t === 'main' ? 'Main' : undefined,
+          })),
         ]),
       );
 
-      const messages: ConsoleMessage[] = [];
       const defaultLevels = ['info', 'log', 'warning', 'error'];
       const allowedLevels = level || defaultLevels;
       let skipped = 0;
+      let produced = 0;
 
-      const reader = stream.getReader();
-      const IDLE_TIMEOUT = 500;
-      const MAX_TOTAL_TIME = 5000;
-      const startTime = Date.now();
+      if (watch) {
+        const reader = stream.getReader();
+        let aborted = false;
+        const onSigint = () => {
+          aborted = true;
+          reader.cancel().catch(() => {});
+        };
+        process.once('SIGINT', onSigint);
 
-      try {
-        while (Date.now() - startTime < MAX_TOTAL_TIME) {
-          const result = await Promise.race([
-            reader.read(),
-            setTimeout(IDLE_TIMEOUT, 'timeout' as const),
-          ]);
-          if (result === 'timeout') {
-            await reader.cancel();
-            break;
-          }
+        try {
+          while (!aborted) {
+            const { done, value } = await reader.read();
+            if (done) break;
 
-          const { done, value } = result;
-          if (done) break;
-
-          if (value.method === 'Runtime.consoleAPICalled') {
+            if (value.method !== 'Runtime.consoleAPICalled') continue;
             const params = value.params as ConsoleMessage;
-            if (allowedLevels.includes(params.type)) {
-              if (skipped < offset) {
-                skipped++;
-                continue;
-              }
+            if (!allowedLevels.includes(params.type)) continue;
 
-              if (!includeStackTraces && params.type !== 'error') {
-                delete params.stackTrace;
-              }
+            if (skipped < offset) {
+              skipped++;
+              continue;
+            }
 
-              messages.push(params);
+            if (!includeStackTraces && params.type !== 'error') {
+              delete params.stackTrace;
+            }
 
-              if (limit && messages.length >= limit) {
-                await reader.cancel();
-                break;
-              }
+            console.log(formatConsoleMessage(params));
+            produced++;
+
+            if (limit && produced >= limit) {
+              await reader.cancel();
+              break;
             }
           }
+        } finally {
+          process.off('SIGINT', onSigint);
+          reader.releaseLock();
         }
-      } finally {
-        reader.releaseLock();
+
+        return;
       }
 
-      console.log(
-        messages
-          .map(
-            ({ type, args, stackTrace }) =>
-              `- [${type}]: ${args
-                .map((arg) => {
-                  if (arg.objectId) {
-                    return `<${arg.description || arg.className || 'Object'} (objectId:${arg.objectId})>`;
-                  }
-                  return arg.value;
-                })
-                .join(' ')}${
-                stackTrace
-                  ? '\n' +
-                    stackTrace.callFrames
-                      .map(
-                        ({ url, lineNumber, columnNumber }) =>
-                          `    at ${url}:${lineNumber}:${columnNumber}`,
-                      )
-                      .join('\n')
-                  : ''
-              }`,
-          )
-          .join('\n'),
-      );
+      const messages: ConsoleMessage[] = [];
+
+      for await (const value of readUntilIdle(stream, {
+        idleMs: 500,
+        maxMs: 5000,
+      })) {
+        if (value.method !== 'Runtime.consoleAPICalled') continue;
+        const params = value.params as ConsoleMessage;
+        if (!allowedLevels.includes(params.type)) continue;
+
+        if (skipped < offset) {
+          skipped++;
+          continue;
+        }
+
+        if (!includeStackTraces && params.type !== 'error') {
+          delete params.stackTrace;
+        }
+
+        messages.push(params);
+
+        if (limit && messages.length >= limit) {
+          break;
+        }
+      }
+
+      console.log(messages.map(formatConsoleMessage).join('\n'));
     });
 }

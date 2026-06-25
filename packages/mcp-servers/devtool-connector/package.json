@@ -1,0 +1,97 @@
+{
+  "name": "@lynx-js/devtool-connector",
+  "version": "0.9.3",
+  "type": "module",
+  "license": "Apache-2.0",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "imports": {
+    "#daemon-entry": "./src/daemon/entry.ts"
+  },
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "import": "./src/index.ts",
+      "default": "./src/index.ts"
+    },
+    "./daemon": {
+      "types": "./src/daemon/index.ts",
+      "import": "./src/daemon/index.ts",
+      "default": "./src/daemon/index.ts"
+    },
+    "./transport": {
+      "types": "./src/transport/index.ts",
+      "import": "./src/transport/index.ts",
+      "default": "./src/transport/index.ts"
+    },
+    "./streams": {
+      "types": "./src/streams/index.ts",
+      "import": "./src/streams/index.ts",
+      "default": "./src/streams/index.ts"
+    },
+    "./test-with-client": {
+      "types": "./test/testWithClient.ts",
+      "import": "./test/testWithClient.ts",
+      "default": "./test/testWithClient.ts"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "CHANGELOG.md",
+    "dist",
+    "public"
+  ],
+  "scripts": {
+    "build": "rslib build",
+    "test": "node --test --test-concurrency=1 'test/**/*.test.ts'",
+    "test:e2e": "node --test --test-concurrency=1 'e2e/**/*.test.ts'"
+  },
+  "dependencies": {
+    "ws": "^8.21.0"
+  },
+  "devDependencies": {
+    "@rslib/core": "catalog:rstack",
+    "@types/node": "^24.13.2",
+    "@types/ws": "^8.18.1",
+    "@yume-chan/adb": "catalog:adb",
+    "@yume-chan/adb-server-node-tcp": "catalog:adb",
+    "@yume-chan/stream-extra": "catalog:adb",
+    "obug": "^2.1.3",
+    "plist": "^5.0.0",
+    "rsbuild-plugin-publint": "^1.0.0",
+    "typescript": "^5.9.3"
+  },
+  "engines": {
+    "node": ">=18.19"
+  },
+  "publishConfig": {
+    "main": "./dist/index.js",
+    "types": "./dist/index.d.ts",
+    "imports": {
+      "#daemon-entry": "./dist/daemon/entry.js"
+    },
+    "exports": {
+      ".": {
+        "types": "./dist/index.d.ts",
+        "import": "./dist/index.js",
+        "default": "./dist/index.js"
+      },
+      "./daemon": {
+        "types": "./dist/daemon/index.d.ts",
+        "import": "./dist/daemon/index.js",
+        "default": "./dist/daemon/index.js"
+      },
+      "./transport": {
+        "types": "./dist/transport/index.d.ts",
+        "import": "./dist/transport/index.js",
+        "default": "./dist/transport/index.js"
+      },
+      "./streams": {
+        "types": "./dist/streams/index.d.ts",
+        "import": "./dist/streams/index.js",
+        "default": "./dist/streams/index.js"
+      },
+      "./package.json": "./package.json"
+    }
+  }
+}
