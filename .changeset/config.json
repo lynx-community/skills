@@ -4,7 +4,6 @@
   "commit": false,
   "fixed": [
     [
-      "@lynx-js/devtool-connector",
       "@lynx-js/devtool-mcp-server",
       "@lynx-js/skill-lynx-devtool"
     ]
