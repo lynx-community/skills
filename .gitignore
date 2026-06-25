@@ -151,6 +151,7 @@ dist
 
 # auto-generated skill and plugin files
 packages/skills/*/scripts
+packages/skills/*/public
 packages/plugins/*/skills
 packages/plugins/*/scripts
 packages/plugins/*/.claude-plugin

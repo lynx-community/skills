@@ -2,9 +2,16 @@
   "name": "@lynx-js/skill-lynx-devtool",
   "version": "0.13.3",
   "type": "module",
+  "bin": {
+    "lynx-devtool": "./scripts/index.mjs"
+  },
+  "imports": {
+    "#daemon-entry": "./scripts/daemon-entry.mjs"
+  },
   "files": [
     "SKILL.md",
     "scripts",
+    "public",
     "references",
     "examples",
     "reference.md",
@@ -17,6 +24,7 @@
   "devDependencies": {
     "@lynx-js/devtool-connector": "workspace:*",
     "@rslib/core": "catalog:rstack",
+    "@rspack/core": "catalog:rstack",
     "@types/node": "24",
     "commander": "14",
     "core-js": "^3.49.0",

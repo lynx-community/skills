@@ -4,6 +4,7 @@
 
 import path from 'node:path';
 import { defineConfig } from '@rslib/core';
+import { CopyRspackPlugin } from '@rspack/core';
 
 const buildTime = new Date();
 const formattedBuildTime = `${buildTime.getFullYear()}-${String(buildTime.getMonth() + 1).padStart(2, '0')}-${String(
@@ -18,6 +19,8 @@ export default defineConfig({
     entry: {
       index: './src/index.ts',
       connector: './src/connector.ts',
+      'daemon-entry':
+        './node_modules/@lynx-js/devtool-connector/src/daemon/entry.ts',
     },
     define: {
       'process.env.NODE_ENV': JSON.stringify('production'),
@@ -46,6 +49,16 @@ export default defineConfig({
           preserveModules: path.resolve(import.meta.dirname, 'src/commands'),
         },
       },
+      plugins: [
+        new CopyRspackPlugin({
+          patterns: [
+            {
+              from: './node_modules/@lynx-js/devtool-connector/public',
+              to: path.resolve(import.meta.dirname, 'public'),
+            },
+          ],
+        }),
+      ],
     },
   },
 });
