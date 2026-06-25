@@ -1,28 +1,21 @@
-import * as __rspack_external_buffer from "buffer";
-import * as __rspack_external_crypto from "crypto";
-import * as __rspack_external_events from "events";
-import * as __rspack_external_http from "http";
-import * as __rspack_external_https from "https";
-import * as __rspack_external_net from "net";
-import * as __rspack_external_node_child_process_27f17141 from "node:child_process";
-import * as __rspack_external_node_events_0a6aefe7 from "node:events";
-import * as __rspack_external_node_fs_5ea92f0c from "node:fs";
-import * as __rspack_external_node_fs_promises_153e37e0 from "node:fs/promises";
-import * as __rspack_external_node_module_ab9f2194 from "node:module";
-import * as __rspack_external_node_net_0373943e from "node:net";
-import * as __rspack_external_node_os_74b4b876 from "node:os";
-import * as __rspack_external_node_path_c5b9b54f from "node:path";
-import * as __rspack_external_node_stream_444d1c2b from "node:stream";
-import * as __rspack_external_node_stream_web_2bbcbe48 from "node:stream/web";
-import * as __rspack_external_node_timers_promises_aedbf14c from "node:timers/promises";
-import * as __rspack_external_node_tty_c64aab7e from "node:tty";
-import * as __rspack_external_node_util_1b29d436 from "node:util";
-import * as __rspack_external_stream from "stream";
-import * as __rspack_external_tls from "tls";
-import * as __rspack_external_url from "url";
-import * as __rspack_external_util from "util";
-import * as __rspack_external_zlib from "zlib";
+import { Server, Socket } from "net";
+import { isatty } from "node:tty";
+import { formatWithOptions, inspect } from "node:util";
+import promises from "node:fs/promises";
+import node_os from "node:os";
+import node_path from "node:path";
+import { TransformStream as web_TransformStream } from "node:stream/web";
+import { spawn as external_node_child_process_spawn } from "node:child_process";
+import { closeSync, openSync } from "node:fs";
+import { createRequire } from "node:module";
+import node_net from "node:net";
+import { setTimeout as promises_setTimeout } from "node:timers/promises";
+import { Duplex } from "node:stream";
+import { on, once } from "node:events";
 import { __webpack_require__ } from "./rslib-runtime.mjs";
+import { createRequire as __rspack_createRequire } from "node:module";
+const __rspack_createRequire_require = __rspack_createRequire(import.meta.url);
+import * as __rspack_external_node_net_0373943e from "node:net";
 __webpack_require__.add({
     "../../../node_modules/.pnpm/@xmldom+xmldom@0.9.10/node_modules/@xmldom/xmldom/lib/conventions.js" (__unused_rspack_module, exports) {
         function find(list, predicate, ac) {
@@ -4274,7 +4267,7 @@ __webpack_require__.add({
         dom.Text;
         dom.XMLSerializer;
         var domParser = __webpack_require__("../../../node_modules/.pnpm/@xmldom+xmldom@0.9.10/node_modules/@xmldom/xmldom/lib/dom-parser.js");
-        exports.DOMParser = domParser.DOMParser;
+        exports.S4 = domParser.DOMParser;
         domParser.normalizeLineEndings;
         domParser.onErrorStopParsing;
         domParser.onWarningStopParsing;
@@ -6723,7 +6716,7 @@ __webpack_require__.add({
         const EventEmitter = __webpack_require__("events");
         const https = __webpack_require__("https");
         const http = __webpack_require__("http");
-        const net = __webpack_require__("net");
+        const net = __webpack_require__("net?14db");
         const tls = __webpack_require__("tls");
         const { randomBytes, createHash } = __webpack_require__("crypto");
         const { Duplex, Readable } = __webpack_require__("stream");
@@ -10357,4225 +10350,857 @@ __webpack_require__.add({
             module.exports.writerState = WriterState;
         }).call(this);
     },
-    "../../mcp-servers/devtool-connector/src/client-id.ts" (__unused_rspack_module, __webpack_exports__, __webpack_require__) {
-        __webpack_require__.d(__webpack_exports__, {
-            R: ()=>ClientId
-        });
-        class ClientId {
-            static serialize(deviceId, port) {
-                return `${encodeURIComponent(deviceId)}:${port}`;
-            }
-            static deserialize(clientId) {
-                try {
-                    const lastColonIndex = clientId.lastIndexOf(':');
-                    if (-1 === lastColonIndex) return null;
-                    const port = Number.parseInt(clientId.substring(lastColonIndex + 1), 10);
-                    if (Number.isNaN(port)) return null;
-                    return {
-                        deviceId: decodeURIComponent(clientId.substring(0, lastColonIndex)),
-                        port
-                    };
-                } catch  {
-                    return null;
-                }
-            }
-        }
-    },
-    "../../mcp-servers/devtool-connector/src/daemon/manager.ts" (__unused_rspack_module, __webpack_exports__, __webpack_require__) {
-        __webpack_require__.d(__webpack_exports__, {
-            $G: ()=>21783,
-            oX: ()=>DaemonManager
-        });
-        var node_child_process__rspack_import_0 = __webpack_require__("node:child_process");
-        var node_fs__rspack_import_1 = __webpack_require__("node:fs");
-        var node_fs_promises__rspack_import_2 = __webpack_require__("node:fs/promises");
-        var node_module__rspack_import_3 = __webpack_require__("node:module");
-        var node_net__rspack_import_4 = __webpack_require__("node:net");
-        var node_os__rspack_import_5 = __webpack_require__("node:os");
-        var node_path__rspack_import_6 = __webpack_require__("node:path");
-        var node_timers_promises__rspack_import_7 = __webpack_require__("node:timers/promises");
-        var obug__rspack_import_9 = __webpack_require__("../../../node_modules/.pnpm/obug@2.1.3/node_modules/obug/dist/node.js");
-        var _protocol_ts__rspack_import_8 = __webpack_require__("../../mcp-servers/devtool-connector/src/daemon/protocol.ts");
-        const debug = (0, obug__rspack_import_9.U)('devtool-mcp-server:daemon:manager');
-        const DEBUG_ROUTER_DIR = node_path__rspack_import_6["default"].join(node_os__rspack_import_5["default"].homedir(), '.DebugRouterConnector');
-        const PIDFILE = node_path__rspack_import_6["default"].join(DEBUG_ROUTER_DIR, 'daemon.pid');
-        const LOG = node_path__rspack_import_6["default"].join(DEBUG_ROUTER_DIR, 'daemon.log');
-        const ERR = node_path__rspack_import_6["default"].join(DEBUG_ROUTER_DIR, 'daemon.err');
-        function resolveDaemonEntryPath(moduleUrl = import.meta.url) {
-            return (0, node_module__rspack_import_3.createRequire)(moduleUrl).resolve('#daemon-entry');
-        }
-        class DaemonManager {
-            static async ensureRunning(port = 21783) {
-                const url = `ws://127.0.0.1:${port}${_protocol_ts__rspack_import_8.yp}`;
-                if (await DaemonManager.#isAlive(port)) {
-                    debug('daemon already running on port %d', port);
-                    return url;
-                }
-                debug('daemon not running, spawning...');
-                await DaemonManager.#spawn(port);
-                await DaemonManager.#waitReady(port, 5000);
-                debug('daemon is ready on port %d', port);
-                return url;
-            }
-            static async kill() {
-                try {
-                    const pidStr = await node_fs_promises__rspack_import_2["default"].readFile(PIDFILE, 'utf-8');
-                    const pid = Number.parseInt(pidStr.trim(), 10);
-                    if (!Number.isNaN(pid)) {
-                        debug('killing daemon pid %d', pid);
-                        process.kill(pid, 'SIGTERM');
-                    }
-                } catch  {
-                    debug('no pidfile found or cannot read it');
-                }
-            }
-            static async #isAlive(port) {
-                return new Promise((resolve)=>{
-                    const socket = node_net__rspack_import_4["default"].createConnection({
-                        host: '127.0.0.1',
-                        port
-                    }, ()=>{
-                        socket.destroy();
-                        resolve(true);
-                    });
-                    socket.on('error', ()=>{
-                        socket.destroy();
-                        resolve(false);
-                    });
-                    socket.setTimeout(1000, ()=>{
-                        socket.destroy();
-                        resolve(false);
-                    });
-                });
-            }
-            static async #spawn(port) {
-                await node_fs_promises__rspack_import_2["default"].mkdir(DEBUG_ROUTER_DIR, {
-                    recursive: true
-                });
-                const entryPath = resolveDaemonEntryPath();
-                const out = (0, node_fs__rspack_import_1.openSync)(LOG, 'w');
-                const err = (0, node_fs__rspack_import_1.openSync)(ERR, 'w');
-                const child = (0, node_child_process__rspack_import_0.spawn)(process.execPath, [
-                    entryPath,
-                    '--port',
-                    String(port)
-                ], {
-                    detached: true,
-                    stdio: [
-                        'ignore',
-                        out,
-                        err
-                    ],
-                    env: {
-                        ...process.env,
-                        DEBUG: process.env['DEBUG'] ?? ''
-                    }
-                });
-                (0, node_fs__rspack_import_1.closeSync)(out);
-                (0, node_fs__rspack_import_1.closeSync)(err);
-                child.unref();
-                if (void 0 !== child.pid) {
-                    await node_fs_promises__rspack_import_2["default"].writeFile(PIDFILE, String(child.pid), 'utf-8');
-                    debug('spawned daemon with pid %d', child.pid);
-                }
-            }
-            static async #waitReady(port, timeoutMs) {
-                const deadline = Date.now() + timeoutMs;
-                while(Date.now() < deadline){
-                    if (await DaemonManager.#isAlive(port)) return;
-                    await (0, node_timers_promises__rspack_import_7.setTimeout)(200);
-                }
-                throw new Error(`Daemon failed to start within ${timeoutMs}ms on port ${port}`);
-            }
-        }
-    },
-    "../../mcp-servers/devtool-connector/src/daemon/protocol.ts" (__unused_rspack_module, __webpack_exports__, __webpack_require__) {
-        __webpack_require__.d(__webpack_exports__, {
-            UR: ()=>DAEMON_VERSION_PATH,
-            Zr: ()=>isCustomizedMessage,
-            _0: ()=>isListClientsRequest,
-            dB: ()=>DAEMON_INSPECTOR_PATH,
-            jG: ()=>isControlRequest,
-            ji: ()=>isPingEvent,
-            oF: ()=>isRegisterEvent,
-            oc: ()=>DAEMON_SHUTDOWN_PATH,
-            yp: ()=>DAEMON_WS_PATH
-        });
-        function isCustomizedMessage(msg) {
-            return 'object' == typeof msg && null !== msg && 'Customized' === msg.event;
-        }
-        function isControlRequest(msg) {
-            return 'object' == typeof msg && null !== msg && 'Control' === msg.event;
-        }
-        function isListClientsRequest(msg) {
-            return 'object' == typeof msg && null !== msg && 'ListClients' === msg.event;
-        }
-        function isPingEvent(msg) {
-            return 'object' == typeof msg && null !== msg && 'Ping' === msg.event;
-        }
-        function isRegisterEvent(msg) {
-            return 'object' == typeof msg && null !== msg && 'Register' === msg.event;
-        }
-        const DAEMON_WS_PATH = '/devtool/connector';
-        const DAEMON_VERSION_PATH = `${DAEMON_WS_PATH}/version`;
-        const DAEMON_SHUTDOWN_PATH = `${DAEMON_WS_PATH}/shutdown`;
-        const DAEMON_INSPECTOR_PATH = `${DAEMON_WS_PATH}/inspector`;
-    },
-    "../../mcp-servers/devtool-connector/src/takeover.ts" (__unused_rspack_module, __webpack_exports__, __webpack_require__) {
-        __webpack_require__.d(__webpack_exports__, {
-            r: ()=>takeoverDebugRouterLock
-        });
-        var node_fs_promises__rspack_import_0 = __webpack_require__("node:fs/promises");
-        var node_os__rspack_import_1 = __webpack_require__("node:os");
-        var node_path__rspack_import_2 = __webpack_require__("node:path");
-        var obug__rspack_import_3 = __webpack_require__("../../../node_modules/.pnpm/obug@2.1.3/node_modules/obug/dist/node.js");
-        const debug = (0, obug__rspack_import_3.U)('devtool-mcp-server:takeover');
-        const DEBUG_ROUTER_DIR = node_path__rspack_import_2["default"].join(node_os__rspack_import_1["default"].homedir(), '.DebugRouterConnector');
-        const DEBUG_ROUTER_LOCK_DIR = node_path__rspack_import_2["default"].join(DEBUG_ROUTER_DIR, 'lockfile');
-        const DEBUG_ROUTER_LATEST_FILE = node_path__rspack_import_2["default"].join(DEBUG_ROUTER_DIR, 'LatestDriverProcess');
-        async function takeoverDebugRouterLock() {
-            try {
-                await node_fs_promises__rspack_import_0["default"].mkdir(DEBUG_ROUTER_DIR, {
-                    recursive: true
-                });
-                await node_fs_promises__rspack_import_0["default"].rm(DEBUG_ROUTER_LOCK_DIR, {
-                    recursive: true,
-                    force: true
-                });
-                await node_fs_promises__rspack_import_0["default"].mkdir(DEBUG_ROUTER_LOCK_DIR, {
-                    recursive: true
-                });
-                await node_fs_promises__rspack_import_0["default"].writeFile(DEBUG_ROUTER_LATEST_FILE, `${process.pid}`, 'utf-8');
-                debug(`wrote PID=${process.pid}`);
-            } catch (err) {
-                debug('skipped due to filesystem error %O', err);
-            } finally{
-                try {
-                    await node_fs_promises__rspack_import_0["default"].rm(DEBUG_ROUTER_LOCK_DIR, {
-                        recursive: true,
-                        force: true
-                    });
-                } catch (_cleanupError) {
-                    debug('failed to remove lock directory %O', _cleanupError);
-                }
-            }
-        }
-    },
-    "../../mcp-servers/devtool-connector/src/transport/android.ts" (__unused_rspack_module, __webpack_exports__, __webpack_require__) {
-        __webpack_require__.d(__webpack_exports__, {
-            R: ()=>AndroidTransport
-        });
-        var _yume_chan_adb__rspack_import_2 = __webpack_require__("../../../node_modules/.pnpm/@yume-chan+adb@2.6.0/node_modules/@yume-chan/adb/esm/server/client.js");
-        var _yume_chan_adb_server_node_tcp__rspack_import_3 = __webpack_require__("../../../node_modules/.pnpm/@yume-chan+adb-server-node-tcp@2.5.2/node_modules/@yume-chan/adb-server-node-tcp/esm/index.js");
-        var obug__rspack_import_1 = __webpack_require__("../../../node_modules/.pnpm/obug@2.1.3/node_modules/obug/dist/node.js");
-        var _base_ts__rspack_import_0 = __webpack_require__("../../mcp-servers/devtool-connector/src/transport/base.ts");
-        function _ts_add_disposable_resource(env, value, async) {
-            if (null != value) {
-                if ("object" != typeof value && "function" != typeof value) throw new TypeError("Object expected.");
-                var dispose, inner;
-                if (async) {
-                    if (!Symbol.asyncDispose) throw new TypeError("Symbol.asyncDispose is not defined.");
-                    dispose = value[Symbol.asyncDispose];
-                }
-                if (void 0 === dispose) {
-                    if (!Symbol.dispose) throw new TypeError("Symbol.dispose is not defined.");
-                    dispose = value[Symbol.dispose];
-                    if (async) inner = dispose;
-                }
-                if ("function" != typeof dispose) throw new TypeError("Object not disposable.");
-                if (inner) dispose = function() {
-                    try {
-                        inner.call(this);
-                    } catch (e) {
-                        return Promise.reject(e);
-                    }
-                };
-                env.stack.push({
-                    value: value,
-                    dispose: dispose,
-                    async: async
-                });
-            } else if (async) env.stack.push({
-                async: true
-            });
-            return value;
-        }
-        function _ts_dispose_resources(env) {
-            var _SuppressedError = "function" == typeof SuppressedError ? SuppressedError : function(error, suppressed, message) {
-                var e = new Error(message);
-                return e.name = "SuppressedError", e.error = error, e.suppressed = suppressed, e;
-            };
-            return (_ts_dispose_resources = function(env) {
-                function fail(e) {
-                    env.error = env.hasError ? new _SuppressedError(e, env.error, "An error was suppressed during disposal.") : e;
-                    env.hasError = true;
-                }
-                var r, s = 0;
-                function next() {
-                    while(r = env.stack.pop())try {
-                        if (!r.async && 1 === s) return s = 0, env.stack.push(r), Promise.resolve().then(next);
-                        if (r.dispose) {
-                            var result = r.dispose.call(r.value);
-                            if (r.async) return s |= 2, Promise.resolve(result).then(next, function(e) {
-                                fail(e);
-                                return next();
-                            });
-                        } else s |= 1;
-                    } catch (e) {
-                        fail(e);
-                    }
-                    if (1 === s) return env.hasError ? Promise.reject(env.error) : Promise.resolve();
-                    if (env.hasError) throw env.error;
-                }
-                return next();
-            })(env);
-        }
-        const debug = (0, obug__rspack_import_1.U)('devtool-mcp-server:connector:android');
-        const KNOWNS_APPS = [
-            {
-                packageName: 'com.lynx.uiapp',
-                name: 'Lynx Example'
-            },
-            {
-                packageName: 'com.lynx.explorer',
-                name: 'Lynx Explorer'
-            }
-        ];
-        class AndroidTransport {
-            client;
-            constructor(spec = {
-                port: 5037
-            }){
-                this.client = new _yume_chan_adb__rspack_import_2.E(new _yume_chan_adb_server_node_tcp__rspack_import_3.L(spec));
-            }
-            async connect(options) {
-                return (0, _base_ts__rspack_import_0.Xy)((opts)=>this.#connectRaw(opts), options);
-            }
-            async #createAdb(deviceId) {
-                const adb = await this.client.createAdb({
-                    serial: deviceId
-                });
-                return Object.assign(adb, {
-                    async [Symbol.asyncDispose] () {
-                        await adb.close();
-                    }
-                });
-            }
-            async close() {
-                debug('Android transport closed');
-            }
-            async #connectRaw({ deviceId, port, signal }) {
-                const adb = await this.client.createAdb({
-                    serial: deviceId
-                });
-                debug(`connect: create connection to deviceId: ${deviceId}, port: ${port}`);
-                signal?.throwIfAborted();
-                const service = `tcp:${port}`;
-                let socket;
-                try {
-                    socket = await adb.createSocket(service);
-                } catch (err) {
-                    await adb.close();
-                    debug(`connect: create socket to ${service} failed with err: %o`, err);
-                    throw err;
-                }
-                if (signal?.aborted) {
-                    await socket.close();
-                    await adb.close();
-                    signal.throwIfAborted();
-                }
-                const abortHandler = ()=>{
-                    Promise.resolve(socket.close()).catch((err)=>{
-                        debug(`connect: socket ${service} close on abort err: %o`, err);
-                    });
-                };
-                signal?.addEventListener('abort', abortHandler, {
-                    once: true
-                });
-                Promise.resolve(socket.closed).catch((err)=>{
-                    debug(`connect: socket ${service} closed with err: %o`, err);
-                });
-                return {
-                    readable: socket.readable,
-                    writable: socket.writable,
-                    async [Symbol.asyncDispose] () {
-                        signal?.removeEventListener('abort', abortHandler);
-                        debug(`connect: close connection to deviceId: ${deviceId}, port: ${port}`);
-                        try {
-                            await socket.close();
-                        } finally{
-                            await adb.close();
-                        }
-                    }
-                };
-            }
-            async listDevices() {
-                const devices = await this.client.getDevices();
-                debug('listDevices: devices %o', devices);
-                return devices.map(({ serial })=>({
-                        os: 'Android',
-                        id: serial
-                    }));
-            }
-            async listAvailableApps(deviceId) {
-                const env = {
-                    stack: [],
-                    error: void 0,
-                    hasError: false
-                };
-                try {
-                    const adb = _ts_add_disposable_resource(env, await this.#createAdb(deviceId), true);
-                    const output = await adb.subprocess.noneProtocol.spawnWaitText([
-                        'pm',
-                        'list',
-                        'packages',
-                        '-3'
-                    ]);
-                    const packages = new Set(output.split('\n').map((line)=>line.replace('package:', '').trim()).filter((i)=>'' !== i));
-                    debug("listAvailableApps all packages: %o", packages);
-                    return KNOWNS_APPS.filter((app)=>packages.has(app.packageName));
-                } catch (e) {
-                    env.error = e;
-                    env.hasError = true;
-                } finally{
-                    const result = _ts_dispose_resources(env);
-                    if (result) await result;
-                }
-            }
-            async openApp(deviceId, packageName, { withDataCleared } = {}) {
-                const env = {
-                    stack: [],
-                    error: void 0,
-                    hasError: false
-                };
-                try {
-                    const apps = await this.listAvailableApps(deviceId);
-                    const adb = _ts_add_disposable_resource(env, await this.#createAdb(deviceId), true);
-                    if (!apps.some((app)=>app.packageName === packageName)) throw new Error(`package ${packageName} not found`);
-                    if (withDataCleared) {
-                        const output = await adb.subprocess.noneProtocol.spawnWaitText([
-                            'pm',
-                            'clear',
-                            packageName
-                        ]);
-                        debug(`openApp clear data output ${output}`);
-                    }
-                    const output = await adb.subprocess.noneProtocol.spawnWaitText([
-                        'monkey',
-                        '-p',
-                        packageName,
-                        '-c',
-                        'android.intent.category.LAUNCHER',
-                        '1'
-                    ]);
-                    debug(`openApp LAUNCHER output ${output}`);
-                    if (output.includes('No activities found')) throw new Error(`No launchable activity found for package ${packageName}.`);
-                    if (output.includes('monkey aborted')) throw new Error(`Failed to open app ${packageName}.`);
-                } catch (e) {
-                    env.error = e;
-                    env.hasError = true;
-                } finally{
-                    const result = _ts_dispose_resources(env);
-                    if (result) await result;
-                }
-            }
-        }
-    },
-    "../../mcp-servers/devtool-connector/src/transport/base.ts" (__unused_rspack_module, __webpack_exports__, __webpack_require__) {
-        __webpack_require__.d(__webpack_exports__, {
-            Ah: ()=>createMessageConnection,
-            Xy: ()=>connectWithPeertalk,
-            pb: ()=>peertalkCodecFactory
-        });
-        var _takeover_ts__rspack_import_0 = __webpack_require__("../../mcp-servers/devtool-connector/src/takeover.ts");
-        var _peertalk_ts__rspack_import_1 = __webpack_require__("../../mcp-servers/devtool-connector/src/transport/peertalk.ts");
-        const peertalkCodecFactory = {
-            createEncodeTransformStream () {
-                return new _peertalk_ts__rspack_import_1.j();
-            },
-            createDecodeTransformStream () {
-                return new _peertalk_ts__rspack_import_1.l();
-            }
-        };
-        async function createMessageConnection(connectRaw, codecFactory, options) {
-            const conn = await connectRaw(options);
-            const encoder = codecFactory.createEncodeTransformStream();
-            const pipeAbortController = new AbortController();
-            encoder.readable.pipeTo(conn.writable, {
-                preventClose: true,
-                signal: pipeAbortController.signal
-            }).catch((err)=>{
-                if (err?.name !== 'AbortError') conn[Symbol.asyncDispose]();
-            });
-            const readable = conn.readable.pipeThrough(codecFactory.createDecodeTransformStream());
-            return {
-                readable,
-                writable: encoder.writable,
-                async [Symbol.asyncDispose] () {
-                    pipeAbortController.abort();
-                    await conn[Symbol.asyncDispose]();
-                }
-            };
-        }
-        async function connectWithPeertalk(connectRaw, options) {
-            await (0, _takeover_ts__rspack_import_0.r)();
-            return createMessageConnection(connectRaw, peertalkCodecFactory, options);
-        }
-    },
-    "../../mcp-servers/devtool-connector/src/transport/desktop.ts" (__unused_rspack_module, __webpack_exports__, __webpack_require__) {
-        __webpack_require__.d(__webpack_exports__, {
-            y: ()=>DesktopTransport
-        });
-        var node_net__rspack_import_0 = __webpack_require__("node:net");
-        var node_stream__rspack_import_1 = __webpack_require__("node:stream");
-        var obug__rspack_import_3 = __webpack_require__("../../../node_modules/.pnpm/obug@2.1.3/node_modules/obug/dist/node.js");
-        var _base_ts__rspack_import_2 = __webpack_require__("../../mcp-servers/devtool-connector/src/transport/base.ts");
-        const debug = (0, obug__rspack_import_3.U)('devtool-mcp-server:connector:desktop');
-        class DesktopTransport {
-            async connect(options) {
-                return (0, _base_ts__rspack_import_2.Xy)((opts)=>this.#connectRaw(opts), options);
-            }
-            async close() {
-                debug('Desktop transport closed');
-            }
-            async listDevices() {
-                return [
-                    {
-                        id: 'localhost',
-                        os: 'Desktop'
-                    }
-                ];
-            }
-            async listAvailableApps(deviceId) {
-                return [];
-            }
-            async openApp(deviceId, packageName) {
-                throw new Error('openApp is not supported on DesktopTransport');
-            }
-            async #connectRaw({ deviceId, port, signal }) {
-                if ('localhost' !== deviceId) throw new Error(`DesktopTransport only supports 'localhost' deviceId, got: ${deviceId}`);
-                debug(`connect: connecting to 127.0.0.1:${port}`);
-                const socket = node_net__rspack_import_0["default"].createConnection({
-                    host: '127.0.0.1',
-                    port,
-                    signal
-                });
-                try {
-                    if (socket.connecting) await new Promise((resolve, reject)=>{
-                        socket.once('connect', resolve);
-                        socket.once('error', reject);
-                    });
-                    debug(`connect: connected to 127.0.0.1:${port}`);
-                    const { readable, writable } = node_stream__rspack_import_1.Duplex.toWeb(socket);
-                    return {
-                        readable,
-                        writable,
-                        async [Symbol.asyncDispose] () {
-                            debug(`connect: closing connection to 127.0.0.1:${port}`);
-                            socket.destroy();
-                        }
-                    };
-                } catch (err) {
-                    debug(`connect: error connecting to 127.0.0.1:${port} %O`, err);
-                    socket.destroy();
-                    throw err;
-                }
-            }
-        }
-    },
-    "../../mcp-servers/devtool-connector/src/transport/ios.ts" (__unused_rspack_module, __webpack_exports__, __webpack_require__) {
-        __webpack_require__.d(__webpack_exports__, {
-            H: ()=>iOSTransport
-        });
-        var obug__rspack_import_2 = __webpack_require__("../../../node_modules/.pnpm/obug@2.1.3/node_modules/obug/dist/node.js");
-        var _base_ts__rspack_import_0 = __webpack_require__("../../mcp-servers/devtool-connector/src/transport/base.ts");
-        var _usbmux_ts__rspack_import_1 = __webpack_require__("../../mcp-servers/devtool-connector/src/transport/usbmux.ts");
-        const debug = (0, obug__rspack_import_2.U)('devtool-mcp-server:connector:ios');
-        class iOSTransport {
-            #client;
-            constructor(options){
-                this.#client = new _usbmux_ts__rspack_import_1.H(options);
-            }
-            async connect(options) {
-                return (0, _base_ts__rspack_import_0.Xy)((opts)=>this.#connectRaw(opts), options);
-            }
-            async close() {
-                debug('iOS transport closed');
-            }
-            async #connectRaw({ deviceId, port, signal }) {
-                debug(`connect: create connection to deviceId: ${deviceId}, port: ${port}`);
-                const id = await this.#resolveUsbmuxDeviceId(deviceId, signal);
-                const conn = await this.#client.connect(id, port, signal);
-                return {
-                    readable: conn.readable,
-                    writable: conn.writable,
-                    async [Symbol.asyncDispose] () {
-                        debug(`connect: close connection to deviceId: ${deviceId}, port: ${port}`);
-                        conn.dispose();
-                    }
-                };
-            }
-            async #resolveUsbmuxDeviceId(deviceId, signal) {
-                const numericDeviceId = Number(deviceId);
-                if (Number.isInteger(numericDeviceId)) return numericDeviceId;
-                const devices = await this.#client.listDevices(signal);
-                const device = devices.find(({ Properties })=>Properties.SerialNumber === deviceId);
-                if (!device) throw new Error(`iOS device with id: ${deviceId} not found`);
-                return device.DeviceID;
-            }
-            async listDevices() {
-                const devices = await this.#client.listDevices(AbortSignal.timeout(1000));
-                debug('listDevices: devices %o', devices);
-                return devices.map(({ Properties })=>({
-                        os: 'iOS',
-                        id: Properties.SerialNumber
-                    }));
-            }
-            async listAvailableApps() {
-                throw new Error('Not implemented');
-            }
-            async openApp(_, __, ___) {
-                throw new Error('Not implemented');
-            }
-        }
-    },
-    "../../mcp-servers/devtool-connector/src/transport/peertalk.ts" (__unused_rspack_module, __webpack_exports__, __webpack_require__) {
-        __webpack_require__.d(__webpack_exports__, {
-            j: ()=>MessageToPeertalkTransformStream,
-            l: ()=>PeertalkToMessageTransformStream
-        });
-        var node_stream_web__rspack_import_0 = __webpack_require__("node:stream/web");
-        class PeertalkToMessageTransformStream extends node_stream_web__rspack_import_0.TransformStream {
-            constructor(){
-                let buffer = new Uint8Array(0);
-                const decoder = new TextDecoder();
-                super({
-                    transform: (chunk, c)=>{
-                        const n = new Uint8Array(buffer.length + chunk.length);
-                        n.set(buffer);
-                        n.set(chunk, buffer.length);
-                        buffer = n;
-                        while(buffer.length >= 20){
-                            const v = new DataView(buffer.buffer, buffer.byteOffset);
-                            const len = v.getUint32(16);
-                            if (buffer.length < 20 + len) break;
-                            try {
-                                c.enqueue(JSON.parse(decoder.decode(buffer.subarray(20, 20 + len))));
-                            } catch (e) {
-                                c.error(e);
-                            }
-                            buffer = buffer.subarray(20 + len);
-                        }
-                    }
-                });
-            }
-        }
-        class MessageToPeertalkTransformStream extends node_stream_web__rspack_import_0.TransformStream {
-            constructor(){
-                const encoder = new TextEncoder();
-                super({
-                    transform (chunk, controller) {
-                        const body = encoder.encode(JSON.stringify(chunk));
-                        const len = body.length;
-                        const data = new Uint8Array(20 + len);
-                        const view = new DataView(data.buffer);
-                        view.setUint32(0, 1);
-                        view.setUint32(4, 101);
-                        view.setUint32(8, 0);
-                        view.setUint32(12, len + 4);
-                        view.setUint32(16, len);
-                        data.set(body, 20);
-                        controller.enqueue(data);
-                    }
-                });
-            }
-        }
-    },
-    "../../mcp-servers/devtool-connector/src/transport/usbmux.ts" (__unused_rspack_module, __webpack_exports__, __webpack_require__) {
-        __webpack_require__.d(__webpack_exports__, {
-            H: ()=>Usbmux
-        });
-        var node_events__rspack_import_0 = __webpack_require__("node:events");
-        var node_net__rspack_import_1 = __webpack_require__("node:net");
-        var node_stream__rspack_import_2 = __webpack_require__("node:stream");
-        var plist__rspack_import_3 = __webpack_require__("../../../node_modules/.pnpm/plist@5.0.0/node_modules/plist/dist/index.js");
-        const HEADER_SIZE = 16;
-        const USBMUXD_VERSION = 1;
-        const USBMUXD_PACKET_TYPE_PLIST = 8;
-        const TAG = 1;
-        class Usbmux {
-            connectOptions;
-            constructor(connectOptions){
-                if ('string' == typeof connectOptions) this.connectOptions = {
-                    path: connectOptions
-                };
-                else if (connectOptions) this.connectOptions = connectOptions;
-                else this.connectOptions = {
-                    path: '/var/run/usbmuxd'
-                };
-            }
-            async listDevices(signal) {
-                const { socket, response } = await this.#sendAndReceive({
-                    MessageType: 'ListDevices',
-                    ClientVersionString: 'usbmux-driver',
-                    ProgName: 'usbmux-driver'
-                }, signal);
-                socket.destroy();
-                return response.DeviceList;
-            }
-            async connect(deviceId, port, signal) {
-                const networkPort = port >> 8 & 0xff | port << 8 & 0xff00;
-                const { socket, response, tail } = await this.#sendAndReceive({
-                    MessageType: 'Connect',
-                    ClientVersionString: 'usbmux-driver',
-                    ProgName: 'usbmux-driver',
-                    DeviceID: Number(deviceId),
-                    PortNumber: networkPort
-                }, signal);
-                if ('Result' === response.MessageType && 0 === response.Number) {
-                    if (tail.length > 0) socket.unshift(tail);
-                    const { readable, writable } = node_stream__rspack_import_2.Duplex.toWeb(socket);
-                    return {
-                        readable,
-                        writable,
-                        dispose: ()=>socket.destroy()
-                    };
-                }
-                socket.destroy();
-                throw new Error(`Invalid response for Connect: ${JSON.stringify(response)}`);
-            }
-            async #sendAndReceive(payload, signal) {
-                const socket = node_net__rspack_import_1.createConnection(this.connectOptions);
-                if (signal) {
-                    const abortHandler = ()=>socket.destroy();
-                    signal.addEventListener('abort', abortHandler, {
-                        once: true
-                    });
-                    socket.once('close', ()=>signal.removeEventListener('abort', abortHandler));
-                }
-                try {
-                    await (0, node_events__rspack_import_0.once)(socket, 'connect', {
-                        signal
-                    });
-                    socket.write(encodeRequest());
-                    let buffer = Buffer.alloc(0);
-                    for await (const [chunk] of (0, node_events__rspack_import_0.on)(socket, 'data', {
-                        signal
-                    })){
-                        buffer = Buffer.concat([
-                            buffer,
-                            chunk
-                        ]);
-                        if (buffer.length < HEADER_SIZE) continue;
-                        const length = buffer.readUInt32LE(0);
-                        if (buffer.length < length) continue;
-                        const responseBuffer = buffer.subarray(HEADER_SIZE, length);
-                        const tail = buffer.subarray(length);
-                        const response = (0, plist__rspack_import_3.qg)(responseBuffer.toString('utf8'));
-                        return {
-                            socket,
-                            response,
-                            tail
-                        };
-                    }
-                    throw new Error('Connection closed before response received');
-                } catch (error) {
-                    socket.destroy();
-                    throw error;
-                }
-                function encodeRequest() {
-                    const xml = (0, plist__rspack_import_3.jq)(payload);
-                    const body = Buffer.from(xml, 'utf8');
-                    const length = HEADER_SIZE + body.length;
-                    const header = Buffer.alloc(HEADER_SIZE);
-                    header.writeUInt32LE(length, 0);
-                    header.writeUInt32LE(USBMUXD_VERSION, 4);
-                    header.writeUInt32LE(USBMUXD_PACKET_TYPE_PLIST, 8);
-                    header.writeUInt32LE(TAG, 12);
-                    return Buffer.concat([
-                        header,
-                        body
-                    ]);
-                }
-            }
-        }
-    },
-    "../../mcp-servers/devtool-connector/src/types.ts" (__unused_rspack_module, __webpack_exports__, __webpack_require__) {
-        __webpack_require__.d(__webpack_exports__, {
-            Vp: ()=>isSetGlobalSwitchResponse,
-            aS: ()=>isInitializeResponse,
-            cm: ()=>isHeadlessPrepareResponse,
-            gF: ()=>isListSessionResponse,
-            hl: ()=>isCustomizedResponseWithType,
-            l$: ()=>isGetGlobalSwitchResponse
-        });
-        function isInitializeResponse(response) {
-            return 'Register' === response.event;
-        }
-        function isHeadlessPrepareResponse(response) {
-            return 'Customized' === response.event && 'HeadlessPrepare' === response.data.type;
-        }
-        function isListSessionResponse(response) {
-            return 'Customized' === response.event && 'SessionList' === response.data.type;
-        }
-        function isGetGlobalSwitchResponse(response) {
-            return 'Customized' === response.event && 'GetGlobalSwitch' === response.data.type;
-        }
-        function isSetGlobalSwitchResponse(response) {
-            return 'Customized' === response.event && 'SetGlobalSwitch' === response.data.type;
-        }
-        function isCustomizedResponseWithType(response, type) {
-            return 'Customized' === response.event && response.data.type === type;
-        }
-    },
     buffer (module) {
-        module.exports = __rspack_external_buffer;
+        module.exports = __rspack_createRequire_require("buffer");
     },
     crypto (module) {
-        module.exports = __rspack_external_crypto;
+        module.exports = __rspack_createRequire_require("crypto");
     },
     events (module) {
-        module.exports = __rspack_external_events;
+        module.exports = __rspack_createRequire_require("events");
     },
     http (module) {
-        module.exports = __rspack_external_http;
+        module.exports = __rspack_createRequire_require("http");
     },
     https (module) {
-        module.exports = __rspack_external_https;
+        module.exports = __rspack_createRequire_require("https");
     },
-    net (module) {
-        module.exports = __rspack_external_net;
-    },
-    "node:child_process" (module) {
-        module.exports = __rspack_external_node_child_process_27f17141;
-    },
-    "node:events" (module) {
-        module.exports = __rspack_external_node_events_0a6aefe7;
-    },
-    "node:fs" (module) {
-        module.exports = __rspack_external_node_fs_5ea92f0c;
-    },
-    "node:fs/promises" (module) {
-        module.exports = __rspack_external_node_fs_promises_153e37e0;
-    },
-    "node:module" (module) {
-        module.exports = __rspack_external_node_module_ab9f2194;
-    },
-    "node:net" (module) {
-        module.exports = __rspack_external_node_net_0373943e;
-    },
-    "node:os" (module) {
-        module.exports = __rspack_external_node_os_74b4b876;
-    },
-    "node:path" (module) {
-        module.exports = __rspack_external_node_path_c5b9b54f;
-    },
-    "node:stream" (module) {
-        module.exports = __rspack_external_node_stream_444d1c2b;
-    },
-    "node:stream/web" (module) {
-        module.exports = __rspack_external_node_stream_web_2bbcbe48;
-    },
-    "node:timers/promises" (module) {
-        module.exports = __rspack_external_node_timers_promises_aedbf14c;
-    },
-    "node:tty" (module) {
-        module.exports = __rspack_external_node_tty_c64aab7e;
-    },
-    "node:util" (module) {
-        module.exports = __rspack_external_node_util_1b29d436;
+    "net?14db" (module) {
+        module.exports = __rspack_createRequire_require("net");
     },
     stream (module) {
-        module.exports = __rspack_external_stream;
+        module.exports = __rspack_createRequire_require("stream");
     },
     tls (module) {
-        module.exports = __rspack_external_tls;
+        module.exports = __rspack_createRequire_require("tls");
     },
     url (module) {
-        module.exports = __rspack_external_url;
+        module.exports = __rspack_createRequire_require("url");
     },
     util (module) {
-        module.exports = __rspack_external_util;
+        module.exports = __rspack_createRequire_require("util");
     },
     zlib (module) {
-        module.exports = __rspack_external_zlib;
-    },
-    "../../../node_modules/.pnpm/@yume-chan+adb-server-node-tcp@2.5.2/node_modules/@yume-chan/adb-server-node-tcp/esm/index.js" (__unused_rspack___webpack_module__, __webpack_exports__, __webpack_require__) {
-        __webpack_require__.d(__webpack_exports__, {
-            L: ()=>AdbServerNodeTcpConnector
+        module.exports = __rspack_createRequire_require("zlib");
+    }
+});
+class PromiseResolver {
+    #promise;
+    get promise() {
+        return this.#promise;
+    }
+    #resolve;
+    #reject;
+    #state = 'running';
+    get state() {
+        return this.#state;
+    }
+    constructor(){
+        this.#promise = new Promise((resolve, reject)=>{
+            this.#resolve = resolve;
+            this.#reject = reject;
         });
-        var net__rspack_import_0 = __webpack_require__("net");
-        var _yume_chan_stream_extra__rspack_import_1 = __webpack_require__("../../../node_modules/.pnpm/@yume-chan+stream-extra@2.6.1/node_modules/@yume-chan/stream-extra/esm/push-readable.js");
-        var _yume_chan_stream_extra__rspack_import_2 = __webpack_require__("../../../node_modules/.pnpm/@yume-chan+stream-extra@2.6.1/node_modules/@yume-chan/stream-extra/esm/try-close.js");
-        var _yume_chan_stream_extra__rspack_import_3 = __webpack_require__("../../../node_modules/.pnpm/@yume-chan+stream-extra@2.6.1/node_modules/@yume-chan/stream-extra/esm/maybe-consumable/writable.js");
-        function nodeSocketToConnection(socket) {
-            socket.setNoDelay(true);
-            const closed = new Promise((resolve)=>{
-                socket.on("close", resolve);
-            });
-            return {
-                readable: new _yume_chan_stream_extra__rspack_import_1.F((controller)=>{
-                    socket.on("data", async (data)=>{
-                        if (controller.abortSignal.aborted) return;
-                        socket.pause();
-                        await controller.enqueue(data);
-                        socket.resume();
-                    });
-                    socket.on("end", ()=>{
-                        (0, _yume_chan_stream_extra__rspack_import_2.i)(controller);
-                    });
-                }),
-                writable: new _yume_chan_stream_extra__rspack_import_3.g({
-                    write: (chunk)=>new Promise((resolve, reject)=>{
-                            socket.write(chunk, (err)=>{
-                                if (err) reject(err);
-                                else resolve();
-                            });
-                        })
-                }),
-                get closed () {
-                    return closed;
-                },
-                close () {
-                    socket.end();
-                }
-            };
-        }
-        class AdbServerNodeTcpConnector {
-            spec;
-            #listeners = new Map();
-            constructor(spec){
-                this.spec = spec;
+    }
+    resolve = (value)=>{
+        this.#resolve(value);
+        this.#state = 'resolved';
+    };
+    reject = (reason)=>{
+        this.#reject(reason);
+        this.#state = 'rejected';
+    };
+}
+function getUint64LittleEndian(buffer, offset) {
+    return BigInt(buffer[offset]) | BigInt(buffer[offset + 1]) << 8n | BigInt(buffer[offset + 2]) << 16n | BigInt(buffer[offset + 3]) << 24n | BigInt(buffer[offset + 4]) << 32n | BigInt(buffer[offset + 5]) << 40n | BigInt(buffer[offset + 6]) << 48n | BigInt(buffer[offset + 7]) << 56n;
+}
+function getUint64(buffer, offset, littleEndian) {
+    return littleEndian ? BigInt(buffer[offset]) | BigInt(buffer[offset + 1]) << 8n | BigInt(buffer[offset + 2]) << 16n | BigInt(buffer[offset + 3]) << 24n | BigInt(buffer[offset + 4]) << 32n | BigInt(buffer[offset + 5]) << 40n | BigInt(buffer[offset + 6]) << 48n | BigInt(buffer[offset + 7]) << 56n : BigInt(buffer[offset]) << 56n | BigInt(buffer[offset + 1]) << 48n | BigInt(buffer[offset + 2]) << 40n | BigInt(buffer[offset + 3]) << 32n | BigInt(buffer[offset + 4]) << 24n | BigInt(buffer[offset + 5]) << 16n | BigInt(buffer[offset + 6]) << 8n | BigInt(buffer[offset + 7]);
+}
+function setUint64(buffer, offset, value, littleEndian) {
+    if (littleEndian) {
+        buffer[offset] = Number(0xffn & value);
+        buffer[offset + 1] = Number(value >> 8n & 0xffn);
+        buffer[offset + 2] = Number(value >> 16n & 0xffn);
+        buffer[offset + 3] = Number(value >> 24n & 0xffn);
+        buffer[offset + 4] = Number(value >> 32n & 0xffn);
+        buffer[offset + 5] = Number(value >> 40n & 0xffn);
+        buffer[offset + 6] = Number(value >> 48n & 0xffn);
+        buffer[offset + 7] = Number(value >> 56n & 0xffn);
+    } else {
+        buffer[offset] = Number(value >> 56n & 0xffn);
+        buffer[offset + 1] = Number(value >> 48n & 0xffn);
+        buffer[offset + 2] = Number(value >> 40n & 0xffn);
+        buffer[offset + 3] = Number(value >> 32n & 0xffn);
+        buffer[offset + 4] = Number(value >> 24n & 0xffn);
+        buffer[offset + 5] = Number(value >> 16n & 0xffn);
+        buffer[offset + 6] = Number(value >> 8n & 0xffn);
+        buffer[offset + 7] = Number(0xffn & value);
+    }
+}
+const { AbortController: stream_AbortController } = globalThis;
+const stream_ReadableStream = /* #__PURE__ */ (()=>{
+    const { ReadableStream } = globalThis;
+    if (!ReadableStream.from) ReadableStream.from = function(iterable) {
+        const iterator = Symbol.asyncIterator in iterable ? iterable[Symbol.asyncIterator]() : iterable[Symbol.iterator]();
+        return new ReadableStream({
+            async pull (controller) {
+                const result = await iterator.next();
+                if (result.done) return void controller.close();
+                controller.enqueue(result.value);
+            },
+            async cancel (reason) {
+                await iterator.return?.(reason);
             }
-            async connect({ unref, signal } = {
-                unref: false
-            }) {
-                const socket = new net__rspack_import_0.Socket({
-                    signal: signal
-                });
-                if (unref) socket.unref();
-                socket.connect(this.spec);
-                await new Promise((resolve, reject)=>{
-                    socket.once("connect", resolve);
-                    socket.once("error", reject);
-                });
-                return nodeSocketToConnection(socket);
-            }
-            async addReverseTunnel(handler, address) {
-                const server = new net__rspack_import_0.Server(async (socket)=>{
-                    const connection = nodeSocketToConnection(socket);
-                    try {
-                        await handler({
-                            service: address,
-                            readable: connection.readable,
-                            writable: connection.writable,
-                            get closed () {
-                                return connection.closed;
-                            },
-                            async close () {
-                                await connection.close();
-                            }
-                        });
-                    } catch  {
-                        socket.end();
-                    }
-                });
-                if (address) {
-                    const url = new URL(address);
-                    if ("tcp:" === url.protocol) server.listen(Number.parseInt(url.port, 10), url.hostname);
-                    else if ("unix:" === url.protocol) server.listen(url.pathname);
-                    else throw new TypeError(`Unsupported protocol ${url.protocol}`);
-                } else server.listen();
-                await new Promise((resolve, reject)=>{
-                    server.on("listening", ()=>resolve());
-                    server.on("error", (e)=>reject(e));
-                });
-                if (!address) {
-                    const info = server.address();
-                    address = `tcp:${info.port}`;
-                }
-                this.#listeners.set(address, server);
-                return address;
-            }
-            removeReverseTunnel(address) {
-                const server = this.#listeners.get(address);
-                if (!server) return;
-                server.close();
-                this.#listeners.delete(address);
-            }
-            clearReverseTunnels() {
-                for (const server of this.#listeners.values())server.close();
-                this.#listeners.clear();
-            }
-        }
-    },
-    "../../../node_modules/.pnpm/@yume-chan+adb@2.6.0/node_modules/@yume-chan/adb/esm/adb.js" (__unused_rspack___webpack_module__, __webpack_exports__, __webpack_require__) {
-        __webpack_require__.d(__webpack_exports__, {
-            Q: ()=>Adb
         });
-        var _yume_chan_stream_extra__rspack_import_4 = __webpack_require__("../../../node_modules/.pnpm/@yume-chan+stream-extra@2.6.1/node_modules/@yume-chan/stream-extra/esm/encoding.js");
-        var _yume_chan_stream_extra__rspack_import_5 = __webpack_require__("../../../node_modules/.pnpm/@yume-chan+stream-extra@2.6.1/node_modules/@yume-chan/stream-extra/esm/concat.js");
-        var _commands_index_js__rspack_import_0 = __webpack_require__("../../../node_modules/.pnpm/@yume-chan+adb@2.6.0/node_modules/@yume-chan/adb/esm/commands/subprocess/service.js");
-        var _commands_index_js__rspack_import_1 = __webpack_require__("../../../node_modules/.pnpm/@yume-chan+adb@2.6.0/node_modules/@yume-chan/adb/esm/commands/power.js");
-        var _commands_index_js__rspack_import_2 = __webpack_require__("../../../node_modules/.pnpm/@yume-chan+adb@2.6.0/node_modules/@yume-chan/adb/esm/commands/reverse.js");
-        var _commands_index_js__rspack_import_3 = __webpack_require__("../../../node_modules/.pnpm/@yume-chan+adb@2.6.0/node_modules/@yume-chan/adb/esm/commands/tcpip.js");
-        var _commands_index_js__rspack_import_6 = __webpack_require__("../../../node_modules/.pnpm/@yume-chan+adb@2.6.0/node_modules/@yume-chan/adb/esm/commands/subprocess/utils.js");
-        var _commands_index_js__rspack_import_7 = __webpack_require__("../../../node_modules/.pnpm/@yume-chan+adb@2.6.0/node_modules/@yume-chan/adb/esm/commands/sync/sync.js");
-        var _commands_index_js__rspack_import_8 = __webpack_require__("../../../node_modules/.pnpm/@yume-chan+adb@2.6.0/node_modules/@yume-chan/adb/esm/commands/framebuffer.js");
-        class Adb {
-            #transport;
-            get transport() {
-                return this.#transport;
-            }
-            get serial() {
-                return this.#transport.serial;
-            }
-            get maxPayloadSize() {
-                return this.#transport.maxPayloadSize;
-            }
-            get banner() {
-                return this.#transport.banner;
-            }
-            get disconnected() {
-                return this.#transport.disconnected;
-            }
-            get clientFeatures() {
-                return this.#transport.clientFeatures;
-            }
-            get deviceFeatures() {
-                return this.banner.features;
-            }
-            subprocess;
-            power;
-            reverse;
-            tcpip;
-            constructor(transport){
-                this.#transport = transport;
-                this.subprocess = new _commands_index_js__rspack_import_0.U(this);
-                this.power = new _commands_index_js__rspack_import_1.l(this);
-                this.reverse = new _commands_index_js__rspack_import_2.nQ(this);
-                this.tcpip = new _commands_index_js__rspack_import_3.n(this);
-            }
-            canUseFeature(feature) {
-                return this.clientFeatures.includes(feature) && this.deviceFeatures.includes(feature);
-            }
-            async createSocket(service) {
-                return this.#transport.connect(service);
-            }
-            async createSocketAndWait(service) {
-                const socket = await this.createSocket(service);
-                return await socket.readable.pipeThrough(new _yume_chan_stream_extra__rspack_import_4.W()).pipeThrough(new _yume_chan_stream_extra__rspack_import_5.Q());
-            }
-            getProp(key) {
-                return this.subprocess.noneProtocol.spawnWaitText([
-                    "getprop",
-                    key
-                ]).then((output)=>output.trim());
-            }
-            rm(filenames, options) {
-                const args = [
-                    "rm"
-                ];
-                if (options?.recursive) args.push("-r");
-                if (options?.force) args.push("-f");
-                if (Array.isArray(filenames)) for (const filename of filenames)args.push((0, _commands_index_js__rspack_import_6.w)(filename));
-                else args.push((0, _commands_index_js__rspack_import_6.w)(filenames));
-                args.push("</dev/null");
-                return this.subprocess.noneProtocol.spawnWaitText(args);
-            }
-            async sync() {
-                const socket = await this.createSocket("sync:");
-                return new _commands_index_js__rspack_import_7.L(this, socket);
-            }
-            async framebuffer() {
-                return (0, _commands_index_js__rspack_import_8.uY)(this);
-            }
-            async close() {
-                await this.#transport.close();
-            }
-        }
-    },
-    "../../../node_modules/.pnpm/@yume-chan+adb@2.6.0/node_modules/@yume-chan/adb/esm/banner.js" (__unused_rspack___webpack_module__, __webpack_exports__, __webpack_require__) {
-        __webpack_require__.d(__webpack_exports__, {
-            m: ()=>AdbBanner
-        });
-        const AdbBannerKey = {
-            Product: "ro.product.name",
-            Model: "ro.product.model",
-            Device: "ro.product.device",
-            Features: "features"
-        };
-        class AdbBanner {
-            static parse(banner) {
-                let state;
-                let product;
-                let model;
-                let device;
-                let features = [];
-                const pieces = banner.split("::");
-                if (pieces.length > 1) {
-                    state = pieces[0].trim() || void 0;
-                    const props = pieces[1];
-                    for (const prop of props.split(";")){
-                        if (!prop) continue;
-                        const keyValue = prop.split("=");
-                        if (2 !== keyValue.length) continue;
-                        const [key, value] = keyValue;
-                        switch(key){
-                            case AdbBannerKey.Product:
-                                product = value;
-                                break;
-                            case AdbBannerKey.Model:
-                                model = value;
-                                break;
-                            case AdbBannerKey.Device:
-                                device = value;
-                                break;
-                            case AdbBannerKey.Features:
-                                features = value.split(",");
-                                break;
-                        }
-                    }
-                }
-                return new AdbBanner(state, product, model, device, features);
-            }
-            #state;
-            get state() {
-                return this.#state;
-            }
-            #product;
-            get product() {
-                return this.#product;
-            }
-            #model;
-            get model() {
-                return this.#model;
-            }
-            #device;
-            get device() {
-                return this.#device;
-            }
-            #features = [];
-            get features() {
-                return this.#features;
-            }
-            constructor(state, product, model, device, features){
-                this.#state = state;
-                this.#product = product;
-                this.#model = model;
-                this.#device = device;
-                this.#features = features;
-            }
-        }
-    },
-    "../../../node_modules/.pnpm/@yume-chan+adb@2.6.0/node_modules/@yume-chan/adb/esm/commands/base.js" (__unused_rspack___webpack_module__, __webpack_exports__, __webpack_require__) {
-        __webpack_require__.d(__webpack_exports__, {
-            Y: ()=>AdbServiceBase
-        });
-        var _yume_chan_event__rspack_import_0 = __webpack_require__("../../../node_modules/.pnpm/@yume-chan+event@2.0.0/node_modules/@yume-chan/event/esm/disposable.js");
-        class AdbServiceBase extends _yume_chan_event__rspack_import_0.i {
-            #adb;
-            get adb() {
-                return this.#adb;
-            }
-            constructor(adb){
-                super();
-                this.#adb = adb;
-            }
-        }
-    },
-    "../../../node_modules/.pnpm/@yume-chan+adb@2.6.0/node_modules/@yume-chan/adb/esm/commands/framebuffer.js" (__unused_rspack___webpack_module__, __webpack_exports__, __webpack_require__) {
-        __webpack_require__.d(__webpack_exports__, {
-            uY: ()=>framebuffer
-        });
-        var _yume_chan_stream_extra__rspack_import_3 = __webpack_require__("../../../node_modules/.pnpm/@yume-chan+stream-extra@2.6.1/node_modules/@yume-chan/stream-extra/esm/buffered.js");
-        var _yume_chan_struct__rspack_import_0 = __webpack_require__("../../../node_modules/.pnpm/@yume-chan+struct@2.3.2/node_modules/@yume-chan/struct/esm/struct.js");
-        var _yume_chan_struct__rspack_import_1 = __webpack_require__("../../../node_modules/.pnpm/@yume-chan+struct@2.3.2/node_modules/@yume-chan/struct/esm/number.js");
-        var _yume_chan_struct__rspack_import_2 = __webpack_require__("../../../node_modules/.pnpm/@yume-chan+struct@2.3.2/node_modules/@yume-chan/struct/esm/buffer.js");
-        const Version = (0, _yume_chan_struct__rspack_import_0.w3)({
-            version: _yume_chan_struct__rspack_import_1.DH
-        }, {
-            littleEndian: true
-        });
-        const AdbFrameBufferV1 = (0, _yume_chan_struct__rspack_import_0.w3)({
-            bpp: _yume_chan_struct__rspack_import_1.DH,
-            size: _yume_chan_struct__rspack_import_1.DH,
-            width: _yume_chan_struct__rspack_import_1.DH,
-            height: _yume_chan_struct__rspack_import_1.DH,
-            red_offset: _yume_chan_struct__rspack_import_1.DH,
-            red_length: _yume_chan_struct__rspack_import_1.DH,
-            blue_offset: _yume_chan_struct__rspack_import_1.DH,
-            blue_length: _yume_chan_struct__rspack_import_1.DH,
-            green_offset: _yume_chan_struct__rspack_import_1.DH,
-            green_length: _yume_chan_struct__rspack_import_1.DH,
-            alpha_offset: _yume_chan_struct__rspack_import_1.DH,
-            alpha_length: _yume_chan_struct__rspack_import_1.DH,
-            data: (0, _yume_chan_struct__rspack_import_2.r)("size")
-        }, {
-            littleEndian: true
-        });
-        const AdbFrameBufferV2 = (0, _yume_chan_struct__rspack_import_0.w3)({
-            bpp: _yume_chan_struct__rspack_import_1.DH,
-            colorSpace: _yume_chan_struct__rspack_import_1.DH,
-            size: _yume_chan_struct__rspack_import_1.DH,
-            width: _yume_chan_struct__rspack_import_1.DH,
-            height: _yume_chan_struct__rspack_import_1.DH,
-            red_offset: _yume_chan_struct__rspack_import_1.DH,
-            red_length: _yume_chan_struct__rspack_import_1.DH,
-            blue_offset: _yume_chan_struct__rspack_import_1.DH,
-            blue_length: _yume_chan_struct__rspack_import_1.DH,
-            green_offset: _yume_chan_struct__rspack_import_1.DH,
-            green_length: _yume_chan_struct__rspack_import_1.DH,
-            alpha_offset: _yume_chan_struct__rspack_import_1.DH,
-            alpha_length: _yume_chan_struct__rspack_import_1.DH,
-            data: (0, _yume_chan_struct__rspack_import_2.r)("size")
-        }, {
-            littleEndian: true
-        });
-        class AdbFrameBufferError extends Error {
-            constructor(message, options){
-                super(message, options);
-            }
-        }
-        class AdbFrameBufferUnsupportedVersionError extends AdbFrameBufferError {
-            constructor(version){
-                super(`Unsupported FrameBuffer version ${version}`);
-            }
-        }
-        class AdbFrameBufferForbiddenError extends AdbFrameBufferError {
-            constructor(){
-                super("FrameBuffer is disabled by current app");
-            }
-        }
-        async function framebuffer(adb) {
-            const socket = await adb.createSocket("framebuffer:");
-            const stream = new _yume_chan_stream_extra__rspack_import_3.y(socket.readable);
-            let version;
+    };
+    if (!ReadableStream.prototype[Symbol.asyncIterator] || !ReadableStream.prototype.values) {
+        ReadableStream.prototype.values = async function*(options) {
+            const reader = this.getReader();
             try {
-                ({ version } = await Version.deserialize(stream));
-            } catch (e) {
-                if (e instanceof _yume_chan_struct__rspack_import_0.r1) throw new AdbFrameBufferForbiddenError();
-                throw e;
-            }
-            switch(version){
-                case 1:
-                    return await AdbFrameBufferV1.deserialize(stream);
-                case 2:
-                    return await AdbFrameBufferV2.deserialize(stream);
-                default:
-                    throw new AdbFrameBufferUnsupportedVersionError(version);
-            }
-        }
-    },
-    "../../../node_modules/.pnpm/@yume-chan+adb@2.6.0/node_modules/@yume-chan/adb/esm/commands/power.js" (__unused_rspack___webpack_module__, __webpack_exports__, __webpack_require__) {
-        __webpack_require__.d(__webpack_exports__, {
-            l: ()=>AdbPower
-        });
-        var _base_js__rspack_import_0 = __webpack_require__("../../../node_modules/.pnpm/@yume-chan+adb@2.6.0/node_modules/@yume-chan/adb/esm/commands/base.js");
-        class AdbPower extends _base_js__rspack_import_0.Y {
-            reboot(mode = "") {
-                return this.adb.createSocketAndWait(`reboot:${mode}`);
-            }
-            bootloader() {
-                return this.reboot("bootloader");
-            }
-            fastboot() {
-                return this.reboot("fastboot");
-            }
-            recovery() {
-                return this.reboot("recovery");
-            }
-            sideload() {
-                return this.reboot("sideload");
-            }
-            qualcommEdlMode() {
-                return this.reboot("edl");
-            }
-            powerOff() {
-                return this.adb.subprocess.noneProtocol.spawnWaitText([
-                    "reboot",
-                    "-p"
-                ]);
-            }
-            powerButton(longPress = false) {
-                const args = [
-                    "input",
-                    "keyevent"
-                ];
-                if (longPress) args.push("--longpress");
-                args.push("POWER");
-                return this.adb.subprocess.noneProtocol.spawnWaitText(args);
-            }
-            samsungOdin() {
-                return this.reboot("download");
-            }
-        }
-    },
-    "../../../node_modules/.pnpm/@yume-chan+adb@2.6.0/node_modules/@yume-chan/adb/esm/commands/reverse.js" (__unused_rspack___webpack_module__, __webpack_exports__, __webpack_require__) {
-        __webpack_require__.d(__webpack_exports__, {
-            nQ: ()=>AdbReverseService
-        });
-        var _yume_chan_stream_extra__rspack_import_5 = __webpack_require__("../../../node_modules/.pnpm/@yume-chan+stream-extra@2.6.1/node_modules/@yume-chan/stream-extra/esm/buffered.js");
-        var _yume_chan_struct__rspack_import_0 = __webpack_require__("../../../node_modules/.pnpm/@yume-chan+struct@2.3.2/node_modules/@yume-chan/struct/esm/struct.js");
-        var _yume_chan_struct__rspack_import_1 = __webpack_require__("../../../node_modules/.pnpm/@yume-chan+struct@2.3.2/node_modules/@yume-chan/struct/esm/string.js");
-        var _yume_chan_struct__rspack_import_2 = __webpack_require__("../../../node_modules/.pnpm/@yume-chan+struct@2.3.2/node_modules/@yume-chan/struct/esm/extend.js");
-        var _yume_chan_struct__rspack_import_3 = __webpack_require__("../../../node_modules/.pnpm/@yume-chan+struct@2.3.2/node_modules/@yume-chan/struct/esm/utils.js");
-        var _yume_chan_struct__rspack_import_8 = __webpack_require__("../../../node_modules/.pnpm/@yume-chan+struct@2.3.2/node_modules/@yume-chan/struct/esm/readable.js");
-        var _utils_index_js__rspack_import_6 = __webpack_require__("../../../node_modules/.pnpm/@yume-chan+adb@2.6.0/node_modules/@yume-chan/adb/esm/utils/sequence-equal.js");
-        var _utils_index_js__rspack_import_7 = __webpack_require__("../../../node_modules/.pnpm/@yume-chan+adb@2.6.0/node_modules/@yume-chan/adb/esm/utils/hex.js");
-        var _base_js__rspack_import_4 = __webpack_require__("../../../node_modules/.pnpm/@yume-chan+adb@2.6.0/node_modules/@yume-chan/adb/esm/commands/base.js");
-        const AdbReverseStringResponse = (0, _yume_chan_struct__rspack_import_0.w3)({
-            length: (0, _yume_chan_struct__rspack_import_1.Y)(4),
-            content: (0, _yume_chan_struct__rspack_import_1.Y)({
-                field: "length",
-                convert (value) {
-                    return Number.parseInt(value, 16);
-                },
-                back (value) {
-                    return value.toString(16).padStart(4, "0");
+                while(true){
+                    const { done, value } = await reader.read();
+                    if (done) return;
+                    yield value;
                 }
-            })
-        }, {
-            littleEndian: true
-        });
-        class AdbReverseError extends Error {
-            constructor(message){
-                super(message);
+            } finally{
+                if (!options?.preventCancel) await reader.cancel();
+                reader.releaseLock();
             }
-        }
-        class AdbReverseNotSupportedError extends AdbReverseError {
-            constructor(){
-                super("ADB reverse tunnel is not supported on this device when connected wirelessly.");
-            }
-        }
-        const AdbReverseErrorResponse = (0, _yume_chan_struct__rspack_import_2.X)(AdbReverseStringResponse, {}, {
-            postDeserialize (value) {
-                if ("more than one device/emulator" === value.content) throw new AdbReverseNotSupportedError();
-                throw new AdbReverseError(value.content);
-            }
-        });
-        function decimalToNumber(buffer) {
-            let value = 0;
-            for (const byte of buffer){
-                if (byte < 48 || byte > 57) break;
-                value = 10 * value + byte - 48;
+        };
+        ReadableStream.prototype[Symbol.asyncIterator] = ReadableStream.prototype.values;
+    }
+    return ReadableStream;
+})();
+const { WritableStream: WritableStream, TransformStream: TransformStream } = globalThis;
+const Global = globalThis;
+const TextDecoderStream = Global.TextDecoderStream;
+Global.TextEncoderStream;
+function isPromiseLike(value) {
+    return "object" == typeof value && null !== value && "then" in value;
+}
+function advance(iterator, next) {
+    while(true){
+        const { done, value } = iterator.next(next);
+        if (done) return value;
+        if (isPromiseLike(value)) return value.then((value)=>advance(iterator, {
+                resolved: value
+            }), (error)=>advance(iterator, {
+                error
+            }));
+        next = value;
+    }
+}
+function bipedal(fn, bindThis) {
+    function result(...args) {
+        const iterator = fn.call(this, function*(value) {
+            if (isPromiseLike(value)) {
+                const result = yield value;
+                if ("resolved" in result) return result.resolved;
+                throw result.error;
             }
             return value;
+        }, ...args);
+        return advance(iterator, void 0);
+    }
+    if (bindThis) return result.bind(bindThis);
+    return result;
+}
+function defaultFieldSerializer(serializer) {
+    return (source, context)=>{
+        if (!("buffer" in context)) return serializer(source, context);
+        {
+            const buffer = serializer(source, context);
+            context.buffer.set(buffer, context.index);
+            return buffer.length;
         }
-        const OKAY = (0, _yume_chan_struct__rspack_import_3.Af)("OKAY");
-        class AdbReverseService extends _base_js__rspack_import_4.Y {
-            #deviceAddressToLocalAddress = new Map();
-            async createBufferedStream(service) {
-                const socket = await this.adb.createSocket(service);
-                return new _yume_chan_stream_extra__rspack_import_5.y(socket.readable);
-            }
-            async sendRequest(service) {
-                const stream = await this.createBufferedStream(service);
-                const response = await stream.readExactly(4);
-                if (!(0, _utils_index_js__rspack_import_6.m)(response, OKAY)) await AdbReverseErrorResponse.deserialize(stream);
-                return stream;
-            }
-            async list() {
-                const stream = await this.createBufferedStream("reverse:list-forward");
-                const response = await AdbReverseStringResponse.deserialize(stream);
-                return response.content.split("\n").filter((line)=>!!line).map((line)=>{
-                    const [deviceSerial, localName, remoteName] = line.split(" ");
-                    return {
-                        deviceSerial,
-                        localName,
-                        remoteName
-                    };
-                });
-            }
-            async addExternal(deviceAddress, localAddress) {
-                const stream = await this.sendRequest(`reverse:forward:${deviceAddress};${localAddress}`);
-                if (deviceAddress.startsWith("tcp:")) {
-                    const position = stream.position;
-                    try {
-                        const length = (0, _utils_index_js__rspack_import_7.M)(await stream.readExactly(4));
-                        const port = decimalToNumber(await stream.readExactly(length));
-                        deviceAddress = `tcp:${port}`;
-                    } catch (e) {
-                        if (e instanceof _yume_chan_struct__rspack_import_8.s && stream.position === position) ;
-                        else throw e;
-                    }
-                }
-                return deviceAddress;
-            }
-            async add(deviceAddress, handler, localAddress) {
-                localAddress = await this.adb.transport.addReverseTunnel(handler, localAddress);
-                try {
-                    deviceAddress = await this.addExternal(deviceAddress, localAddress);
-                    this.#deviceAddressToLocalAddress.set(deviceAddress, localAddress);
-                    return deviceAddress;
-                } catch (e) {
-                    await this.adb.transport.removeReverseTunnel(localAddress);
-                    throw e;
-                }
-            }
-            async remove(deviceAddress) {
-                const localAddress = this.#deviceAddressToLocalAddress.get(deviceAddress);
-                if (localAddress) await this.adb.transport.removeReverseTunnel(localAddress);
-                await this.sendRequest(`reverse:killforward:${deviceAddress}`);
-            }
-            async removeAll() {
-                await this.adb.transport.clearReverseTunnels();
-                this.#deviceAddressToLocalAddress.clear();
-                await this.sendRequest("reverse:killforward-all");
-            }
+    };
+}
+function byobFieldSerializer(size, serializer) {
+    return (source, context)=>{
+        if ("buffer" in context) {
+            context.index ??= 0;
+            serializer(source, context);
+            return size;
         }
-    },
-    "../../../node_modules/.pnpm/@yume-chan+adb@2.6.0/node_modules/@yume-chan/adb/esm/commands/subprocess/none/process.js" (__unused_rspack___webpack_module__, __webpack_exports__, __webpack_require__) {
-        __webpack_require__.d(__webpack_exports__, {
-            R: ()=>AdbNoneProtocolProcessImpl
-        });
-        var _yume_chan_async__rspack_import_0 = __webpack_require__("../../../node_modules/.pnpm/@yume-chan+async@4.1.3/node_modules/@yume-chan/async/esm/promise-resolver.js");
-        class AdbNoneProtocolProcessImpl {
-            #socket;
-            get stdin() {
-                return this.#socket.writable;
-            }
-            get output() {
-                return this.#socket.readable;
-            }
-            #exited;
-            get exited() {
-                return this.#exited;
-            }
-            constructor(socket, signal){
-                this.#socket = socket;
-                if (signal) {
-                    const exited = new _yume_chan_async__rspack_import_0.O();
-                    this.#socket.closed.then(()=>exited.resolve(void 0), (e)=>exited.reject(e));
-                    signal.addEventListener("abort", ()=>{
-                        exited.reject(signal.reason);
-                        this.#socket.close();
-                    });
-                    this.#exited = exited.promise;
-                } else this.#exited = this.#socket.closed;
-            }
-            kill() {
-                return this.#socket.close();
-            }
-        }
-    },
-    "../../../node_modules/.pnpm/@yume-chan+adb@2.6.0/node_modules/@yume-chan/adb/esm/commands/subprocess/none/pty.js" (__unused_rspack___webpack_module__, __webpack_exports__, __webpack_require__) {
-        __webpack_require__.d(__webpack_exports__, {
-            E: ()=>AdbNoneProtocolPtyProcess
-        });
-        var _yume_chan_stream_extra__rspack_import_0 = __webpack_require__("../../../node_modules/.pnpm/@yume-chan+stream-extra@2.6.1/node_modules/@yume-chan/stream-extra/esm/maybe-consumable/writable.js");
-        class AdbNoneProtocolPtyProcess {
-            #socket;
-            #writer;
-            #input;
-            get input() {
-                return this.#input;
-            }
-            get output() {
-                return this.#socket.readable;
-            }
-            get exited() {
-                return this.#socket.closed;
-            }
-            constructor(socket){
-                this.#socket = socket;
-                this.#writer = this.#socket.writable.getWriter();
-                this.#input = new _yume_chan_stream_extra__rspack_import_0.g({
-                    write: (chunk)=>this.#writer.write(chunk)
-                });
-            }
-            sigint() {
-                return this.#writer.write(new Uint8Array([
-                    0x03
-                ]));
-            }
-            kill() {
-                return this.#socket.close();
-            }
-        }
-    },
-    "../../../node_modules/.pnpm/@yume-chan+adb@2.6.0/node_modules/@yume-chan/adb/esm/commands/subprocess/none/service.js" (__unused_rspack___webpack_module__, __webpack_exports__, __webpack_require__) {
-        __webpack_require__.d(__webpack_exports__, {
-            Q: ()=>AdbNoneProtocolSubprocessService
-        });
-        var _process_js__rspack_import_1 = __webpack_require__("../../../node_modules/.pnpm/@yume-chan+adb@2.6.0/node_modules/@yume-chan/adb/esm/commands/subprocess/none/process.js");
-        var _pty_js__rspack_import_2 = __webpack_require__("../../../node_modules/.pnpm/@yume-chan+adb@2.6.0/node_modules/@yume-chan/adb/esm/commands/subprocess/none/pty.js");
-        var _spawner_js__rspack_import_0 = __webpack_require__("../../../node_modules/.pnpm/@yume-chan+adb@2.6.0/node_modules/@yume-chan/adb/esm/commands/subprocess/none/spawner.js");
-        class AdbNoneProtocolSubprocessService extends _spawner_js__rspack_import_0.o {
-            #adb;
-            get adb() {
-                return this.#adb;
-            }
-            constructor(adb){
-                super(async (command, signal)=>{
-                    const socket = await this.#adb.createSocket(`exec:${command.join(" ")}`);
-                    if (signal?.aborted) {
-                        await socket.close();
-                        throw signal.reason;
-                    }
-                    return new _process_js__rspack_import_1.R(socket, signal);
-                });
-                this.#adb = adb;
-            }
-            async pty(command) {
-                if (void 0 === command) command = "";
-                else if (Array.isArray(command)) command = command.join(" ");
-                return new _pty_js__rspack_import_2.E(await this.#adb.createSocket(`shell:${command}`));
-            }
-        }
-    },
-    "../../../node_modules/.pnpm/@yume-chan+adb@2.6.0/node_modules/@yume-chan/adb/esm/commands/subprocess/none/spawner.js" (__unused_rspack___webpack_module__, __webpack_exports__, __webpack_require__) {
-        __webpack_require__.d(__webpack_exports__, {
-            o: ()=>AdbNoneProtocolSpawner
-        });
-        var _yume_chan_stream_extra__rspack_import_1 = __webpack_require__("../../../node_modules/.pnpm/@yume-chan+stream-extra@2.6.1/node_modules/@yume-chan/stream-extra/esm/concat.js");
-        var _yume_chan_stream_extra__rspack_import_2 = __webpack_require__("../../../node_modules/.pnpm/@yume-chan+stream-extra@2.6.1/node_modules/@yume-chan/stream-extra/esm/encoding.js");
-        var _utils_js__rspack_import_0 = __webpack_require__("../../../node_modules/.pnpm/@yume-chan+adb@2.6.0/node_modules/@yume-chan/adb/esm/commands/subprocess/utils.js");
-        class AdbNoneProtocolSpawner {
-            #spawn;
-            constructor(spawn){
-                this.#spawn = spawn;
-            }
-            spawn(command, signal) {
-                signal?.throwIfAborted();
-                if ("string" == typeof command) command = (0, _utils_js__rspack_import_0.G)(command);
-                return this.#spawn(command, signal);
-            }
-            async spawnWait(command) {
-                const process1 = await this.spawn(command);
-                return await process1.output.pipeThrough(new _yume_chan_stream_extra__rspack_import_1.J());
-            }
-            async spawnWaitText(command) {
-                const process1 = await this.spawn(command);
-                return await process1.output.pipeThrough(new _yume_chan_stream_extra__rspack_import_2.W()).pipeThrough(new _yume_chan_stream_extra__rspack_import_1.Q());
-            }
-        }
-    },
-    "../../../node_modules/.pnpm/@yume-chan+adb@2.6.0/node_modules/@yume-chan/adb/esm/commands/subprocess/service.js" (__unused_rspack___webpack_module__, __webpack_exports__, __webpack_require__) {
-        __webpack_require__.d(__webpack_exports__, {
-            U: ()=>AdbSubprocessService
-        });
-        var _features_js__rspack_import_1 = __webpack_require__("../../../node_modules/.pnpm/@yume-chan+adb@2.6.0/node_modules/@yume-chan/adb/esm/features.js");
-        var _none_index_js__rspack_import_0 = __webpack_require__("../../../node_modules/.pnpm/@yume-chan+adb@2.6.0/node_modules/@yume-chan/adb/esm/commands/subprocess/none/service.js");
-        var _shell_index_js__rspack_import_2 = __webpack_require__("../../../node_modules/.pnpm/@yume-chan+adb@2.6.0/node_modules/@yume-chan/adb/esm/commands/subprocess/shell/service.js");
-        class AdbSubprocessService {
-            #adb;
-            get adb() {
-                return this.#adb;
-            }
-            #noneProtocol;
-            get noneProtocol() {
-                return this.#noneProtocol;
-            }
-            #shellProtocol;
-            get shellProtocol() {
-                return this.#shellProtocol;
-            }
-            constructor(adb){
-                this.#adb = adb;
-                this.#noneProtocol = new _none_index_js__rspack_import_0.Q(adb);
-                if (adb.canUseFeature(_features_js__rspack_import_1.m.ShellV2)) this.#shellProtocol = new _shell_index_js__rspack_import_2.O(adb);
-            }
-        }
-    },
-    "../../../node_modules/.pnpm/@yume-chan+adb@2.6.0/node_modules/@yume-chan/adb/esm/commands/subprocess/shell/process.js" (__unused_rspack___webpack_module__, __webpack_exports__, __webpack_require__) {
-        __webpack_require__.d(__webpack_exports__, {
-            h: ()=>AdbShellProtocolProcessImpl
-        });
-        var _yume_chan_async__rspack_import_1 = __webpack_require__("../../../node_modules/.pnpm/@yume-chan+async@4.1.3/node_modules/@yume-chan/async/esm/promise-resolver.js");
-        var _yume_chan_stream_extra__rspack_import_0 = __webpack_require__("../../../node_modules/.pnpm/@yume-chan+stream-extra@2.6.1/node_modules/@yume-chan/stream-extra/esm/push-readable.js");
-        var _yume_chan_stream_extra__rspack_import_2 = __webpack_require__("../../../node_modules/.pnpm/@yume-chan+stream-extra@2.6.1/node_modules/@yume-chan/stream-extra/esm/struct-deserialize.js");
-        var _yume_chan_stream_extra__rspack_import_4 = __webpack_require__("../../../node_modules/.pnpm/@yume-chan+stream-extra@2.6.1/node_modules/@yume-chan/stream-extra/esm/stream.js");
-        var _yume_chan_stream_extra__rspack_import_5 = __webpack_require__("../../../node_modules/.pnpm/@yume-chan+stream-extra@2.6.1/node_modules/@yume-chan/stream-extra/esm/maybe-consumable/writable.js");
-        var _yume_chan_struct__rspack_import_6 = __webpack_require__("../../../node_modules/.pnpm/@yume-chan+struct@2.3.2/node_modules/@yume-chan/struct/esm/buffer.js");
-        var _shared_js__rspack_import_3 = __webpack_require__("../../../node_modules/.pnpm/@yume-chan+adb@2.6.0/node_modules/@yume-chan/adb/esm/commands/subprocess/shell/shared.js");
-        class AdbShellProtocolProcessImpl {
-            #socket;
-            #writer;
-            #stdin;
-            get stdin() {
-                return this.#stdin;
-            }
-            #stdout;
-            get stdout() {
-                return this.#stdout;
-            }
-            #stderr;
-            get stderr() {
-                return this.#stderr;
-            }
-            #exited;
-            get exited() {
-                return this.#exited;
-            }
-            constructor(socket, signal){
-                this.#socket = socket;
-                let stdoutController;
-                let stderrController;
-                this.#stdout = new _yume_chan_stream_extra__rspack_import_0.F((controller)=>{
-                    stdoutController = controller;
-                });
-                this.#stderr = new _yume_chan_stream_extra__rspack_import_0.F((controller)=>{
-                    stderrController = controller;
-                });
-                const exited = new _yume_chan_async__rspack_import_1.O();
-                this.#exited = exited.promise;
-                socket.readable.pipeThrough(new _yume_chan_stream_extra__rspack_import_2.f(_shared_js__rspack_import_3.U)).pipeTo(new _yume_chan_stream_extra__rspack_import_4.ho({
-                    write: async (chunk)=>{
-                        switch(chunk.id){
-                            case _shared_js__rspack_import_3.z.Exit:
-                                exited.resolve(chunk.data[0]);
-                                break;
-                            case _shared_js__rspack_import_3.z.Stdout:
-                                await stdoutController.enqueue(chunk.data);
-                                break;
-                            case _shared_js__rspack_import_3.z.Stderr:
-                                await stderrController.enqueue(chunk.data);
-                                break;
-                            default:
-                                break;
-                        }
-                    }
-                })).then(()=>{
-                    stdoutController.close();
-                    stderrController.close();
-                    exited.reject(new Error("Socket ended without exit message"));
-                }, (e)=>{
-                    stdoutController.error(e);
-                    stderrController.error(e);
-                    exited.reject(e);
-                });
-                if (signal) signal.addEventListener("abort", ()=>{
-                    exited.reject(signal.reason);
-                    this.#socket.close();
-                });
-                this.#writer = this.#socket.writable.getWriter();
-                this.#stdin = new _yume_chan_stream_extra__rspack_import_5.g({
-                    write: async (chunk)=>{
-                        await this.#writer.write(_shared_js__rspack_import_3.U.serialize({
-                            id: _shared_js__rspack_import_3.z.Stdin,
-                            data: chunk
-                        }));
-                    },
-                    close: ()=>this.#writer.write(_shared_js__rspack_import_3.U.serialize({
-                            id: _shared_js__rspack_import_3.z.CloseStdin,
-                            data: _yume_chan_struct__rspack_import_6.j
-                        }))
-                });
-            }
-            kill() {
-                return this.#socket.close();
-            }
-        }
-    },
-    "../../../node_modules/.pnpm/@yume-chan+adb@2.6.0/node_modules/@yume-chan/adb/esm/commands/subprocess/shell/pty.js" (__unused_rspack___webpack_module__, __webpack_exports__, __webpack_require__) {
-        __webpack_require__.d(__webpack_exports__, {
-            E: ()=>AdbShellProtocolPtyProcess
-        });
-        var _yume_chan_async__rspack_import_0 = __webpack_require__("../../../node_modules/.pnpm/@yume-chan+async@4.1.3/node_modules/@yume-chan/async/esm/promise-resolver.js");
-        var _yume_chan_stream_extra__rspack_import_1 = __webpack_require__("../../../node_modules/.pnpm/@yume-chan+stream-extra@2.6.1/node_modules/@yume-chan/stream-extra/esm/push-readable.js");
-        var _yume_chan_stream_extra__rspack_import_2 = __webpack_require__("../../../node_modules/.pnpm/@yume-chan+stream-extra@2.6.1/node_modules/@yume-chan/stream-extra/esm/struct-deserialize.js");
-        var _yume_chan_stream_extra__rspack_import_4 = __webpack_require__("../../../node_modules/.pnpm/@yume-chan+stream-extra@2.6.1/node_modules/@yume-chan/stream-extra/esm/stream.js");
-        var _yume_chan_stream_extra__rspack_import_5 = __webpack_require__("../../../node_modules/.pnpm/@yume-chan+stream-extra@2.6.1/node_modules/@yume-chan/stream-extra/esm/maybe-consumable/writable.js");
-        var _yume_chan_struct__rspack_import_6 = __webpack_require__("../../../node_modules/.pnpm/@yume-chan+struct@2.3.2/node_modules/@yume-chan/struct/esm/utils.js");
-        var _shared_js__rspack_import_3 = __webpack_require__("../../../node_modules/.pnpm/@yume-chan+adb@2.6.0/node_modules/@yume-chan/adb/esm/commands/subprocess/shell/shared.js");
-        class AdbShellProtocolPtyProcess {
-            #socket;
-            #writer;
-            #input;
-            get input() {
-                return this.#input;
-            }
-            #stdout;
-            get output() {
-                return this.#stdout;
-            }
-            #exited = new _yume_chan_async__rspack_import_0.O();
-            get exited() {
-                return this.#exited.promise;
-            }
-            constructor(socket){
-                this.#socket = socket;
-                let stdoutController;
-                this.#stdout = new _yume_chan_stream_extra__rspack_import_1.F((controller)=>{
-                    stdoutController = controller;
-                });
-                socket.readable.pipeThrough(new _yume_chan_stream_extra__rspack_import_2.f(_shared_js__rspack_import_3.U)).pipeTo(new _yume_chan_stream_extra__rspack_import_4.ho({
-                    write: async (chunk)=>{
-                        switch(chunk.id){
-                            case _shared_js__rspack_import_3.z.Exit:
-                                this.#exited.resolve(chunk.data[0]);
-                                break;
-                            case _shared_js__rspack_import_3.z.Stdout:
-                                await stdoutController.enqueue(chunk.data);
-                                break;
-                        }
-                    }
-                })).then(()=>{
-                    stdoutController.close();
-                    this.#exited.reject(new Error("Socket ended without exit message"));
-                }, (e)=>{
-                    stdoutController.error(e);
-                    this.#exited.reject(e);
-                });
-                this.#writer = this.#socket.writable.getWriter();
-                this.#input = new _yume_chan_stream_extra__rspack_import_5.g({
-                    write: (chunk)=>this.#writeStdin(chunk)
-                });
-            }
-            #writeStdin(chunk) {
-                return this.#writer.write(_shared_js__rspack_import_3.U.serialize({
-                    id: _shared_js__rspack_import_3.z.Stdin,
-                    data: chunk
-                }));
-            }
-            async resize(rows, cols) {
-                await this.#writer.write(_shared_js__rspack_import_3.U.serialize({
-                    id: _shared_js__rspack_import_3.z.WindowSizeChange,
-                    data: (0, _yume_chan_struct__rspack_import_6.Af)(`${rows}x${cols},0x0\0`)
-                }));
-            }
-            sigint() {
-                return this.#writeStdin(new Uint8Array([
-                    0x03
-                ]));
-            }
-            kill() {
-                return this.#socket.close();
-            }
-        }
-    },
-    "../../../node_modules/.pnpm/@yume-chan+adb@2.6.0/node_modules/@yume-chan/adb/esm/commands/subprocess/shell/service.js" (__unused_rspack___webpack_module__, __webpack_exports__, __webpack_require__) {
-        __webpack_require__.d(__webpack_exports__, {
-            O: ()=>AdbShellProtocolSubprocessService
-        });
-        var _features_js__rspack_import_1 = __webpack_require__("../../../node_modules/.pnpm/@yume-chan+adb@2.6.0/node_modules/@yume-chan/adb/esm/features.js");
-        var _process_js__rspack_import_2 = __webpack_require__("../../../node_modules/.pnpm/@yume-chan+adb@2.6.0/node_modules/@yume-chan/adb/esm/commands/subprocess/shell/process.js");
-        var _pty_js__rspack_import_3 = __webpack_require__("../../../node_modules/.pnpm/@yume-chan+adb@2.6.0/node_modules/@yume-chan/adb/esm/commands/subprocess/shell/pty.js");
-        var _spawner_js__rspack_import_0 = __webpack_require__("../../../node_modules/.pnpm/@yume-chan+adb@2.6.0/node_modules/@yume-chan/adb/esm/commands/subprocess/shell/spawner.js");
-        class AdbShellProtocolSubprocessService extends _spawner_js__rspack_import_0.q {
-            #adb;
-            get adb() {
-                return this.#adb;
-            }
-            get isSupported() {
-                return this.#adb.canUseFeature(_features_js__rspack_import_1.m.ShellV2);
-            }
-            constructor(adb){
-                super(async (command, signal)=>{
-                    const socket = await this.#adb.createSocket(`shell,v2,raw:${command.join(" ")}`);
-                    if (signal?.aborted) {
-                        await socket.close();
-                        throw signal.reason;
-                    }
-                    return new _process_js__rspack_import_2.h(socket, signal);
-                });
-                this.#adb = adb;
-            }
-            async pty(options) {
-                let service = "shell,v2,pty";
-                if (options?.terminalType) service += ",TERM=" + options.terminalType;
-                service += ":";
-                if (options) {
-                    if ("string" == typeof options.command) service += options.command;
-                    else if (Array.isArray(options.command)) service += options.command.join(" ");
-                }
-                return new _pty_js__rspack_import_3.E(await this.#adb.createSocket(service));
-            }
-        }
-    },
-    "../../../node_modules/.pnpm/@yume-chan+adb@2.6.0/node_modules/@yume-chan/adb/esm/commands/subprocess/shell/shared.js" (__unused_rspack___webpack_module__, __webpack_exports__, __webpack_require__) {
-        __webpack_require__.d(__webpack_exports__, {
-            U: ()=>AdbShellProtocolPacket,
-            z: ()=>AdbShellProtocolId
-        });
-        var _yume_chan_struct__rspack_import_0 = __webpack_require__("../../../node_modules/.pnpm/@yume-chan+struct@2.3.2/node_modules/@yume-chan/struct/esm/struct.js");
-        var _yume_chan_struct__rspack_import_1 = __webpack_require__("../../../node_modules/.pnpm/@yume-chan+struct@2.3.2/node_modules/@yume-chan/struct/esm/number.js");
-        var _yume_chan_struct__rspack_import_2 = __webpack_require__("../../../node_modules/.pnpm/@yume-chan+struct@2.3.2/node_modules/@yume-chan/struct/esm/buffer.js");
-        const AdbShellProtocolId = {
-            Stdin: 0,
-            Stdout: 1,
-            Stderr: 2,
-            Exit: 3,
-            CloseStdin: 4,
-            WindowSizeChange: 5
-        };
-        const AdbShellProtocolPacket = (0, _yume_chan_struct__rspack_import_0.w3)({
-            id: (0, _yume_chan_struct__rspack_import_1.u8)(),
-            data: (0, _yume_chan_struct__rspack_import_2.r)(_yume_chan_struct__rspack_import_1.DH)
-        }, {
-            littleEndian: true
-        });
-    },
-    "../../../node_modules/.pnpm/@yume-chan+adb@2.6.0/node_modules/@yume-chan/adb/esm/commands/subprocess/shell/spawner.js" (__unused_rspack___webpack_module__, __webpack_exports__, __webpack_require__) {
-        __webpack_require__.d(__webpack_exports__, {
-            q: ()=>AdbShellProtocolSpawner
-        });
-        var _yume_chan_stream_extra__rspack_import_1 = __webpack_require__("../../../node_modules/.pnpm/@yume-chan+stream-extra@2.6.1/node_modules/@yume-chan/stream-extra/esm/concat.js");
-        var _yume_chan_stream_extra__rspack_import_2 = __webpack_require__("../../../node_modules/.pnpm/@yume-chan+stream-extra@2.6.1/node_modules/@yume-chan/stream-extra/esm/encoding.js");
-        var _utils_js__rspack_import_0 = __webpack_require__("../../../node_modules/.pnpm/@yume-chan+adb@2.6.0/node_modules/@yume-chan/adb/esm/commands/subprocess/utils.js");
-        class AdbShellProtocolSpawner {
-            #spawn;
-            constructor(spawn){
-                this.#spawn = spawn;
-            }
-            spawn(command, signal) {
-                signal?.throwIfAborted();
-                if ("string" == typeof command) command = (0, _utils_js__rspack_import_0.G)(command);
-                return this.#spawn(command, signal);
-            }
-            async spawnWait(command) {
-                const process1 = await this.spawn(command);
-                const [stdout, stderr, exitCode] = await Promise.all([
-                    process1.stdout.pipeThrough(new _yume_chan_stream_extra__rspack_import_1.J()),
-                    process1.stderr.pipeThrough(new _yume_chan_stream_extra__rspack_import_1.J()),
-                    process1.exited
-                ]);
-                return {
-                    stdout,
-                    stderr,
-                    exitCode
-                };
-            }
-            async spawnWaitText(command) {
-                const process1 = await this.spawn(command);
-                const [stdout, stderr, exitCode] = await Promise.all([
-                    process1.stdout.pipeThrough(new _yume_chan_stream_extra__rspack_import_2.W()).pipeThrough(new _yume_chan_stream_extra__rspack_import_1.Q()),
-                    process1.stderr.pipeThrough(new _yume_chan_stream_extra__rspack_import_2.W()).pipeThrough(new _yume_chan_stream_extra__rspack_import_1.Q()),
-                    process1.exited
-                ]);
-                return {
-                    stdout,
-                    stderr,
-                    exitCode
-                };
-            }
-        }
-    },
-    "../../../node_modules/.pnpm/@yume-chan+adb@2.6.0/node_modules/@yume-chan/adb/esm/commands/subprocess/utils.js" (__unused_rspack___webpack_module__, __webpack_exports__, __webpack_require__) {
-        __webpack_require__.d(__webpack_exports__, {
-            G: ()=>splitCommand,
-            w: ()=>escapeArg
-        });
-        function escapeArg(s) {
-            let result = "";
-            result += "'";
-            let base = 0;
-            while(true){
-                const found = s.indexOf("'", base);
-                if (-1 === found) {
-                    result += s.substring(base);
-                    break;
-                }
-                result += s.substring(base, found);
-                result += String.raw`'\''`;
-                base = found + 1;
-            }
-            result += "'";
-            return result;
-        }
-        function splitCommand(command) {
-            const result = [];
-            let quote;
-            let isEscaped = false;
-            let start = 0;
-            for(let i = 0, len = command.length; i < len; i += 1){
-                if (isEscaped) {
-                    isEscaped = false;
-                    continue;
-                }
-                const char = command.charAt(i);
-                switch(char){
-                    case " ":
-                        if (!quote && i !== start) {
-                            result.push(command.substring(start, i));
-                            start = i + 1;
-                        }
-                        break;
-                    case "'":
-                    case '"':
-                        if (quote) {
-                            if (char === quote) quote = void 0;
-                        } else quote = char;
-                        break;
-                    case "\\":
-                        isEscaped = true;
-                        break;
-                }
-            }
-            if (start < command.length) result.push(command.substring(start));
-            return result;
-        }
-    },
-    "../../../node_modules/.pnpm/@yume-chan+adb@2.6.0/node_modules/@yume-chan/adb/esm/commands/sync/list.js" (__unused_rspack___webpack_module__, __webpack_exports__, __webpack_require__) {
-        __webpack_require__.d(__webpack_exports__, {
-            UJ: ()=>adbSyncOpenDir
-        });
-        var _yume_chan_struct__rspack_import_0 = __webpack_require__("../../../node_modules/.pnpm/@yume-chan+struct@2.3.2/node_modules/@yume-chan/struct/esm/extend.js");
-        var _yume_chan_struct__rspack_import_2 = __webpack_require__("../../../node_modules/.pnpm/@yume-chan+struct@2.3.2/node_modules/@yume-chan/struct/esm/string.js");
-        var _yume_chan_struct__rspack_import_3 = __webpack_require__("../../../node_modules/.pnpm/@yume-chan+struct@2.3.2/node_modules/@yume-chan/struct/esm/number.js");
-        var _request_js__rspack_import_4 = __webpack_require__("../../../node_modules/.pnpm/@yume-chan+adb@2.6.0/node_modules/@yume-chan/adb/esm/commands/sync/request.js");
-        var _response_js__rspack_import_5 = __webpack_require__("../../../node_modules/.pnpm/@yume-chan+adb@2.6.0/node_modules/@yume-chan/adb/esm/commands/sync/response.js");
-        var _stat_js__rspack_import_1 = __webpack_require__("../../../node_modules/.pnpm/@yume-chan+adb@2.6.0/node_modules/@yume-chan/adb/esm/commands/sync/stat.js");
-        const AdbSyncEntryResponse = (0, _yume_chan_struct__rspack_import_0.X)(_stat_js__rspack_import_1.mh, {
-            name: (0, _yume_chan_struct__rspack_import_2.Y)(_yume_chan_struct__rspack_import_3.DH)
-        });
-        const AdbSyncEntry2Response = (0, _yume_chan_struct__rspack_import_0.X)(_stat_js__rspack_import_1.yA, {
-            name: (0, _yume_chan_struct__rspack_import_2.Y)(_yume_chan_struct__rspack_import_3.DH)
-        });
-        async function* adbSyncOpenDirV2(socket, path) {
-            const locked = await socket.lock();
-            try {
-                await (0, _request_js__rspack_import_4.vJ)(locked, _request_js__rspack_import_4.NL.ListV2, path);
-                for await (const item of (0, _response_js__rspack_import_5.p9)(locked, _response_js__rspack_import_5.D_.Entry2, AdbSyncEntry2Response))if (item.error === _stat_js__rspack_import_1.qN.SUCCESS) yield item;
-            } finally{
-                locked.release();
-            }
-        }
-        async function* adbSyncOpenDirV1(socket, path) {
-            const locked = await socket.lock();
-            try {
-                await (0, _request_js__rspack_import_4.vJ)(locked, _request_js__rspack_import_4.NL.List, path);
-                for await (const item of (0, _response_js__rspack_import_5.p9)(locked, _response_js__rspack_import_5.D_.Entry, AdbSyncEntryResponse))yield item;
-            } finally{
-                locked.release();
-            }
-        }
-        async function* adbSyncOpenDir(socket, path, v2) {
-            if (v2) yield* adbSyncOpenDirV2(socket, path);
-            else for await (const item of adbSyncOpenDirV1(socket, path))yield {
-                mode: item.mode,
-                size: BigInt(item.size),
-                mtime: BigInt(item.mtime),
-                get type () {
-                    return item.type;
-                },
-                get permission () {
-                    return item.permission;
-                },
-                name: item.name
-            };
-        }
-    },
-    "../../../node_modules/.pnpm/@yume-chan+adb@2.6.0/node_modules/@yume-chan/adb/esm/commands/sync/pull.js" (__unused_rspack___webpack_module__, __webpack_exports__, __webpack_require__) {
-        __webpack_require__.d(__webpack_exports__, {
-            wI: ()=>adbSyncPull
-        });
-        var _yume_chan_stream_extra__rspack_import_5 = __webpack_require__("../../../node_modules/.pnpm/@yume-chan+stream-extra@2.6.1/node_modules/@yume-chan/stream-extra/esm/stream.js");
-        var _yume_chan_struct__rspack_import_0 = __webpack_require__("../../../node_modules/.pnpm/@yume-chan+struct@2.3.2/node_modules/@yume-chan/struct/esm/struct.js");
-        var _yume_chan_struct__rspack_import_1 = __webpack_require__("../../../node_modules/.pnpm/@yume-chan+struct@2.3.2/node_modules/@yume-chan/struct/esm/buffer.js");
-        var _yume_chan_struct__rspack_import_2 = __webpack_require__("../../../node_modules/.pnpm/@yume-chan+struct@2.3.2/node_modules/@yume-chan/struct/esm/number.js");
-        var _request_js__rspack_import_3 = __webpack_require__("../../../node_modules/.pnpm/@yume-chan+adb@2.6.0/node_modules/@yume-chan/adb/esm/commands/sync/request.js");
-        var _response_js__rspack_import_4 = __webpack_require__("../../../node_modules/.pnpm/@yume-chan+adb@2.6.0/node_modules/@yume-chan/adb/esm/commands/sync/response.js");
-        const AdbSyncDataResponse = (0, _yume_chan_struct__rspack_import_0.w3)({
-            data: (0, _yume_chan_struct__rspack_import_1.r)(_yume_chan_struct__rspack_import_2.DH)
-        }, {
-            littleEndian: true
-        });
-        async function* adbSyncPullGenerator(socket, path) {
-            const locked = await socket.lock();
-            let done = false;
-            try {
-                await (0, _request_js__rspack_import_3.vJ)(locked, _request_js__rspack_import_3.NL.Receive, path);
-                for await (const packet of (0, _response_js__rspack_import_4.p9)(locked, _response_js__rspack_import_4.D_.Data, AdbSyncDataResponse))yield packet.data;
-                done = true;
-            } catch (e) {
-                done = true;
-                throw e;
-            } finally{
-                if (!done) for await (const packet of (0, _response_js__rspack_import_4.p9)(locked, _response_js__rspack_import_4.D_.Data, AdbSyncDataResponse));
-                locked.release();
-            }
-        }
-        function adbSyncPull(socket, path) {
-            return _yume_chan_stream_extra__rspack_import_5.ZY.from(adbSyncPullGenerator(socket, path));
-        }
-    },
-    "../../../node_modules/.pnpm/@yume-chan+adb@2.6.0/node_modules/@yume-chan/adb/esm/commands/sync/push.js" (__unused_rspack___webpack_module__, __webpack_exports__, __webpack_require__) {
-        __webpack_require__.d(__webpack_exports__, {
-            Hn: ()=>adbSyncPush
-        });
-        var _yume_chan_stream_extra__rspack_import_2 = __webpack_require__("../../../node_modules/.pnpm/@yume-chan+stream-extra@2.6.1/node_modules/@yume-chan/stream-extra/esm/stream.js");
-        var _yume_chan_stream_extra__rspack_import_3 = __webpack_require__("../../../node_modules/.pnpm/@yume-chan+stream-extra@2.6.1/node_modules/@yume-chan/stream-extra/esm/distribution.js");
-        var _yume_chan_stream_extra__rspack_import_4 = __webpack_require__("../../../node_modules/.pnpm/@yume-chan+stream-extra@2.6.1/node_modules/@yume-chan/stream-extra/esm/maybe-consumable/writable.js");
-        var _yume_chan_struct__rspack_import_0 = __webpack_require__("../../../node_modules/.pnpm/@yume-chan+struct@2.3.2/node_modules/@yume-chan/struct/esm/struct.js");
-        var _yume_chan_struct__rspack_import_1 = __webpack_require__("../../../node_modules/.pnpm/@yume-chan+struct@2.3.2/node_modules/@yume-chan/struct/esm/number.js");
-        var _utils_index_js__rspack_import_6 = __webpack_require__("../../../node_modules/.pnpm/@yume-chan+adb@2.6.0/node_modules/@yume-chan/adb/esm/utils/no-op.js");
-        var _request_js__rspack_import_5 = __webpack_require__("../../../node_modules/.pnpm/@yume-chan+adb@2.6.0/node_modules/@yume-chan/adb/esm/commands/sync/request.js");
-        var _response_js__rspack_import_7 = __webpack_require__("../../../node_modules/.pnpm/@yume-chan+adb@2.6.0/node_modules/@yume-chan/adb/esm/commands/sync/response.js");
-        var _stat_js__rspack_import_8 = __webpack_require__("../../../node_modules/.pnpm/@yume-chan+adb@2.6.0/node_modules/@yume-chan/adb/esm/commands/sync/stat.js");
-        const ADB_SYNC_MAX_PACKET_SIZE = 65536;
-        const AdbSyncOkResponse = (0, _yume_chan_struct__rspack_import_0.w3)({
-            unused: _yume_chan_struct__rspack_import_1.DH
-        }, {
-            littleEndian: true
-        });
-        async function pipeFileData(locked, file, packetSize, mtime) {
-            const abortController = new _yume_chan_stream_extra__rspack_import_2.z1();
-            file.pipeThrough(new _yume_chan_stream_extra__rspack_import_3.r(packetSize, true)).pipeTo(new _yume_chan_stream_extra__rspack_import_4.g({
-                write (chunk) {
-                    return (0, _request_js__rspack_import_5.vJ)(locked, _request_js__rspack_import_5.NL.Data, chunk);
-                }
-            }), {
-                signal: abortController.signal
-            }).then(async ()=>{
-                await (0, _request_js__rspack_import_5.vJ)(locked, _request_js__rspack_import_5.NL.Done, mtime);
-                await locked.flush();
-            }, _utils_index_js__rspack_import_6.t);
-            await (0, _response_js__rspack_import_7.Uo)(locked, _response_js__rspack_import_7.D_.Ok, AdbSyncOkResponse).catch((e)=>{
-                abortController.abort();
-                throw e;
+        {
+            const buffer = new Uint8Array(size);
+            serializer(source, {
+                buffer,
+                index: 0,
+                littleEndian: context.littleEndian
             });
+            return buffer;
         }
-        async function adbSyncPushV1({ socket, filename, file, type = _stat_js__rspack_import_8.dz.File, permission = 438, mtime = Date.now() / 1000 | 0, packetSize = ADB_SYNC_MAX_PACKET_SIZE }) {
-            const locked = await socket.lock();
-            try {
-                const mode = type << 12 | permission;
-                const pathAndMode = `${filename},${mode.toString()}`;
-                await (0, _request_js__rspack_import_5.vJ)(locked, _request_js__rspack_import_5.NL.Send, pathAndMode);
-                await pipeFileData(locked, file, packetSize, mtime);
-            } finally{
-                locked.release();
-            }
-        }
-        const AdbSyncSendV2Flags = {
-            None: 0,
-            Brotli: 1,
-            Lz4: 2,
-            Zstd: 4,
-            DryRun: 0x80000000
-        };
-        const AdbSyncSendV2Request = (0, _yume_chan_struct__rspack_import_0.w3)({
-            id: _yume_chan_struct__rspack_import_1.DH,
-            mode: _yume_chan_struct__rspack_import_1.DH,
-            flags: (0, _yume_chan_struct__rspack_import_1.DH)()
-        }, {
-            littleEndian: true
-        });
-        async function adbSyncPushV2({ socket, filename, file, type = _stat_js__rspack_import_8.dz.File, permission = 438, mtime = Date.now() / 1000 | 0, packetSize = ADB_SYNC_MAX_PACKET_SIZE, dryRun = false }) {
-            const locked = await socket.lock();
-            try {
-                await (0, _request_js__rspack_import_5.vJ)(locked, _request_js__rspack_import_5.NL.SendV2, filename);
-                const mode = type << 12 | permission;
-                let flags = AdbSyncSendV2Flags.None;
-                if (dryRun) flags |= AdbSyncSendV2Flags.DryRun;
-                await locked.write(AdbSyncSendV2Request.serialize({
-                    id: _request_js__rspack_import_5.NL.SendV2,
-                    mode,
-                    flags
-                }));
-                await pipeFileData(locked, file, packetSize, mtime);
-            } finally{
-                locked.release();
-            }
-        }
-        function adbSyncPush(options) {
-            if (options.v2) return adbSyncPushV2(options);
-            if (options.dryRun) throw new Error("dryRun is not supported in v1");
-            return adbSyncPushV1(options);
-        }
-    },
-    "../../../node_modules/.pnpm/@yume-chan+adb@2.6.0/node_modules/@yume-chan/adb/esm/commands/sync/request.js" (__unused_rspack___webpack_module__, __webpack_exports__, __webpack_require__) {
-        __webpack_require__.d(__webpack_exports__, {
-            NL: ()=>AdbSyncRequestId,
-            vJ: ()=>adbSyncWriteRequest
-        });
-        var _yume_chan_struct__rspack_import_1 = __webpack_require__("../../../node_modules/.pnpm/@yume-chan+struct@2.3.2/node_modules/@yume-chan/struct/esm/struct.js");
-        var _yume_chan_struct__rspack_import_2 = __webpack_require__("../../../node_modules/.pnpm/@yume-chan+struct@2.3.2/node_modules/@yume-chan/struct/esm/number.js");
-        var _yume_chan_struct__rspack_import_3 = __webpack_require__("../../../node_modules/.pnpm/@yume-chan+struct@2.3.2/node_modules/@yume-chan/struct/esm/utils.js");
-        var _response_js__rspack_import_0 = __webpack_require__("../../../node_modules/.pnpm/@yume-chan+adb@2.6.0/node_modules/@yume-chan/adb/esm/commands/sync/response.js");
-        const AdbSyncRequestId = {
-            List: (0, _response_js__rspack_import_0.YM)("LIST"),
-            ListV2: (0, _response_js__rspack_import_0.YM)("LIS2"),
-            Send: (0, _response_js__rspack_import_0.YM)("SEND"),
-            SendV2: (0, _response_js__rspack_import_0.YM)("SND2"),
-            Lstat: (0, _response_js__rspack_import_0.YM)("STAT"),
-            Stat: (0, _response_js__rspack_import_0.YM)("STA2"),
-            LstatV2: (0, _response_js__rspack_import_0.YM)("LST2"),
-            Data: (0, _response_js__rspack_import_0.YM)("DATA"),
-            Done: (0, _response_js__rspack_import_0.YM)("DONE"),
-            Receive: (0, _response_js__rspack_import_0.YM)("RECV")
-        };
-        const AdbSyncNumberRequest = (0, _yume_chan_struct__rspack_import_1.w3)({
-            id: _yume_chan_struct__rspack_import_2.DH,
-            arg: _yume_chan_struct__rspack_import_2.DH
-        }, {
-            littleEndian: true
-        });
-        async function adbSyncWriteRequest(writable, id, value) {
-            if ("string" == typeof id) id = (0, _response_js__rspack_import_0.YM)(id);
-            if ("number" == typeof value) return void await writable.write(AdbSyncNumberRequest.serialize({
-                id,
-                arg: value
-            }));
-            if ("string" == typeof value) value = (0, _yume_chan_struct__rspack_import_3.Af)(value);
-            await writable.write(AdbSyncNumberRequest.serialize({
-                id,
-                arg: value.length
-            }));
-            await writable.write(value);
-        }
-    },
-    "../../../node_modules/.pnpm/@yume-chan+adb@2.6.0/node_modules/@yume-chan/adb/esm/commands/sync/response.js" (__unused_rspack___webpack_module__, __webpack_exports__, __webpack_require__) {
-        __webpack_require__.d(__webpack_exports__, {
-            D_: ()=>AdbSyncResponseId,
-            Uo: ()=>adbSyncReadResponse,
-            YM: ()=>adbSyncEncodeId,
-            p9: ()=>adbSyncReadResponses
-        });
-        var _yume_chan_no_data_view__rspack_import_0 = __webpack_require__("../../../node_modules/.pnpm/@yume-chan+no-data-view@2.0.0/node_modules/@yume-chan/no-data-view/esm/uint32.js");
-        var _yume_chan_struct__rspack_import_1 = __webpack_require__("../../../node_modules/.pnpm/@yume-chan+struct@2.3.2/node_modules/@yume-chan/struct/esm/struct.js");
-        var _yume_chan_struct__rspack_import_2 = __webpack_require__("../../../node_modules/.pnpm/@yume-chan+struct@2.3.2/node_modules/@yume-chan/struct/esm/string.js");
-        var _yume_chan_struct__rspack_import_3 = __webpack_require__("../../../node_modules/.pnpm/@yume-chan+struct@2.3.2/node_modules/@yume-chan/struct/esm/number.js");
-        var _yume_chan_struct__rspack_import_4 = __webpack_require__("../../../node_modules/.pnpm/@yume-chan+struct@2.3.2/node_modules/@yume-chan/struct/esm/utils.js");
-        var _utils_no_op_js__rspack_import_5 = __webpack_require__("../../../node_modules/.pnpm/@yume-chan+adb@2.6.0/node_modules/@yume-chan/adb/esm/utils/no-op.js");
-        function encodeAsciiUnchecked(value) {
-            const result = new Uint8Array(value.length);
-            for(let i = 0; i < value.length; i += 1)result[i] = value.charCodeAt(i);
-            return result;
-        }
-        function adbSyncEncodeId(value) {
-            const buffer = encodeAsciiUnchecked(value);
-            return (0, _yume_chan_no_data_view__rspack_import_0.FQ)(buffer, 0);
-        }
-        const AdbSyncResponseId = {
-            Entry: adbSyncEncodeId("DENT"),
-            Entry2: adbSyncEncodeId("DNT2"),
-            Lstat: adbSyncEncodeId("STAT"),
-            Stat: adbSyncEncodeId("STA2"),
-            Lstat2: adbSyncEncodeId("LST2"),
-            Done: adbSyncEncodeId("DONE"),
-            Data: adbSyncEncodeId("DATA"),
-            Ok: adbSyncEncodeId("OKAY"),
-            Fail: adbSyncEncodeId("FAIL")
-        };
-        class AdbSyncError extends Error {
-        }
-        const AdbSyncFailResponse = (0, _yume_chan_struct__rspack_import_1.w3)({
-            message: (0, _yume_chan_struct__rspack_import_2.Y)(_yume_chan_struct__rspack_import_3.DH)
-        }, {
-            littleEndian: true,
-            postDeserialize (value) {
-                throw new AdbSyncError(value.message);
-            }
-        });
-        async function adbSyncReadResponse(stream, id, type) {
-            if ("string" == typeof id) id = adbSyncEncodeId(id);
-            const buffer = await stream.readExactly(4);
-            switch((0, _yume_chan_no_data_view__rspack_import_0.FQ)(buffer, 0)){
-                case AdbSyncResponseId.Fail:
-                    await AdbSyncFailResponse.deserialize(stream);
-                    throw new Error("Unreachable");
-                case id:
-                    return await type.deserialize(stream);
-                default:
-                    throw new Error(`Expected '${id}', but got '${(0, _yume_chan_struct__rspack_import_4._6)(buffer)}'`);
-            }
-        }
-        async function* adbSyncReadResponses(stream, id, type) {
-            if ("string" == typeof id) id = adbSyncEncodeId(id);
-            while(true){
-                const buffer = await stream.readExactly(4);
-                switch((0, _yume_chan_no_data_view__rspack_import_0.FQ)(buffer, 0)){
-                    case AdbSyncResponseId.Fail:
-                        await AdbSyncFailResponse.deserialize(stream);
-                        (0, _utils_no_op_js__rspack_import_5.H)();
-                    case AdbSyncResponseId.Done:
-                        await stream.readExactly(type.size);
-                        return;
-                    case id:
-                        yield await type.deserialize(stream);
-                        break;
-                    default:
-                        throw new Error(`Expected '${id}' or '${AdbSyncResponseId.Done}', but got '${(0, _yume_chan_struct__rspack_import_4._6)(buffer)}'`);
-                }
-            }
-        }
-    },
-    "../../../node_modules/.pnpm/@yume-chan+adb@2.6.0/node_modules/@yume-chan/adb/esm/commands/sync/socket.js" (__unused_rspack___webpack_module__, __webpack_exports__, __webpack_require__) {
-        __webpack_require__.d(__webpack_exports__, {
-            S: ()=>AdbSyncSocket
-        });
-        var _yume_chan_stream_extra__rspack_import_1 = __webpack_require__("../../../node_modules/.pnpm/@yume-chan+stream-extra@2.6.1/node_modules/@yume-chan/stream-extra/esm/distribution.js");
-        var _yume_chan_stream_extra__rspack_import_2 = __webpack_require__("../../../node_modules/.pnpm/@yume-chan+stream-extra@2.6.1/node_modules/@yume-chan/stream-extra/esm/consumable.js");
-        var _yume_chan_stream_extra__rspack_import_3 = __webpack_require__("../../../node_modules/.pnpm/@yume-chan+stream-extra@2.6.1/node_modules/@yume-chan/stream-extra/esm/buffered.js");
-        var _utils_index_js__rspack_import_0 = __webpack_require__("../../../node_modules/.pnpm/@yume-chan+adb@2.6.0/node_modules/@yume-chan/adb/esm/utils/auto-reset-event.js");
-        class AdbSyncSocketLocked {
-            #writer;
-            #readable;
-            #socketLock;
-            #writeLock = new _utils_index_js__rspack_import_0.F();
-            #combiner;
-            get position() {
-                return this.#readable.position;
-            }
-            constructor(writer, readable, bufferSize, lock){
-                this.#writer = writer;
-                this.#readable = readable;
-                this.#socketLock = lock;
-                this.#combiner = new _yume_chan_stream_extra__rspack_import_1.q(bufferSize);
-            }
-            #write(buffer) {
-                return _yume_chan_stream_extra__rspack_import_2.G.WritableStream.write(this.#writer, buffer);
-            }
-            async flush() {
-                try {
-                    await this.#writeLock.wait();
-                    const buffer = this.#combiner.flush();
-                    if (buffer) await this.#write(buffer);
-                } finally{
-                    this.#writeLock.notifyOne();
-                }
-            }
-            async write(data) {
-                try {
-                    await this.#writeLock.wait();
-                    for (const buffer of this.#combiner.push(data))await this.#write(buffer);
-                } finally{
-                    this.#writeLock.notifyOne();
-                }
-            }
-            async readExactly(length) {
-                await this.flush();
-                return await this.#readable.readExactly(length);
-            }
-            release() {
-                this.#combiner.flush();
-                this.#socketLock.notifyOne();
-            }
-            async close() {
-                await this.#readable.cancel();
-            }
-        }
-        class AdbSyncSocket {
-            #lock = new _utils_index_js__rspack_import_0.F();
-            #socket;
-            #locked;
-            constructor(socket, bufferSize){
-                this.#socket = socket;
-                this.#locked = new AdbSyncSocketLocked(socket.writable.getWriter(), new _yume_chan_stream_extra__rspack_import_3.y(socket.readable), bufferSize, this.#lock);
-            }
-            async lock() {
-                await this.#lock.wait();
-                return this.#locked;
-            }
-            async close() {
-                await this.#locked.close();
-                await this.#socket.close();
-            }
-        }
-    },
-    "../../../node_modules/.pnpm/@yume-chan+adb@2.6.0/node_modules/@yume-chan/adb/esm/commands/sync/stat.js" (__unused_rspack___webpack_module__, __webpack_exports__, __webpack_require__) {
-        __webpack_require__.d(__webpack_exports__, {
-            P7: ()=>adbSyncLstat,
-            Z$: ()=>adbSyncStat,
-            dz: ()=>LinuxFileType,
-            mh: ()=>AdbSyncLstatResponse,
-            qN: ()=>AdbSyncStatErrorCode,
-            yA: ()=>AdbSyncStatResponse
-        });
-        var _yume_chan_struct__rspack_import_0 = __webpack_require__("../../../node_modules/.pnpm/@yume-chan+struct@2.3.2/node_modules/@yume-chan/struct/esm/struct.js");
-        var _yume_chan_struct__rspack_import_1 = __webpack_require__("../../../node_modules/.pnpm/@yume-chan+struct@2.3.2/node_modules/@yume-chan/struct/esm/number.js");
-        var _request_js__rspack_import_2 = __webpack_require__("../../../node_modules/.pnpm/@yume-chan+adb@2.6.0/node_modules/@yume-chan/adb/esm/commands/sync/request.js");
-        var _response_js__rspack_import_3 = __webpack_require__("../../../node_modules/.pnpm/@yume-chan+adb@2.6.0/node_modules/@yume-chan/adb/esm/commands/sync/response.js");
-        const LinuxFileType = {
-            Directory: 4,
-            File: 8,
-            Link: 10
-        };
-        const AdbSyncLstatResponse = (0, _yume_chan_struct__rspack_import_0.w3)({
-            mode: _yume_chan_struct__rspack_import_1.DH,
-            size: _yume_chan_struct__rspack_import_1.DH,
-            mtime: _yume_chan_struct__rspack_import_1.DH
-        }, {
-            littleEndian: true,
-            extra: {
-                get type () {
-                    return this.mode >> 12;
-                },
-                get permission () {
-                    return 4095 & this.mode;
-                }
-            },
-            postDeserialize (value) {
-                if (0 === value.mode && 0 === value.size && 0 === value.mtime) throw new Error("lstat error");
-                return value;
-            }
-        });
-        const AdbSyncStatErrorCode = {
-            SUCCESS: 0,
-            EACCES: 13,
-            EEXIST: 17,
-            EFAULT: 14,
-            EFBIG: 27,
-            EINTR: 4,
-            EINVAL: 22,
-            EIO: 5,
-            EISDIR: 21,
-            ELOOP: 40,
-            EMFILE: 24,
-            ENAMETOOLONG: 36,
-            ENFILE: 23,
-            ENOENT: 2,
-            ENOMEM: 12,
-            ENOSPC: 28,
-            ENOTDIR: 20,
-            EOVERFLOW: 75,
-            EPERM: 1,
-            EROFS: 30,
-            ETXTBSY: 26
-        };
-        const AdbSyncStatErrorName = /* #__PURE__ */ (()=>Object.fromEntries(Object.entries(AdbSyncStatErrorCode).map(([key, value])=>[
-                    value,
-                    key
-                ])))();
-        const AdbSyncStatResponse = (0, _yume_chan_struct__rspack_import_0.w3)({
-            error: (0, _yume_chan_struct__rspack_import_1.DH)(),
-            dev: _yume_chan_struct__rspack_import_1._l,
-            ino: _yume_chan_struct__rspack_import_1._l,
-            mode: _yume_chan_struct__rspack_import_1.DH,
-            nlink: _yume_chan_struct__rspack_import_1.DH,
-            uid: _yume_chan_struct__rspack_import_1.DH,
-            gid: _yume_chan_struct__rspack_import_1.DH,
-            size: _yume_chan_struct__rspack_import_1._l,
-            atime: _yume_chan_struct__rspack_import_1._l,
-            mtime: _yume_chan_struct__rspack_import_1._l,
-            ctime: _yume_chan_struct__rspack_import_1._l
-        }, {
-            littleEndian: true,
-            extra: {
-                get type () {
-                    return this.mode >> 12;
-                },
-                get permission () {
-                    return 4095 & this.mode;
-                }
-            },
-            postDeserialize (value) {
-                if (value.error) throw new Error(AdbSyncStatErrorName[value.error]);
-                return value;
-            }
-        });
-        async function adbSyncLstat(socket, path, v2) {
-            const locked = await socket.lock();
-            try {
-                if (v2) {
-                    await (0, _request_js__rspack_import_2.vJ)(locked, _request_js__rspack_import_2.NL.LstatV2, path);
-                    return await (0, _response_js__rspack_import_3.Uo)(locked, _response_js__rspack_import_3.D_.Lstat2, AdbSyncStatResponse);
-                }
-                {
-                    await (0, _request_js__rspack_import_2.vJ)(locked, _request_js__rspack_import_2.NL.Lstat, path);
-                    const response = await (0, _response_js__rspack_import_3.Uo)(locked, _response_js__rspack_import_3.D_.Lstat, AdbSyncLstatResponse);
-                    return {
-                        mode: response.mode,
-                        size: BigInt(response.size),
-                        mtime: BigInt(response.mtime),
-                        get type () {
-                            return response.type;
-                        },
-                        get permission () {
-                            return response.permission;
-                        }
-                    };
-                }
-            } finally{
-                locked.release();
-            }
-        }
-        async function adbSyncStat(socket, path) {
-            const locked = await socket.lock();
-            try {
-                await (0, _request_js__rspack_import_2.vJ)(locked, _request_js__rspack_import_2.NL.Stat, path);
-                return await (0, _response_js__rspack_import_3.Uo)(locked, _response_js__rspack_import_3.D_.Stat, AdbSyncStatResponse);
-            } finally{
-                locked.release();
-            }
-        }
-    },
-    "../../../node_modules/.pnpm/@yume-chan+adb@2.6.0/node_modules/@yume-chan/adb/esm/commands/sync/sync.js" (__unused_rspack___webpack_module__, __webpack_exports__, __webpack_require__) {
-        __webpack_require__.d(__webpack_exports__, {
-            L: ()=>AdbSync
-        });
-        var _features_js__rspack_import_1 = __webpack_require__("../../../node_modules/.pnpm/@yume-chan+adb@2.6.0/node_modules/@yume-chan/adb/esm/features.js");
-        var _subprocess_index_js__rspack_import_5 = __webpack_require__("../../../node_modules/.pnpm/@yume-chan+adb@2.6.0/node_modules/@yume-chan/adb/esm/commands/subprocess/utils.js");
-        var _list_js__rspack_import_3 = __webpack_require__("../../../node_modules/.pnpm/@yume-chan+adb@2.6.0/node_modules/@yume-chan/adb/esm/commands/sync/list.js");
-        var _pull_js__rspack_import_4 = __webpack_require__("../../../node_modules/.pnpm/@yume-chan+adb@2.6.0/node_modules/@yume-chan/adb/esm/commands/sync/pull.js");
-        var _push_js__rspack_import_6 = __webpack_require__("../../../node_modules/.pnpm/@yume-chan+adb@2.6.0/node_modules/@yume-chan/adb/esm/commands/sync/push.js");
-        var _socket_js__rspack_import_0 = __webpack_require__("../../../node_modules/.pnpm/@yume-chan+adb@2.6.0/node_modules/@yume-chan/adb/esm/commands/sync/socket.js");
-        var _stat_js__rspack_import_2 = __webpack_require__("../../../node_modules/.pnpm/@yume-chan+adb@2.6.0/node_modules/@yume-chan/adb/esm/commands/sync/stat.js");
-        function dirname(path) {
-            const end = path.lastIndexOf("/");
-            if (-1 === end) throw new Error("Invalid path");
-            if (0 === end) return "/";
-            return path.substring(0, end);
-        }
-        class AdbSync {
-            _adb;
-            _socket;
-            #supportsStat;
-            #supportsListV2;
-            #fixedPushMkdir;
-            #supportsSendReceiveV2;
-            #needPushMkdirWorkaround;
-            get supportsStat() {
-                return this.#supportsStat;
-            }
-            get supportsListV2() {
-                return this.#supportsListV2;
-            }
-            get fixedPushMkdir() {
-                return this.#fixedPushMkdir;
-            }
-            get supportsSendReceiveV2() {
-                return this.#supportsSendReceiveV2;
-            }
-            get needPushMkdirWorkaround() {
-                return this.#needPushMkdirWorkaround;
-            }
-            constructor(adb, socket){
-                this._adb = adb;
-                this._socket = new _socket_js__rspack_import_0.S(socket, adb.maxPayloadSize);
-                this.#supportsStat = adb.canUseFeature(_features_js__rspack_import_1.m.StatV2);
-                this.#supportsListV2 = adb.canUseFeature(_features_js__rspack_import_1.m.ListV2);
-                this.#fixedPushMkdir = adb.canUseFeature(_features_js__rspack_import_1.m.FixedPushMkdir);
-                this.#supportsSendReceiveV2 = adb.canUseFeature(_features_js__rspack_import_1.m.SendReceiveV2);
-                this.#needPushMkdirWorkaround = this._adb.canUseFeature(_features_js__rspack_import_1.m.ShellV2) && !this.fixedPushMkdir;
-            }
-            async lstat(path) {
-                return await (0, _stat_js__rspack_import_2.P7)(this._socket, path, this.#supportsStat);
-            }
-            async stat(path) {
-                if (!this.#supportsStat) throw new Error("Not supported");
-                return await (0, _stat_js__rspack_import_2.Z$)(this._socket, path);
-            }
-            async isDirectory(path) {
-                try {
-                    await this.lstat(path + "/");
-                    return true;
-                } catch  {
-                    return false;
-                }
-            }
-            opendir(path) {
-                return (0, _list_js__rspack_import_3.UJ)(this._socket, path, this.supportsListV2);
-            }
-            async readdir(path) {
-                const results = [];
-                for await (const entry of this.opendir(path))results.push(entry);
-                return results;
-            }
-            read(filename) {
-                return (0, _pull_js__rspack_import_4.wI)(this._socket, filename);
-            }
-            async write(options) {
-                if (this.needPushMkdirWorkaround) await this._adb.subprocess.noneProtocol.spawnWait([
-                    "mkdir",
-                    "-p",
-                    (0, _subprocess_index_js__rspack_import_5.w)(dirname(options.filename))
-                ]);
-                await (0, _push_js__rspack_import_6.Hn)({
-                    v2: this.supportsSendReceiveV2,
-                    socket: this._socket,
-                    ...options
-                });
-            }
-            lockSocket() {
-                return this._socket.lock();
-            }
-            dispose() {
-                return this._socket.close();
-            }
-        }
-    },
-    "../../../node_modules/.pnpm/@yume-chan+adb@2.6.0/node_modules/@yume-chan/adb/esm/commands/tcpip.js" (__unused_rspack___webpack_module__, __webpack_exports__, __webpack_require__) {
-        __webpack_require__.d(__webpack_exports__, {
-            n: ()=>AdbTcpIpService
-        });
-        var _base_js__rspack_import_0 = __webpack_require__("../../../node_modules/.pnpm/@yume-chan+adb@2.6.0/node_modules/@yume-chan/adb/esm/commands/base.js");
-        function parsePort(value) {
-            if (!value || "0" === value) return;
-            return Number.parseInt(value, 10);
-        }
-        class AdbTcpIpService extends _base_js__rspack_import_0.Y {
-            async getListenAddresses() {
-                const serviceListenAddresses = await this.adb.getProp("service.adb.listen_addrs");
-                const servicePort = await this.adb.getProp("service.adb.tcp.port");
-                const persistPort = await this.adb.getProp("persist.adb.tcp.port");
-                return {
-                    serviceListenAddresses: "" != serviceListenAddresses ? serviceListenAddresses.split(",") : [],
-                    servicePort: parsePort(servicePort),
-                    persistPort: parsePort(persistPort)
-                };
-            }
-            async setPort(port) {
-                if (port <= 0) throw new TypeError(`Invalid port ${port}`);
-                const output = await this.adb.createSocketAndWait(`tcpip:${port}`);
-                if (output !== `restarting in TCP mode port: ${port}\n`) throw new Error(output);
-                return output;
-            }
-            async disable() {
-                const output = await this.adb.createSocketAndWait("usb:");
-                if ("restarting in USB mode\n" !== output) throw new Error(output);
-                return output;
-            }
-        }
-    },
-    "../../../node_modules/.pnpm/@yume-chan+adb@2.6.0/node_modules/@yume-chan/adb/esm/features.js" (__unused_rspack___webpack_module__, __webpack_exports__, __webpack_require__) {
-        __webpack_require__.d(__webpack_exports__, {
-            m: ()=>AdbFeature
-        });
-        const AdbFeature = {
-            ShellV2: "shell_v2",
-            Cmd: "cmd",
-            StatV2: "stat_v2",
-            ListV2: "ls_v2",
-            FixedPushMkdir: "fixed_push_mkdir",
-            Abb: "abb",
-            AbbExec: "abb_exec",
-            SendReceiveV2: "sendrecv_v2",
-            DelayedAck: "delayed_ack"
-        };
-    },
-    "../../../node_modules/.pnpm/@yume-chan+adb@2.6.0/node_modules/@yume-chan/adb/esm/server/client.js" (__unused_rspack___webpack_module__, __webpack_exports__, __webpack_require__) {
-        __webpack_require__.d(__webpack_exports__, {
-            E: ()=>AdbServerClient
-        });
-        var _yume_chan_async__rspack_import_10 = __webpack_require__("../../../node_modules/.pnpm/@yume-chan+async@4.1.3/node_modules/@yume-chan/async/esm/promise-resolver.js");
-        var _yume_chan_no_data_view__rspack_import_5 = __webpack_require__("../../../node_modules/.pnpm/@yume-chan+no-data-view@2.0.0/node_modules/@yume-chan/no-data-view/esm/uint64.js");
-        var _yume_chan_stream_extra__rspack_import_7 = __webpack_require__("../../../node_modules/.pnpm/@yume-chan+stream-extra@2.6.1/node_modules/@yume-chan/stream-extra/esm/stream.js");
-        var _adb_js__rspack_import_9 = __webpack_require__("../../../node_modules/.pnpm/@yume-chan+adb@2.6.0/node_modules/@yume-chan/adb/esm/adb.js");
-        var _banner_js__rspack_import_6 = __webpack_require__("../../../node_modules/.pnpm/@yume-chan+adb@2.6.0/node_modules/@yume-chan/adb/esm/banner.js");
-        var _utils_index_js__rspack_import_4 = __webpack_require__("../../../node_modules/.pnpm/@yume-chan+adb@2.6.0/node_modules/@yume-chan/adb/esm/utils/hex.js");
-        var _commands_index_js__rspack_import_0 = __webpack_require__("../../../node_modules/.pnpm/@yume-chan+adb@2.6.0/node_modules/@yume-chan/adb/esm/server/commands/wireless.js");
-        var _commands_index_js__rspack_import_1 = __webpack_require__("../../../node_modules/.pnpm/@yume-chan+adb@2.6.0/node_modules/@yume-chan/adb/esm/server/commands/m-dns.js");
-        var _observer_js__rspack_import_2 = __webpack_require__("../../../node_modules/.pnpm/@yume-chan+adb@2.6.0/node_modules/@yume-chan/adb/esm/server/observer.js");
-        var _stream_js__rspack_import_3 = __webpack_require__("../../../node_modules/.pnpm/@yume-chan+adb@2.6.0/node_modules/@yume-chan/adb/esm/server/stream.js");
-        var _transport_js__rspack_import_8 = __webpack_require__("../../../node_modules/.pnpm/@yume-chan+adb@2.6.0/node_modules/@yume-chan/adb/esm/server/transport.js");
-        class AdbServerClient {
-            static NetworkError = _commands_index_js__rspack_import_0.Dr;
-            static UnauthorizedError = _commands_index_js__rspack_import_0.D_;
-            static AlreadyConnectedError = _commands_index_js__rspack_import_0.iQ;
-            static parseDeviceList(value, includeStates = [
-                "device",
-                "unauthorized"
-            ]) {
-                const devices = [];
-                for (const line of value.split("\n")){
-                    if (!line) continue;
-                    const parts = line.split(" ").filter(Boolean);
-                    const serial = parts[0];
-                    const state = parts[1];
-                    if (!includeStates.includes(state)) continue;
-                    let product;
-                    let model;
-                    let device;
-                    let transportId;
-                    for(let i = 2; i < parts.length; i += 1){
-                        const [key, value] = parts[i].split(":");
-                        switch(key){
-                            case "product":
-                                product = value;
-                                break;
-                            case "model":
-                                model = value;
-                                break;
-                            case "device":
-                                device = value;
-                                break;
-                            case "transport_id":
-                                transportId = BigInt(value);
-                                break;
-                        }
-                    }
-                    if (!transportId) throw new Error(`No transport id for device ${serial}`);
-                    devices.push({
-                        serial,
-                        state,
-                        authenticating: "unauthorized" === state,
-                        product,
-                        model,
-                        device,
-                        transportId
-                    });
-                }
-                return devices;
-            }
-            static formatDeviceService(device, command) {
-                if (!device) return `host:${command}`;
-                if ("transportId" in device) return `host-transport-id:${device.transportId}:${command}`;
-                if ("serial" in device) return `host-serial:${device.serial}:${command}`;
-                if ("usb" in device) return `host-usb:${command}`;
-                if ("tcp" in device) return `host-local:${command}`;
-                throw new TypeError("Invalid device selector");
-            }
-            connector;
-            wireless = new _commands_index_js__rspack_import_0.zc(this);
-            mDns = new _commands_index_js__rspack_import_1.x(this);
-            #observerOwner = new _observer_js__rspack_import_2.i(this);
-            constructor(connector){
-                this.connector = connector;
-            }
-            async createConnection(request, options) {
-                const connection = await this.connector.connect(options);
-                const stream = new _stream_js__rspack_import_3.t(connection);
-                try {
-                    await stream.writeString(request);
-                } catch (e) {
-                    await stream.dispose();
-                    throw e;
-                }
-                try {
-                    await raceSignal(()=>stream.readOkay(), options?.signal);
-                    return stream;
-                } catch (e) {
-                    await stream.dispose();
-                    throw e;
-                }
-            }
-            async getVersion() {
-                const connection = await this.createConnection("host:version");
-                try {
-                    const length = (0, _utils_index_js__rspack_import_4.M)(await connection.readExactly(4));
-                    const version = (0, _utils_index_js__rspack_import_4.M)(await connection.readExactly(length));
-                    return version;
-                } finally{
-                    await connection.dispose();
-                }
-            }
-            async validateVersion(minimalVersion) {
-                const version = await this.getVersion();
-                if (version < minimalVersion) throw new Error(`adb server version (${version}) doesn't match this client (${minimalVersion})`);
-            }
-            async killServer() {
-                const connection = await this.createConnection("host:kill");
-                await connection.dispose();
-            }
-            async getServerFeatures() {
-                const connection = await this.createConnection("host:host-features");
-                try {
-                    const response = await connection.readString();
-                    return response.split(",");
-                } finally{
-                    await connection.dispose();
-                }
-            }
-            async getDevices(includeStates = [
-                "device",
-                "unauthorized"
-            ]) {
-                const connection = await this.createConnection("host:devices-l");
-                try {
-                    const response = await connection.readString();
-                    return AdbServerClient.parseDeviceList(response, includeStates);
-                } finally{
-                    await connection.dispose();
-                }
-            }
-            async trackDevices(options) {
-                return this.#observerOwner.createObserver(options);
-            }
-            async reconnectDevice(device) {
-                const connection = await this.createConnection("offline" === device ? "host:reconnect-offline" : AdbServerClient.formatDeviceService(device, "reconnect"));
-                try {
-                    await connection.readString();
-                } finally{
-                    await connection.dispose();
-                }
-            }
-            async getDeviceFeatures(device) {
-                const connection = await this.createDeviceConnection(device, "host:features");
-                const stream = new _stream_js__rspack_import_3.t(connection);
-                try {
-                    const featuresString = await stream.readString();
-                    const features = featuresString.split(",");
-                    return {
-                        transportId: connection.transportId,
-                        features
-                    };
-                } finally{
-                    await stream.dispose();
-                }
-            }
-            async createDeviceConnection(device, service) {
-                let switchService;
-                let transportId;
-                if (device) if ("transportId" in device) {
-                    switchService = `host:transport-id:${device.transportId}`;
-                    transportId = device.transportId;
-                } else if ("serial" in device) {
-                    await this.validateVersion(41);
-                    switchService = `host:tport:serial:${device.serial}`;
-                } else if ("usb" in device) {
-                    await this.validateVersion(41);
-                    switchService = "host:tport:usb";
-                } else if ("tcp" in device) {
-                    await this.validateVersion(41);
-                    switchService = "host:tport:local";
-                } else throw new TypeError("Invalid device selector");
-                else {
-                    await this.validateVersion(41);
-                    switchService = "host:tport:any";
-                }
-                const connection = await this.createConnection(switchService);
-                try {
-                    await connection.writeString(service);
-                } catch (e) {
-                    await connection.dispose();
-                    throw e;
-                }
-                try {
-                    if (void 0 === transportId) {
-                        const array = await connection.readExactly(8);
-                        transportId = (0, _yume_chan_no_data_view__rspack_import_5.gw)(array, 0);
-                    }
-                    await connection.readOkay();
-                    const socket = connection.release();
-                    return {
-                        transportId,
-                        service,
-                        readable: socket.readable,
-                        writable: socket.writable,
-                        get closed () {
-                            return socket.closed;
-                        },
-                        async close () {
-                            await socket.close();
-                        }
-                    };
-                } catch (e) {
-                    await connection.dispose();
-                    throw e;
-                }
-            }
-            async #waitForUnchecked(device, state, options) {
-                let type;
-                if (device) if ("transportId" in device) type = "any";
-                else if ("serial" in device) type = "any";
-                else if ("usb" in device) type = "usb";
-                else if ("tcp" in device) type = "local";
-                else throw new TypeError("Invalid device selector");
-                else type = "any";
-                const service = AdbServerClient.formatDeviceService(device, `wait-for-${type}-${state}`);
-                const connection = await this.createConnection(service, options);
-                try {
-                    await connection.readOkay();
-                } finally{
-                    await connection.dispose();
-                }
-            }
-            async waitFor(device, state, options) {
-                if ("disconnect" === state) await this.validateVersion(41);
-                return this.#waitForUnchecked(device, state, options);
-            }
-            async waitForDisconnect(transportId, options) {
-                const serverVersion = await this.getVersion();
-                if (serverVersion >= 41) return this.#waitForUnchecked({
-                    transportId
-                }, "disconnect", options);
-                {
-                    const observer = await this.trackDevices(options);
-                    return new Promise((resolve, reject)=>{
-                        observer.onDeviceRemove((devices)=>{
-                            if (devices.some((device)=>device.transportId === transportId)) {
-                                observer.stop();
-                                resolve();
-                            }
-                        });
-                        observer.onError((e)=>{
-                            observer.stop();
-                            reject(e);
-                        });
-                    });
-                }
-            }
-            async createTransport(device) {
-                const { transportId, features } = await this.getDeviceFeatures(device);
-                const devices = await this.getDevices();
-                const info = devices.find((device)=>device.transportId === transportId);
-                const banner = new _banner_js__rspack_import_6.m(info?.state, info?.product, info?.model, info?.device, features);
-                const waitAbortController = new _yume_chan_stream_extra__rspack_import_7.z1();
-                const disconnected = this.waitForDisconnect(transportId, {
-                    unref: true,
-                    signal: waitAbortController.signal
-                });
-                const transport = new _transport_js__rspack_import_8.s(this, info?.serial ?? "", banner, transportId, disconnected);
-                transport.disconnected.finally(()=>waitAbortController.abort());
-                return transport;
-            }
-            async createAdb(device) {
-                const transport = await this.createTransport(device);
-                return new _adb_js__rspack_import_9.Q(transport);
-            }
-        }
-        async function raceSignal(callback, ...signals) {
-            const abortPromise = new _yume_chan_async__rspack_import_10.O();
-            function abort() {
-                abortPromise.reject(this.reason);
-            }
-            try {
-                for (const signal of signals)if (signal) {
-                    if (signal.aborted) throw signal.reason;
-                    signal.addEventListener("abort", abort);
-                }
-                return await Promise.race([
-                    callback(),
-                    abortPromise.promise
-                ]);
-            } finally{
-                for (const signal of signals)if (signal) signal.removeEventListener("abort", abort);
-            }
-        }
-    },
-    "../../../node_modules/.pnpm/@yume-chan+adb@2.6.0/node_modules/@yume-chan/adb/esm/server/commands/m-dns.js" (__unused_rspack___webpack_module__, __webpack_exports__, __webpack_require__) {
-        __webpack_require__.d(__webpack_exports__, {
-            x: ()=>MDnsCommands
-        });
-        class MDnsCommands {
-            #client;
-            constructor(client){
-                this.#client = client;
-            }
-            async check() {
-                const connection = await this.#client.createConnection("host:mdns:check");
-                try {
-                    const response = await connection.readString();
-                    return !response.startsWith("ERROR:");
-                } finally{
-                    await connection.dispose();
-                }
-            }
-            async getServices() {
-                const connection = await this.#client.createConnection("host:mdns:services");
-                try {
-                    const response = await connection.readString();
-                    return response.split("\n").filter(Boolean).map((line)=>{
-                        const parts = line.split("\t");
-                        return {
-                            name: parts[0],
-                            service: parts[1],
-                            address: parts[2]
-                        };
-                    });
-                } finally{
-                    await connection.dispose();
-                }
-            }
-        }
-    },
-    "../../../node_modules/.pnpm/@yume-chan+adb@2.6.0/node_modules/@yume-chan/adb/esm/server/commands/wireless.js" (__unused_rspack___webpack_module__, __webpack_exports__, __webpack_require__) {
-        __webpack_require__.d(__webpack_exports__, {
-            D_: ()=>UnauthorizedError,
-            Dr: ()=>NetworkError,
-            iQ: ()=>AlreadyConnectedError,
-            zc: ()=>WirelessCommands
-        });
-        var _utils_index_js__rspack_import_0 = __webpack_require__("../../../node_modules/.pnpm/@yume-chan+adb@2.6.0/node_modules/@yume-chan/adb/esm/utils/sequence-equal.js");
-        var _utils_index_js__rspack_import_2 = __webpack_require__("../../../node_modules/.pnpm/@yume-chan+adb@2.6.0/node_modules/@yume-chan/adb/esm/utils/hex.js");
-        var _stream_js__rspack_import_1 = __webpack_require__("../../../node_modules/.pnpm/@yume-chan+adb@2.6.0/node_modules/@yume-chan/adb/esm/server/stream.js");
-        class NetworkError extends Error {
-            constructor(message){
-                super(message);
-                this.name = "NetworkError";
-            }
-        }
-        class UnauthorizedError extends Error {
-            constructor(message){
-                super(message);
-                this.name = "UnauthorizedError";
-            }
-        }
-        class AlreadyConnectedError extends Error {
-            constructor(message){
-                super(message);
-                this.name = "AlreadyConnectedError";
-            }
-        }
-        class WirelessCommands {
-            #client;
-            constructor(client){
-                this.#client = client;
-            }
-            async pair(address, password) {
-                const connection = await this.#client.createConnection(`host:pair:${password}:${address}`);
-                try {
-                    const response = await connection.readExactly(4);
-                    if ((0, _utils_index_js__rspack_import_0.m)(response, _stream_js__rspack_import_1.v)) throw new Error(await connection.readString());
-                    const length = (0, _utils_index_js__rspack_import_2.M)(response);
-                    await connection.readExactly(length);
-                } finally{
-                    await connection.dispose();
-                }
-            }
-            async connect(address) {
-                const connection = await this.#client.createConnection(`host:connect:${address}`);
-                try {
-                    const response = await connection.readString();
-                    switch(response){
-                        case `already connected to ${address}`:
-                            throw new AlreadyConnectedError(response);
-                        case `failed to connect to ${address}`:
-                        case `failed to authenticate to ${address}`:
-                            throw new UnauthorizedError(response);
-                        case `connected to ${address}`:
-                            return;
-                        default:
-                            throw new NetworkError(response);
-                    }
-                } finally{
-                    await connection.dispose();
-                }
-            }
-            async disconnect(address) {
-                const connection = await this.#client.createConnection(`host:disconnect:${address}`);
-                try {
-                    await connection.readString();
-                } finally{
-                    await connection.dispose();
-                }
-            }
-        }
-    },
-    "../../../node_modules/.pnpm/@yume-chan+adb@2.6.0/node_modules/@yume-chan/adb/esm/server/observer.js" (__unused_rspack___webpack_module__, __webpack_exports__, __webpack_require__) {
-        __webpack_require__.d(__webpack_exports__, {
-            i: ()=>AdbServerDeviceObserverOwner
-        });
-        var _yume_chan_event__rspack_import_1 = __webpack_require__("../../../node_modules/.pnpm/@yume-chan+event@2.0.0/node_modules/@yume-chan/event/esm/event-emitter.js");
-        var _yume_chan_event__rspack_import_2 = __webpack_require__("../../../node_modules/.pnpm/@yume-chan+event@2.0.0/node_modules/@yume-chan/event/esm/sticky-event-emitter.js");
-        var _utils_index_js__rspack_import_3 = __webpack_require__("../../../node_modules/.pnpm/@yume-chan+adb@2.6.0/node_modules/@yume-chan/adb/esm/utils/ref.js");
-        var _client_js__rspack_import_0 = __webpack_require__("../../../node_modules/.pnpm/@yume-chan+adb@2.6.0/node_modules/@yume-chan/adb/esm/server/client.js");
-        function unorderedRemove(array, index) {
-            if (index < 0 || index >= array.length) return;
-            array[index] = array[array.length - 1];
-            array.length -= 1;
-        }
-        function filterDeviceStates(devices, states) {
-            return devices.filter((device)=>states.includes(device.state));
-        }
-        class AdbServerDeviceObserverOwner {
-            current = [];
-            #client;
-            #stream;
-            #observers = [];
-            constructor(client){
-                this.#client = client;
-            }
-            async #receive(stream) {
-                const response = await stream.readString();
-                const next = _client_js__rspack_import_0.E.parseDeviceList(response);
-                const removed = this.current.slice();
-                const added = [];
-                for (const nextDevice of next){
-                    const index = removed.findIndex((device)=>device.transportId === nextDevice.transportId);
-                    if (-1 === index) {
-                        added.push(nextDevice);
-                        continue;
-                    }
-                    unorderedRemove(removed, index);
-                }
-                this.current = next;
-                if (added.length) for (const observer of this.#observers){
-                    const filtered = filterDeviceStates(added, observer.includeStates);
-                    if (filtered.length) observer.onDeviceAdd.fire(filtered);
-                }
-                if (removed.length) for (const observer of this.#observers){
-                    const filtered = filterDeviceStates(removed, observer.includeStates);
-                    if (filtered.length) observer.onDeviceRemove.fire(removed);
-                }
-                for (const observer of this.#observers){
-                    const filtered = filterDeviceStates(this.current, observer.includeStates);
-                    observer.onListChange.fire(filtered);
-                }
-            }
-            async #receiveLoop(stream) {
-                try {
-                    while(true)await this.#receive(stream);
-                } catch (e) {
-                    this.#stream = void 0;
-                    for (const observer of this.#observers)observer.onError.fire(e);
-                }
-            }
-            async #connect() {
-                const stream = await this.#client.createConnection("host:track-devices-l", {
-                    unref: true
-                });
-                await this.#receive(stream);
-                this.#receiveLoop(stream);
-                return stream;
-            }
-            async #handleObserverStop(stream) {
-                if (0 === this.#observers.length) {
-                    this.#stream = void 0;
-                    await stream.dispose();
-                }
-            }
-            async createObserver(options) {
-                options?.signal?.throwIfAborted();
-                let current = [];
-                const onDeviceAdd = new _yume_chan_event__rspack_import_1.b();
-                const onDeviceRemove = new _yume_chan_event__rspack_import_1.b();
-                const onListChange = new _yume_chan_event__rspack_import_2.O();
-                const onError = new _yume_chan_event__rspack_import_2.O();
-                const includeStates = options?.includeStates ?? [
-                    "device",
-                    "unauthorized"
-                ];
-                const observer = {
-                    includeStates,
-                    onDeviceAdd,
-                    onDeviceRemove,
-                    onListChange,
-                    onError
-                };
-                this.#observers.push(observer);
-                onListChange.event((value)=>current = value);
-                let stream;
-                if (this.#stream) {
-                    stream = await this.#stream;
-                    onListChange.fire(filterDeviceStates(this.current, includeStates));
-                } else {
-                    this.#stream = this.#connect();
-                    try {
-                        stream = await this.#stream;
-                    } catch (e) {
-                        this.#stream = void 0;
-                        throw e;
-                    }
-                }
-                const ref = new _utils_index_js__rspack_import_3.o(options);
-                const stop = async ()=>{
-                    unorderedRemove(this.#observers, this.#observers.indexOf(observer));
-                    await this.#handleObserverStop(stream);
-                    ref.unref();
-                };
-                if (options?.signal) {
-                    if (options.signal.aborted) {
-                        await stop();
-                        throw options.signal.reason;
-                    }
-                    options.signal.addEventListener("abort", ()=>void stop());
-                }
-                return {
-                    onDeviceAdd: onDeviceAdd.event,
-                    onDeviceRemove: onDeviceRemove.event,
-                    onListChange: onListChange.event,
-                    onError: onError.event,
-                    get current () {
-                        return current;
-                    },
-                    stop
-                };
-            }
-        }
-    },
-    "../../../node_modules/.pnpm/@yume-chan+adb@2.6.0/node_modules/@yume-chan/adb/esm/server/stream.js" (__unused_rspack___webpack_module__, __webpack_exports__, __webpack_require__) {
-        __webpack_require__.d(__webpack_exports__, {
-            t: ()=>AdbServerStream,
-            v: ()=>FAIL
-        });
-        var _yume_chan_stream_extra__rspack_import_1 = __webpack_require__("../../../node_modules/.pnpm/@yume-chan+stream-extra@2.6.1/node_modules/@yume-chan/stream-extra/esm/buffered.js");
-        var _yume_chan_stream_extra__rspack_import_5 = __webpack_require__("../../../node_modules/.pnpm/@yume-chan+stream-extra@2.6.1/node_modules/@yume-chan/stream-extra/esm/try-close.js");
-        var _yume_chan_struct__rspack_import_0 = __webpack_require__("../../../node_modules/.pnpm/@yume-chan+struct@2.3.2/node_modules/@yume-chan/struct/esm/utils.js");
-        var _yume_chan_struct__rspack_import_2 = __webpack_require__("../../../node_modules/.pnpm/@yume-chan+struct@2.3.2/node_modules/@yume-chan/struct/esm/bipedal.js");
-        var _utils_index_js__rspack_import_3 = __webpack_require__("../../../node_modules/.pnpm/@yume-chan+adb@2.6.0/node_modules/@yume-chan/adb/esm/utils/hex.js");
-        var _utils_index_js__rspack_import_4 = __webpack_require__("../../../node_modules/.pnpm/@yume-chan+adb@2.6.0/node_modules/@yume-chan/adb/esm/utils/sequence-equal.js");
-        const OKAY = (0, _yume_chan_struct__rspack_import_0.Af)("OKAY");
-        const FAIL = (0, _yume_chan_struct__rspack_import_0.Af)("FAIL");
-        class AdbServerStream {
-            #connection;
-            #buffered;
-            #writer;
-            constructor(connection){
-                this.#connection = connection;
-                this.#buffered = new _yume_chan_stream_extra__rspack_import_1.y(connection.readable);
-                this.#writer = connection.writable.getWriter();
-            }
-            readExactly(length) {
-                return this.#buffered.readExactly(length);
-            }
-            readString = (0, _yume_chan_struct__rspack_import_2.q)(function*(then) {
-                const data = yield* then(this.readExactly(4));
-                const length = (0, _utils_index_js__rspack_import_3.M)(data);
-                if (0 === length) return "";
-                {
-                    const decoder = new _yume_chan_struct__rspack_import_0.Ay();
-                    let result = "";
-                    const iterator = this.#buffered.iterateExactly(length);
-                    while(true){
-                        const { done, value } = iterator.next();
-                        if (done) break;
-                        result += decoder.decode((yield* then(value)), {
-                            stream: true
-                        });
-                    }
-                    result += decoder.decode();
-                    return result;
-                }
-            });
-            async readOkay() {
-                const response = await this.readExactly(4);
-                if ((0, _utils_index_js__rspack_import_4.m)(response, OKAY)) return;
-                if ((0, _utils_index_js__rspack_import_4.m)(response, FAIL)) {
-                    const reason = await this.readString();
-                    throw new Error(reason);
-                }
-                throw new Error(`Unexpected response: ${(0, _yume_chan_struct__rspack_import_0._6)(response)}`);
-            }
-            async writeString(value) {
-                const encoded = (0, _yume_chan_struct__rspack_import_0.Af)(value);
-                const buffer = new Uint8Array(4 + encoded.length);
-                (0, _utils_index_js__rspack_import_3.h)(buffer, 0, encoded.length);
-                buffer.set(encoded, 4);
-                await this.#writer.write(buffer);
-            }
-            release() {
-                this.#writer.releaseLock();
-                return {
-                    readable: this.#buffered.release(),
-                    writable: this.#connection.writable,
-                    closed: this.#connection.closed,
-                    close: ()=>this.#connection.close()
-                };
-            }
-            async dispose() {
-                (0, _yume_chan_stream_extra__rspack_import_5.S)(this.#buffered);
-                (0, _yume_chan_stream_extra__rspack_import_5.i)(this.#writer);
-                await this.#connection.close();
-            }
-        }
-    },
-    "../../../node_modules/.pnpm/@yume-chan+adb@2.6.0/node_modules/@yume-chan/adb/esm/server/transport.js" (__unused_rspack___webpack_module__, __webpack_exports__, __webpack_require__) {
-        __webpack_require__.d(__webpack_exports__, {
-            s: ()=>AdbServerTransport
-        });
-        var _yume_chan_async__rspack_import_1 = __webpack_require__("../../../node_modules/.pnpm/@yume-chan+async@4.1.3/node_modules/@yume-chan/async/esm/promise-resolver.js");
-        var _features_js__rspack_import_0 = __webpack_require__("../../../node_modules/.pnpm/@yume-chan+adb@2.6.0/node_modules/@yume-chan/adb/esm/features.js");
-        const ADB_SERVER_DEFAULT_FEATURES = /* #__PURE__ */ (()=>[
-                _features_js__rspack_import_0.m.ShellV2,
-                _features_js__rspack_import_0.m.Cmd,
-                _features_js__rspack_import_0.m.StatV2,
-                _features_js__rspack_import_0.m.ListV2,
-                _features_js__rspack_import_0.m.FixedPushMkdir,
-                "apex",
-                _features_js__rspack_import_0.m.Abb,
-                "fixed_push_symlink_timestamp",
-                _features_js__rspack_import_0.m.AbbExec,
-                "remount_shell",
-                "track_app",
-                _features_js__rspack_import_0.m.SendReceiveV2,
-                "sendrecv_v2_brotli",
-                "sendrecv_v2_lz4",
-                "sendrecv_v2_zstd",
-                "sendrecv_v2_dry_run_send"
-            ])();
-        class AdbServerTransport {
-            #client;
-            serial;
-            transportId;
-            maxPayloadSize = 1048576;
-            banner;
-            #sockets = [];
-            #closed = new _yume_chan_async__rspack_import_1.O();
-            #disconnected;
-            get disconnected() {
-                return this.#disconnected;
-            }
-            get clientFeatures() {
-                return ADB_SERVER_DEFAULT_FEATURES;
-            }
-            constructor(client, serial, banner, transportId, disconnected){
-                this.#client = client;
-                this.serial = serial;
-                this.banner = banner;
-                this.transportId = transportId;
-                this.#disconnected = Promise.race([
-                    this.#closed.promise,
-                    disconnected
-                ]);
-            }
-            async connect(service) {
-                const socket = await this.#client.createDeviceConnection({
-                    transportId: this.transportId
-                }, service);
-                this.#sockets.push(socket);
-                return socket;
-            }
-            async addReverseTunnel(handler, address) {
-                return await this.#client.connector.addReverseTunnel(handler, address);
-            }
-            async removeReverseTunnel(address) {
-                await this.#client.connector.removeReverseTunnel(address);
-            }
-            async clearReverseTunnels() {
-                await this.#client.connector.clearReverseTunnels();
-            }
-            async close() {
-                for (const socket of this.#sockets)await socket.close();
-                this.#sockets.length = 0;
-                this.#closed.resolve();
-            }
-        }
-    },
-    "../../../node_modules/.pnpm/@yume-chan+adb@2.6.0/node_modules/@yume-chan/adb/esm/utils/auto-reset-event.js" (__unused_rspack___webpack_module__, __webpack_exports__, __webpack_require__) {
-        __webpack_require__.d(__webpack_exports__, {
-            F: ()=>AutoResetEvent
-        });
-        var _yume_chan_async__rspack_import_0 = __webpack_require__("../../../node_modules/.pnpm/@yume-chan+async@4.1.3/node_modules/@yume-chan/async/esm/promise-resolver.js");
-        class AutoResetEvent {
-            #set;
-            #queue = [];
-            constructor(initialSet = false){
-                this.#set = initialSet;
-            }
-            wait() {
-                if (!this.#set) {
-                    this.#set = true;
-                    if (0 === this.#queue.length) return Promise.resolve();
-                }
-                const resolver = new _yume_chan_async__rspack_import_0.O();
-                this.#queue.push(resolver);
-                return resolver.promise;
-            }
-            notifyOne() {
-                if (0 !== this.#queue.length) this.#queue.pop().resolve();
-                else this.#set = false;
-            }
-            dispose() {
-                for (const item of this.#queue)item.reject(new Error("The AutoResetEvent has been disposed"));
-                this.#queue.length = 0;
-            }
-        }
-    },
-    "../../../node_modules/.pnpm/@yume-chan+adb@2.6.0/node_modules/@yume-chan/adb/esm/utils/hex.js" (__unused_rspack___webpack_module__, __webpack_exports__, __webpack_require__) {
-        __webpack_require__.d(__webpack_exports__, {
-            M: ()=>hexToNumber,
-            h: ()=>write4HexDigits
-        });
-        function hexCharToNumber(char) {
-            if (char < 48) throw new TypeError(`Invalid hex char ${char}`);
-            if (char < 58) return char - 48;
-            if (char < 65) throw new TypeError(`Invalid hex char ${char}`);
-            if (char < 71) return char - 55;
-            if (char < 97) throw new TypeError(`Invalid hex char ${char}`);
-            if (char < 103) return char - 87;
-            throw new TypeError(`Invalid hex char ${char}`);
-        }
-        function hexToNumber(data) {
-            let result = 0;
-            for(let i = 0; i < data.length; i += 1)result = result << 4 | hexCharToNumber(data[i]);
-            return result;
-        }
-        function write4HexDigits(buffer, index, value) {
-            const start = index;
-            index += 3;
-            while(index >= start && value > 0){
-                const digit = 0xf & value;
-                value >>= 4;
-                if (digit < 10) buffer[index] = digit + 48;
-                else buffer[index] = digit + 87;
-                index -= 1;
-            }
-            while(index >= start){
-                buffer[index] = 48;
-                index -= 1;
-            }
-        }
-    },
-    "../../../node_modules/.pnpm/@yume-chan+adb@2.6.0/node_modules/@yume-chan/adb/esm/utils/no-op.js" (__unused_rspack___webpack_module__, __webpack_exports__, __webpack_require__) {
-        __webpack_require__.d(__webpack_exports__, {
-            H: ()=>unreachable,
-            t: ()=>NOOP
-        });
-        const NOOP = ()=>{};
-        function unreachable(...args) {
-            throw new Error("Unreachable. Arguments:\n" + args.join("\n"));
-        }
-    },
-    "../../../node_modules/.pnpm/@yume-chan+adb@2.6.0/node_modules/@yume-chan/adb/esm/utils/ref.js" (__unused_rspack___webpack_module__, __webpack_exports__, __webpack_require__) {
-        __webpack_require__.d(__webpack_exports__, {
-            o: ()=>Ref
-        });
-        const { setInterval, clearInterval } = globalThis;
-        class Ref {
-            #intervalId;
-            constructor(options){
-                if (!options?.unref) this.ref();
-            }
-            ref() {
-                this.#intervalId = setInterval(()=>{}, 60000);
-            }
-            unref() {
-                if (this.#intervalId) {
-                    clearInterval(this.#intervalId);
-                    this.#intervalId = void 0;
-                }
-            }
-        }
-    },
-    "../../../node_modules/.pnpm/@yume-chan+adb@2.6.0/node_modules/@yume-chan/adb/esm/utils/sequence-equal.js" (__unused_rspack___webpack_module__, __webpack_exports__, __webpack_require__) {
-        __webpack_require__.d(__webpack_exports__, {
-            m: ()=>sequenceEqual
-        });
-        function sequenceEqual(a, b) {
-            if (a.length !== b.length) return false;
-            for(let i = 0; i < a.length; i += 1)if (a[i] !== b[i]) return false;
-            return true;
-        }
-    },
-    "../../../node_modules/.pnpm/@yume-chan+async@4.1.3/node_modules/@yume-chan/async/esm/maybe-promise.js" (__unused_rspack___webpack_module__, __webpack_exports__, __webpack_require__) {
-        __webpack_require__.d(__webpack_exports__, {
-            $: ()=>isPromiseLike
-        });
-        function isPromiseLike(value) {
-            return "object" == typeof value && null !== value && "then" in value;
-        }
-    },
-    "../../../node_modules/.pnpm/@yume-chan+async@4.1.3/node_modules/@yume-chan/async/esm/promise-resolver.js" (__unused_rspack___webpack_module__, __webpack_exports__, __webpack_require__) {
-        __webpack_require__.d(__webpack_exports__, {
-            O: ()=>PromiseResolver
-        });
-        class PromiseResolver {
-            #promise;
-            get promise() {
-                return this.#promise;
-            }
-            #resolve;
-            #reject;
-            #state = 'running';
-            get state() {
-                return this.#state;
-            }
-            constructor(){
-                this.#promise = new Promise((resolve, reject)=>{
-                    this.#resolve = resolve;
-                    this.#reject = reject;
-                });
-            }
-            resolve = (value)=>{
-                this.#resolve(value);
-                this.#state = 'resolved';
+    };
+}
+function _field(size, type, serialize, deserialize, options) {
+    const field = {
+        size,
+        type: type,
+        serialize: "default" === type ? defaultFieldSerializer(serialize) : byobFieldSerializer(size, serialize),
+        deserialize: bipedal(deserialize),
+        omitInit: options?.omitInit
+    };
+    if (options?.init) field.init = options.init;
+    return field;
+}
+const factory_field = _field;
+const EmptyUint8Array = new Uint8Array(0);
+function copyMaybeDifferentLength(dest, source, index, length) {
+    if (source.length < length) {
+        dest.set(source, index);
+        dest.fill(0, index + source.length, index + length);
+    } else if (source.length === length) dest.set(source, index);
+    else dest.set(source.subarray(0, length), index);
+}
+function buffer_buffer(lengthOrField, converter) {
+    if ("number" == typeof lengthOrField) {
+        let serialize;
+        let deserialize;
+        let init;
+        if (0 === lengthOrField) {
+            serialize = ()=>{};
+            deserialize = converter ? function*() {
+                return converter.convert(EmptyUint8Array);
+            } : function*() {
+                return EmptyUint8Array;
             };
-            reject = (reason)=>{
-                this.#reject(reason);
-                this.#state = 'rejected';
+        } else {
+            serialize = (value, { buffer, index })=>copyMaybeDifferentLength(buffer, value, index, lengthOrField);
+            if (converter) {
+                deserialize = function*(then, reader) {
+                    const array = reader.readExactly(lengthOrField);
+                    return converter.convert((yield* then(array)));
+                };
+                init = (value)=>converter.back(value);
+            } else deserialize = function*(_then, reader) {
+                const array = reader.readExactly(lengthOrField);
+                return array;
             };
         }
-    },
-    "../../../node_modules/.pnpm/@yume-chan+event@2.0.0/node_modules/@yume-chan/event/esm/disposable.js" (__unused_rspack___webpack_module__, __webpack_exports__, __webpack_require__) {
-        __webpack_require__.d(__webpack_exports__, {
-            i: ()=>AutoDisposable
+        return factory_field(lengthOrField, "byob", serialize, deserialize, {
+            init
         });
-        class AutoDisposable {
-            #disposables = [];
-            constructor(){
-                this.dispose = this.dispose.bind(this);
-            }
-            addDisposable(disposable) {
-                this.#disposables.push(disposable);
-                return disposable;
-            }
-            dispose() {
-                for (const disposable of this.#disposables)disposable.dispose();
-                this.#disposables = [];
-            }
-        }
-    },
-    "../../../node_modules/.pnpm/@yume-chan+event@2.0.0/node_modules/@yume-chan/event/esm/event-emitter.js" (__unused_rspack___webpack_module__, __webpack_exports__, __webpack_require__) {
-        __webpack_require__.d(__webpack_exports__, {
-            b: ()=>EventEmitter
-        });
-        class EventEmitter {
-            listeners = [];
-            constructor(){
-                this.event = this.event.bind(this);
-            }
-            addEventListener(info) {
-                this.listeners.push(info);
-                const remove = ()=>{
-                    const index = this.listeners.indexOf(info);
-                    if (-1 !== index) this.listeners.splice(index, 1);
-                };
-                remove.dispose = remove;
-                return remove;
-            }
-            event = (listener, thisArg, ...args)=>{
-                const info = {
-                    listener: listener,
-                    thisArg,
-                    args
-                };
-                return this.addEventListener(info);
+    }
+    if (("object" == typeof lengthOrField || "function" == typeof lengthOrField) && "serialize" in lengthOrField) {
+        let deserialize;
+        let init;
+        if (converter) {
+            deserialize = function*(then, reader, context) {
+                const length = yield* then(lengthOrField.deserialize(reader, context));
+                const array = 0 !== length ? reader.readExactly(length) : EmptyUint8Array;
+                return converter.convert((yield* then(array)));
             };
-            fire(e) {
-                for (const info of this.listeners.slice())info.listener.call(info.thisArg, e, ...info.args);
-            }
-            dispose() {
-                this.listeners.length = 0;
-            }
-        }
-    },
-    "../../../node_modules/.pnpm/@yume-chan+event@2.0.0/node_modules/@yume-chan/event/esm/sticky-event-emitter.js" (__unused_rspack___webpack_module__, __webpack_exports__, __webpack_require__) {
-        __webpack_require__.d(__webpack_exports__, {
-            O: ()=>StickyEventEmitter
-        });
-        var _event_emitter_js__rspack_import_0 = __webpack_require__("../../../node_modules/.pnpm/@yume-chan+event@2.0.0/node_modules/@yume-chan/event/esm/event-emitter.js");
-        const Undefined = Symbol("undefined");
-        class StickyEventEmitter extends _event_emitter_js__rspack_import_0.b {
-            #value = Undefined;
-            addEventListener(info) {
-                if (this.#value !== Undefined) info.listener.call(info.thisArg, this.#value, ...info.args);
-                return super.addEventListener(info);
-            }
-            fire(e) {
-                this.#value = e;
-                super.fire(e);
-            }
-        }
-    },
-    "../../../node_modules/.pnpm/@yume-chan+no-data-view@2.0.0/node_modules/@yume-chan/no-data-view/esm/int16.js" (__unused_rspack___webpack_module__, __webpack_exports__, __webpack_require__) {
-        __webpack_require__.d(__webpack_exports__, {
-            T8: ()=>getInt16,
-            f2: ()=>setInt16
-        });
-        function getInt16(buffer, offset, littleEndian) {
-            return littleEndian ? (buffer[offset] | buffer[offset + 1] << 8) << 16 >> 16 : (buffer[offset] << 8 | buffer[offset + 1]) << 16 >> 16;
-        }
-        function setInt16(buffer, offset, value, littleEndian) {
-            if (littleEndian) {
-                buffer[offset] = value;
-                buffer[offset + 1] = value >> 8;
-            } else {
-                buffer[offset] = value >> 8;
-                buffer[offset + 1] = value;
-            }
-        }
-    },
-    "../../../node_modules/.pnpm/@yume-chan+no-data-view@2.0.0/node_modules/@yume-chan/no-data-view/esm/int32.js" (__unused_rspack___webpack_module__, __webpack_exports__, __webpack_require__) {
-        __webpack_require__.d(__webpack_exports__, {
-            lq: ()=>getInt32,
-            z1: ()=>setInt32
-        });
-        function getInt32(buffer, offset, littleEndian) {
-            return littleEndian ? buffer[offset] | buffer[offset + 1] << 8 | buffer[offset + 2] << 16 | buffer[offset + 3] << 24 : buffer[offset] << 24 | buffer[offset + 1] << 16 | buffer[offset + 2] << 8 | buffer[offset + 3];
-        }
-        function setInt32(buffer, offset, value, littleEndian) {
-            if (littleEndian) {
-                buffer[offset] = value;
-                buffer[offset + 1] = value >> 8;
-                buffer[offset + 2] = value >> 16;
-                buffer[offset + 3] = value >> 24;
-            } else {
-                buffer[offset] = value >> 24;
-                buffer[offset + 1] = value >> 16;
-                buffer[offset + 2] = value >> 8;
-                buffer[offset + 3] = value;
-            }
-        }
-    },
-    "../../../node_modules/.pnpm/@yume-chan+no-data-view@2.0.0/node_modules/@yume-chan/no-data-view/esm/int64.js" (__unused_rspack___webpack_module__, __webpack_exports__, __webpack_require__) {
-        __webpack_require__.d(__webpack_exports__, {
-            _j: ()=>setInt64,
-            eN: ()=>getInt64
-        });
-        function getInt64(buffer, offset, littleEndian) {
-            return littleEndian ? BigInt(buffer[offset]) | BigInt(buffer[offset + 1]) << 8n | BigInt(buffer[offset + 2]) << 16n | BigInt(buffer[offset + 3]) << 24n | BigInt(buffer[offset + 4]) << 32n | BigInt(buffer[offset + 5]) << 40n | BigInt(buffer[offset + 6]) << 48n | BigInt(buffer[offset + 7] << 24) << 32n : BigInt(buffer[offset] << 24) << 32n | BigInt(buffer[offset + 1]) << 48n | BigInt(buffer[offset + 2]) << 40n | BigInt(buffer[offset + 3]) << 32n | BigInt(buffer[offset + 4]) << 24n | BigInt(buffer[offset + 5]) << 16n | BigInt(buffer[offset + 6]) << 8n | BigInt(buffer[offset + 7]);
-        }
-        function setInt64(buffer, offset, value, littleEndian) {
-            if (littleEndian) {
-                buffer[offset] = Number(0xffn & value);
-                buffer[offset + 1] = Number(value >> 8n & 0xffn);
-                buffer[offset + 2] = Number(value >> 16n & 0xffn);
-                buffer[offset + 3] = Number(value >> 24n & 0xffn);
-                buffer[offset + 4] = Number(value >> 32n & 0xffn);
-                buffer[offset + 5] = Number(value >> 40n & 0xffn);
-                buffer[offset + 6] = Number(value >> 48n & 0xffn);
-                buffer[offset + 7] = Number(value >> 56n & 0xffn);
-            } else {
-                buffer[offset] = Number(value >> 56n & 0xffn);
-                buffer[offset + 1] = Number(value >> 48n & 0xffn);
-                buffer[offset + 2] = Number(value >> 40n & 0xffn);
-                buffer[offset + 3] = Number(value >> 32n & 0xffn);
-                buffer[offset + 4] = Number(value >> 24n & 0xffn);
-                buffer[offset + 5] = Number(value >> 16n & 0xffn);
-                buffer[offset + 6] = Number(value >> 8n & 0xffn);
-                buffer[offset + 7] = Number(0xffn & value);
-            }
-        }
-    },
-    "../../../node_modules/.pnpm/@yume-chan+no-data-view@2.0.0/node_modules/@yume-chan/no-data-view/esm/int8.js" (__unused_rspack___webpack_module__, __webpack_exports__, __webpack_require__) {
-        __webpack_require__.d(__webpack_exports__, {
-            E: ()=>getInt8
-        });
-        function getInt8(buffer, offset) {
-            return buffer[offset] << 24 >> 24;
-        }
-    },
-    "../../../node_modules/.pnpm/@yume-chan+no-data-view@2.0.0/node_modules/@yume-chan/no-data-view/esm/uint16.js" (__unused_rspack___webpack_module__, __webpack_exports__, __webpack_require__) {
-        __webpack_require__.d(__webpack_exports__, {
-            An: ()=>setUint16,
-            G2: ()=>getUint16
-        });
-        function getUint16(buffer, offset, littleEndian) {
-            return littleEndian ? buffer[offset] | buffer[offset + 1] << 8 : buffer[offset + 1] | buffer[offset] << 8;
-        }
-        function setUint16(buffer, offset, value, littleEndian) {
-            if (littleEndian) {
-                buffer[offset] = value;
-                buffer[offset + 1] = value >> 8;
-            } else {
-                buffer[offset] = value >> 8;
-                buffer[offset + 1] = value;
-            }
-        }
-    },
-    "../../../node_modules/.pnpm/@yume-chan+no-data-view@2.0.0/node_modules/@yume-chan/no-data-view/esm/uint32.js" (__unused_rspack___webpack_module__, __webpack_exports__, __webpack_require__) {
-        __webpack_require__.d(__webpack_exports__, {
-            FQ: ()=>getUint32LittleEndian,
-            Qg: ()=>getUint32,
-            ub: ()=>setUint32
-        });
-        function getUint32LittleEndian(buffer, offset) {
-            return (buffer[offset] | buffer[offset + 1] << 8 | buffer[offset + 2] << 16 | buffer[offset + 3] << 24) >>> 0;
-        }
-        function getUint32(buffer, offset, littleEndian) {
-            return littleEndian ? (buffer[offset] | buffer[offset + 1] << 8 | buffer[offset + 2] << 16 | buffer[offset + 3] << 24) >>> 0 : (buffer[offset] << 24 | buffer[offset + 1] << 16 | buffer[offset + 2] << 8 | buffer[offset + 3]) >>> 0;
-        }
-        function setUint32(buffer, offset, value, littleEndian) {
-            if (littleEndian) {
-                buffer[offset] = value;
-                buffer[offset + 1] = value >> 8;
-                buffer[offset + 2] = value >> 16;
-                buffer[offset + 3] = value >> 24;
-            } else {
-                buffer[offset] = value >> 24;
-                buffer[offset + 1] = value >> 16;
-                buffer[offset + 2] = value >> 8;
-                buffer[offset + 3] = value;
-            }
-        }
-    },
-    "../../../node_modules/.pnpm/@yume-chan+no-data-view@2.0.0/node_modules/@yume-chan/no-data-view/esm/uint64.js" (__unused_rspack___webpack_module__, __webpack_exports__, __webpack_require__) {
-        __webpack_require__.d(__webpack_exports__, {
-            Hn: ()=>getUint64,
-            X3: ()=>setUint64,
-            gw: ()=>getUint64LittleEndian
-        });
-        function getUint64LittleEndian(buffer, offset) {
-            return BigInt(buffer[offset]) | BigInt(buffer[offset + 1]) << 8n | BigInt(buffer[offset + 2]) << 16n | BigInt(buffer[offset + 3]) << 24n | BigInt(buffer[offset + 4]) << 32n | BigInt(buffer[offset + 5]) << 40n | BigInt(buffer[offset + 6]) << 48n | BigInt(buffer[offset + 7]) << 56n;
-        }
-        function getUint64(buffer, offset, littleEndian) {
-            return littleEndian ? BigInt(buffer[offset]) | BigInt(buffer[offset + 1]) << 8n | BigInt(buffer[offset + 2]) << 16n | BigInt(buffer[offset + 3]) << 24n | BigInt(buffer[offset + 4]) << 32n | BigInt(buffer[offset + 5]) << 40n | BigInt(buffer[offset + 6]) << 48n | BigInt(buffer[offset + 7]) << 56n : BigInt(buffer[offset]) << 56n | BigInt(buffer[offset + 1]) << 48n | BigInt(buffer[offset + 2]) << 40n | BigInt(buffer[offset + 3]) << 32n | BigInt(buffer[offset + 4]) << 24n | BigInt(buffer[offset + 5]) << 16n | BigInt(buffer[offset + 6]) << 8n | BigInt(buffer[offset + 7]);
-        }
-        function setUint64(buffer, offset, value, littleEndian) {
-            if (littleEndian) {
-                buffer[offset] = Number(0xffn & value);
-                buffer[offset + 1] = Number(value >> 8n & 0xffn);
-                buffer[offset + 2] = Number(value >> 16n & 0xffn);
-                buffer[offset + 3] = Number(value >> 24n & 0xffn);
-                buffer[offset + 4] = Number(value >> 32n & 0xffn);
-                buffer[offset + 5] = Number(value >> 40n & 0xffn);
-                buffer[offset + 6] = Number(value >> 48n & 0xffn);
-                buffer[offset + 7] = Number(value >> 56n & 0xffn);
-            } else {
-                buffer[offset] = Number(value >> 56n & 0xffn);
-                buffer[offset + 1] = Number(value >> 48n & 0xffn);
-                buffer[offset + 2] = Number(value >> 40n & 0xffn);
-                buffer[offset + 3] = Number(value >> 32n & 0xffn);
-                buffer[offset + 4] = Number(value >> 24n & 0xffn);
-                buffer[offset + 5] = Number(value >> 16n & 0xffn);
-                buffer[offset + 6] = Number(value >> 8n & 0xffn);
-                buffer[offset + 7] = Number(0xffn & value);
-            }
-        }
-    },
-    "../../../node_modules/.pnpm/@yume-chan+stream-extra@2.6.1/node_modules/@yume-chan/stream-extra/esm/buffered-transform.js" (__unused_rspack___webpack_module__, __webpack_exports__, __webpack_require__) {
-        __webpack_require__.d(__webpack_exports__, {
-            m: ()=>BufferedTransformStream
-        });
-        var _yume_chan_struct__rspack_import_3 = __webpack_require__("../../../node_modules/.pnpm/@yume-chan+struct@2.3.2/node_modules/@yume-chan/struct/esm/struct.js");
-        var _buffered_js__rspack_import_0 = __webpack_require__("../../../node_modules/.pnpm/@yume-chan+stream-extra@2.6.1/node_modules/@yume-chan/stream-extra/esm/buffered.js");
-        var _push_readable_js__rspack_import_1 = __webpack_require__("../../../node_modules/.pnpm/@yume-chan+stream-extra@2.6.1/node_modules/@yume-chan/stream-extra/esm/push-readable.js");
-        var _stream_js__rspack_import_2 = __webpack_require__("../../../node_modules/.pnpm/@yume-chan+stream-extra@2.6.1/node_modules/@yume-chan/stream-extra/esm/stream.js");
-        class BufferedTransformStream {
-            #readable;
-            get readable() {
-                return this.#readable;
-            }
-            #writable;
-            get writable() {
-                return this.#writable;
-            }
-            constructor(transform){
-                let bufferedStreamController;
-                let writableStreamController;
-                const buffered = new _buffered_js__rspack_import_0.y(new _push_readable_js__rspack_import_1.F((controller)=>{
-                    bufferedStreamController = controller;
-                }));
-                this.#readable = new _stream_js__rspack_import_2.ZY({
-                    async pull (controller) {
-                        try {
-                            const value = await transform(buffered);
-                            controller.enqueue(value);
-                        } catch (e) {
-                            if (e instanceof _yume_chan_struct__rspack_import_3.r1) return void controller.close();
-                            throw e;
-                        }
-                    },
-                    cancel: (reason)=>writableStreamController.error(reason)
+            init = (value)=>converter.back(value);
+        } else deserialize = function*(then, reader, context) {
+            const length = yield* then(lengthOrField.deserialize(reader, context));
+            const array = 0 !== length ? reader.readExactly(length) : EmptyUint8Array;
+            return array;
+        };
+        return factory_field(lengthOrField.size, "default", (value, { littleEndian })=>{
+            if ("default" === lengthOrField.type) {
+                const lengthBuffer = lengthOrField.serialize(value.length, {
+                    littleEndian
                 });
-                this.#writable = new _stream_js__rspack_import_2.ho({
-                    start (controller) {
-                        writableStreamController = controller;
-                    },
-                    async write (chunk) {
-                        await bufferedStreamController.enqueue(chunk);
-                    },
-                    abort () {
-                        bufferedStreamController.close();
-                    },
-                    close () {
-                        bufferedStreamController.close();
-                    }
-                });
-            }
-        }
-    },
-    "../../../node_modules/.pnpm/@yume-chan+stream-extra@2.6.1/node_modules/@yume-chan/stream-extra/esm/buffered.js" (__unused_rspack___webpack_module__, __webpack_exports__, __webpack_require__) {
-        __webpack_require__.d(__webpack_exports__, {
-            y: ()=>BufferedReadableStream
-        });
-        var _yume_chan_struct__rspack_import_0 = __webpack_require__("../../../node_modules/.pnpm/@yume-chan+struct@2.3.2/node_modules/@yume-chan/struct/esm/readable.js");
-        var _yume_chan_struct__rspack_import_1 = __webpack_require__("../../../node_modules/.pnpm/@yume-chan+struct@2.3.2/node_modules/@yume-chan/struct/esm/bipedal.js");
-        var _push_readable_js__rspack_import_2 = __webpack_require__("../../../node_modules/.pnpm/@yume-chan+stream-extra@2.6.1/node_modules/@yume-chan/stream-extra/esm/push-readable.js");
-        var _try_close_js__rspack_import_3 = __webpack_require__("../../../node_modules/.pnpm/@yume-chan+stream-extra@2.6.1/node_modules/@yume-chan/stream-extra/esm/try-close.js");
-        class BufferedReadableStream {
-            #buffered;
-            #bufferedOffset = 0;
-            #bufferedLength = 0;
-            #position = 0;
-            get position() {
-                return this.#position;
-            }
-            stream;
-            reader;
-            constructor(stream){
-                this.stream = stream;
-                this.reader = stream.getReader();
-            }
-            #readBuffered(length) {
-                if (!this.#buffered) return;
-                const value = this.#buffered.subarray(this.#bufferedOffset, this.#bufferedOffset + length);
-                if (this.#bufferedLength > length) {
-                    this.#position += length;
-                    this.#bufferedOffset += length;
-                    this.#bufferedLength -= length;
-                    return value;
-                }
-                this.#position += this.#bufferedLength;
-                this.#buffered = void 0;
-                this.#bufferedOffset = 0;
-                this.#bufferedLength = 0;
-                return value;
-            }
-            async #readSource(length) {
-                const { done, value } = await this.reader.read();
-                if (done) throw new _yume_chan_struct__rspack_import_0.s();
-                if (value.length > length) {
-                    this.#buffered = value;
-                    this.#bufferedOffset = length;
-                    this.#bufferedLength = value.length - length;
-                    this.#position += length;
-                    return value.subarray(0, length);
-                }
-                this.#position += value.length;
-                return value;
-            }
-            iterateExactly(length) {
-                let state = this.#buffered ? 0 : 1;
-                return {
-                    next: ()=>{
-                        switch(state){
-                            case 0:
-                                {
-                                    const value = this.#readBuffered(length);
-                                    if (value.length === length) state = 2;
-                                    else {
-                                        length -= value.length;
-                                        state = 1;
-                                    }
-                                    return {
-                                        done: false,
-                                        value
-                                    };
-                                }
-                            case 1:
-                                state = 3;
-                                return {
-                                    done: false,
-                                    value: this.#readSource(length).then((value)=>{
-                                        if (value.length === length) state = 2;
-                                        else {
-                                            length -= value.length;
-                                            state = 1;
-                                        }
-                                        return value;
-                                    })
-                                };
-                            case 2:
-                                return {
-                                    done: true,
-                                    value: void 0
-                                };
-                            case 3:
-                                throw new Error("Can't call `next` before previous Promise resolves");
-                            default:
-                                throw new Error("unreachable");
-                        }
-                    }
-                };
-            }
-            readExactly = (0, _yume_chan_struct__rspack_import_1.q)(function*(then, length) {
-                let result;
-                let index = 0;
-                const initial = this.#readBuffered(length);
-                if (initial) {
-                    if (initial.length === length) return initial;
-                    result = new Uint8Array(length);
-                    result.set(initial, index);
-                    index += initial.length;
-                    length -= initial.length;
-                } else result = new Uint8Array(length);
-                while(length > 0){
-                    const value = yield* then(this.#readSource(length));
-                    result.set(value, index);
-                    index += value.length;
-                    length -= value.length;
-                }
+                if (0 === value.length) return lengthBuffer;
+                const result = new Uint8Array(lengthBuffer.length + value.length);
+                result.set(lengthBuffer, 0);
+                result.set(value, lengthBuffer.length);
                 return result;
-            });
-            release() {
-                if (this.#bufferedLength > 0) return new _push_readable_js__rspack_import_2.F(async (controller)=>{
-                    const buffered = this.#buffered.subarray(this.#bufferedOffset);
-                    await controller.enqueue(buffered);
-                    controller.abortSignal.addEventListener("abort", ()=>{
-                        (0, _try_close_js__rspack_import_3.S)(this.reader);
-                    });
-                    while(true){
-                        const { done, value } = await this.reader.read();
-                        if (done) return;
-                        await controller.enqueue(value);
-                    }
+            }
+            {
+                const result = new Uint8Array(lengthOrField.size + value.length);
+                lengthOrField.serialize(value.length, {
+                    buffer: result,
+                    index: 0,
+                    littleEndian
                 });
-                this.reader.releaseLock();
-                return this.stream;
+                result.set(value, lengthOrField.size);
+                return result;
             }
-            async cancel(reason) {
-                await this.reader.cancel(reason);
-            }
-        }
-    },
-    "../../../node_modules/.pnpm/@yume-chan+stream-extra@2.6.1/node_modules/@yume-chan/stream-extra/esm/concat.js" (__unused_rspack___webpack_module__, __webpack_exports__, __webpack_require__) {
-        __webpack_require__.d(__webpack_exports__, {
-            J: ()=>ConcatBufferStream,
-            Q: ()=>ConcatStringStream
+        }, deserialize, {
+            init
         });
-        var _yume_chan_async__rspack_import_0 = __webpack_require__("../../../node_modules/.pnpm/@yume-chan+async@4.1.3/node_modules/@yume-chan/async/esm/promise-resolver.js");
-        var _yume_chan_struct__rspack_import_2 = __webpack_require__("../../../node_modules/.pnpm/@yume-chan+struct@2.3.2/node_modules/@yume-chan/struct/esm/buffer.js");
-        var _stream_js__rspack_import_1 = __webpack_require__("../../../node_modules/.pnpm/@yume-chan+stream-extra@2.6.1/node_modules/@yume-chan/stream-extra/esm/stream.js");
-        class ConcatStringStream {
-            #result = "";
-            #resolver = new _yume_chan_async__rspack_import_0.O();
-            #writable = new _stream_js__rspack_import_1.ho({
-                write: (chunk)=>{
-                    this.#result += chunk;
-                },
-                close: ()=>{
-                    this.#resolver.resolve(this.#result);
-                    this.#readableController.enqueue(this.#result);
-                    this.#readableController.close();
-                },
-                abort: (reason)=>{
-                    this.#resolver.reject(reason);
-                    this.#readableController.error(reason);
-                }
-            });
-            get writable() {
-                return this.#writable;
-            }
-            #readableController;
-            #readable = new _stream_js__rspack_import_1.ZY({
-                start: (controller)=>{
-                    this.#readableController = controller;
-                }
-            });
-            get readable() {
-                return this.#readable;
-            }
-            constructor(){
-                Object.defineProperties(this.#readable, {
-                    then: {
-                        get: ()=>this.#resolver.promise.then.bind(this.#resolver.promise)
-                    },
-                    catch: {
-                        get: ()=>this.#resolver.promise.catch.bind(this.#resolver.promise)
-                    },
-                    finally: {
-                        get: ()=>this.#resolver.promise.finally.bind(this.#resolver.promise)
-                    }
-                });
-            }
+    }
+    if ("string" == typeof lengthOrField) {
+        let deserialize;
+        let init;
+        if (converter) {
+            deserialize = function*(then, reader, { dependencies }) {
+                const length = dependencies[lengthOrField];
+                const array = 0 !== length ? reader.readExactly(length) : EmptyUint8Array;
+                return converter.convert((yield* then(array)));
+            };
+            init = (value, dependencies)=>{
+                const array = converter.back(value);
+                dependencies[lengthOrField] = array.length;
+                return array;
+            };
+        } else {
+            deserialize = function*(_then, reader, { dependencies }) {
+                const length = dependencies[lengthOrField];
+                const array = 0 !== length ? reader.readExactly(length) : EmptyUint8Array;
+                return array;
+            };
+            init = (value, dependencies)=>{
+                const array = value;
+                dependencies[lengthOrField] = array.length;
+                return array;
+            };
         }
-        class ConcatBufferStream {
-            #segments = [];
-            #resolver = new _yume_chan_async__rspack_import_0.O();
-            #writable = new _stream_js__rspack_import_1.ho({
-                write: (chunk)=>{
-                    this.#segments.push(chunk);
-                },
-                close: ()=>{
-                    let result;
-                    let offset = 0;
-                    switch(this.#segments.length){
-                        case 0:
-                            result = _yume_chan_struct__rspack_import_2.j;
-                            break;
-                        case 1:
-                            result = this.#segments[0];
-                            break;
-                        default:
-                            result = new Uint8Array(this.#segments.reduce((prev, item)=>prev + item.length, 0));
-                            for (const segment of this.#segments){
-                                result.set(segment, offset);
-                                offset += segment.length;
-                            }
-                            break;
-                    }
-                    this.#resolver.resolve(result);
-                    this.#readableController.enqueue(result);
-                    this.#readableController.close();
-                },
-                abort: (reason)=>{
-                    this.#resolver.reject(reason);
-                    this.#readableController.error(reason);
-                }
-            });
-            get writable() {
-                return this.#writable;
-            }
-            #readableController;
-            #readable = new _stream_js__rspack_import_1.ZY({
-                start: (controller)=>{
-                    this.#readableController = controller;
-                }
-            });
-            get readable() {
-                return this.#readable;
-            }
-            constructor(){
-                Object.defineProperties(this.#readable, {
-                    then: {
-                        get: ()=>this.#resolver.promise.then.bind(this.#resolver.promise)
-                    },
-                    catch: {
-                        get: ()=>this.#resolver.promise.catch.bind(this.#resolver.promise)
-                    },
-                    finally: {
-                        get: ()=>this.#resolver.promise.finally.bind(this.#resolver.promise)
-                    }
-                });
-            }
-        }
-    },
-    "../../../node_modules/.pnpm/@yume-chan+stream-extra@2.6.1/node_modules/@yume-chan/stream-extra/esm/consumable.js" (__unused_rspack___webpack_module__, __webpack_exports__, __webpack_require__) {
-        __webpack_require__.d(__webpack_exports__, {
-            G: ()=>Consumable
+        return factory_field(0, "default", (source)=>source, deserialize, {
+            init
         });
-        var _yume_chan_async__rspack_import_5 = __webpack_require__("../../../node_modules/.pnpm/@yume-chan+async@4.1.3/node_modules/@yume-chan/async/esm/promise-resolver.js");
-        var _yume_chan_async__rspack_import_6 = __webpack_require__("../../../node_modules/.pnpm/@yume-chan+async@4.1.3/node_modules/@yume-chan/async/esm/maybe-promise.js");
-        var _consumable_index_js__rspack_import_0 = __webpack_require__("../../../node_modules/.pnpm/@yume-chan+stream-extra@2.6.1/node_modules/@yume-chan/stream-extra/esm/consumable/writable.js");
-        var _consumable_index_js__rspack_import_1 = __webpack_require__("../../../node_modules/.pnpm/@yume-chan+stream-extra@2.6.1/node_modules/@yume-chan/stream-extra/esm/consumable/wrap-writable.js");
-        var _consumable_index_js__rspack_import_2 = __webpack_require__("../../../node_modules/.pnpm/@yume-chan+stream-extra@2.6.1/node_modules/@yume-chan/stream-extra/esm/consumable/readable.js");
-        var _consumable_index_js__rspack_import_3 = __webpack_require__("../../../node_modules/.pnpm/@yume-chan+stream-extra@2.6.1/node_modules/@yume-chan/stream-extra/esm/consumable/wrap-byte-readable.js");
-        var _task_js__rspack_import_4 = __webpack_require__("../../../node_modules/.pnpm/@yume-chan+stream-extra@2.6.1/node_modules/@yume-chan/stream-extra/esm/task.js");
-        class Consumable {
-            static WritableStream = _consumable_index_js__rspack_import_0.e;
-            static WrapWritableStream = _consumable_index_js__rspack_import_1.k;
-            static ReadableStream = _consumable_index_js__rspack_import_2.q;
-            static WrapByteReadableStream = _consumable_index_js__rspack_import_3.I;
-            #task;
-            #resolver;
-            value;
-            consumed;
-            constructor(value){
-                this.#task = (0, _task_js__rspack_import_4.U)("Consumable");
-                this.value = value;
-                this.#resolver = new _yume_chan_async__rspack_import_5.O();
-                this.consumed = this.#resolver.promise;
+    }
+    let deserialize;
+    let init;
+    if (converter) {
+        deserialize = function*(then, reader, { dependencies }) {
+            const rawLength = dependencies[lengthOrField.field];
+            const length = lengthOrField.convert(rawLength);
+            const array = 0 !== length ? reader.readExactly(length) : EmptyUint8Array;
+            return converter.convert((yield* then(array)));
+        };
+        init = (value, dependencies)=>{
+            const array = converter.back(value);
+            dependencies[lengthOrField.field] = lengthOrField.back(array.length);
+            return array;
+        };
+    } else {
+        deserialize = function*(_then, reader, { dependencies }) {
+            const rawLength = dependencies[lengthOrField.field];
+            const length = lengthOrField.convert(rawLength);
+            const array = 0 !== length ? reader.readExactly(length) : EmptyUint8Array;
+            return array;
+        };
+        init = (value, dependencies)=>{
+            const array = value;
+            dependencies[lengthOrField.field] = lengthOrField.back(array.length);
+            return array;
+        };
+    }
+    return factory_field(0, "default", (source)=>source, deserialize, {
+        init
+    });
+}
+class ConcatStringStream {
+    #result = "";
+    #resolver = new PromiseResolver();
+    #writable = new WritableStream({
+        write: (chunk)=>{
+            this.#result += chunk;
+        },
+        close: ()=>{
+            this.#resolver.resolve(this.#result);
+            this.#readableController.enqueue(this.#result);
+            this.#readableController.close();
+        },
+        abort: (reason)=>{
+            this.#resolver.reject(reason);
+            this.#readableController.error(reason);
+        }
+    });
+    get writable() {
+        return this.#writable;
+    }
+    #readableController;
+    #readable = new stream_ReadableStream({
+        start: (controller)=>{
+            this.#readableController = controller;
+        }
+    });
+    get readable() {
+        return this.#readable;
+    }
+    constructor(){
+        Object.defineProperties(this.#readable, {
+            then: {
+                get: ()=>this.#resolver.promise.then.bind(this.#resolver.promise)
+            },
+            catch: {
+                get: ()=>this.#resolver.promise.catch.bind(this.#resolver.promise)
+            },
+            finally: {
+                get: ()=>this.#resolver.promise.finally.bind(this.#resolver.promise)
             }
-            consume() {
+        });
+    }
+}
+class ConcatBufferStream {
+    #segments = [];
+    #resolver = new PromiseResolver();
+    #writable = new WritableStream({
+        write: (chunk)=>{
+            this.#segments.push(chunk);
+        },
+        close: ()=>{
+            let result;
+            let offset = 0;
+            switch(this.#segments.length){
+                case 0:
+                    result = EmptyUint8Array;
+                    break;
+                case 1:
+                    result = this.#segments[0];
+                    break;
+                default:
+                    result = new Uint8Array(this.#segments.reduce((prev, item)=>prev + item.length, 0));
+                    for (const segment of this.#segments){
+                        result.set(segment, offset);
+                        offset += segment.length;
+                    }
+                    break;
+            }
+            this.#resolver.resolve(result);
+            this.#readableController.enqueue(result);
+            this.#readableController.close();
+        },
+        abort: (reason)=>{
+            this.#resolver.reject(reason);
+            this.#readableController.error(reason);
+        }
+    });
+    get writable() {
+        return this.#writable;
+    }
+    #readableController;
+    #readable = new stream_ReadableStream({
+        start: (controller)=>{
+            this.#readableController = controller;
+        }
+    });
+    get readable() {
+        return this.#readable;
+    }
+    constructor(){
+        Object.defineProperties(this.#readable, {
+            then: {
+                get: ()=>this.#resolver.promise.then.bind(this.#resolver.promise)
+            },
+            catch: {
+                get: ()=>this.#resolver.promise.catch.bind(this.#resolver.promise)
+            },
+            finally: {
+                get: ()=>this.#resolver.promise.finally.bind(this.#resolver.promise)
+            }
+        });
+    }
+}
+const AdbFeature = {
+    ShellV2: "shell_v2",
+    Cmd: "cmd",
+    StatV2: "stat_v2",
+    ListV2: "ls_v2",
+    FixedPushMkdir: "fixed_push_mkdir",
+    Abb: "abb",
+    AbbExec: "abb_exec",
+    SendReceiveV2: "sendrecv_v2",
+    DelayedAck: "delayed_ack"
+};
+class AdbNoneProtocolProcessImpl {
+    #socket;
+    get stdin() {
+        return this.#socket.writable;
+    }
+    get output() {
+        return this.#socket.readable;
+    }
+    #exited;
+    get exited() {
+        return this.#exited;
+    }
+    constructor(socket, signal){
+        this.#socket = socket;
+        if (signal) {
+            const exited = new PromiseResolver();
+            this.#socket.closed.then(()=>exited.resolve(void 0), (e)=>exited.reject(e));
+            signal.addEventListener("abort", ()=>{
+                exited.reject(signal.reason);
+                this.#socket.close();
+            });
+            this.#exited = exited.promise;
+        } else this.#exited = this.#socket.closed;
+    }
+    kill() {
+        return this.#socket.close();
+    }
+}
+class ConsumableWritableStream extends WritableStream {
+    static async write(writer, value) {
+        const consumable = new consumable_Consumable(value);
+        await writer.write(consumable);
+        await consumable.consumed;
+    }
+    constructor(sink, strategy){
+        let wrappedStrategy;
+        if (strategy) {
+            wrappedStrategy = {};
+            if ("highWaterMark" in strategy) wrappedStrategy.highWaterMark = strategy.highWaterMark;
+            if ("size" in strategy) wrappedStrategy.size = (chunk)=>strategy.size(chunk instanceof consumable_Consumable ? chunk.value : chunk);
+        }
+        super({
+            start (controller) {
+                return sink.start?.(controller);
+            },
+            write (chunk, controller) {
+                return chunk.tryConsume((chunk)=>sink.write?.(chunk, controller));
+            },
+            abort (reason) {
+                return sink.abort?.(reason);
+            },
+            close () {
+                return sink.close?.();
+            }
+        }, wrappedStrategy);
+    }
+}
+class ConsumableWrapWritableStream extends WritableStream {
+    constructor(stream){
+        const writer = stream.getWriter();
+        super({
+            write (chunk) {
+                return chunk.tryConsume((chunk)=>writer.write(chunk));
+            },
+            abort (reason) {
+                return writer.abort(reason);
+            },
+            close () {
+                return writer.close();
+            }
+        });
+    }
+}
+class ConsumableReadableStream extends stream_ReadableStream {
+    static async enqueue(controller, chunk) {
+        const output = new consumable_Consumable(chunk);
+        controller.enqueue(output);
+        await output.consumed;
+    }
+    constructor(source, strategy){
+        let wrappedController;
+        let wrappedStrategy;
+        if (strategy) {
+            wrappedStrategy = {};
+            if ("highWaterMark" in strategy) wrappedStrategy.highWaterMark = strategy.highWaterMark;
+            if ("size" in strategy) wrappedStrategy.size = (chunk)=>strategy.size(chunk.value);
+        }
+        super({
+            start (controller) {
+                wrappedController = {
+                    enqueue (chunk) {
+                        return ConsumableReadableStream.enqueue(controller, chunk);
+                    },
+                    close () {
+                        controller.close();
+                    },
+                    error (reason) {
+                        controller.error(reason);
+                    }
+                };
+                return source.start?.(wrappedController);
+            },
+            pull () {
+                return source.pull?.(wrappedController);
+            },
+            cancel (reason) {
+                return source.cancel?.(reason);
+            }
+        }, wrappedStrategy);
+    }
+}
+class ConsumableWrapByteReadableStream extends stream_ReadableStream {
+    constructor(stream, chunkSize, min){
+        const reader = stream.getReader({
+            mode: "byob"
+        });
+        let array = new Uint8Array(chunkSize);
+        super({
+            async pull (controller) {
+                const { done, value } = await reader.read(array, {
+                    min
+                });
+                if (done) return void controller.close();
+                await ConsumableReadableStream.enqueue(controller, value);
+                array = new Uint8Array(value.buffer);
+            },
+            cancel (reason) {
+                return reader.cancel(reason);
+            }
+        });
+    }
+}
+const { console: console } = globalThis;
+const createTask = /* #__PURE__ */ (()=>console?.createTask?.bind(console) ?? (()=>({
+            run (callback) {
+                return callback();
+            }
+        })))();
+class consumable_Consumable {
+    static WritableStream = ConsumableWritableStream;
+    static WrapWritableStream = ConsumableWrapWritableStream;
+    static ReadableStream = ConsumableReadableStream;
+    static WrapByteReadableStream = ConsumableWrapByteReadableStream;
+    #task;
+    #resolver;
+    value;
+    consumed;
+    constructor(value){
+        this.#task = createTask("Consumable");
+        this.value = value;
+        this.#resolver = new PromiseResolver();
+        this.consumed = this.#resolver.promise;
+    }
+    consume() {
+        this.#resolver.resolve();
+    }
+    error(error) {
+        this.#resolver.reject(error);
+    }
+    tryConsume(callback) {
+        try {
+            let result = this.#task.run(()=>callback(this.value));
+            if (isPromiseLike(result)) result = result.then((value)=>{
                 this.#resolver.resolve();
-            }
-            error(error) {
-                this.#resolver.reject(error);
-            }
-            tryConsume(callback) {
-                try {
-                    let result = this.#task.run(()=>callback(this.value));
-                    if ((0, _yume_chan_async__rspack_import_6.$)(result)) result = result.then((value)=>{
-                        this.#resolver.resolve();
-                        return value;
-                    }, (e)=>{
-                        this.#resolver.reject(e);
-                        throw e;
-                    });
-                    else this.#resolver.resolve();
-                    return result;
-                } catch (e) {
-                    this.#resolver.reject(e);
-                    throw e;
-                }
-            }
+                return value;
+            }, (e)=>{
+                this.#resolver.reject(e);
+                throw e;
+            });
+            else this.#resolver.resolve();
+            return result;
+        } catch (e) {
+            this.#resolver.reject(e);
+            throw e;
         }
-    },
-    "../../../node_modules/.pnpm/@yume-chan+stream-extra@2.6.1/node_modules/@yume-chan/stream-extra/esm/consumable/readable.js" (__unused_rspack___webpack_module__, __webpack_exports__, __webpack_require__) {
-        __webpack_require__.d(__webpack_exports__, {
-            q: ()=>ConsumableReadableStream
-        });
-        var _consumable_js__rspack_import_1 = __webpack_require__("../../../node_modules/.pnpm/@yume-chan+stream-extra@2.6.1/node_modules/@yume-chan/stream-extra/esm/consumable.js");
-        var _stream_js__rspack_import_0 = __webpack_require__("../../../node_modules/.pnpm/@yume-chan+stream-extra@2.6.1/node_modules/@yume-chan/stream-extra/esm/stream.js");
-        class ConsumableReadableStream extends _stream_js__rspack_import_0.ZY {
-            static async enqueue(controller, chunk) {
-                const output = new _consumable_js__rspack_import_1.G(chunk);
-                controller.enqueue(output);
-                await output.consumed;
-            }
-            constructor(source, strategy){
-                let wrappedController;
-                let wrappedStrategy;
-                if (strategy) {
-                    wrappedStrategy = {};
-                    if ("highWaterMark" in strategy) wrappedStrategy.highWaterMark = strategy.highWaterMark;
-                    if ("size" in strategy) wrappedStrategy.size = (chunk)=>strategy.size(chunk.value);
-                }
-                super({
-                    start (controller) {
-                        wrappedController = {
-                            enqueue (chunk) {
-                                return ConsumableReadableStream.enqueue(controller, chunk);
-                            },
-                            close () {
-                                controller.close();
-                            },
-                            error (reason) {
-                                controller.error(reason);
-                            }
-                        };
-                        return source.start?.(wrappedController);
-                    },
-                    pull () {
-                        return source.pull?.(wrappedController);
-                    },
-                    cancel (reason) {
-                        return source.cancel?.(reason);
-                    }
-                }, wrappedStrategy);
-            }
+    }
+}
+function tryConsume(value, callback) {
+    if (value instanceof consumable_Consumable) return value.tryConsume(callback);
+    return callback(value);
+}
+class MaybeConsumableWritableStream extends WritableStream {
+    constructor(sink, strategy){
+        let wrappedStrategy;
+        if (strategy) {
+            wrappedStrategy = {};
+            if ("highWaterMark" in strategy) wrappedStrategy.highWaterMark = strategy.highWaterMark;
+            if ("size" in strategy) wrappedStrategy.size = (chunk)=>strategy.size(chunk instanceof consumable_Consumable ? chunk.value : chunk);
         }
-    },
-    "../../../node_modules/.pnpm/@yume-chan+stream-extra@2.6.1/node_modules/@yume-chan/stream-extra/esm/consumable/wrap-byte-readable.js" (__unused_rspack___webpack_module__, __webpack_exports__, __webpack_require__) {
-        __webpack_require__.d(__webpack_exports__, {
-            I: ()=>ConsumableWrapByteReadableStream
+        super({
+            start (controller) {
+                return sink.start?.(controller);
+            },
+            write (chunk, controller) {
+                return tryConsume(chunk, (chunk)=>sink.write?.(chunk, controller));
+            },
+            abort (reason) {
+                return sink.abort?.(reason);
+            },
+            close () {
+                return sink.close?.();
+            }
+        }, wrappedStrategy);
+    }
+}
+class AdbNoneProtocolPtyProcess {
+    #socket;
+    #writer;
+    #input;
+    get input() {
+        return this.#input;
+    }
+    get output() {
+        return this.#socket.readable;
+    }
+    get exited() {
+        return this.#socket.closed;
+    }
+    constructor(socket){
+        this.#socket = socket;
+        this.#writer = this.#socket.writable.getWriter();
+        this.#input = new MaybeConsumableWritableStream({
+            write: (chunk)=>this.#writer.write(chunk)
         });
-        var _stream_js__rspack_import_0 = __webpack_require__("../../../node_modules/.pnpm/@yume-chan+stream-extra@2.6.1/node_modules/@yume-chan/stream-extra/esm/stream.js");
-        var _readable_js__rspack_import_1 = __webpack_require__("../../../node_modules/.pnpm/@yume-chan+stream-extra@2.6.1/node_modules/@yume-chan/stream-extra/esm/consumable/readable.js");
-        class ConsumableWrapByteReadableStream extends _stream_js__rspack_import_0.ZY {
-            constructor(stream, chunkSize, min){
-                const reader = stream.getReader({
-                    mode: "byob"
+    }
+    sigint() {
+        return this.#writer.write(new Uint8Array([
+            0x03
+        ]));
+    }
+    kill() {
+        return this.#socket.close();
+    }
+}
+function escapeArg(s) {
+    let result = "";
+    result += "'";
+    let base = 0;
+    while(true){
+        const found = s.indexOf("'", base);
+        if (-1 === found) {
+            result += s.substring(base);
+            break;
+        }
+        result += s.substring(base, found);
+        result += String.raw`'\''`;
+        base = found + 1;
+    }
+    result += "'";
+    return result;
+}
+function splitCommand(command) {
+    const result = [];
+    let quote;
+    let isEscaped = false;
+    let start = 0;
+    for(let i = 0, len = command.length; i < len; i += 1){
+        if (isEscaped) {
+            isEscaped = false;
+            continue;
+        }
+        const char = command.charAt(i);
+        switch(char){
+            case " ":
+                if (!quote && i !== start) {
+                    result.push(command.substring(start, i));
+                    start = i + 1;
+                }
+                break;
+            case "'":
+            case '"':
+                if (quote) {
+                    if (char === quote) quote = void 0;
+                } else quote = char;
+                break;
+            case "\\":
+                isEscaped = true;
+                break;
+        }
+    }
+    if (start < command.length) result.push(command.substring(start));
+    return result;
+}
+class AdbNoneProtocolSpawner {
+    #spawn;
+    constructor(spawn){
+        this.#spawn = spawn;
+    }
+    spawn(command, signal) {
+        signal?.throwIfAborted();
+        if ("string" == typeof command) command = splitCommand(command);
+        return this.#spawn(command, signal);
+    }
+    async spawnWait(command) {
+        const process1 = await this.spawn(command);
+        return await process1.output.pipeThrough(new ConcatBufferStream());
+    }
+    async spawnWaitText(command) {
+        const process1 = await this.spawn(command);
+        return await process1.output.pipeThrough(new TextDecoderStream()).pipeThrough(new ConcatStringStream());
+    }
+}
+class AdbNoneProtocolSubprocessService extends AdbNoneProtocolSpawner {
+    #adb;
+    get adb() {
+        return this.#adb;
+    }
+    constructor(adb){
+        super(async (command, signal)=>{
+            const socket = await this.#adb.createSocket(`exec:${command.join(" ")}`);
+            if (signal?.aborted) {
+                await socket.close();
+                throw signal.reason;
+            }
+            return new AdbNoneProtocolProcessImpl(socket, signal);
+        });
+        this.#adb = adb;
+    }
+    async pty(command) {
+        if (void 0 === command) command = "";
+        else if (Array.isArray(command)) command = command.join(" ");
+        return new AdbNoneProtocolPtyProcess(await this.#adb.createSocket(`shell:${command}`));
+    }
+}
+class TaskQueue {
+    #ready;
+    #disposed = false;
+    enqueue(task, bail = false) {
+        if (this.#disposed) throw new Error("TaskQueue is disposed");
+        if (!this.#ready) try {
+            const result = task();
+            if (isPromiseLike(result)) this.#ready = result.then(()=>{}, (e)=>{
+                if (bail) throw e;
+            });
+            return result;
+        } catch (e) {
+            if (bail) {
+                const promise = Promise.reject(e);
+                promise.catch(()=>{});
+                this.#ready = promise;
+            }
+            throw e;
+        }
+        const result = this.#ready.then(()=>{
+            if (this.#disposed) throw new Error("TaskQueue is disposed");
+            return task();
+        });
+        this.#ready = result.then(()=>{}, (e)=>{
+            if (bail || this.#disposed) throw e;
+        });
+        return result;
+    }
+    dispose() {
+        this.#disposed = true;
+    }
+}
+class PushReadableStream extends stream_ReadableStream {
+    constructor(source, strategy, logger){
+        let controller;
+        const tasks = new TaskQueue();
+        let zeroHighWaterMarkAllowEnqueue = false;
+        let waterMarkLow;
+        const abortController = new stream_AbortController();
+        let stopped = false;
+        const enqueue = (chunk)=>{
+            logger?.({
+                source: "producer",
+                operation: "enqueue",
+                value: chunk,
+                phase: "start"
+            });
+            if (abortController.signal.aborted) {
+                logger?.({
+                    source: "producer",
+                    operation: "enqueue",
+                    value: chunk,
+                    phase: "ignored"
                 });
-                let array = new Uint8Array(chunkSize);
-                super({
-                    async pull (controller) {
-                        const { done, value } = await reader.read(array, {
-                            min
-                        });
-                        if (done) return void controller.close();
-                        await _readable_js__rspack_import_1.q.enqueue(controller, value);
-                        array = new Uint8Array(value.buffer);
-                    },
-                    cancel (reason) {
-                        return reader.cancel(reason);
-                    }
+                return false;
+            }
+            if (null === controller.desiredSize) {
+                controller.enqueue(chunk);
+                throw new Error("unreachable");
+            }
+            if (zeroHighWaterMarkAllowEnqueue) {
+                zeroHighWaterMarkAllowEnqueue = false;
+                controller.enqueue(chunk);
+                logger?.({
+                    source: "producer",
+                    operation: "enqueue",
+                    value: chunk,
+                    phase: "complete"
                 });
+                return true;
             }
-        }
-    },
-    "../../../node_modules/.pnpm/@yume-chan+stream-extra@2.6.1/node_modules/@yume-chan/stream-extra/esm/consumable/wrap-writable.js" (__unused_rspack___webpack_module__, __webpack_exports__, __webpack_require__) {
-        __webpack_require__.d(__webpack_exports__, {
-            k: ()=>ConsumableWrapWritableStream
-        });
-        var _stream_js__rspack_import_0 = __webpack_require__("../../../node_modules/.pnpm/@yume-chan+stream-extra@2.6.1/node_modules/@yume-chan/stream-extra/esm/stream.js");
-        class ConsumableWrapWritableStream extends _stream_js__rspack_import_0.ho {
-            constructor(stream){
-                const writer = stream.getWriter();
-                super({
-                    write (chunk) {
-                        return chunk.tryConsume((chunk)=>writer.write(chunk));
-                    },
-                    abort (reason) {
-                        return writer.abort(reason);
-                    },
-                    close () {
-                        return writer.close();
-                    }
+            if (controller.desiredSize <= 0) {
+                logger?.({
+                    source: "producer",
+                    operation: "enqueue",
+                    value: chunk,
+                    phase: "waiting"
                 });
-            }
-        }
-    },
-    "../../../node_modules/.pnpm/@yume-chan+stream-extra@2.6.1/node_modules/@yume-chan/stream-extra/esm/consumable/writable.js" (__unused_rspack___webpack_module__, __webpack_exports__, __webpack_require__) {
-        __webpack_require__.d(__webpack_exports__, {
-            e: ()=>ConsumableWritableStream
-        });
-        var _consumable_js__rspack_import_1 = __webpack_require__("../../../node_modules/.pnpm/@yume-chan+stream-extra@2.6.1/node_modules/@yume-chan/stream-extra/esm/consumable.js");
-        var _stream_js__rspack_import_0 = __webpack_require__("../../../node_modules/.pnpm/@yume-chan+stream-extra@2.6.1/node_modules/@yume-chan/stream-extra/esm/stream.js");
-        class ConsumableWritableStream extends _stream_js__rspack_import_0.ho {
-            static async write(writer, value) {
-                const consumable = new _consumable_js__rspack_import_1.G(value);
-                await writer.write(consumable);
-                await consumable.consumed;
-            }
-            constructor(sink, strategy){
-                let wrappedStrategy;
-                if (strategy) {
-                    wrappedStrategy = {};
-                    if ("highWaterMark" in strategy) wrappedStrategy.highWaterMark = strategy.highWaterMark;
-                    if ("size" in strategy) wrappedStrategy.size = (chunk)=>strategy.size(chunk instanceof _consumable_js__rspack_import_1.G ? chunk.value : chunk);
-                }
-                super({
-                    start (controller) {
-                        return sink.start?.(controller);
-                    },
-                    write (chunk, controller) {
-                        return chunk.tryConsume((chunk)=>sink.write?.(chunk, controller));
-                    },
-                    abort (reason) {
-                        return sink.abort?.(reason);
-                    },
-                    close () {
-                        return sink.close?.();
-                    }
-                }, wrappedStrategy);
-            }
-        }
-    },
-    "../../../node_modules/.pnpm/@yume-chan+stream-extra@2.6.1/node_modules/@yume-chan/stream-extra/esm/distribution.js" (__unused_rspack___webpack_module__, __webpack_exports__, __webpack_require__) {
-        __webpack_require__.d(__webpack_exports__, {
-            q: ()=>BufferCombiner,
-            r: ()=>DistributionStream
-        });
-        var _consumable_js__rspack_import_2 = __webpack_require__("../../../node_modules/.pnpm/@yume-chan+stream-extra@2.6.1/node_modules/@yume-chan/stream-extra/esm/consumable.js");
-        var _maybe_consumable_js__rspack_import_1 = __webpack_require__("../../../node_modules/.pnpm/@yume-chan+stream-extra@2.6.1/node_modules/@yume-chan/stream-extra/esm/maybe-consumable/utils.js");
-        var _stream_js__rspack_import_0 = __webpack_require__("../../../node_modules/.pnpm/@yume-chan+stream-extra@2.6.1/node_modules/@yume-chan/stream-extra/esm/stream.js");
-        class BufferCombiner {
-            #capacity;
-            #buffer;
-            #offset;
-            #available;
-            constructor(size){
-                this.#capacity = size;
-                this.#buffer = new Uint8Array(size);
-                this.#offset = 0;
-                this.#available = size;
-            }
-            *push(data) {
-                let offset = 0;
-                let available = data.length;
-                if (0 !== this.#offset) if (available >= this.#available) {
-                    this.#buffer.set(data.subarray(0, this.#available), this.#offset);
-                    offset += this.#available;
-                    available -= this.#available;
-                    yield this.#buffer;
-                    this.#offset = 0;
-                    this.#available = this.#capacity;
-                    if (0 === available) return;
-                } else {
-                    this.#buffer.set(data, this.#offset);
-                    this.#offset += available;
-                    this.#available -= available;
-                    return;
-                }
-                while(available >= this.#capacity){
-                    const end = offset + this.#capacity;
-                    yield data.subarray(offset, end);
-                    offset = end;
-                    available -= this.#capacity;
-                }
-                if (available > 0) {
-                    this.#buffer.set(data.subarray(offset), this.#offset);
-                    this.#offset += available;
-                    this.#available -= available;
-                }
-            }
-            flush() {
-                if (0 === this.#offset) return;
-                const output = this.#buffer.subarray(0, this.#offset);
-                this.#offset = 0;
-                this.#available = this.#capacity;
-                return output;
-            }
-        }
-        class DistributionStream extends _stream_js__rspack_import_0.Rv {
-            constructor(size, combine = false){
-                const combiner = combine ? new BufferCombiner(size) : void 0;
-                super({
-                    async transform (chunk, controller) {
-                        await _maybe_consumable_js__rspack_import_1.W(chunk, async (chunk)=>{
-                            if (combiner) for (const buffer of combiner.push(chunk))await _consumable_js__rspack_import_2.G.ReadableStream.enqueue(controller, buffer);
-                            else {
-                                let offset = 0;
-                                let available = chunk.length;
-                                while(available > 0){
-                                    const end = offset + size;
-                                    await _consumable_js__rspack_import_2.G.ReadableStream.enqueue(controller, chunk.subarray(offset, end));
-                                    offset = end;
-                                    available -= size;
-                                }
-                            }
-                        });
-                    },
-                    flush (controller) {
-                        if (combiner) {
-                            const data = combiner.flush();
-                            if (data) controller.enqueue(data);
-                        }
-                    }
-                });
-            }
-        }
-    },
-    "../../../node_modules/.pnpm/@yume-chan+stream-extra@2.6.1/node_modules/@yume-chan/stream-extra/esm/encoding.js" (__unused_rspack___webpack_module__, __webpack_exports__, __webpack_require__) {
-        __webpack_require__.d(__webpack_exports__, {
-            W: ()=>TextDecoderStream
-        });
-        const Global = globalThis;
-        const TextDecoderStream = Global.TextDecoderStream;
-        Global.TextEncoderStream;
-    },
-    "../../../node_modules/.pnpm/@yume-chan+stream-extra@2.6.1/node_modules/@yume-chan/stream-extra/esm/maybe-consumable/utils.js" (__unused_rspack___webpack_module__, __webpack_exports__, __webpack_require__) {
-        __webpack_require__.d(__webpack_exports__, {
-            W: ()=>tryConsume
-        });
-        var _consumable_js__rspack_import_0 = __webpack_require__("../../../node_modules/.pnpm/@yume-chan+stream-extra@2.6.1/node_modules/@yume-chan/stream-extra/esm/consumable.js");
-        function tryConsume(value, callback) {
-            if (value instanceof _consumable_js__rspack_import_0.G) return value.tryConsume(callback);
-            return callback(value);
-        }
-    },
-    "../../../node_modules/.pnpm/@yume-chan+stream-extra@2.6.1/node_modules/@yume-chan/stream-extra/esm/maybe-consumable/writable.js" (__unused_rspack___webpack_module__, __webpack_exports__, __webpack_require__) {
-        __webpack_require__.d(__webpack_exports__, {
-            g: ()=>MaybeConsumableWritableStream
-        });
-        var _consumable_js__rspack_import_1 = __webpack_require__("../../../node_modules/.pnpm/@yume-chan+stream-extra@2.6.1/node_modules/@yume-chan/stream-extra/esm/consumable.js");
-        var _stream_js__rspack_import_0 = __webpack_require__("../../../node_modules/.pnpm/@yume-chan+stream-extra@2.6.1/node_modules/@yume-chan/stream-extra/esm/stream.js");
-        var _utils_js__rspack_import_2 = __webpack_require__("../../../node_modules/.pnpm/@yume-chan+stream-extra@2.6.1/node_modules/@yume-chan/stream-extra/esm/maybe-consumable/utils.js");
-        class MaybeConsumableWritableStream extends _stream_js__rspack_import_0.ho {
-            constructor(sink, strategy){
-                let wrappedStrategy;
-                if (strategy) {
-                    wrappedStrategy = {};
-                    if ("highWaterMark" in strategy) wrappedStrategy.highWaterMark = strategy.highWaterMark;
-                    if ("size" in strategy) wrappedStrategy.size = (chunk)=>strategy.size(chunk instanceof _consumable_js__rspack_import_1.G ? chunk.value : chunk);
-                }
-                super({
-                    start (controller) {
-                        return sink.start?.(controller);
-                    },
-                    write (chunk, controller) {
-                        return (0, _utils_js__rspack_import_2.W)(chunk, (chunk)=>sink.write?.(chunk, controller));
-                    },
-                    abort (reason) {
-                        return sink.abort?.(reason);
-                    },
-                    close () {
-                        return sink.close?.();
-                    }
-                }, wrappedStrategy);
-            }
-        }
-    },
-    "../../../node_modules/.pnpm/@yume-chan+stream-extra@2.6.1/node_modules/@yume-chan/stream-extra/esm/push-readable.js" (__unused_rspack___webpack_module__, __webpack_exports__, __webpack_require__) {
-        __webpack_require__.d(__webpack_exports__, {
-            F: ()=>PushReadableStream
-        });
-        var _yume_chan_async__rspack_import_2 = __webpack_require__("../../../node_modules/.pnpm/@yume-chan+async@4.1.3/node_modules/@yume-chan/async/esm/promise-resolver.js");
-        var _yume_chan_async__rspack_import_3 = __webpack_require__("../../../node_modules/.pnpm/@yume-chan+async@4.1.3/node_modules/@yume-chan/async/esm/maybe-promise.js");
-        var _stream_js__rspack_import_0 = __webpack_require__("../../../node_modules/.pnpm/@yume-chan+stream-extra@2.6.1/node_modules/@yume-chan/stream-extra/esm/stream.js");
-        var _task_queue_js__rspack_import_1 = __webpack_require__("../../../node_modules/.pnpm/@yume-chan+stream-extra@2.6.1/node_modules/@yume-chan/stream-extra/esm/task-queue.js");
-        class PushReadableStream extends _stream_js__rspack_import_0.ZY {
-            constructor(source, strategy, logger){
-                let controller;
-                const tasks = new _task_queue_js__rspack_import_1.P();
-                let zeroHighWaterMarkAllowEnqueue = false;
-                let waterMarkLow;
-                const abortController = new _stream_js__rspack_import_0.z1();
-                let stopped = false;
-                const enqueue = (chunk)=>{
-                    logger?.({
-                        source: "producer",
-                        operation: "enqueue",
-                        value: chunk,
-                        phase: "start"
-                    });
-                    if (abortController.signal.aborted) {
-                        logger?.({
-                            source: "producer",
-                            operation: "enqueue",
-                            value: chunk,
-                            phase: "ignored"
-                        });
-                        return false;
-                    }
-                    if (null === controller.desiredSize) {
-                        controller.enqueue(chunk);
-                        throw new Error("unreachable");
-                    }
-                    if (zeroHighWaterMarkAllowEnqueue) {
-                        zeroHighWaterMarkAllowEnqueue = false;
-                        controller.enqueue(chunk);
-                        logger?.({
-                            source: "producer",
-                            operation: "enqueue",
-                            value: chunk,
-                            phase: "complete"
-                        });
-                        return true;
-                    }
-                    if (controller.desiredSize <= 0) {
-                        logger?.({
-                            source: "producer",
-                            operation: "enqueue",
-                            value: chunk,
-                            phase: "waiting"
-                        });
-                        waterMarkLow = new _yume_chan_async__rspack_import_2.O();
-                        return waterMarkLow.promise.then(()=>{
-                            controller.enqueue(chunk);
-                            logger?.({
-                                source: "producer",
-                                operation: "enqueue",
-                                value: chunk,
-                                phase: "complete"
-                            });
-                            return true;
-                        }, ()=>{
-                            logger?.({
-                                source: "producer",
-                                operation: "enqueue",
-                                value: chunk,
-                                phase: "ignored"
-                            });
-                            return false;
-                        });
-                    }
+                waterMarkLow = new PromiseResolver();
+                return waterMarkLow.promise.then(()=>{
                     controller.enqueue(chunk);
                     logger?.({
                         source: "producer",
@@ -14584,1406 +11209,3886 @@ __webpack_require__.add({
                         phase: "complete"
                     });
                     return true;
-                };
-                const close = (explicit)=>{
+                }, ()=>{
                     logger?.({
                         source: "producer",
-                        operation: "close",
-                        explicit,
-                        phase: "start"
-                    });
-                    if (abortController.signal.aborted || stopped && !explicit) return void logger?.({
-                        source: "producer",
-                        operation: "close",
-                        explicit,
+                        operation: "enqueue",
+                        value: chunk,
                         phase: "ignored"
                     });
-                    controller.close();
-                    stopped = true;
-                    waterMarkLow?.reject();
-                    logger?.({
-                        source: "producer",
-                        operation: "close",
-                        explicit,
-                        phase: "complete"
-                    });
-                };
-                const error = (error, explicit)=>{
-                    logger?.({
-                        source: "producer",
-                        operation: "error",
-                        explicit,
-                        phase: "start"
-                    });
-                    stopped = true;
-                    controller.error(error);
-                    waterMarkLow?.reject();
-                    logger?.({
-                        source: "producer",
-                        operation: "error",
-                        explicit,
-                        phase: "complete"
-                    });
-                };
-                super({
-                    start: (controller_)=>{
-                        controller = controller_;
-                        const result = source({
-                            abortSignal: abortController.signal,
-                            enqueue: async (chunk)=>await tasks.enqueue(()=>enqueue(chunk)),
-                            close () {
-                                close(true);
-                            },
-                            error (e) {
-                                error(e, true);
-                            }
-                        });
-                        if (!stopped && (0, _yume_chan_async__rspack_import_3.$)(result)) result.then(()=>close(false), (e)=>error(e, false));
-                    },
-                    pull: ()=>{
-                        logger?.({
-                            source: "consumer",
-                            operation: "pull",
-                            phase: "start"
-                        });
-                        if (waterMarkLow) {
-                            waterMarkLow.resolve(void 0);
-                            waterMarkLow = void 0;
-                        } else if (strategy?.highWaterMark === 0) zeroHighWaterMarkAllowEnqueue = true;
-                        logger?.({
-                            source: "consumer",
-                            operation: "pull",
-                            phase: "complete"
-                        });
-                    },
-                    cancel: (reason)=>{
-                        logger?.({
-                            source: "consumer",
-                            operation: "cancel",
-                            phase: "start"
-                        });
-                        stopped = true;
-                        abortController.abort(reason);
-                        waterMarkLow?.reject();
-                        logger?.({
-                            source: "consumer",
-                            operation: "cancel",
-                            phase: "complete"
-                        });
-                    }
-                }, strategy);
-            }
-        }
-    },
-    "../../../node_modules/.pnpm/@yume-chan+stream-extra@2.6.1/node_modules/@yume-chan/stream-extra/esm/stream.js" (__unused_rspack___webpack_module__, __webpack_exports__, __webpack_require__) {
-        __webpack_require__.d(__webpack_exports__, {
-            Rv: ()=>TransformStream,
-            ZY: ()=>ReadableStream,
-            ho: ()=>WritableStream,
-            z1: ()=>AbortController1
-        });
-        const { AbortController: AbortController1 } = globalThis;
-        const ReadableStream = /* #__PURE__ */ (()=>{
-            const { ReadableStream } = globalThis;
-            if (!ReadableStream.from) ReadableStream.from = function(iterable) {
-                const iterator = Symbol.asyncIterator in iterable ? iterable[Symbol.asyncIterator]() : iterable[Symbol.iterator]();
-                return new ReadableStream({
-                    async pull (controller) {
-                        const result = await iterator.next();
-                        if (result.done) return void controller.close();
-                        controller.enqueue(result.value);
-                    },
-                    async cancel (reason) {
-                        await iterator.return?.(reason);
-                    }
-                });
-            };
-            if (!ReadableStream.prototype[Symbol.asyncIterator] || !ReadableStream.prototype.values) {
-                ReadableStream.prototype.values = async function*(options) {
-                    const reader = this.getReader();
-                    try {
-                        while(true){
-                            const { done, value } = await reader.read();
-                            if (done) return;
-                            yield value;
-                        }
-                    } finally{
-                        if (!options?.preventCancel) await reader.cancel();
-                        reader.releaseLock();
-                    }
-                };
-                ReadableStream.prototype[Symbol.asyncIterator] = ReadableStream.prototype.values;
-            }
-            return ReadableStream;
-        })();
-        const { WritableStream, TransformStream } = globalThis;
-    },
-    "../../../node_modules/.pnpm/@yume-chan+stream-extra@2.6.1/node_modules/@yume-chan/stream-extra/esm/struct-deserialize.js" (__unused_rspack___webpack_module__, __webpack_exports__, __webpack_require__) {
-        __webpack_require__.d(__webpack_exports__, {
-            f: ()=>StructDeserializeStream
-        });
-        var _buffered_transform_js__rspack_import_0 = __webpack_require__("../../../node_modules/.pnpm/@yume-chan+stream-extra@2.6.1/node_modules/@yume-chan/stream-extra/esm/buffered-transform.js");
-        class StructDeserializeStream extends _buffered_transform_js__rspack_import_0.m {
-            constructor(struct){
-                super((stream)=>struct.deserialize(stream));
-            }
-        }
-    },
-    "../../../node_modules/.pnpm/@yume-chan+stream-extra@2.6.1/node_modules/@yume-chan/stream-extra/esm/task-queue.js" (__unused_rspack___webpack_module__, __webpack_exports__, __webpack_require__) {
-        __webpack_require__.d(__webpack_exports__, {
-            P: ()=>TaskQueue
-        });
-        var _yume_chan_async__rspack_import_0 = __webpack_require__("../../../node_modules/.pnpm/@yume-chan+async@4.1.3/node_modules/@yume-chan/async/esm/maybe-promise.js");
-        class TaskQueue {
-            #ready;
-            #disposed = false;
-            enqueue(task, bail = false) {
-                if (this.#disposed) throw new Error("TaskQueue is disposed");
-                if (!this.#ready) try {
-                    const result = task();
-                    if ((0, _yume_chan_async__rspack_import_0.$)(result)) this.#ready = result.then(()=>{}, (e)=>{
-                        if (bail) throw e;
-                    });
-                    return result;
-                } catch (e) {
-                    if (bail) {
-                        const promise = Promise.reject(e);
-                        promise.catch(()=>{});
-                        this.#ready = promise;
-                    }
-                    throw e;
-                }
-                const result = this.#ready.then(()=>{
-                    if (this.#disposed) throw new Error("TaskQueue is disposed");
-                    return task();
-                });
-                this.#ready = result.then(()=>{}, (e)=>{
-                    if (bail || this.#disposed) throw e;
-                });
-                return result;
-            }
-            dispose() {
-                this.#disposed = true;
-            }
-        }
-    },
-    "../../../node_modules/.pnpm/@yume-chan+stream-extra@2.6.1/node_modules/@yume-chan/stream-extra/esm/task.js" (__unused_rspack___webpack_module__, __webpack_exports__, __webpack_require__) {
-        __webpack_require__.d(__webpack_exports__, {
-            U: ()=>createTask
-        });
-        const { console: console1 } = globalThis;
-        const createTask = /* #__PURE__ */ (()=>console1?.createTask?.bind(console1) ?? (()=>({
-                    run (callback) {
-                        return callback();
-                    }
-                })))();
-    },
-    "../../../node_modules/.pnpm/@yume-chan+stream-extra@2.6.1/node_modules/@yume-chan/stream-extra/esm/try-close.js" (__unused_rspack___webpack_module__, __webpack_exports__, __webpack_require__) {
-        __webpack_require__.d(__webpack_exports__, {
-            S: ()=>tryCancel,
-            i: ()=>tryClose
-        });
-        var _yume_chan_async__rspack_import_0 = __webpack_require__("../../../node_modules/.pnpm/@yume-chan+async@4.1.3/node_modules/@yume-chan/async/esm/maybe-promise.js");
-        function tryClose(value) {
-            try {
-                const result = value.close();
-                if ((0, _yume_chan_async__rspack_import_0.$)(result)) return result.then(()=>true, ()=>false);
-                return true;
-            } catch  {
-                return false;
-            }
-        }
-        async function tryCancel(stream) {
-            try {
-                await stream.cancel();
-                return true;
-            } catch  {
-                return false;
-            }
-        }
-    },
-    "../../../node_modules/.pnpm/@yume-chan+struct@2.3.2/node_modules/@yume-chan/struct/esm/bipedal.js" (__unused_rspack___webpack_module__, __webpack_exports__, __webpack_require__) {
-        __webpack_require__.d(__webpack_exports__, {
-            q: ()=>bipedal
-        });
-        var _yume_chan_async__rspack_import_0 = __webpack_require__("../../../node_modules/.pnpm/@yume-chan+async@4.1.3/node_modules/@yume-chan/async/esm/maybe-promise.js");
-        function advance(iterator, next) {
-            while(true){
-                const { done, value } = iterator.next(next);
-                if (done) return value;
-                if ((0, _yume_chan_async__rspack_import_0.$)(value)) return value.then((value)=>advance(iterator, {
-                        resolved: value
-                    }), (error)=>advance(iterator, {
-                        error
-                    }));
-                next = value;
-            }
-        }
-        function bipedal(fn, bindThis) {
-            function result(...args) {
-                const iterator = fn.call(this, function*(value) {
-                    if ((0, _yume_chan_async__rspack_import_0.$)(value)) {
-                        const result = yield value;
-                        if ("resolved" in result) return result.resolved;
-                        throw result.error;
-                    }
-                    return value;
-                }, ...args);
-                return advance(iterator, void 0);
-            }
-            if (bindThis) return result.bind(bindThis);
-            return result;
-        }
-    },
-    "../../../node_modules/.pnpm/@yume-chan+struct@2.3.2/node_modules/@yume-chan/struct/esm/buffer.js" (__unused_rspack___webpack_module__, __webpack_exports__, __webpack_require__) {
-        __webpack_require__.d(__webpack_exports__, {
-            j: ()=>EmptyUint8Array,
-            r: ()=>buffer
-        });
-        var _field_index_js__rspack_import_0 = __webpack_require__("../../../node_modules/.pnpm/@yume-chan+struct@2.3.2/node_modules/@yume-chan/struct/esm/field/factory.js");
-        const EmptyUint8Array = new Uint8Array(0);
-        function copyMaybeDifferentLength(dest, source, index, length) {
-            if (source.length < length) {
-                dest.set(source, index);
-                dest.fill(0, index + source.length, index + length);
-            } else if (source.length === length) dest.set(source, index);
-            else dest.set(source.subarray(0, length), index);
-        }
-        function buffer(lengthOrField, converter) {
-            if ("number" == typeof lengthOrField) {
-                let serialize;
-                let deserialize;
-                let init;
-                if (0 === lengthOrField) {
-                    serialize = ()=>{};
-                    deserialize = converter ? function*() {
-                        return converter.convert(EmptyUint8Array);
-                    } : function*() {
-                        return EmptyUint8Array;
-                    };
-                } else {
-                    serialize = (value, { buffer, index })=>copyMaybeDifferentLength(buffer, value, index, lengthOrField);
-                    if (converter) {
-                        deserialize = function*(then, reader) {
-                            const array = reader.readExactly(lengthOrField);
-                            return converter.convert((yield* then(array)));
-                        };
-                        init = (value)=>converter.back(value);
-                    } else deserialize = function*(_then, reader) {
-                        const array = reader.readExactly(lengthOrField);
-                        return array;
-                    };
-                }
-                return (0, _field_index_js__rspack_import_0.Z)(lengthOrField, "byob", serialize, deserialize, {
-                    init
+                    return false;
                 });
             }
-            if (("object" == typeof lengthOrField || "function" == typeof lengthOrField) && "serialize" in lengthOrField) {
-                let deserialize;
-                let init;
-                if (converter) {
-                    deserialize = function*(then, reader, context) {
-                        const length = yield* then(lengthOrField.deserialize(reader, context));
-                        const array = 0 !== length ? reader.readExactly(length) : EmptyUint8Array;
-                        return converter.convert((yield* then(array)));
-                    };
-                    init = (value)=>converter.back(value);
-                } else deserialize = function*(then, reader, context) {
-                    const length = yield* then(lengthOrField.deserialize(reader, context));
-                    const array = 0 !== length ? reader.readExactly(length) : EmptyUint8Array;
-                    return array;
-                };
-                return (0, _field_index_js__rspack_import_0.Z)(lengthOrField.size, "default", (value, { littleEndian })=>{
-                    if ("default" === lengthOrField.type) {
-                        const lengthBuffer = lengthOrField.serialize(value.length, {
-                            littleEndian
-                        });
-                        if (0 === value.length) return lengthBuffer;
-                        const result = new Uint8Array(lengthBuffer.length + value.length);
-                        result.set(lengthBuffer, 0);
-                        result.set(value, lengthBuffer.length);
-                        return result;
-                    }
-                    {
-                        const result = new Uint8Array(lengthOrField.size + value.length);
-                        lengthOrField.serialize(value.length, {
-                            buffer: result,
-                            index: 0,
-                            littleEndian
-                        });
-                        result.set(value, lengthOrField.size);
-                        return result;
-                    }
-                }, deserialize, {
-                    init
-                });
-            }
-            if ("string" == typeof lengthOrField) {
-                let deserialize;
-                let init;
-                if (converter) {
-                    deserialize = function*(then, reader, { dependencies }) {
-                        const length = dependencies[lengthOrField];
-                        const array = 0 !== length ? reader.readExactly(length) : EmptyUint8Array;
-                        return converter.convert((yield* then(array)));
-                    };
-                    init = (value, dependencies)=>{
-                        const array = converter.back(value);
-                        dependencies[lengthOrField] = array.length;
-                        return array;
-                    };
-                } else {
-                    deserialize = function*(_then, reader, { dependencies }) {
-                        const length = dependencies[lengthOrField];
-                        const array = 0 !== length ? reader.readExactly(length) : EmptyUint8Array;
-                        return array;
-                    };
-                    init = (value, dependencies)=>{
-                        const array = value;
-                        dependencies[lengthOrField] = array.length;
-                        return array;
-                    };
-                }
-                return (0, _field_index_js__rspack_import_0.Z)(0, "default", (source)=>source, deserialize, {
-                    init
-                });
-            }
-            let deserialize;
-            let init;
-            if (converter) {
-                deserialize = function*(then, reader, { dependencies }) {
-                    const rawLength = dependencies[lengthOrField.field];
-                    const length = lengthOrField.convert(rawLength);
-                    const array = 0 !== length ? reader.readExactly(length) : EmptyUint8Array;
-                    return converter.convert((yield* then(array)));
-                };
-                init = (value, dependencies)=>{
-                    const array = converter.back(value);
-                    dependencies[lengthOrField.field] = lengthOrField.back(array.length);
-                    return array;
-                };
-            } else {
-                deserialize = function*(_then, reader, { dependencies }) {
-                    const rawLength = dependencies[lengthOrField.field];
-                    const length = lengthOrField.convert(rawLength);
-                    const array = 0 !== length ? reader.readExactly(length) : EmptyUint8Array;
-                    return array;
-                };
-                init = (value, dependencies)=>{
-                    const array = value;
-                    dependencies[lengthOrField.field] = lengthOrField.back(array.length);
-                    return array;
-                };
-            }
-            return (0, _field_index_js__rspack_import_0.Z)(0, "default", (source)=>source, deserialize, {
-                init
+            controller.enqueue(chunk);
+            logger?.({
+                source: "producer",
+                operation: "enqueue",
+                value: chunk,
+                phase: "complete"
             });
-        }
-    },
-    "../../../node_modules/.pnpm/@yume-chan+struct@2.3.2/node_modules/@yume-chan/struct/esm/extend.js" (__unused_rspack___webpack_module__, __webpack_exports__, __webpack_require__) {
-        __webpack_require__.d(__webpack_exports__, {
-            X: ()=>extend
-        });
-        var _struct_js__rspack_import_0 = __webpack_require__("../../../node_modules/.pnpm/@yume-chan+struct@2.3.2/node_modules/@yume-chan/struct/esm/struct.js");
-        function extend(base, fields, options) {
-            return (0, _struct_js__rspack_import_0.w3)(Object.assign({}, base.fields, fields), {
-                littleEndian: options?.littleEndian ?? base.littleEndian,
-                extra: base.extra,
-                postDeserialize: options?.postDeserialize
-            });
-        }
-    },
-    "../../../node_modules/.pnpm/@yume-chan+struct@2.3.2/node_modules/@yume-chan/struct/esm/field/factory.js" (__unused_rspack___webpack_module__, __webpack_exports__, __webpack_require__) {
-        __webpack_require__.d(__webpack_exports__, {
-            Z: ()=>field
-        });
-        var _bipedal_js__rspack_import_1 = __webpack_require__("../../../node_modules/.pnpm/@yume-chan+struct@2.3.2/node_modules/@yume-chan/struct/esm/bipedal.js");
-        var _serialize_js__rspack_import_0 = __webpack_require__("../../../node_modules/.pnpm/@yume-chan+struct@2.3.2/node_modules/@yume-chan/struct/esm/field/serialize.js");
-        function _field(size, type, serialize, deserialize, options) {
-            const field = {
-                size,
-                type: type,
-                serialize: "default" === type ? (0, _serialize_js__rspack_import_0.i)(serialize) : (0, _serialize_js__rspack_import_0.r)(size, serialize),
-                deserialize: (0, _bipedal_js__rspack_import_1.q)(deserialize),
-                omitInit: options?.omitInit
-            };
-            if (options?.init) field.init = options.init;
-            return field;
-        }
-        const field = _field;
-    },
-    "../../../node_modules/.pnpm/@yume-chan+struct@2.3.2/node_modules/@yume-chan/struct/esm/field/serialize.js" (__unused_rspack___webpack_module__, __webpack_exports__, __webpack_require__) {
-        __webpack_require__.d(__webpack_exports__, {
-            i: ()=>defaultFieldSerializer,
-            r: ()=>byobFieldSerializer
-        });
-        function defaultFieldSerializer(serializer) {
-            return (source, context)=>{
-                if (!("buffer" in context)) return serializer(source, context);
-                {
-                    const buffer = serializer(source, context);
-                    context.buffer.set(buffer, context.index);
-                    return buffer.length;
-                }
-            };
-        }
-        function byobFieldSerializer(size, serializer) {
-            return (source, context)=>{
-                if ("buffer" in context) {
-                    context.index ??= 0;
-                    serializer(source, context);
-                    return size;
-                }
-                {
-                    const buffer = new Uint8Array(size);
-                    serializer(source, {
-                        buffer,
-                        index: 0,
-                        littleEndian: context.littleEndian
-                    });
-                    return buffer;
-                }
-            };
-        }
-    },
-    "../../../node_modules/.pnpm/@yume-chan+struct@2.3.2/node_modules/@yume-chan/struct/esm/number.js" (__unused_rspack___webpack_module__, __webpack_exports__, __webpack_require__) {
-        __webpack_require__.d(__webpack_exports__, {
-            DH: ()=>u32,
-            _l: ()=>u64,
-            u8: ()=>u8
-        });
-        __webpack_require__("../../../node_modules/.pnpm/@yume-chan+no-data-view@2.0.0/node_modules/@yume-chan/no-data-view/esm/int8.js");
-        __webpack_require__("../../../node_modules/.pnpm/@yume-chan+no-data-view@2.0.0/node_modules/@yume-chan/no-data-view/esm/uint16.js");
-        __webpack_require__("../../../node_modules/.pnpm/@yume-chan+no-data-view@2.0.0/node_modules/@yume-chan/no-data-view/esm/int16.js");
-        var _yume_chan_no_data_view__rspack_import_4 = __webpack_require__("../../../node_modules/.pnpm/@yume-chan+no-data-view@2.0.0/node_modules/@yume-chan/no-data-view/esm/uint32.js");
-        __webpack_require__("../../../node_modules/.pnpm/@yume-chan+no-data-view@2.0.0/node_modules/@yume-chan/no-data-view/esm/int32.js");
-        var _yume_chan_no_data_view__rspack_import_6 = __webpack_require__("../../../node_modules/.pnpm/@yume-chan+no-data-view@2.0.0/node_modules/@yume-chan/no-data-view/esm/uint64.js");
-        __webpack_require__("../../../node_modules/.pnpm/@yume-chan+no-data-view@2.0.0/node_modules/@yume-chan/no-data-view/esm/int64.js");
-        var _field_index_js__rspack_import_0 = __webpack_require__("../../../node_modules/.pnpm/@yume-chan+struct@2.3.2/node_modules/@yume-chan/struct/esm/field/factory.js");
-        function number(size, serialize, deserialize) {
-            const fn = ()=>fn;
-            Object.assign(fn, (0, _field_index_js__rspack_import_0.Z)(size, "byob", serialize, deserialize));
-            return fn;
-        }
-        const u8 = number(1, (value, { buffer, index })=>{
-            buffer[index] = value;
-        }, function*(then, reader) {
-            const data = yield* then(reader.readExactly(1));
-            return data[0];
-        });
-        const u32 = number(4, (value, { buffer, index, littleEndian })=>{
-            (0, _yume_chan_no_data_view__rspack_import_4.ub)(buffer, index, value, littleEndian);
-        }, function*(then, reader, { littleEndian }) {
-            const data = yield* then(reader.readExactly(4));
-            return (0, _yume_chan_no_data_view__rspack_import_4.Qg)(data, 0, littleEndian);
-        });
-        const u64 = number(8, (value, { buffer, index, littleEndian })=>{
-            (0, _yume_chan_no_data_view__rspack_import_6.X3)(buffer, index, value, littleEndian);
-        }, function*(then, reader, { littleEndian }) {
-            const data = yield* then(reader.readExactly(8));
-            return (0, _yume_chan_no_data_view__rspack_import_6.Hn)(data, 0, littleEndian);
-        });
-    },
-    "../../../node_modules/.pnpm/@yume-chan+struct@2.3.2/node_modules/@yume-chan/struct/esm/readable.js" (__unused_rspack___webpack_module__, __webpack_exports__, __webpack_require__) {
-        __webpack_require__.d(__webpack_exports__, {
-            s: ()=>ExactReadableEndedError
-        });
-        class ExactReadableEndedError extends Error {
-            constructor(){
-                super("ExactReadable ended");
-            }
-        }
-    },
-    "../../../node_modules/.pnpm/@yume-chan+struct@2.3.2/node_modules/@yume-chan/struct/esm/string.js" (__unused_rspack___webpack_module__, __webpack_exports__, __webpack_require__) {
-        __webpack_require__.d(__webpack_exports__, {
-            Y: ()=>string
-        });
-        var _buffer_js__rspack_import_0 = __webpack_require__("../../../node_modules/.pnpm/@yume-chan+struct@2.3.2/node_modules/@yume-chan/struct/esm/buffer.js");
-        var _utils_js__rspack_import_1 = __webpack_require__("../../../node_modules/.pnpm/@yume-chan+struct@2.3.2/node_modules/@yume-chan/struct/esm/utils.js");
-        const string = (lengthOrField)=>{
-            const field = (0, _buffer_js__rspack_import_0.r)(lengthOrField, {
-                convert: _utils_js__rspack_import_1._6,
-                back: _utils_js__rspack_import_1.Af
-            });
-            field.as = ()=>field;
-            return field;
+            return true;
         };
-    },
-    "../../../node_modules/.pnpm/@yume-chan+struct@2.3.2/node_modules/@yume-chan/struct/esm/struct.js" (__unused_rspack___webpack_module__, __webpack_exports__, __webpack_require__) {
-        __webpack_require__.d(__webpack_exports__, {
-            r1: ()=>StructEmptyError,
-            w3: ()=>struct
-        });
-        var _bipedal_js__rspack_import_0 = __webpack_require__("../../../node_modules/.pnpm/@yume-chan+struct@2.3.2/node_modules/@yume-chan/struct/esm/bipedal.js");
-        var _readable_js__rspack_import_1 = __webpack_require__("../../../node_modules/.pnpm/@yume-chan+struct@2.3.2/node_modules/@yume-chan/struct/esm/readable.js");
-        class StructDeserializeError extends Error {
-            constructor(message){
-                super(message);
+        const close = (explicit)=>{
+            logger?.({
+                source: "producer",
+                operation: "close",
+                explicit,
+                phase: "start"
+            });
+            if (abortController.signal.aborted || stopped && !explicit) return void logger?.({
+                source: "producer",
+                operation: "close",
+                explicit,
+                phase: "ignored"
+            });
+            controller.close();
+            stopped = true;
+            waterMarkLow?.reject();
+            logger?.({
+                source: "producer",
+                operation: "close",
+                explicit,
+                phase: "complete"
+            });
+        };
+        const error = (error, explicit)=>{
+            logger?.({
+                source: "producer",
+                operation: "error",
+                explicit,
+                phase: "start"
+            });
+            stopped = true;
+            controller.error(error);
+            waterMarkLow?.reject();
+            logger?.({
+                source: "producer",
+                operation: "error",
+                explicit,
+                phase: "complete"
+            });
+        };
+        super({
+            start: (controller_)=>{
+                controller = controller_;
+                const result = source({
+                    abortSignal: abortController.signal,
+                    enqueue: async (chunk)=>await tasks.enqueue(()=>enqueue(chunk)),
+                    close () {
+                        close(true);
+                    },
+                    error (e) {
+                        error(e, true);
+                    }
+                });
+                if (!stopped && isPromiseLike(result)) result.then(()=>close(false), (e)=>error(e, false));
+            },
+            pull: ()=>{
+                logger?.({
+                    source: "consumer",
+                    operation: "pull",
+                    phase: "start"
+                });
+                if (waterMarkLow) {
+                    waterMarkLow.resolve(void 0);
+                    waterMarkLow = void 0;
+                } else if (strategy?.highWaterMark === 0) zeroHighWaterMarkAllowEnqueue = true;
+                logger?.({
+                    source: "consumer",
+                    operation: "pull",
+                    phase: "complete"
+                });
+            },
+            cancel: (reason)=>{
+                logger?.({
+                    source: "consumer",
+                    operation: "cancel",
+                    phase: "start"
+                });
+                stopped = true;
+                abortController.abort(reason);
+                waterMarkLow?.reject();
+                logger?.({
+                    source: "consumer",
+                    operation: "cancel",
+                    phase: "complete"
+                });
             }
-        }
-        class StructNotEnoughDataError extends StructDeserializeError {
-            constructor(){
-                super("The underlying readable was ended before the struct was fully deserialized");
-            }
-        }
-        class StructEmptyError extends StructDeserializeError {
-            constructor(){
-                super("The underlying readable doesn't contain any more struct");
-            }
-        }
-        function struct(fields, options) {
-            const fieldList = Object.entries(fields);
-            let size = 0;
-            let byob = true;
-            for (const [, field] of fieldList){
-                size += field.size;
-                if (byob && "byob" !== field.type) byob = false;
-            }
-            const littleEndian = options.littleEndian;
-            const extra = options.extra ? Object.getOwnPropertyDescriptors(options.extra) : void 0;
-            return {
-                littleEndian,
-                fields,
-                extra: options.extra,
-                type: byob ? "byob" : "default",
-                size,
-                serialize (source, bufferOrContext) {
-                    const temp = {
-                        ...source
-                    };
-                    for (const [key, field] of fieldList)if (key in temp && "init" in field) {
-                        const result = field.init?.(temp[key], temp);
-                        temp[key] = result;
-                    }
-                    const sizes = new Array(fieldList.length);
-                    const buffers = new Array(fieldList.length);
-                    {
-                        const context = {
-                            littleEndian
-                        };
-                        for (const [index, [key, field]] of fieldList.entries())if ("byob" === field.type) sizes[index] = field.size;
-                        else {
-                            buffers[index] = field.serialize(temp[key], context);
-                            sizes[index] = buffers[index].length;
-                        }
-                    }
-                    const size = sizes.reduce((sum, size)=>sum + size, 0);
-                    let externalBuffer;
-                    let buffer;
-                    let index;
-                    if (bufferOrContext instanceof Uint8Array) {
-                        if (bufferOrContext.length < size) throw new Error("Buffer too small");
-                        externalBuffer = true;
-                        buffer = bufferOrContext;
-                        index = 0;
-                    } else if ("object" == typeof bufferOrContext && "buffer" in bufferOrContext) {
-                        externalBuffer = true;
-                        buffer = bufferOrContext.buffer;
-                        index = bufferOrContext.index ?? 0;
-                        if (buffer.length - index < size) throw new Error("Buffer too small");
-                    } else {
-                        externalBuffer = false;
-                        buffer = new Uint8Array(size);
-                        index = 0;
-                    }
-                    const context = {
-                        buffer,
-                        index,
-                        littleEndian
-                    };
-                    for (const [index, [key, field]] of fieldList.entries()){
-                        if (buffers[index]) buffer.set(buffers[index], context.index);
-                        else field.serialize(temp[key], context);
-                        context.index += sizes[index];
-                    }
-                    if (externalBuffer) return size;
-                    return buffer;
-                },
-                deserialize: (0, _bipedal_js__rspack_import_0.q)(function*(then, reader) {
-                    const startPosition = reader.position;
-                    const result = {};
-                    const context = {
-                        dependencies: result,
-                        littleEndian: littleEndian
-                    };
-                    try {
-                        for (const [key, field] of fieldList)result[key] = yield* then(field.deserialize(reader, context));
-                    } catch (e) {
-                        if (!(e instanceof _readable_js__rspack_import_1.s)) throw e;
-                        if (reader.position === startPosition) throw new StructEmptyError();
-                        throw new StructNotEnoughDataError();
-                    }
-                    if (extra) Object.defineProperties(result, extra);
-                    if (options.postDeserialize) return options.postDeserialize.call(result, result);
-                    return result;
-                })
+        }, strategy);
+    }
+}
+class ExactReadableEndedError extends Error {
+    constructor(){
+        super("ExactReadable ended");
+    }
+}
+class StructDeserializeError extends Error {
+    constructor(message){
+        super(message);
+    }
+}
+class StructNotEnoughDataError extends StructDeserializeError {
+    constructor(){
+        super("The underlying readable was ended before the struct was fully deserialized");
+    }
+}
+class StructEmptyError extends StructDeserializeError {
+    constructor(){
+        super("The underlying readable doesn't contain any more struct");
+    }
+}
+function struct_struct(fields, options) {
+    const fieldList = Object.entries(fields);
+    let size = 0;
+    let byob = true;
+    for (const [, field] of fieldList){
+        size += field.size;
+        if (byob && "byob" !== field.type) byob = false;
+    }
+    const littleEndian = options.littleEndian;
+    const extra = options.extra ? Object.getOwnPropertyDescriptors(options.extra) : void 0;
+    return {
+        littleEndian,
+        fields,
+        extra: options.extra,
+        type: byob ? "byob" : "default",
+        size,
+        serialize (source, bufferOrContext) {
+            const temp = {
+                ...source
             };
-        }
-    },
-    "../../../node_modules/.pnpm/@yume-chan+struct@2.3.2/node_modules/@yume-chan/struct/esm/utils.js" (__unused_rspack___webpack_module__, __webpack_exports__, __webpack_require__) {
-        __webpack_require__.d(__webpack_exports__, {
-            Af: ()=>encodeUtf8,
-            Ay: ()=>TextDecoder1,
-            _6: ()=>decodeUtf8
-        });
-        const { TextEncoder: TextEncoder1, TextDecoder: TextDecoder1 } = globalThis;
-        const SharedEncoder = /* #__PURE__ */ new TextEncoder1();
-        const SharedDecoder = /* #__PURE__ */ new TextDecoder1();
-        function encodeUtf8(input) {
-            return SharedEncoder.encode(input);
-        }
-        function decodeUtf8(buffer) {
-            return SharedDecoder.decode(buffer);
-        }
-    },
-    "../../../node_modules/.pnpm/obug@2.1.3/node_modules/obug/dist/core.js" (__unused_rspack___webpack_module__, __webpack_exports__, __webpack_require__) {
-        __webpack_require__.d(__webpack_exports__, {
-            o: ()=>humanize,
-            r: ()=>enable,
-            s: ()=>selectColor,
-            t: ()=>createDebug
-        });
-        function coerce(value) {
-            if (value instanceof Error) return value.stack || value.message;
+            for (const [key, field] of fieldList)if (key in temp && "init" in field) {
+                const result = field.init?.(temp[key], temp);
+                temp[key] = result;
+            }
+            const sizes = new Array(fieldList.length);
+            const buffers = new Array(fieldList.length);
+            {
+                const context = {
+                    littleEndian
+                };
+                for (const [index, [key, field]] of fieldList.entries())if ("byob" === field.type) sizes[index] = field.size;
+                else {
+                    buffers[index] = field.serialize(temp[key], context);
+                    sizes[index] = buffers[index].length;
+                }
+            }
+            const size = sizes.reduce((sum, size)=>sum + size, 0);
+            let externalBuffer;
+            let buffer;
+            let index;
+            if (bufferOrContext instanceof Uint8Array) {
+                if (bufferOrContext.length < size) throw new Error("Buffer too small");
+                externalBuffer = true;
+                buffer = bufferOrContext;
+                index = 0;
+            } else if ("object" == typeof bufferOrContext && "buffer" in bufferOrContext) {
+                externalBuffer = true;
+                buffer = bufferOrContext.buffer;
+                index = bufferOrContext.index ?? 0;
+                if (buffer.length - index < size) throw new Error("Buffer too small");
+            } else {
+                externalBuffer = false;
+                buffer = new Uint8Array(size);
+                index = 0;
+            }
+            const context = {
+                buffer,
+                index,
+                littleEndian
+            };
+            for (const [index, [key, field]] of fieldList.entries()){
+                if (buffers[index]) buffer.set(buffers[index], context.index);
+                else field.serialize(temp[key], context);
+                context.index += sizes[index];
+            }
+            if (externalBuffer) return size;
+            return buffer;
+        },
+        deserialize: bipedal(function*(then, reader) {
+            const startPosition = reader.position;
+            const result = {};
+            const context = {
+                dependencies: result,
+                littleEndian: littleEndian
+            };
+            try {
+                for (const [key, field] of fieldList)result[key] = yield* then(field.deserialize(reader, context));
+            } catch (e) {
+                if (!(e instanceof ExactReadableEndedError)) throw e;
+                if (reader.position === startPosition) throw new StructEmptyError();
+                throw new StructNotEnoughDataError();
+            }
+            if (extra) Object.defineProperties(result, extra);
+            if (options.postDeserialize) return options.postDeserialize.call(result, result);
+            return result;
+        })
+    };
+}
+function tryClose(value) {
+    try {
+        const result = value.close();
+        if (isPromiseLike(result)) return result.then(()=>true, ()=>false);
+        return true;
+    } catch  {
+        return false;
+    }
+}
+async function tryCancel(stream) {
+    try {
+        await stream.cancel();
+        return true;
+    } catch  {
+        return false;
+    }
+}
+class BufferedReadableStream {
+    #buffered;
+    #bufferedOffset = 0;
+    #bufferedLength = 0;
+    #position = 0;
+    get position() {
+        return this.#position;
+    }
+    stream;
+    reader;
+    constructor(stream){
+        this.stream = stream;
+        this.reader = stream.getReader();
+    }
+    #readBuffered(length) {
+        if (!this.#buffered) return;
+        const value = this.#buffered.subarray(this.#bufferedOffset, this.#bufferedOffset + length);
+        if (this.#bufferedLength > length) {
+            this.#position += length;
+            this.#bufferedOffset += length;
+            this.#bufferedLength -= length;
             return value;
         }
-        function selectColor(colors, namespace) {
-            let hash = 0;
-            for(let i = 0; i < namespace.length; i++){
-                hash = (hash << 5) - hash + namespace.charCodeAt(i);
-                hash |= 0;
-            }
-            return colors[Math.abs(hash) % colors.length];
+        this.#position += this.#bufferedLength;
+        this.#buffered = void 0;
+        this.#bufferedOffset = 0;
+        this.#bufferedLength = 0;
+        return value;
+    }
+    async #readSource(length) {
+        const { done, value } = await this.reader.read();
+        if (done) throw new ExactReadableEndedError();
+        if (value.length > length) {
+            this.#buffered = value;
+            this.#bufferedOffset = length;
+            this.#bufferedLength = value.length - length;
+            this.#position += length;
+            return value.subarray(0, length);
         }
-        function matchesTemplate(search, template) {
-            let searchIndex = 0;
-            let templateIndex = 0;
-            let starIndex = -1;
-            let matchIndex = 0;
-            while(searchIndex < search.length)if (templateIndex < template.length && (template[templateIndex] === search[searchIndex] || "*" === template[templateIndex])) if ("*" === template[templateIndex]) {
-                starIndex = templateIndex;
-                matchIndex = searchIndex;
-                templateIndex++;
-            } else {
-                searchIndex++;
-                templateIndex++;
-            }
-            else {
-                if (-1 === starIndex) return false;
-                templateIndex = starIndex + 1;
-                matchIndex++;
-                searchIndex = matchIndex;
-            }
-            while(templateIndex < template.length && "*" === template[templateIndex])templateIndex++;
-            return templateIndex === template.length;
-        }
-        function humanize(value) {
-            if (value >= 1e3) return `${(value / 1e3).toFixed(1)}s`;
-            return `${value}ms`;
-        }
-        let globalNamespaces = "";
-        function createDebug(namespace, options) {
-            let prevTime;
-            let enableOverride;
-            let namespacesCache;
-            let enabledCache;
-            const debug = (...args)=>{
-                if (!debug.enabled) return;
-                const curr = Date.now();
-                const diff = curr - (prevTime || curr);
-                prevTime = curr;
-                args[0] = coerce(args[0]);
-                if ("string" != typeof args[0]) args.unshift("%O");
-                let index = 0;
-                args[0] = args[0].replace(/%([a-z%])/gi, (match, format)=>{
-                    if ("%%" === match) return "%";
-                    index++;
-                    const formatter = options.formatters[format];
-                    if ("function" == typeof formatter) {
-                        const value = args[index];
-                        match = formatter.call(debug, value);
-                        args.splice(index, 1);
-                        index--;
-                    }
-                    return match;
-                });
-                options.formatArgs.call(debug, diff, args);
-                debug.log(...args);
-            };
-            debug.extend = function(namespace, delimiter = ":") {
-                return createDebug(this.namespace + delimiter + namespace, {
-                    useColors: this.useColors,
-                    color: this.color,
-                    formatArgs: this.formatArgs,
-                    formatters: this.formatters,
-                    inspectOpts: this.inspectOpts,
-                    log: this.log,
-                    humanize: this.humanize
-                });
-            };
-            Object.assign(debug, options);
-            debug.namespace = namespace;
-            Object.defineProperty(debug, "enabled", {
-                enumerable: true,
-                configurable: false,
-                get: ()=>{
-                    if (null != enableOverride) return enableOverride;
-                    if (namespacesCache !== globalNamespaces) {
-                        namespacesCache = globalNamespaces;
-                        enabledCache = enabled(namespace);
-                    }
-                    return enabledCache;
-                },
-                set: (v)=>{
-                    enableOverride = v;
-                }
-            });
-            return debug;
-        }
-        let names = [];
-        let skips = [];
-        function enable(namespaces) {
-            globalNamespaces = namespaces;
-            names = [];
-            skips = [];
-            const split = globalNamespaces.trim().replace(/\s+/g, ",").split(",").filter(Boolean);
-            for (const ns of split)if ("-" === ns[0]) skips.push(ns.slice(1));
-            else names.push(ns);
-        }
-        function enabled(name) {
-            for (const skip of skips)if (matchesTemplate(name, skip)) return false;
-            for (const ns of names)if (matchesTemplate(name, ns)) return true;
-            return false;
-        }
-    },
-    "../../../node_modules/.pnpm/obug@2.1.3/node_modules/obug/dist/node.js" (__unused_rspack___webpack_module__, __webpack_exports__, __webpack_require__) {
-        __webpack_require__.d(__webpack_exports__, {
-            U: ()=>createDebug
-        });
-        var _core_js__rspack_import_2 = __webpack_require__("../../../node_modules/.pnpm/obug@2.1.3/node_modules/obug/dist/core.js");
-        var node_tty__rspack_import_0 = __webpack_require__("node:tty");
-        var node_util__rspack_import_1 = __webpack_require__("node:util");
-        const colors = process.stderr.getColorDepth && process.stderr.getColorDepth() > 2 ? [
-            20,
-            21,
-            26,
-            27,
-            32,
-            33,
-            38,
-            39,
-            40,
-            41,
-            42,
-            43,
-            44,
-            45,
-            56,
-            57,
-            62,
-            63,
-            68,
-            69,
-            74,
-            75,
-            76,
-            77,
-            78,
-            79,
-            80,
-            81,
-            92,
-            93,
-            98,
-            99,
-            112,
-            113,
-            128,
-            129,
-            134,
-            135,
-            148,
-            149,
-            160,
-            161,
-            162,
-            163,
-            164,
-            165,
-            166,
-            167,
-            168,
-            169,
-            170,
-            171,
-            172,
-            173,
-            178,
-            179,
-            184,
-            185,
-            196,
-            197,
-            198,
-            199,
-            200,
-            201,
-            202,
-            203,
-            204,
-            205,
-            206,
-            207,
-            208,
-            209,
-            214,
-            215,
-            220,
-            221
-        ] : [
-            6,
-            2,
-            3,
-            4,
-            5,
-            1
-        ];
-        const inspectOpts = Object.keys(process.env).filter((key)=>/^debug_/i.test(key)).reduce((obj, key)=>{
-            const prop = key.slice(6).toLowerCase().replace(/_([a-z])/g, (_, k)=>k.toUpperCase());
-            let value = process.env[key];
-            const lowerCase = "string" == typeof value && value.toLowerCase();
-            value = "null" === value ? null : "yes" === lowerCase || "on" === lowerCase || "true" === lowerCase || "enabled" === lowerCase ? true : "no" === lowerCase || "off" === lowerCase || "false" === lowerCase || "disabled" === lowerCase ? false : Number(value);
-            obj[prop] = value;
-            return obj;
-        }, Object.create(null));
-        function useColors() {
-            return "colors" in inspectOpts ? Boolean(inspectOpts.colors) : (0, node_tty__rspack_import_0.isatty)(process.stderr.fd);
-        }
-        function getDate() {
-            if (inspectOpts.hideDate) return "";
-            return `${/* @__PURE__ */ new Date().toISOString()} `;
-        }
-        function formatArgs(diff, args) {
-            const { namespace: name, useColors } = this;
-            if (useColors) {
-                const c = this.color;
-                const colorCode = `\u001B[3${c < 8 ? c : `8;5;${c}`}`;
-                const prefix = `  ${colorCode};1m${name} \u001B[0m`;
-                args[0] = prefix + args[0].split("\n").join(`\n${prefix}`);
-                args.push(`${colorCode}m+${this.humanize(diff)}\u001B[0m`);
-            } else args[0] = `${getDate()}${name} ${args[0]}`;
-        }
-        function log(...args) {
-            process.stderr.write(`${(0, node_util__rspack_import_1.formatWithOptions)(this.inspectOpts, ...args)}\n`);
-        }
-        const defaultOptions = {
-            useColors: useColors(),
-            formatArgs,
-            formatters: {
-                o (v) {
-                    this.inspectOpts.colors = this.useColors;
-                    return (0, node_util__rspack_import_1.inspect)(v, this.inspectOpts).split("\n").map((str)=>str.trim()).join(" ");
-                },
-                O (v) {
-                    this.inspectOpts.colors = this.useColors;
-                    return (0, node_util__rspack_import_1.inspect)(v, this.inspectOpts);
-                }
-            },
-            inspectOpts,
-            log,
-            humanize: _core_js__rspack_import_2.o
-        };
-        function createDebug(namespace, options) {
-            var _ref;
-            const color = null != (_ref = options && options.color) ? _ref : (0, _core_js__rspack_import_2.s)(colors, namespace);
-            return (0, _core_js__rspack_import_2.t)(namespace, Object.assign(defaultOptions, {
-                color
-            }, options));
-        }
-        (0, _core_js__rspack_import_2.r)(process.env.DEBUG || "");
-    },
-    "../../../node_modules/.pnpm/plist@5.0.0/node_modules/plist/dist/build.js" (__unused_rspack___webpack_module__, __webpack_exports__, __webpack_require__) {
-        __webpack_require__.d(__webpack_exports__, {
-            j: ()=>build
-        });
-        var xmlbuilder__rspack_import_0 = __webpack_require__("../../../node_modules/.pnpm/xmlbuilder@15.1.1/node_modules/xmlbuilder/lib/index.js");
-        function uint8ArrayToBase64(bytes) {
-            let binary = '';
-            for(let i = 0; i < bytes.length; i++)binary += String.fromCharCode(bytes[i]);
-            return btoa(binary);
-        }
-        function build(obj, opts) {
-            const XMLHDR = {
-                version: '1.0',
-                encoding: 'UTF-8'
-            };
-            const XMLDTD = {
-                pubid: '-//Apple//DTD PLIST 1.0//EN',
-                sysid: 'http://www.apple.com/DTDs/PropertyList-1.0.dtd'
-            };
-            const doc = xmlbuilder__rspack_import_0.create('plist');
-            doc.dec(XMLHDR.version, XMLHDR.encoding);
-            doc.dtd(XMLDTD.pubid, XMLDTD.sysid);
-            doc.att('version', '1.0');
-            walk_obj(obj, doc);
-            if (!opts) opts = {};
-            opts.pretty = false !== opts.pretty;
-            return doc.end(opts);
-        }
-        function walk_obj(next, next_child) {
-            if (void 0 === next) return;
-            if (Array.isArray(next)) {
-                next_child = next_child.ele('array');
-                for(let i = 0; i < next.length; i++)walk_obj(next[i], next_child);
-            } else if (next instanceof ArrayBuffer) next_child.ele('data').raw(uint8ArrayToBase64(new Uint8Array(next)));
-            else if (ArrayBuffer.isView(next)) {
-                const bytes = next instanceof Uint8Array ? next : new Uint8Array(next.buffer, next.byteOffset, next.byteLength);
-                next_child.ele('data').raw(uint8ArrayToBase64(bytes));
-            } else if ('object' != typeof next || null === next || next instanceof Date) {
-                if ('number' == typeof next) {
-                    const tag_type = next % 1 === 0 ? 'integer' : 'real';
-                    next_child.ele(tag_type).txt(next.toString());
-                } else if ('bigint' == typeof next) next_child.ele('integer').txt(next.toString());
-                else if (next instanceof Date) next_child.ele('date').txt(new Date(next).toISOString().replace(/\.\d{3}Z$/, 'Z'));
-                else if ('boolean' == typeof next) next_child.ele(next ? 'true' : 'false');
-                else if ('string' == typeof next) next_child.ele('string').txt(next);
-            } else {
-                next_child = next_child.ele('dict');
-                for(const prop in next)if (Object.hasOwn(next, prop)) {
-                    const val = next[prop];
-                    if (null == val) continue;
-                    next_child.ele('key').txt(prop);
-                    walk_obj(val, next_child);
-                }
-            }
-        }
-    },
-    "../../../node_modules/.pnpm/plist@5.0.0/node_modules/plist/dist/index.js" (__unused_rspack___webpack_module__, __webpack_exports__, __webpack_require__) {
-        __webpack_require__.d(__webpack_exports__, {
-            jq: ()=>_build_js__rspack_import_1.j,
-            qg: ()=>_parse_js__rspack_import_0.q
-        });
-        var _parse_js__rspack_import_0 = __webpack_require__("../../../node_modules/.pnpm/plist@5.0.0/node_modules/plist/dist/parse.js");
-        var _build_js__rspack_import_1 = __webpack_require__("../../../node_modules/.pnpm/plist@5.0.0/node_modules/plist/dist/build.js");
-    },
-    "../../../node_modules/.pnpm/plist@5.0.0/node_modules/plist/dist/parse-binary.js" (__unused_rspack___webpack_module__, __webpack_exports__, __webpack_require__) {
-        __webpack_require__.d(__webpack_exports__, {
-            f: ()=>parseBinary
-        });
-        const EPOCH_2001 = 978307200000;
-        function readSizedInt(view, offset, size) {
-            switch(size){
-                case 1:
-                    return view.getUint8(offset);
-                case 2:
-                    return view.getUint16(offset);
-                case 4:
-                    return view.getUint32(offset);
-                case 8:
-                    {
-                        const hi = view.getUint32(offset);
-                        const lo = view.getUint32(offset + 4);
-                        return 0x100000000 * hi + lo;
-                    }
-                default:
-                    throw new Error(`Unsupported int size: ${size}`);
-            }
-        }
-        function parseBinary(data) {
-            const view = new DataView(data.buffer, data.byteOffset, data.byteLength);
-            const len = data.byteLength;
-            const header = String.fromCharCode(...data.subarray(0, 8));
-            if ('bplist00' !== header) throw new Error('Invalid binary plist: bad magic');
-            const trailerOffset = len - 32;
-            const offsetTableOffsetSize = view.getUint8(trailerOffset + 6);
-            const objectRefSize = view.getUint8(trailerOffset + 7);
-            const numObjects = readSizedInt(view, trailerOffset + 8, 8);
-            const topObject = readSizedInt(view, trailerOffset + 16, 8);
-            const offsetTableOffset = readSizedInt(view, trailerOffset + 24, 8);
-            const offsets = [];
-            for(let i = 0; i < numObjects; i++)offsets.push(readSizedInt(view, offsetTableOffset + i * offsetTableOffsetSize, offsetTableOffsetSize));
-            function parseObject(index) {
-                let offset = offsets[index];
-                const marker = view.getUint8(offset);
-                const type = marker >> 4;
-                let size = 0x0f & marker;
-                offset++;
-                if (0 !== type && 8 !== type && 0x0f === size) {
-                    const extMarker = view.getUint8(offset);
-                    offset++;
-                    const extSize = 1 << (0x0f & extMarker);
-                    size = readSizedInt(view, offset, extSize);
-                    offset += extSize;
-                }
-                switch(type){
-                    case 0x0:
-                        if (0x00 === marker) return null;
-                        if (0x08 === marker) return false;
-                        if (0x09 === marker) return true;
-                        throw new Error(`Unknown singleton: 0x${marker.toString(16)}`);
-                    case 0x1:
+        this.#position += value.length;
+        return value;
+    }
+    iterateExactly(length) {
+        let state = this.#buffered ? 0 : 1;
+        return {
+            next: ()=>{
+                switch(state){
+                    case 0:
                         {
-                            const byteCount = 1 << size;
-                            if (byteCount <= 4) return readSizedInt(view, offset, byteCount);
-                            const hi = view.getInt32(offset);
-                            const lo = view.getUint32(offset + 4);
-                            return 0x100000000 * hi + lo;
-                        }
-                    case 0x2:
-                        {
-                            const byteCount = 1 << size;
-                            if (4 === byteCount) return view.getFloat32(offset);
-                            if (8 === byteCount) return view.getFloat64(offset);
-                            throw new Error(`Unsupported real size: ${byteCount}`);
-                        }
-                    case 0x3:
-                        {
-                            const timestamp = view.getFloat64(offset);
-                            return new Date(1000 * timestamp + EPOCH_2001);
-                        }
-                    case 0x4:
-                        return new Uint8Array(data.buffer, data.byteOffset + offset, size);
-                    case 0x5:
-                        {
-                            let s = '';
-                            for(let i = 0; i < size; i++)s += String.fromCharCode(view.getUint8(offset + i));
-                            return s;
-                        }
-                    case 0x6:
-                        {
-                            let s = '';
-                            for(let i = 0; i < size; i++)s += String.fromCharCode(view.getUint16(offset + 2 * i));
-                            return s;
-                        }
-                    case 0x8:
-                        {
-                            const byteCount = size + 1;
+                            const value = this.#readBuffered(length);
+                            if (value.length === length) state = 2;
+                            else {
+                                length -= value.length;
+                                state = 1;
+                            }
                             return {
-                                UID: readSizedInt(view, offset, byteCount)
+                                done: false,
+                                value
                             };
                         }
-                    case 0xa:
-                        {
-                            const arr = [];
-                            for(let i = 0; i < size; i++){
-                                const ref = readSizedInt(view, offset + i * objectRefSize, objectRefSize);
-                                arr.push(parseObject(ref));
-                            }
-                            return arr;
-                        }
-                    case 0xd:
-                        {
-                            const dict = {};
-                            for(let i = 0; i < size; i++){
-                                const keyRef = readSizedInt(view, offset + i * objectRefSize, objectRefSize);
-                                const valRef = readSizedInt(view, offset + (size + i) * objectRefSize, objectRefSize);
-                                const key = parseObject(keyRef);
-                                dict[key] = parseObject(valRef);
-                            }
-                            return dict;
-                        }
+                    case 1:
+                        state = 3;
+                        return {
+                            done: false,
+                            value: this.#readSource(length).then((value)=>{
+                                if (value.length === length) state = 2;
+                                else {
+                                    length -= value.length;
+                                    state = 1;
+                                }
+                                return value;
+                            })
+                        };
+                    case 2:
+                        return {
+                            done: true,
+                            value: void 0
+                        };
+                    case 3:
+                        throw new Error("Can't call `next` before previous Promise resolves");
                     default:
-                        throw new Error(`Unknown object type: 0x${type.toString(16)}`);
+                        throw new Error("unreachable");
                 }
             }
-            return parseObject(topObject);
+        };
+    }
+    readExactly = bipedal(function*(then, length) {
+        let result;
+        let index = 0;
+        const initial = this.#readBuffered(length);
+        if (initial) {
+            if (initial.length === length) return initial;
+            result = new Uint8Array(length);
+            result.set(initial, index);
+            index += initial.length;
+            length -= initial.length;
+        } else result = new Uint8Array(length);
+        while(length > 0){
+            const value = yield* then(this.#readSource(length));
+            result.set(value, index);
+            index += value.length;
+            length -= value.length;
+        }
+        return result;
+    });
+    release() {
+        if (this.#bufferedLength > 0) return new PushReadableStream(async (controller)=>{
+            const buffered = this.#buffered.subarray(this.#bufferedOffset);
+            await controller.enqueue(buffered);
+            controller.abortSignal.addEventListener("abort", ()=>{
+                tryCancel(this.reader);
+            });
+            while(true){
+                const { done, value } = await this.reader.read();
+                if (done) return;
+                await controller.enqueue(value);
+            }
+        });
+        this.reader.releaseLock();
+        return this.stream;
+    }
+    async cancel(reason) {
+        await this.reader.cancel(reason);
+    }
+}
+class BufferedTransformStream {
+    #readable;
+    get readable() {
+        return this.#readable;
+    }
+    #writable;
+    get writable() {
+        return this.#writable;
+    }
+    constructor(transform){
+        let bufferedStreamController;
+        let writableStreamController;
+        const buffered = new BufferedReadableStream(new PushReadableStream((controller)=>{
+            bufferedStreamController = controller;
+        }));
+        this.#readable = new stream_ReadableStream({
+            async pull (controller) {
+                try {
+                    const value = await transform(buffered);
+                    controller.enqueue(value);
+                } catch (e) {
+                    if (e instanceof StructEmptyError) return void controller.close();
+                    throw e;
+                }
+            },
+            cancel: (reason)=>writableStreamController.error(reason)
+        });
+        this.#writable = new WritableStream({
+            start (controller) {
+                writableStreamController = controller;
+            },
+            async write (chunk) {
+                await bufferedStreamController.enqueue(chunk);
+            },
+            abort () {
+                bufferedStreamController.close();
+            },
+            close () {
+                bufferedStreamController.close();
+            }
+        });
+    }
+}
+class StructDeserializeStream extends BufferedTransformStream {
+    constructor(struct){
+        super((stream)=>struct.deserialize(stream));
+    }
+}
+function getUint32LittleEndian(buffer, offset) {
+    return (buffer[offset] | buffer[offset + 1] << 8 | buffer[offset + 2] << 16 | buffer[offset + 3] << 24) >>> 0;
+}
+function getUint32(buffer, offset, littleEndian) {
+    return littleEndian ? (buffer[offset] | buffer[offset + 1] << 8 | buffer[offset + 2] << 16 | buffer[offset + 3] << 24) >>> 0 : (buffer[offset] << 24 | buffer[offset + 1] << 16 | buffer[offset + 2] << 8 | buffer[offset + 3]) >>> 0;
+}
+function setUint32(buffer, offset, value, littleEndian) {
+    if (littleEndian) {
+        buffer[offset] = value;
+        buffer[offset + 1] = value >> 8;
+        buffer[offset + 2] = value >> 16;
+        buffer[offset + 3] = value >> 24;
+    } else {
+        buffer[offset] = value >> 24;
+        buffer[offset + 1] = value >> 16;
+        buffer[offset + 2] = value >> 8;
+        buffer[offset + 3] = value;
+    }
+}
+function number(size, serialize, deserialize) {
+    const fn = ()=>fn;
+    Object.assign(fn, factory_field(size, "byob", serialize, deserialize));
+    return fn;
+}
+const u8 = number(1, (value, { buffer, index })=>{
+    buffer[index] = value;
+}, function*(then, reader) {
+    const data = yield* then(reader.readExactly(1));
+    return data[0];
+});
+const u32 = number(4, (value, { buffer, index, littleEndian })=>{
+    setUint32(buffer, index, value, littleEndian);
+}, function*(then, reader, { littleEndian }) {
+    const data = yield* then(reader.readExactly(4));
+    return getUint32(data, 0, littleEndian);
+});
+const u64 = number(8, (value, { buffer, index, littleEndian })=>{
+    setUint64(buffer, index, value, littleEndian);
+}, function*(then, reader, { littleEndian }) {
+    const data = yield* then(reader.readExactly(8));
+    return getUint64(data, 0, littleEndian);
+});
+const AdbShellProtocolId = {
+    Stdin: 0,
+    Stdout: 1,
+    Stderr: 2,
+    Exit: 3,
+    CloseStdin: 4,
+    WindowSizeChange: 5
+};
+const AdbShellProtocolPacket = struct_struct({
+    id: u8(),
+    data: buffer_buffer(u32)
+}, {
+    littleEndian: true
+});
+class AdbShellProtocolProcessImpl {
+    #socket;
+    #writer;
+    #stdin;
+    get stdin() {
+        return this.#stdin;
+    }
+    #stdout;
+    get stdout() {
+        return this.#stdout;
+    }
+    #stderr;
+    get stderr() {
+        return this.#stderr;
+    }
+    #exited;
+    get exited() {
+        return this.#exited;
+    }
+    constructor(socket, signal){
+        this.#socket = socket;
+        let stdoutController;
+        let stderrController;
+        this.#stdout = new PushReadableStream((controller)=>{
+            stdoutController = controller;
+        });
+        this.#stderr = new PushReadableStream((controller)=>{
+            stderrController = controller;
+        });
+        const exited = new PromiseResolver();
+        this.#exited = exited.promise;
+        socket.readable.pipeThrough(new StructDeserializeStream(AdbShellProtocolPacket)).pipeTo(new WritableStream({
+            write: async (chunk)=>{
+                switch(chunk.id){
+                    case AdbShellProtocolId.Exit:
+                        exited.resolve(chunk.data[0]);
+                        break;
+                    case AdbShellProtocolId.Stdout:
+                        await stdoutController.enqueue(chunk.data);
+                        break;
+                    case AdbShellProtocolId.Stderr:
+                        await stderrController.enqueue(chunk.data);
+                        break;
+                    default:
+                        break;
+                }
+            }
+        })).then(()=>{
+            stdoutController.close();
+            stderrController.close();
+            exited.reject(new Error("Socket ended without exit message"));
+        }, (e)=>{
+            stdoutController.error(e);
+            stderrController.error(e);
+            exited.reject(e);
+        });
+        if (signal) signal.addEventListener("abort", ()=>{
+            exited.reject(signal.reason);
+            this.#socket.close();
+        });
+        this.#writer = this.#socket.writable.getWriter();
+        this.#stdin = new MaybeConsumableWritableStream({
+            write: async (chunk)=>{
+                await this.#writer.write(AdbShellProtocolPacket.serialize({
+                    id: AdbShellProtocolId.Stdin,
+                    data: chunk
+                }));
+            },
+            close: ()=>this.#writer.write(AdbShellProtocolPacket.serialize({
+                    id: AdbShellProtocolId.CloseStdin,
+                    data: EmptyUint8Array
+                }))
+        });
+    }
+    kill() {
+        return this.#socket.close();
+    }
+}
+const { TextEncoder: utils_TextEncoder, TextDecoder: utils_TextDecoder } = globalThis;
+const SharedEncoder = /* #__PURE__ */ new utils_TextEncoder();
+const SharedDecoder = /* #__PURE__ */ new utils_TextDecoder();
+function encodeUtf8(input) {
+    return SharedEncoder.encode(input);
+}
+function decodeUtf8(buffer) {
+    return SharedDecoder.decode(buffer);
+}
+class AdbShellProtocolPtyProcess {
+    #socket;
+    #writer;
+    #input;
+    get input() {
+        return this.#input;
+    }
+    #stdout;
+    get output() {
+        return this.#stdout;
+    }
+    #exited = new PromiseResolver();
+    get exited() {
+        return this.#exited.promise;
+    }
+    constructor(socket){
+        this.#socket = socket;
+        let stdoutController;
+        this.#stdout = new PushReadableStream((controller)=>{
+            stdoutController = controller;
+        });
+        socket.readable.pipeThrough(new StructDeserializeStream(AdbShellProtocolPacket)).pipeTo(new WritableStream({
+            write: async (chunk)=>{
+                switch(chunk.id){
+                    case AdbShellProtocolId.Exit:
+                        this.#exited.resolve(chunk.data[0]);
+                        break;
+                    case AdbShellProtocolId.Stdout:
+                        await stdoutController.enqueue(chunk.data);
+                        break;
+                }
+            }
+        })).then(()=>{
+            stdoutController.close();
+            this.#exited.reject(new Error("Socket ended without exit message"));
+        }, (e)=>{
+            stdoutController.error(e);
+            this.#exited.reject(e);
+        });
+        this.#writer = this.#socket.writable.getWriter();
+        this.#input = new MaybeConsumableWritableStream({
+            write: (chunk)=>this.#writeStdin(chunk)
+        });
+    }
+    #writeStdin(chunk) {
+        return this.#writer.write(AdbShellProtocolPacket.serialize({
+            id: AdbShellProtocolId.Stdin,
+            data: chunk
+        }));
+    }
+    async resize(rows, cols) {
+        await this.#writer.write(AdbShellProtocolPacket.serialize({
+            id: AdbShellProtocolId.WindowSizeChange,
+            data: encodeUtf8(`${rows}x${cols},0x0\0`)
+        }));
+    }
+    sigint() {
+        return this.#writeStdin(new Uint8Array([
+            0x03
+        ]));
+    }
+    kill() {
+        return this.#socket.close();
+    }
+}
+class AdbShellProtocolSpawner {
+    #spawn;
+    constructor(spawn){
+        this.#spawn = spawn;
+    }
+    spawn(command, signal) {
+        signal?.throwIfAborted();
+        if ("string" == typeof command) command = splitCommand(command);
+        return this.#spawn(command, signal);
+    }
+    async spawnWait(command) {
+        const process1 = await this.spawn(command);
+        const [stdout, stderr, exitCode] = await Promise.all([
+            process1.stdout.pipeThrough(new ConcatBufferStream()),
+            process1.stderr.pipeThrough(new ConcatBufferStream()),
+            process1.exited
+        ]);
+        return {
+            stdout,
+            stderr,
+            exitCode
+        };
+    }
+    async spawnWaitText(command) {
+        const process1 = await this.spawn(command);
+        const [stdout, stderr, exitCode] = await Promise.all([
+            process1.stdout.pipeThrough(new TextDecoderStream()).pipeThrough(new ConcatStringStream()),
+            process1.stderr.pipeThrough(new TextDecoderStream()).pipeThrough(new ConcatStringStream()),
+            process1.exited
+        ]);
+        return {
+            stdout,
+            stderr,
+            exitCode
+        };
+    }
+}
+class AdbShellProtocolSubprocessService extends AdbShellProtocolSpawner {
+    #adb;
+    get adb() {
+        return this.#adb;
+    }
+    get isSupported() {
+        return this.#adb.canUseFeature(AdbFeature.ShellV2);
+    }
+    constructor(adb){
+        super(async (command, signal)=>{
+            const socket = await this.#adb.createSocket(`shell,v2,raw:${command.join(" ")}`);
+            if (signal?.aborted) {
+                await socket.close();
+                throw signal.reason;
+            }
+            return new AdbShellProtocolProcessImpl(socket, signal);
+        });
+        this.#adb = adb;
+    }
+    async pty(options) {
+        let service = "shell,v2,pty";
+        if (options?.terminalType) service += ",TERM=" + options.terminalType;
+        service += ":";
+        if (options) {
+            if ("string" == typeof options.command) service += options.command;
+            else if (Array.isArray(options.command)) service += options.command.join(" ");
+        }
+        return new AdbShellProtocolPtyProcess(await this.#adb.createSocket(service));
+    }
+}
+class AdbSubprocessService {
+    #adb;
+    get adb() {
+        return this.#adb;
+    }
+    #noneProtocol;
+    get noneProtocol() {
+        return this.#noneProtocol;
+    }
+    #shellProtocol;
+    get shellProtocol() {
+        return this.#shellProtocol;
+    }
+    constructor(adb){
+        this.#adb = adb;
+        this.#noneProtocol = new AdbNoneProtocolSubprocessService(adb);
+        if (adb.canUseFeature(AdbFeature.ShellV2)) this.#shellProtocol = new AdbShellProtocolSubprocessService(adb);
+    }
+}
+class AutoDisposable {
+    #disposables = [];
+    constructor(){
+        this.dispose = this.dispose.bind(this);
+    }
+    addDisposable(disposable) {
+        this.#disposables.push(disposable);
+        return disposable;
+    }
+    dispose() {
+        for (const disposable of this.#disposables)disposable.dispose();
+        this.#disposables = [];
+    }
+}
+class AdbServiceBase extends AutoDisposable {
+    #adb;
+    get adb() {
+        return this.#adb;
+    }
+    constructor(adb){
+        super();
+        this.#adb = adb;
+    }
+}
+class AdbPower extends AdbServiceBase {
+    reboot(mode = "") {
+        return this.adb.createSocketAndWait(`reboot:${mode}`);
+    }
+    bootloader() {
+        return this.reboot("bootloader");
+    }
+    fastboot() {
+        return this.reboot("fastboot");
+    }
+    recovery() {
+        return this.reboot("recovery");
+    }
+    sideload() {
+        return this.reboot("sideload");
+    }
+    qualcommEdlMode() {
+        return this.reboot("edl");
+    }
+    powerOff() {
+        return this.adb.subprocess.noneProtocol.spawnWaitText([
+            "reboot",
+            "-p"
+        ]);
+    }
+    powerButton(longPress = false) {
+        const args = [
+            "input",
+            "keyevent"
+        ];
+        if (longPress) args.push("--longpress");
+        args.push("POWER");
+        return this.adb.subprocess.noneProtocol.spawnWaitText(args);
+    }
+    samsungOdin() {
+        return this.reboot("download");
+    }
+}
+const string = (lengthOrField)=>{
+    const field = buffer_buffer(lengthOrField, {
+        convert: decodeUtf8,
+        back: encodeUtf8
+    });
+    field.as = ()=>field;
+    return field;
+};
+function extend(base, fields, options) {
+    return struct_struct(Object.assign({}, base.fields, fields), {
+        littleEndian: options?.littleEndian ?? base.littleEndian,
+        extra: base.extra,
+        postDeserialize: options?.postDeserialize
+    });
+}
+function sequenceEqual(a, b) {
+    if (a.length !== b.length) return false;
+    for(let i = 0; i < a.length; i += 1)if (a[i] !== b[i]) return false;
+    return true;
+}
+function hexCharToNumber(char) {
+    if (char < 48) throw new TypeError(`Invalid hex char ${char}`);
+    if (char < 58) return char - 48;
+    if (char < 65) throw new TypeError(`Invalid hex char ${char}`);
+    if (char < 71) return char - 55;
+    if (char < 97) throw new TypeError(`Invalid hex char ${char}`);
+    if (char < 103) return char - 87;
+    throw new TypeError(`Invalid hex char ${char}`);
+}
+function hexToNumber(data) {
+    let result = 0;
+    for(let i = 0; i < data.length; i += 1)result = result << 4 | hexCharToNumber(data[i]);
+    return result;
+}
+function write4HexDigits(buffer, index, value) {
+    const start = index;
+    index += 3;
+    while(index >= start && value > 0){
+        const digit = 0xf & value;
+        value >>= 4;
+        if (digit < 10) buffer[index] = digit + 48;
+        else buffer[index] = digit + 87;
+        index -= 1;
+    }
+    while(index >= start){
+        buffer[index] = 48;
+        index -= 1;
+    }
+}
+const AdbReverseStringResponse = struct_struct({
+    length: string(4),
+    content: string({
+        field: "length",
+        convert (value) {
+            return Number.parseInt(value, 16);
+        },
+        back (value) {
+            return value.toString(16).padStart(4, "0");
+        }
+    })
+}, {
+    littleEndian: true
+});
+class AdbReverseError extends Error {
+    constructor(message){
+        super(message);
+    }
+}
+class AdbReverseNotSupportedError extends AdbReverseError {
+    constructor(){
+        super("ADB reverse tunnel is not supported on this device when connected wirelessly.");
+    }
+}
+const AdbReverseErrorResponse = extend(AdbReverseStringResponse, {}, {
+    postDeserialize (value) {
+        if ("more than one device/emulator" === value.content) throw new AdbReverseNotSupportedError();
+        throw new AdbReverseError(value.content);
+    }
+});
+function decimalToNumber(buffer) {
+    let value = 0;
+    for (const byte of buffer){
+        if (byte < 48 || byte > 57) break;
+        value = 10 * value + byte - 48;
+    }
+    return value;
+}
+const OKAY = encodeUtf8("OKAY");
+class AdbReverseService extends AdbServiceBase {
+    #deviceAddressToLocalAddress = new Map();
+    async createBufferedStream(service) {
+        const socket = await this.adb.createSocket(service);
+        return new BufferedReadableStream(socket.readable);
+    }
+    async sendRequest(service) {
+        const stream = await this.createBufferedStream(service);
+        const response = await stream.readExactly(4);
+        if (!sequenceEqual(response, OKAY)) await AdbReverseErrorResponse.deserialize(stream);
+        return stream;
+    }
+    async list() {
+        const stream = await this.createBufferedStream("reverse:list-forward");
+        const response = await AdbReverseStringResponse.deserialize(stream);
+        return response.content.split("\n").filter((line)=>!!line).map((line)=>{
+            const [deviceSerial, localName, remoteName] = line.split(" ");
+            return {
+                deviceSerial,
+                localName,
+                remoteName
+            };
+        });
+    }
+    async addExternal(deviceAddress, localAddress) {
+        const stream = await this.sendRequest(`reverse:forward:${deviceAddress};${localAddress}`);
+        if (deviceAddress.startsWith("tcp:")) {
+            const position = stream.position;
+            try {
+                const length = hexToNumber(await stream.readExactly(4));
+                const port = decimalToNumber(await stream.readExactly(length));
+                deviceAddress = `tcp:${port}`;
+            } catch (e) {
+                if (e instanceof ExactReadableEndedError && stream.position === position) ;
+                else throw e;
+            }
+        }
+        return deviceAddress;
+    }
+    async add(deviceAddress, handler, localAddress) {
+        localAddress = await this.adb.transport.addReverseTunnel(handler, localAddress);
+        try {
+            deviceAddress = await this.addExternal(deviceAddress, localAddress);
+            this.#deviceAddressToLocalAddress.set(deviceAddress, localAddress);
+            return deviceAddress;
+        } catch (e) {
+            await this.adb.transport.removeReverseTunnel(localAddress);
+            throw e;
+        }
+    }
+    async remove(deviceAddress) {
+        const localAddress = this.#deviceAddressToLocalAddress.get(deviceAddress);
+        if (localAddress) await this.adb.transport.removeReverseTunnel(localAddress);
+        await this.sendRequest(`reverse:killforward:${deviceAddress}`);
+    }
+    async removeAll() {
+        await this.adb.transport.clearReverseTunnels();
+        this.#deviceAddressToLocalAddress.clear();
+        await this.sendRequest("reverse:killforward-all");
+    }
+}
+function parsePort(value) {
+    if (!value || "0" === value) return;
+    return Number.parseInt(value, 10);
+}
+class AdbTcpIpService extends AdbServiceBase {
+    async getListenAddresses() {
+        const serviceListenAddresses = await this.adb.getProp("service.adb.listen_addrs");
+        const servicePort = await this.adb.getProp("service.adb.tcp.port");
+        const persistPort = await this.adb.getProp("persist.adb.tcp.port");
+        return {
+            serviceListenAddresses: "" != serviceListenAddresses ? serviceListenAddresses.split(",") : [],
+            servicePort: parsePort(servicePort),
+            persistPort: parsePort(persistPort)
+        };
+    }
+    async setPort(port) {
+        if (port <= 0) throw new TypeError(`Invalid port ${port}`);
+        const output = await this.adb.createSocketAndWait(`tcpip:${port}`);
+        if (output !== `restarting in TCP mode port: ${port}\n`) throw new Error(output);
+        return output;
+    }
+    async disable() {
+        const output = await this.adb.createSocketAndWait("usb:");
+        if ("restarting in USB mode\n" !== output) throw new Error(output);
+        return output;
+    }
+}
+const NOOP = ()=>{};
+function unreachable(...args) {
+    throw new Error("Unreachable. Arguments:\n" + args.join("\n"));
+}
+function encodeAsciiUnchecked(value) {
+    const result = new Uint8Array(value.length);
+    for(let i = 0; i < value.length; i += 1)result[i] = value.charCodeAt(i);
+    return result;
+}
+function adbSyncEncodeId(value) {
+    const buffer = encodeAsciiUnchecked(value);
+    return getUint32LittleEndian(buffer, 0);
+}
+const AdbSyncResponseId = {
+    Entry: adbSyncEncodeId("DENT"),
+    Entry2: adbSyncEncodeId("DNT2"),
+    Lstat: adbSyncEncodeId("STAT"),
+    Stat: adbSyncEncodeId("STA2"),
+    Lstat2: adbSyncEncodeId("LST2"),
+    Done: adbSyncEncodeId("DONE"),
+    Data: adbSyncEncodeId("DATA"),
+    Ok: adbSyncEncodeId("OKAY"),
+    Fail: adbSyncEncodeId("FAIL")
+};
+class AdbSyncError extends Error {
+}
+const AdbSyncFailResponse = struct_struct({
+    message: string(u32)
+}, {
+    littleEndian: true,
+    postDeserialize (value) {
+        throw new AdbSyncError(value.message);
+    }
+});
+async function adbSyncReadResponse(stream, id, type) {
+    if ("string" == typeof id) id = adbSyncEncodeId(id);
+    const buffer = await stream.readExactly(4);
+    switch(getUint32LittleEndian(buffer, 0)){
+        case AdbSyncResponseId.Fail:
+            await AdbSyncFailResponse.deserialize(stream);
+            throw new Error("Unreachable");
+        case id:
+            return await type.deserialize(stream);
+        default:
+            throw new Error(`Expected '${id}', but got '${decodeUtf8(buffer)}'`);
+    }
+}
+async function* adbSyncReadResponses(stream, id, type) {
+    if ("string" == typeof id) id = adbSyncEncodeId(id);
+    while(true){
+        const buffer = await stream.readExactly(4);
+        switch(getUint32LittleEndian(buffer, 0)){
+            case AdbSyncResponseId.Fail:
+                await AdbSyncFailResponse.deserialize(stream);
+                unreachable();
+            case AdbSyncResponseId.Done:
+                await stream.readExactly(type.size);
+                return;
+            case id:
+                yield await type.deserialize(stream);
+                break;
+            default:
+                throw new Error(`Expected '${id}' or '${AdbSyncResponseId.Done}', but got '${decodeUtf8(buffer)}'`);
+        }
+    }
+}
+const AdbSyncRequestId = {
+    List: adbSyncEncodeId("LIST"),
+    ListV2: adbSyncEncodeId("LIS2"),
+    Send: adbSyncEncodeId("SEND"),
+    SendV2: adbSyncEncodeId("SND2"),
+    Lstat: adbSyncEncodeId("STAT"),
+    Stat: adbSyncEncodeId("STA2"),
+    LstatV2: adbSyncEncodeId("LST2"),
+    Data: adbSyncEncodeId("DATA"),
+    Done: adbSyncEncodeId("DONE"),
+    Receive: adbSyncEncodeId("RECV")
+};
+const AdbSyncNumberRequest = struct_struct({
+    id: u32,
+    arg: u32
+}, {
+    littleEndian: true
+});
+async function adbSyncWriteRequest(writable, id, value) {
+    if ("string" == typeof id) id = adbSyncEncodeId(id);
+    if ("number" == typeof value) return void await writable.write(AdbSyncNumberRequest.serialize({
+        id,
+        arg: value
+    }));
+    if ("string" == typeof value) value = encodeUtf8(value);
+    await writable.write(AdbSyncNumberRequest.serialize({
+        id,
+        arg: value.length
+    }));
+    await writable.write(value);
+}
+const LinuxFileType = {
+    Directory: 4,
+    File: 8,
+    Link: 10
+};
+const AdbSyncLstatResponse = struct_struct({
+    mode: u32,
+    size: u32,
+    mtime: u32
+}, {
+    littleEndian: true,
+    extra: {
+        get type () {
+            return this.mode >> 12;
+        },
+        get permission () {
+            return 4095 & this.mode;
         }
     },
-    "../../../node_modules/.pnpm/plist@5.0.0/node_modules/plist/dist/parse-openstep.js" (__unused_rspack___webpack_module__, __webpack_exports__, __webpack_require__) {
-        __webpack_require__.d(__webpack_exports__, {
-            k: ()=>parseOpenStep
+    postDeserialize (value) {
+        if (0 === value.mode && 0 === value.size && 0 === value.mtime) throw new Error("lstat error");
+        return value;
+    }
+});
+const AdbSyncStatErrorCode = {
+    SUCCESS: 0,
+    EACCES: 13,
+    EEXIST: 17,
+    EFAULT: 14,
+    EFBIG: 27,
+    EINTR: 4,
+    EINVAL: 22,
+    EIO: 5,
+    EISDIR: 21,
+    ELOOP: 40,
+    EMFILE: 24,
+    ENAMETOOLONG: 36,
+    ENFILE: 23,
+    ENOENT: 2,
+    ENOMEM: 12,
+    ENOSPC: 28,
+    ENOTDIR: 20,
+    EOVERFLOW: 75,
+    EPERM: 1,
+    EROFS: 30,
+    ETXTBSY: 26
+};
+const AdbSyncStatErrorName = /* #__PURE__ */ (()=>Object.fromEntries(Object.entries(AdbSyncStatErrorCode).map(([key, value])=>[
+            value,
+            key
+        ])))();
+const AdbSyncStatResponse = struct_struct({
+    error: u32(),
+    dev: u64,
+    ino: u64,
+    mode: u32,
+    nlink: u32,
+    uid: u32,
+    gid: u32,
+    size: u64,
+    atime: u64,
+    mtime: u64,
+    ctime: u64
+}, {
+    littleEndian: true,
+    extra: {
+        get type () {
+            return this.mode >> 12;
+        },
+        get permission () {
+            return 4095 & this.mode;
+        }
+    },
+    postDeserialize (value) {
+        if (value.error) throw new Error(AdbSyncStatErrorName[value.error]);
+        return value;
+    }
+});
+async function adbSyncLstat(socket, path, v2) {
+    const locked = await socket.lock();
+    try {
+        if (v2) {
+            await adbSyncWriteRequest(locked, AdbSyncRequestId.LstatV2, path);
+            return await adbSyncReadResponse(locked, AdbSyncResponseId.Lstat2, AdbSyncStatResponse);
+        }
+        {
+            await adbSyncWriteRequest(locked, AdbSyncRequestId.Lstat, path);
+            const response = await adbSyncReadResponse(locked, AdbSyncResponseId.Lstat, AdbSyncLstatResponse);
+            return {
+                mode: response.mode,
+                size: BigInt(response.size),
+                mtime: BigInt(response.mtime),
+                get type () {
+                    return response.type;
+                },
+                get permission () {
+                    return response.permission;
+                }
+            };
+        }
+    } finally{
+        locked.release();
+    }
+}
+async function adbSyncStat(socket, path) {
+    const locked = await socket.lock();
+    try {
+        await adbSyncWriteRequest(locked, AdbSyncRequestId.Stat, path);
+        return await adbSyncReadResponse(locked, AdbSyncResponseId.Stat, AdbSyncStatResponse);
+    } finally{
+        locked.release();
+    }
+}
+const AdbSyncEntryResponse = extend(AdbSyncLstatResponse, {
+    name: string(u32)
+});
+const AdbSyncEntry2Response = extend(AdbSyncStatResponse, {
+    name: string(u32)
+});
+async function* adbSyncOpenDirV2(socket, path) {
+    const locked = await socket.lock();
+    try {
+        await adbSyncWriteRequest(locked, AdbSyncRequestId.ListV2, path);
+        for await (const item of adbSyncReadResponses(locked, AdbSyncResponseId.Entry2, AdbSyncEntry2Response))if (item.error === AdbSyncStatErrorCode.SUCCESS) yield item;
+    } finally{
+        locked.release();
+    }
+}
+async function* adbSyncOpenDirV1(socket, path) {
+    const locked = await socket.lock();
+    try {
+        await adbSyncWriteRequest(locked, AdbSyncRequestId.List, path);
+        for await (const item of adbSyncReadResponses(locked, AdbSyncResponseId.Entry, AdbSyncEntryResponse))yield item;
+    } finally{
+        locked.release();
+    }
+}
+async function* adbSyncOpenDir(socket, path, v2) {
+    if (v2) yield* adbSyncOpenDirV2(socket, path);
+    else for await (const item of adbSyncOpenDirV1(socket, path))yield {
+        mode: item.mode,
+        size: BigInt(item.size),
+        mtime: BigInt(item.mtime),
+        get type () {
+            return item.type;
+        },
+        get permission () {
+            return item.permission;
+        },
+        name: item.name
+    };
+}
+const AdbSyncDataResponse = struct_struct({
+    data: buffer_buffer(u32)
+}, {
+    littleEndian: true
+});
+async function* adbSyncPullGenerator(socket, path) {
+    const locked = await socket.lock();
+    let done = false;
+    try {
+        await adbSyncWriteRequest(locked, AdbSyncRequestId.Receive, path);
+        for await (const packet of adbSyncReadResponses(locked, AdbSyncResponseId.Data, AdbSyncDataResponse))yield packet.data;
+        done = true;
+    } catch (e) {
+        done = true;
+        throw e;
+    } finally{
+        if (!done) for await (const packet of adbSyncReadResponses(locked, AdbSyncResponseId.Data, AdbSyncDataResponse));
+        locked.release();
+    }
+}
+function adbSyncPull(socket, path) {
+    return stream_ReadableStream.from(adbSyncPullGenerator(socket, path));
+}
+class BufferCombiner {
+    #capacity;
+    #buffer;
+    #offset;
+    #available;
+    constructor(size){
+        this.#capacity = size;
+        this.#buffer = new Uint8Array(size);
+        this.#offset = 0;
+        this.#available = size;
+    }
+    *push(data) {
+        let offset = 0;
+        let available = data.length;
+        if (0 !== this.#offset) if (available >= this.#available) {
+            this.#buffer.set(data.subarray(0, this.#available), this.#offset);
+            offset += this.#available;
+            available -= this.#available;
+            yield this.#buffer;
+            this.#offset = 0;
+            this.#available = this.#capacity;
+            if (0 === available) return;
+        } else {
+            this.#buffer.set(data, this.#offset);
+            this.#offset += available;
+            this.#available -= available;
+            return;
+        }
+        while(available >= this.#capacity){
+            const end = offset + this.#capacity;
+            yield data.subarray(offset, end);
+            offset = end;
+            available -= this.#capacity;
+        }
+        if (available > 0) {
+            this.#buffer.set(data.subarray(offset), this.#offset);
+            this.#offset += available;
+            this.#available -= available;
+        }
+    }
+    flush() {
+        if (0 === this.#offset) return;
+        const output = this.#buffer.subarray(0, this.#offset);
+        this.#offset = 0;
+        this.#available = this.#capacity;
+        return output;
+    }
+}
+class DistributionStream extends TransformStream {
+    constructor(size, combine = false){
+        const combiner = combine ? new BufferCombiner(size) : void 0;
+        super({
+            async transform (chunk, controller) {
+                await tryConsume(chunk, async (chunk)=>{
+                    if (combiner) for (const buffer of combiner.push(chunk))await consumable_Consumable.ReadableStream.enqueue(controller, buffer);
+                    else {
+                        let offset = 0;
+                        let available = chunk.length;
+                        while(available > 0){
+                            const end = offset + size;
+                            await consumable_Consumable.ReadableStream.enqueue(controller, chunk.subarray(offset, end));
+                            offset = end;
+                            available -= size;
+                        }
+                    }
+                });
+            },
+            flush (controller) {
+                if (combiner) {
+                    const data = combiner.flush();
+                    if (data) controller.enqueue(data);
+                }
+            }
         });
-        class OpenStepParser {
-            input;
-            pos;
-            constructor(input){
-                this.input = input;
-                this.pos = 0;
-            }
-            skipWhitespaceAndComments() {
-                while(this.pos < this.input.length){
-                    const ch = this.input[this.pos];
-                    if (/\s/.test(ch)) {
-                        this.pos++;
-                        continue;
-                    }
-                    if ('/' === ch && this.pos + 1 < this.input.length && '*' === this.input[this.pos + 1]) {
-                        this.pos += 2;
-                        const end = this.input.indexOf('*/', this.pos);
-                        if (-1 === end) throw new Error('Unterminated block comment');
-                        this.pos = end + 2;
-                        continue;
-                    }
-                    if ('/' === ch && this.pos + 1 < this.input.length && '/' === this.input[this.pos + 1]) {
-                        this.pos += 2;
-                        const end = this.input.indexOf('\n', this.pos);
-                        this.pos = -1 === end ? this.input.length : end + 1;
-                        continue;
-                    }
-                    break;
+    }
+}
+const ADB_SYNC_MAX_PACKET_SIZE = 65536;
+const AdbSyncOkResponse = struct_struct({
+    unused: u32
+}, {
+    littleEndian: true
+});
+async function pipeFileData(locked, file, packetSize, mtime) {
+    const abortController = new stream_AbortController();
+    file.pipeThrough(new DistributionStream(packetSize, true)).pipeTo(new MaybeConsumableWritableStream({
+        write (chunk) {
+            return adbSyncWriteRequest(locked, AdbSyncRequestId.Data, chunk);
+        }
+    }), {
+        signal: abortController.signal
+    }).then(async ()=>{
+        await adbSyncWriteRequest(locked, AdbSyncRequestId.Done, mtime);
+        await locked.flush();
+    }, NOOP);
+    await adbSyncReadResponse(locked, AdbSyncResponseId.Ok, AdbSyncOkResponse).catch((e)=>{
+        abortController.abort();
+        throw e;
+    });
+}
+async function adbSyncPushV1({ socket, filename, file, type = LinuxFileType.File, permission = 438, mtime = Date.now() / 1000 | 0, packetSize = ADB_SYNC_MAX_PACKET_SIZE }) {
+    const locked = await socket.lock();
+    try {
+        const mode = type << 12 | permission;
+        const pathAndMode = `${filename},${mode.toString()}`;
+        await adbSyncWriteRequest(locked, AdbSyncRequestId.Send, pathAndMode);
+        await pipeFileData(locked, file, packetSize, mtime);
+    } finally{
+        locked.release();
+    }
+}
+const AdbSyncSendV2Flags = {
+    None: 0,
+    Brotli: 1,
+    Lz4: 2,
+    Zstd: 4,
+    DryRun: 0x80000000
+};
+const AdbSyncSendV2Request = struct_struct({
+    id: u32,
+    mode: u32,
+    flags: u32()
+}, {
+    littleEndian: true
+});
+async function adbSyncPushV2({ socket, filename, file, type = LinuxFileType.File, permission = 438, mtime = Date.now() / 1000 | 0, packetSize = ADB_SYNC_MAX_PACKET_SIZE, dryRun = false }) {
+    const locked = await socket.lock();
+    try {
+        await adbSyncWriteRequest(locked, AdbSyncRequestId.SendV2, filename);
+        const mode = type << 12 | permission;
+        let flags = AdbSyncSendV2Flags.None;
+        if (dryRun) flags |= AdbSyncSendV2Flags.DryRun;
+        await locked.write(AdbSyncSendV2Request.serialize({
+            id: AdbSyncRequestId.SendV2,
+            mode,
+            flags
+        }));
+        await pipeFileData(locked, file, packetSize, mtime);
+    } finally{
+        locked.release();
+    }
+}
+function adbSyncPush(options) {
+    if (options.v2) return adbSyncPushV2(options);
+    if (options.dryRun) throw new Error("dryRun is not supported in v1");
+    return adbSyncPushV1(options);
+}
+class AutoResetEvent {
+    #set;
+    #queue = [];
+    constructor(initialSet = false){
+        this.#set = initialSet;
+    }
+    wait() {
+        if (!this.#set) {
+            this.#set = true;
+            if (0 === this.#queue.length) return Promise.resolve();
+        }
+        const resolver = new PromiseResolver();
+        this.#queue.push(resolver);
+        return resolver.promise;
+    }
+    notifyOne() {
+        if (0 !== this.#queue.length) this.#queue.pop().resolve();
+        else this.#set = false;
+    }
+    dispose() {
+        for (const item of this.#queue)item.reject(new Error("The AutoResetEvent has been disposed"));
+        this.#queue.length = 0;
+    }
+}
+class AdbSyncSocketLocked {
+    #writer;
+    #readable;
+    #socketLock;
+    #writeLock = new AutoResetEvent();
+    #combiner;
+    get position() {
+        return this.#readable.position;
+    }
+    constructor(writer, readable, bufferSize, lock){
+        this.#writer = writer;
+        this.#readable = readable;
+        this.#socketLock = lock;
+        this.#combiner = new BufferCombiner(bufferSize);
+    }
+    #write(buffer) {
+        return consumable_Consumable.WritableStream.write(this.#writer, buffer);
+    }
+    async flush() {
+        try {
+            await this.#writeLock.wait();
+            const buffer = this.#combiner.flush();
+            if (buffer) await this.#write(buffer);
+        } finally{
+            this.#writeLock.notifyOne();
+        }
+    }
+    async write(data) {
+        try {
+            await this.#writeLock.wait();
+            for (const buffer of this.#combiner.push(data))await this.#write(buffer);
+        } finally{
+            this.#writeLock.notifyOne();
+        }
+    }
+    async readExactly(length) {
+        await this.flush();
+        return await this.#readable.readExactly(length);
+    }
+    release() {
+        this.#combiner.flush();
+        this.#socketLock.notifyOne();
+    }
+    async close() {
+        await this.#readable.cancel();
+    }
+}
+class AdbSyncSocket {
+    #lock = new AutoResetEvent();
+    #socket;
+    #locked;
+    constructor(socket, bufferSize){
+        this.#socket = socket;
+        this.#locked = new AdbSyncSocketLocked(socket.writable.getWriter(), new BufferedReadableStream(socket.readable), bufferSize, this.#lock);
+    }
+    async lock() {
+        await this.#lock.wait();
+        return this.#locked;
+    }
+    async close() {
+        await this.#locked.close();
+        await this.#socket.close();
+    }
+}
+function dirname(path) {
+    const end = path.lastIndexOf("/");
+    if (-1 === end) throw new Error("Invalid path");
+    if (0 === end) return "/";
+    return path.substring(0, end);
+}
+class AdbSync {
+    _adb;
+    _socket;
+    #supportsStat;
+    #supportsListV2;
+    #fixedPushMkdir;
+    #supportsSendReceiveV2;
+    #needPushMkdirWorkaround;
+    get supportsStat() {
+        return this.#supportsStat;
+    }
+    get supportsListV2() {
+        return this.#supportsListV2;
+    }
+    get fixedPushMkdir() {
+        return this.#fixedPushMkdir;
+    }
+    get supportsSendReceiveV2() {
+        return this.#supportsSendReceiveV2;
+    }
+    get needPushMkdirWorkaround() {
+        return this.#needPushMkdirWorkaround;
+    }
+    constructor(adb, socket){
+        this._adb = adb;
+        this._socket = new AdbSyncSocket(socket, adb.maxPayloadSize);
+        this.#supportsStat = adb.canUseFeature(AdbFeature.StatV2);
+        this.#supportsListV2 = adb.canUseFeature(AdbFeature.ListV2);
+        this.#fixedPushMkdir = adb.canUseFeature(AdbFeature.FixedPushMkdir);
+        this.#supportsSendReceiveV2 = adb.canUseFeature(AdbFeature.SendReceiveV2);
+        this.#needPushMkdirWorkaround = this._adb.canUseFeature(AdbFeature.ShellV2) && !this.fixedPushMkdir;
+    }
+    async lstat(path) {
+        return await adbSyncLstat(this._socket, path, this.#supportsStat);
+    }
+    async stat(path) {
+        if (!this.#supportsStat) throw new Error("Not supported");
+        return await adbSyncStat(this._socket, path);
+    }
+    async isDirectory(path) {
+        try {
+            await this.lstat(path + "/");
+            return true;
+        } catch  {
+            return false;
+        }
+    }
+    opendir(path) {
+        return adbSyncOpenDir(this._socket, path, this.supportsListV2);
+    }
+    async readdir(path) {
+        const results = [];
+        for await (const entry of this.opendir(path))results.push(entry);
+        return results;
+    }
+    read(filename) {
+        return adbSyncPull(this._socket, filename);
+    }
+    async write(options) {
+        if (this.needPushMkdirWorkaround) await this._adb.subprocess.noneProtocol.spawnWait([
+            "mkdir",
+            "-p",
+            escapeArg(dirname(options.filename))
+        ]);
+        await adbSyncPush({
+            v2: this.supportsSendReceiveV2,
+            socket: this._socket,
+            ...options
+        });
+    }
+    lockSocket() {
+        return this._socket.lock();
+    }
+    dispose() {
+        return this._socket.close();
+    }
+}
+const Version = struct_struct({
+    version: u32
+}, {
+    littleEndian: true
+});
+const AdbFrameBufferV1 = struct_struct({
+    bpp: u32,
+    size: u32,
+    width: u32,
+    height: u32,
+    red_offset: u32,
+    red_length: u32,
+    blue_offset: u32,
+    blue_length: u32,
+    green_offset: u32,
+    green_length: u32,
+    alpha_offset: u32,
+    alpha_length: u32,
+    data: buffer_buffer("size")
+}, {
+    littleEndian: true
+});
+const AdbFrameBufferV2 = struct_struct({
+    bpp: u32,
+    colorSpace: u32,
+    size: u32,
+    width: u32,
+    height: u32,
+    red_offset: u32,
+    red_length: u32,
+    blue_offset: u32,
+    blue_length: u32,
+    green_offset: u32,
+    green_length: u32,
+    alpha_offset: u32,
+    alpha_length: u32,
+    data: buffer_buffer("size")
+}, {
+    littleEndian: true
+});
+class AdbFrameBufferError extends Error {
+    constructor(message, options){
+        super(message, options);
+    }
+}
+class AdbFrameBufferUnsupportedVersionError extends AdbFrameBufferError {
+    constructor(version){
+        super(`Unsupported FrameBuffer version ${version}`);
+    }
+}
+class AdbFrameBufferForbiddenError extends AdbFrameBufferError {
+    constructor(){
+        super("FrameBuffer is disabled by current app");
+    }
+}
+async function framebuffer(adb) {
+    const socket = await adb.createSocket("framebuffer:");
+    const stream = new BufferedReadableStream(socket.readable);
+    let version;
+    try {
+        ({ version } = await Version.deserialize(stream));
+    } catch (e) {
+        if (e instanceof StructEmptyError) throw new AdbFrameBufferForbiddenError();
+        throw e;
+    }
+    switch(version){
+        case 1:
+            return await AdbFrameBufferV1.deserialize(stream);
+        case 2:
+            return await AdbFrameBufferV2.deserialize(stream);
+        default:
+            throw new AdbFrameBufferUnsupportedVersionError(version);
+    }
+}
+class Adb {
+    #transport;
+    get transport() {
+        return this.#transport;
+    }
+    get serial() {
+        return this.#transport.serial;
+    }
+    get maxPayloadSize() {
+        return this.#transport.maxPayloadSize;
+    }
+    get banner() {
+        return this.#transport.banner;
+    }
+    get disconnected() {
+        return this.#transport.disconnected;
+    }
+    get clientFeatures() {
+        return this.#transport.clientFeatures;
+    }
+    get deviceFeatures() {
+        return this.banner.features;
+    }
+    subprocess;
+    power;
+    reverse;
+    tcpip;
+    constructor(transport){
+        this.#transport = transport;
+        this.subprocess = new AdbSubprocessService(this);
+        this.power = new AdbPower(this);
+        this.reverse = new AdbReverseService(this);
+        this.tcpip = new AdbTcpIpService(this);
+    }
+    canUseFeature(feature) {
+        return this.clientFeatures.includes(feature) && this.deviceFeatures.includes(feature);
+    }
+    async createSocket(service) {
+        return this.#transport.connect(service);
+    }
+    async createSocketAndWait(service) {
+        const socket = await this.createSocket(service);
+        return await socket.readable.pipeThrough(new TextDecoderStream()).pipeThrough(new ConcatStringStream());
+    }
+    getProp(key) {
+        return this.subprocess.noneProtocol.spawnWaitText([
+            "getprop",
+            key
+        ]).then((output)=>output.trim());
+    }
+    rm(filenames, options) {
+        const args = [
+            "rm"
+        ];
+        if (options?.recursive) args.push("-r");
+        if (options?.force) args.push("-f");
+        if (Array.isArray(filenames)) for (const filename of filenames)args.push(escapeArg(filename));
+        else args.push(escapeArg(filenames));
+        args.push("</dev/null");
+        return this.subprocess.noneProtocol.spawnWaitText(args);
+    }
+    async sync() {
+        const socket = await this.createSocket("sync:");
+        return new AdbSync(this, socket);
+    }
+    async framebuffer() {
+        return framebuffer(this);
+    }
+    async close() {
+        await this.#transport.close();
+    }
+}
+const AdbBannerKey = {
+    Product: "ro.product.name",
+    Model: "ro.product.model",
+    Device: "ro.product.device",
+    Features: "features"
+};
+class AdbBanner {
+    static parse(banner) {
+        let state;
+        let product;
+        let model;
+        let device;
+        let features = [];
+        const pieces = banner.split("::");
+        if (pieces.length > 1) {
+            state = pieces[0].trim() || void 0;
+            const props = pieces[1];
+            for (const prop of props.split(";")){
+                if (!prop) continue;
+                const keyValue = prop.split("=");
+                if (2 !== keyValue.length) continue;
+                const [key, value] = keyValue;
+                switch(key){
+                    case AdbBannerKey.Product:
+                        product = value;
+                        break;
+                    case AdbBannerKey.Model:
+                        model = value;
+                        break;
+                    case AdbBannerKey.Device:
+                        device = value;
+                        break;
+                    case AdbBannerKey.Features:
+                        features = value.split(",");
+                        break;
                 }
             }
-            parseValue() {
-                this.skipWhitespaceAndComments();
-                if (this.pos >= this.input.length) throw new Error('Unexpected end of input');
-                const ch = this.input[this.pos];
-                if ('{' === ch) return this.parseDict();
-                if ('(' === ch) return this.parseArray();
-                if ('<' === ch) return this.parseData();
-                if ('"' === ch) return this.parseQuotedString();
-                return this.parseUnquotedString();
+        }
+        return new AdbBanner(state, product, model, device, features);
+    }
+    #state;
+    get state() {
+        return this.#state;
+    }
+    #product;
+    get product() {
+        return this.#product;
+    }
+    #model;
+    get model() {
+        return this.#model;
+    }
+    #device;
+    get device() {
+        return this.#device;
+    }
+    #features = [];
+    get features() {
+        return this.#features;
+    }
+    constructor(state, product, model, device, features){
+        this.#state = state;
+        this.#product = product;
+        this.#model = model;
+        this.#device = device;
+        this.#features = features;
+    }
+}
+const stream_OKAY = encodeUtf8("OKAY");
+const FAIL = encodeUtf8("FAIL");
+class AdbServerStream {
+    #connection;
+    #buffered;
+    #writer;
+    constructor(connection){
+        this.#connection = connection;
+        this.#buffered = new BufferedReadableStream(connection.readable);
+        this.#writer = connection.writable.getWriter();
+    }
+    readExactly(length) {
+        return this.#buffered.readExactly(length);
+    }
+    readString = bipedal(function*(then) {
+        const data = yield* then(this.readExactly(4));
+        const length = hexToNumber(data);
+        if (0 === length) return "";
+        {
+            const decoder = new utils_TextDecoder();
+            let result = "";
+            const iterator = this.#buffered.iterateExactly(length);
+            while(true){
+                const { done, value } = iterator.next();
+                if (done) break;
+                result += decoder.decode((yield* then(value)), {
+                    stream: true
+                });
             }
-            parseDict() {
-                this.pos++;
-                const obj = {};
-                while(true){
-                    this.skipWhitespaceAndComments();
-                    if (this.pos >= this.input.length) throw new Error('Unterminated dictionary');
-                    if ('}' === this.input[this.pos]) {
-                        this.pos++;
-                        return obj;
-                    }
-                    const key = this.parseValue();
-                    this.skipWhitespaceAndComments();
-                    if (this.pos >= this.input.length || '=' !== this.input[this.pos]) throw new Error(`Expected '=' after key "${key}" at position ${this.pos}`);
-                    this.pos++;
-                    const value = this.parseValue();
-                    obj[key] = value;
-                    this.skipWhitespaceAndComments();
-                    if (this.pos < this.input.length && ';' === this.input[this.pos]) this.pos++;
+            result += decoder.decode();
+            return result;
+        }
+    });
+    async readOkay() {
+        const response = await this.readExactly(4);
+        if (sequenceEqual(response, stream_OKAY)) return;
+        if (sequenceEqual(response, FAIL)) {
+            const reason = await this.readString();
+            throw new Error(reason);
+        }
+        throw new Error(`Unexpected response: ${decodeUtf8(response)}`);
+    }
+    async writeString(value) {
+        const encoded = encodeUtf8(value);
+        const buffer = new Uint8Array(4 + encoded.length);
+        write4HexDigits(buffer, 0, encoded.length);
+        buffer.set(encoded, 4);
+        await this.#writer.write(buffer);
+    }
+    release() {
+        this.#writer.releaseLock();
+        return {
+            readable: this.#buffered.release(),
+            writable: this.#connection.writable,
+            closed: this.#connection.closed,
+            close: ()=>this.#connection.close()
+        };
+    }
+    async dispose() {
+        tryCancel(this.#buffered);
+        tryClose(this.#writer);
+        await this.#connection.close();
+    }
+}
+class NetworkError extends Error {
+    constructor(message){
+        super(message);
+        this.name = "NetworkError";
+    }
+}
+class UnauthorizedError extends Error {
+    constructor(message){
+        super(message);
+        this.name = "UnauthorizedError";
+    }
+}
+class AlreadyConnectedError extends Error {
+    constructor(message){
+        super(message);
+        this.name = "AlreadyConnectedError";
+    }
+}
+class WirelessCommands {
+    #client;
+    constructor(client){
+        this.#client = client;
+    }
+    async pair(address, password) {
+        const connection = await this.#client.createConnection(`host:pair:${password}:${address}`);
+        try {
+            const response = await connection.readExactly(4);
+            if (sequenceEqual(response, FAIL)) throw new Error(await connection.readString());
+            const length = hexToNumber(response);
+            await connection.readExactly(length);
+        } finally{
+            await connection.dispose();
+        }
+    }
+    async connect(address) {
+        const connection = await this.#client.createConnection(`host:connect:${address}`);
+        try {
+            const response = await connection.readString();
+            switch(response){
+                case `already connected to ${address}`:
+                    throw new AlreadyConnectedError(response);
+                case `failed to connect to ${address}`:
+                case `failed to authenticate to ${address}`:
+                    throw new UnauthorizedError(response);
+                case `connected to ${address}`:
+                    return;
+                default:
+                    throw new NetworkError(response);
+            }
+        } finally{
+            await connection.dispose();
+        }
+    }
+    async disconnect(address) {
+        const connection = await this.#client.createConnection(`host:disconnect:${address}`);
+        try {
+            await connection.readString();
+        } finally{
+            await connection.dispose();
+        }
+    }
+}
+class MDnsCommands {
+    #client;
+    constructor(client){
+        this.#client = client;
+    }
+    async check() {
+        const connection = await this.#client.createConnection("host:mdns:check");
+        try {
+            const response = await connection.readString();
+            return !response.startsWith("ERROR:");
+        } finally{
+            await connection.dispose();
+        }
+    }
+    async getServices() {
+        const connection = await this.#client.createConnection("host:mdns:services");
+        try {
+            const response = await connection.readString();
+            return response.split("\n").filter(Boolean).map((line)=>{
+                const parts = line.split("\t");
+                return {
+                    name: parts[0],
+                    service: parts[1],
+                    address: parts[2]
+                };
+            });
+        } finally{
+            await connection.dispose();
+        }
+    }
+}
+class EventEmitter {
+    listeners = [];
+    constructor(){
+        this.event = this.event.bind(this);
+    }
+    addEventListener(info) {
+        this.listeners.push(info);
+        const remove = ()=>{
+            const index = this.listeners.indexOf(info);
+            if (-1 !== index) this.listeners.splice(index, 1);
+        };
+        remove.dispose = remove;
+        return remove;
+    }
+    event = (listener, thisArg, ...args)=>{
+        const info = {
+            listener: listener,
+            thisArg,
+            args
+        };
+        return this.addEventListener(info);
+    };
+    fire(e) {
+        for (const info of this.listeners.slice())info.listener.call(info.thisArg, e, ...info.args);
+    }
+    dispose() {
+        this.listeners.length = 0;
+    }
+}
+const Undefined = Symbol("undefined");
+class StickyEventEmitter extends EventEmitter {
+    #value = Undefined;
+    addEventListener(info) {
+        if (this.#value !== Undefined) info.listener.call(info.thisArg, this.#value, ...info.args);
+        return super.addEventListener(info);
+    }
+    fire(e) {
+        this.#value = e;
+        super.fire(e);
+    }
+}
+const { setInterval: ref_setInterval, clearInterval: ref_clearInterval } = globalThis;
+class Ref {
+    #intervalId;
+    constructor(options){
+        if (!options?.unref) this.ref();
+    }
+    ref() {
+        this.#intervalId = ref_setInterval(()=>{}, 60000);
+    }
+    unref() {
+        if (this.#intervalId) {
+            ref_clearInterval(this.#intervalId);
+            this.#intervalId = void 0;
+        }
+    }
+}
+function unorderedRemove(array, index) {
+    if (index < 0 || index >= array.length) return;
+    array[index] = array[array.length - 1];
+    array.length -= 1;
+}
+function filterDeviceStates(devices, states) {
+    return devices.filter((device)=>states.includes(device.state));
+}
+class AdbServerDeviceObserverOwner {
+    current = [];
+    #client;
+    #stream;
+    #observers = [];
+    constructor(client){
+        this.#client = client;
+    }
+    async #receive(stream) {
+        const response = await stream.readString();
+        const next = AdbServerClient.parseDeviceList(response);
+        const removed = this.current.slice();
+        const added = [];
+        for (const nextDevice of next){
+            const index = removed.findIndex((device)=>device.transportId === nextDevice.transportId);
+            if (-1 === index) {
+                added.push(nextDevice);
+                continue;
+            }
+            unorderedRemove(removed, index);
+        }
+        this.current = next;
+        if (added.length) for (const observer of this.#observers){
+            const filtered = filterDeviceStates(added, observer.includeStates);
+            if (filtered.length) observer.onDeviceAdd.fire(filtered);
+        }
+        if (removed.length) for (const observer of this.#observers){
+            const filtered = filterDeviceStates(removed, observer.includeStates);
+            if (filtered.length) observer.onDeviceRemove.fire(removed);
+        }
+        for (const observer of this.#observers){
+            const filtered = filterDeviceStates(this.current, observer.includeStates);
+            observer.onListChange.fire(filtered);
+        }
+    }
+    async #receiveLoop(stream) {
+        try {
+            while(true)await this.#receive(stream);
+        } catch (e) {
+            this.#stream = void 0;
+            for (const observer of this.#observers)observer.onError.fire(e);
+        }
+    }
+    async #connect() {
+        const stream = await this.#client.createConnection("host:track-devices-l", {
+            unref: true
+        });
+        await this.#receive(stream);
+        this.#receiveLoop(stream);
+        return stream;
+    }
+    async #handleObserverStop(stream) {
+        if (0 === this.#observers.length) {
+            this.#stream = void 0;
+            await stream.dispose();
+        }
+    }
+    async createObserver(options) {
+        options?.signal?.throwIfAborted();
+        let current = [];
+        const onDeviceAdd = new EventEmitter();
+        const onDeviceRemove = new EventEmitter();
+        const onListChange = new StickyEventEmitter();
+        const onError = new StickyEventEmitter();
+        const includeStates = options?.includeStates ?? [
+            "device",
+            "unauthorized"
+        ];
+        const observer = {
+            includeStates,
+            onDeviceAdd,
+            onDeviceRemove,
+            onListChange,
+            onError
+        };
+        this.#observers.push(observer);
+        onListChange.event((value)=>current = value);
+        let stream;
+        if (this.#stream) {
+            stream = await this.#stream;
+            onListChange.fire(filterDeviceStates(this.current, includeStates));
+        } else {
+            this.#stream = this.#connect();
+            try {
+                stream = await this.#stream;
+            } catch (e) {
+                this.#stream = void 0;
+                throw e;
+            }
+        }
+        const ref = new Ref(options);
+        const stop = async ()=>{
+            unorderedRemove(this.#observers, this.#observers.indexOf(observer));
+            await this.#handleObserverStop(stream);
+            ref.unref();
+        };
+        if (options?.signal) {
+            if (options.signal.aborted) {
+                await stop();
+                throw options.signal.reason;
+            }
+            options.signal.addEventListener("abort", ()=>void stop());
+        }
+        return {
+            onDeviceAdd: onDeviceAdd.event,
+            onDeviceRemove: onDeviceRemove.event,
+            onListChange: onListChange.event,
+            onError: onError.event,
+            get current () {
+                return current;
+            },
+            stop
+        };
+    }
+}
+const ADB_SERVER_DEFAULT_FEATURES = /* #__PURE__ */ (()=>[
+        AdbFeature.ShellV2,
+        AdbFeature.Cmd,
+        AdbFeature.StatV2,
+        AdbFeature.ListV2,
+        AdbFeature.FixedPushMkdir,
+        "apex",
+        AdbFeature.Abb,
+        "fixed_push_symlink_timestamp",
+        AdbFeature.AbbExec,
+        "remount_shell",
+        "track_app",
+        AdbFeature.SendReceiveV2,
+        "sendrecv_v2_brotli",
+        "sendrecv_v2_lz4",
+        "sendrecv_v2_zstd",
+        "sendrecv_v2_dry_run_send"
+    ])();
+class AdbServerTransport {
+    #client;
+    serial;
+    transportId;
+    maxPayloadSize = 1048576;
+    banner;
+    #sockets = [];
+    #closed = new PromiseResolver();
+    #disconnected;
+    get disconnected() {
+        return this.#disconnected;
+    }
+    get clientFeatures() {
+        return ADB_SERVER_DEFAULT_FEATURES;
+    }
+    constructor(client, serial, banner, transportId, disconnected){
+        this.#client = client;
+        this.serial = serial;
+        this.banner = banner;
+        this.transportId = transportId;
+        this.#disconnected = Promise.race([
+            this.#closed.promise,
+            disconnected
+        ]);
+    }
+    async connect(service) {
+        const socket = await this.#client.createDeviceConnection({
+            transportId: this.transportId
+        }, service);
+        this.#sockets.push(socket);
+        return socket;
+    }
+    async addReverseTunnel(handler, address) {
+        return await this.#client.connector.addReverseTunnel(handler, address);
+    }
+    async removeReverseTunnel(address) {
+        await this.#client.connector.removeReverseTunnel(address);
+    }
+    async clearReverseTunnels() {
+        await this.#client.connector.clearReverseTunnels();
+    }
+    async close() {
+        for (const socket of this.#sockets)await socket.close();
+        this.#sockets.length = 0;
+        this.#closed.resolve();
+    }
+}
+class AdbServerClient {
+    static NetworkError = NetworkError;
+    static UnauthorizedError = UnauthorizedError;
+    static AlreadyConnectedError = AlreadyConnectedError;
+    static parseDeviceList(value, includeStates = [
+        "device",
+        "unauthorized"
+    ]) {
+        const devices = [];
+        for (const line of value.split("\n")){
+            if (!line) continue;
+            const parts = line.split(" ").filter(Boolean);
+            const serial = parts[0];
+            const state = parts[1];
+            if (!includeStates.includes(state)) continue;
+            let product;
+            let model;
+            let device;
+            let transportId;
+            for(let i = 2; i < parts.length; i += 1){
+                const [key, value] = parts[i].split(":");
+                switch(key){
+                    case "product":
+                        product = value;
+                        break;
+                    case "model":
+                        model = value;
+                        break;
+                    case "device":
+                        device = value;
+                        break;
+                    case "transport_id":
+                        transportId = BigInt(value);
+                        break;
                 }
             }
-            parseArray() {
+            if (!transportId) throw new Error(`No transport id for device ${serial}`);
+            devices.push({
+                serial,
+                state,
+                authenticating: "unauthorized" === state,
+                product,
+                model,
+                device,
+                transportId
+            });
+        }
+        return devices;
+    }
+    static formatDeviceService(device, command) {
+        if (!device) return `host:${command}`;
+        if ("transportId" in device) return `host-transport-id:${device.transportId}:${command}`;
+        if ("serial" in device) return `host-serial:${device.serial}:${command}`;
+        if ("usb" in device) return `host-usb:${command}`;
+        if ("tcp" in device) return `host-local:${command}`;
+        throw new TypeError("Invalid device selector");
+    }
+    connector;
+    wireless = new WirelessCommands(this);
+    mDns = new MDnsCommands(this);
+    #observerOwner = new AdbServerDeviceObserverOwner(this);
+    constructor(connector){
+        this.connector = connector;
+    }
+    async createConnection(request, options) {
+        const connection = await this.connector.connect(options);
+        const stream = new AdbServerStream(connection);
+        try {
+            await stream.writeString(request);
+        } catch (e) {
+            await stream.dispose();
+            throw e;
+        }
+        try {
+            await raceSignal(()=>stream.readOkay(), options?.signal);
+            return stream;
+        } catch (e) {
+            await stream.dispose();
+            throw e;
+        }
+    }
+    async getVersion() {
+        const connection = await this.createConnection("host:version");
+        try {
+            const length = hexToNumber(await connection.readExactly(4));
+            const version = hexToNumber(await connection.readExactly(length));
+            return version;
+        } finally{
+            await connection.dispose();
+        }
+    }
+    async validateVersion(minimalVersion) {
+        const version = await this.getVersion();
+        if (version < minimalVersion) throw new Error(`adb server version (${version}) doesn't match this client (${minimalVersion})`);
+    }
+    async killServer() {
+        const connection = await this.createConnection("host:kill");
+        await connection.dispose();
+    }
+    async getServerFeatures() {
+        const connection = await this.createConnection("host:host-features");
+        try {
+            const response = await connection.readString();
+            return response.split(",");
+        } finally{
+            await connection.dispose();
+        }
+    }
+    async getDevices(includeStates = [
+        "device",
+        "unauthorized"
+    ]) {
+        const connection = await this.createConnection("host:devices-l");
+        try {
+            const response = await connection.readString();
+            return AdbServerClient.parseDeviceList(response, includeStates);
+        } finally{
+            await connection.dispose();
+        }
+    }
+    async trackDevices(options) {
+        return this.#observerOwner.createObserver(options);
+    }
+    async reconnectDevice(device) {
+        const connection = await this.createConnection("offline" === device ? "host:reconnect-offline" : AdbServerClient.formatDeviceService(device, "reconnect"));
+        try {
+            await connection.readString();
+        } finally{
+            await connection.dispose();
+        }
+    }
+    async getDeviceFeatures(device) {
+        const connection = await this.createDeviceConnection(device, "host:features");
+        const stream = new AdbServerStream(connection);
+        try {
+            const featuresString = await stream.readString();
+            const features = featuresString.split(",");
+            return {
+                transportId: connection.transportId,
+                features
+            };
+        } finally{
+            await stream.dispose();
+        }
+    }
+    async createDeviceConnection(device, service) {
+        let switchService;
+        let transportId;
+        if (device) if ("transportId" in device) {
+            switchService = `host:transport-id:${device.transportId}`;
+            transportId = device.transportId;
+        } else if ("serial" in device) {
+            await this.validateVersion(41);
+            switchService = `host:tport:serial:${device.serial}`;
+        } else if ("usb" in device) {
+            await this.validateVersion(41);
+            switchService = "host:tport:usb";
+        } else if ("tcp" in device) {
+            await this.validateVersion(41);
+            switchService = "host:tport:local";
+        } else throw new TypeError("Invalid device selector");
+        else {
+            await this.validateVersion(41);
+            switchService = "host:tport:any";
+        }
+        const connection = await this.createConnection(switchService);
+        try {
+            await connection.writeString(service);
+        } catch (e) {
+            await connection.dispose();
+            throw e;
+        }
+        try {
+            if (void 0 === transportId) {
+                const array = await connection.readExactly(8);
+                transportId = getUint64LittleEndian(array, 0);
+            }
+            await connection.readOkay();
+            const socket = connection.release();
+            return {
+                transportId,
+                service,
+                readable: socket.readable,
+                writable: socket.writable,
+                get closed () {
+                    return socket.closed;
+                },
+                async close () {
+                    await socket.close();
+                }
+            };
+        } catch (e) {
+            await connection.dispose();
+            throw e;
+        }
+    }
+    async #waitForUnchecked(device, state, options) {
+        let type;
+        if (device) if ("transportId" in device) type = "any";
+        else if ("serial" in device) type = "any";
+        else if ("usb" in device) type = "usb";
+        else if ("tcp" in device) type = "local";
+        else throw new TypeError("Invalid device selector");
+        else type = "any";
+        const service = AdbServerClient.formatDeviceService(device, `wait-for-${type}-${state}`);
+        const connection = await this.createConnection(service, options);
+        try {
+            await connection.readOkay();
+        } finally{
+            await connection.dispose();
+        }
+    }
+    async waitFor(device, state, options) {
+        if ("disconnect" === state) await this.validateVersion(41);
+        return this.#waitForUnchecked(device, state, options);
+    }
+    async waitForDisconnect(transportId, options) {
+        const serverVersion = await this.getVersion();
+        if (serverVersion >= 41) return this.#waitForUnchecked({
+            transportId
+        }, "disconnect", options);
+        {
+            const observer = await this.trackDevices(options);
+            return new Promise((resolve, reject)=>{
+                observer.onDeviceRemove((devices)=>{
+                    if (devices.some((device)=>device.transportId === transportId)) {
+                        observer.stop();
+                        resolve();
+                    }
+                });
+                observer.onError((e)=>{
+                    observer.stop();
+                    reject(e);
+                });
+            });
+        }
+    }
+    async createTransport(device) {
+        const { transportId, features } = await this.getDeviceFeatures(device);
+        const devices = await this.getDevices();
+        const info = devices.find((device)=>device.transportId === transportId);
+        const banner = new AdbBanner(info?.state, info?.product, info?.model, info?.device, features);
+        const waitAbortController = new stream_AbortController();
+        const disconnected = this.waitForDisconnect(transportId, {
+            unref: true,
+            signal: waitAbortController.signal
+        });
+        const transport = new AdbServerTransport(this, info?.serial ?? "", banner, transportId, disconnected);
+        transport.disconnected.finally(()=>waitAbortController.abort());
+        return transport;
+    }
+    async createAdb(device) {
+        const transport = await this.createTransport(device);
+        return new Adb(transport);
+    }
+}
+async function raceSignal(callback, ...signals) {
+    const abortPromise = new PromiseResolver();
+    function abort() {
+        abortPromise.reject(this.reason);
+    }
+    try {
+        for (const signal of signals)if (signal) {
+            if (signal.aborted) throw signal.reason;
+            signal.addEventListener("abort", abort);
+        }
+        return await Promise.race([
+            callback(),
+            abortPromise.promise
+        ]);
+    } finally{
+        for (const signal of signals)if (signal) signal.removeEventListener("abort", abort);
+    }
+}
+function nodeSocketToConnection(socket) {
+    socket.setNoDelay(true);
+    const closed = new Promise((resolve)=>{
+        socket.on("close", resolve);
+    });
+    return {
+        readable: new PushReadableStream((controller)=>{
+            socket.on("data", async (data)=>{
+                if (controller.abortSignal.aborted) return;
+                socket.pause();
+                await controller.enqueue(data);
+                socket.resume();
+            });
+            socket.on("end", ()=>{
+                tryClose(controller);
+            });
+        }),
+        writable: new MaybeConsumableWritableStream({
+            write: (chunk)=>new Promise((resolve, reject)=>{
+                    socket.write(chunk, (err)=>{
+                        if (err) reject(err);
+                        else resolve();
+                    });
+                })
+        }),
+        get closed () {
+            return closed;
+        },
+        close () {
+            socket.end();
+        }
+    };
+}
+class AdbServerNodeTcpConnector {
+    spec;
+    #listeners = new Map();
+    constructor(spec){
+        this.spec = spec;
+    }
+    async connect({ unref, signal } = {
+        unref: false
+    }) {
+        const socket = new Socket({
+            signal: signal
+        });
+        if (unref) socket.unref();
+        socket.connect(this.spec);
+        await new Promise((resolve, reject)=>{
+            socket.once("connect", resolve);
+            socket.once("error", reject);
+        });
+        return nodeSocketToConnection(socket);
+    }
+    async addReverseTunnel(handler, address) {
+        const server = new Server(async (socket)=>{
+            const connection = nodeSocketToConnection(socket);
+            try {
+                await handler({
+                    service: address,
+                    readable: connection.readable,
+                    writable: connection.writable,
+                    get closed () {
+                        return connection.closed;
+                    },
+                    async close () {
+                        await connection.close();
+                    }
+                });
+            } catch  {
+                socket.end();
+            }
+        });
+        if (address) {
+            const url = new URL(address);
+            if ("tcp:" === url.protocol) server.listen(Number.parseInt(url.port, 10), url.hostname);
+            else if ("unix:" === url.protocol) server.listen(url.pathname);
+            else throw new TypeError(`Unsupported protocol ${url.protocol}`);
+        } else server.listen();
+        await new Promise((resolve, reject)=>{
+            server.on("listening", ()=>resolve());
+            server.on("error", (e)=>reject(e));
+        });
+        if (!address) {
+            const info = server.address();
+            address = `tcp:${info.port}`;
+        }
+        this.#listeners.set(address, server);
+        return address;
+    }
+    removeReverseTunnel(address) {
+        const server = this.#listeners.get(address);
+        if (!server) return;
+        server.close();
+        this.#listeners.delete(address);
+    }
+    clearReverseTunnels() {
+        for (const server of this.#listeners.values())server.close();
+        this.#listeners.clear();
+    }
+}
+function coerce(value) {
+    if (value instanceof Error) return value.stack || value.message;
+    return value;
+}
+function selectColor(colors, namespace) {
+    let hash = 0;
+    for(let i = 0; i < namespace.length; i++){
+        hash = (hash << 5) - hash + namespace.charCodeAt(i);
+        hash |= 0;
+    }
+    return colors[Math.abs(hash) % colors.length];
+}
+function matchesTemplate(search, template) {
+    let searchIndex = 0;
+    let templateIndex = 0;
+    let starIndex = -1;
+    let matchIndex = 0;
+    while(searchIndex < search.length)if (templateIndex < template.length && (template[templateIndex] === search[searchIndex] || "*" === template[templateIndex])) if ("*" === template[templateIndex]) {
+        starIndex = templateIndex;
+        matchIndex = searchIndex;
+        templateIndex++;
+    } else {
+        searchIndex++;
+        templateIndex++;
+    }
+    else {
+        if (-1 === starIndex) return false;
+        templateIndex = starIndex + 1;
+        matchIndex++;
+        searchIndex = matchIndex;
+    }
+    while(templateIndex < template.length && "*" === template[templateIndex])templateIndex++;
+    return templateIndex === template.length;
+}
+function humanize(value) {
+    if (value >= 1e3) return `${(value / 1e3).toFixed(1)}s`;
+    return `${value}ms`;
+}
+let globalNamespaces = "";
+function createDebug(namespace, options) {
+    let prevTime;
+    let enableOverride;
+    let namespacesCache;
+    let enabledCache;
+    const debug = (...args)=>{
+        if (!debug.enabled) return;
+        const curr = Date.now();
+        const diff = curr - (prevTime || curr);
+        prevTime = curr;
+        args[0] = coerce(args[0]);
+        if ("string" != typeof args[0]) args.unshift("%O");
+        let index = 0;
+        args[0] = args[0].replace(/%([a-z%])/gi, (match, format)=>{
+            if ("%%" === match) return "%";
+            index++;
+            const formatter = options.formatters[format];
+            if ("function" == typeof formatter) {
+                const value = args[index];
+                match = formatter.call(debug, value);
+                args.splice(index, 1);
+                index--;
+            }
+            return match;
+        });
+        options.formatArgs.call(debug, diff, args);
+        debug.log(...args);
+    };
+    debug.extend = function(namespace, delimiter = ":") {
+        return createDebug(this.namespace + delimiter + namespace, {
+            useColors: this.useColors,
+            color: this.color,
+            formatArgs: this.formatArgs,
+            formatters: this.formatters,
+            inspectOpts: this.inspectOpts,
+            log: this.log,
+            humanize: this.humanize
+        });
+    };
+    Object.assign(debug, options);
+    debug.namespace = namespace;
+    Object.defineProperty(debug, "enabled", {
+        enumerable: true,
+        configurable: false,
+        get: ()=>{
+            if (null != enableOverride) return enableOverride;
+            if (namespacesCache !== globalNamespaces) {
+                namespacesCache = globalNamespaces;
+                enabledCache = enabled(namespace);
+            }
+            return enabledCache;
+        },
+        set: (v)=>{
+            enableOverride = v;
+        }
+    });
+    return debug;
+}
+let names = [];
+let skips = [];
+function enable(namespaces) {
+    globalNamespaces = namespaces;
+    names = [];
+    skips = [];
+    const split = globalNamespaces.trim().replace(/\s+/g, ",").split(",").filter(Boolean);
+    for (const ns of split)if ("-" === ns[0]) skips.push(ns.slice(1));
+    else names.push(ns);
+}
+function enabled(name) {
+    for (const skip of skips)if (matchesTemplate(name, skip)) return false;
+    for (const ns of names)if (matchesTemplate(name, ns)) return true;
+    return false;
+}
+const node_colors = process.stderr.getColorDepth && process.stderr.getColorDepth() > 2 ? [
+    20,
+    21,
+    26,
+    27,
+    32,
+    33,
+    38,
+    39,
+    40,
+    41,
+    42,
+    43,
+    44,
+    45,
+    56,
+    57,
+    62,
+    63,
+    68,
+    69,
+    74,
+    75,
+    76,
+    77,
+    78,
+    79,
+    80,
+    81,
+    92,
+    93,
+    98,
+    99,
+    112,
+    113,
+    128,
+    129,
+    134,
+    135,
+    148,
+    149,
+    160,
+    161,
+    162,
+    163,
+    164,
+    165,
+    166,
+    167,
+    168,
+    169,
+    170,
+    171,
+    172,
+    173,
+    178,
+    179,
+    184,
+    185,
+    196,
+    197,
+    198,
+    199,
+    200,
+    201,
+    202,
+    203,
+    204,
+    205,
+    206,
+    207,
+    208,
+    209,
+    214,
+    215,
+    220,
+    221
+] : [
+    6,
+    2,
+    3,
+    4,
+    5,
+    1
+];
+const inspectOpts = Object.keys(process.env).filter((key)=>/^debug_/i.test(key)).reduce((obj, key)=>{
+    const prop = key.slice(6).toLowerCase().replace(/_([a-z])/g, (_, k)=>k.toUpperCase());
+    let value = process.env[key];
+    const lowerCase = "string" == typeof value && value.toLowerCase();
+    value = "null" === value ? null : "yes" === lowerCase || "on" === lowerCase || "true" === lowerCase || "enabled" === lowerCase ? true : "no" === lowerCase || "off" === lowerCase || "false" === lowerCase || "disabled" === lowerCase ? false : Number(value);
+    obj[prop] = value;
+    return obj;
+}, Object.create(null));
+function node_useColors() {
+    return "colors" in inspectOpts ? Boolean(inspectOpts.colors) : isatty(process.stderr.fd);
+}
+function getDate() {
+    if (inspectOpts.hideDate) return "";
+    return `${/* @__PURE__ */ new Date().toISOString()} `;
+}
+function formatArgs(diff, args) {
+    const { namespace: name, useColors } = this;
+    if (useColors) {
+        const c = this.color;
+        const colorCode = `\u001B[3${c < 8 ? c : `8;5;${c}`}`;
+        const prefix = `  ${colorCode};1m${name} \u001B[0m`;
+        args[0] = prefix + args[0].split("\n").join(`\n${prefix}`);
+        args.push(`${colorCode}m+${this.humanize(diff)}\u001B[0m`);
+    } else args[0] = `${getDate()}${name} ${args[0]}`;
+}
+function log(...args) {
+    process.stderr.write(`${formatWithOptions(this.inspectOpts, ...args)}\n`);
+}
+const defaultOptions = {
+    useColors: node_useColors(),
+    formatArgs: formatArgs,
+    formatters: {
+        o (v) {
+            this.inspectOpts.colors = this.useColors;
+            return inspect(v, this.inspectOpts).split("\n").map((str)=>str.trim()).join(" ");
+        },
+        O (v) {
+            this.inspectOpts.colors = this.useColors;
+            return inspect(v, this.inspectOpts);
+        }
+    },
+    inspectOpts: inspectOpts,
+    log: log,
+    humanize: humanize
+};
+function node_createDebug(namespace, options) {
+    var _ref;
+    const color = null != (_ref = options && options.color) ? _ref : selectColor(node_colors, namespace);
+    return createDebug(namespace, Object.assign(defaultOptions, {
+        color
+    }, options));
+}
+enable(process.env.DEBUG || "");
+const takeover_debug = node_createDebug('devtool-mcp-server:takeover');
+const DEBUG_ROUTER_DIR = node_path.join(node_os.homedir(), '.DebugRouterConnector');
+const DEBUG_ROUTER_LOCK_DIR = node_path.join(DEBUG_ROUTER_DIR, 'lockfile');
+const DEBUG_ROUTER_LATEST_FILE = node_path.join(DEBUG_ROUTER_DIR, 'LatestDriverProcess');
+async function takeoverDebugRouterLock() {
+    try {
+        await promises.mkdir(DEBUG_ROUTER_DIR, {
+            recursive: true
+        });
+        await promises.rm(DEBUG_ROUTER_LOCK_DIR, {
+            recursive: true,
+            force: true
+        });
+        await promises.mkdir(DEBUG_ROUTER_LOCK_DIR, {
+            recursive: true
+        });
+        await promises.writeFile(DEBUG_ROUTER_LATEST_FILE, `${process.pid}`, 'utf-8');
+        takeover_debug(`wrote PID=${process.pid}`);
+    } catch (err) {
+        takeover_debug('skipped due to filesystem error %O', err);
+    } finally{
+        try {
+            await promises.rm(DEBUG_ROUTER_LOCK_DIR, {
+                recursive: true,
+                force: true
+            });
+        } catch (_cleanupError) {
+            takeover_debug('failed to remove lock directory %O', _cleanupError);
+        }
+    }
+}
+class PeertalkToMessageTransformStream extends web_TransformStream {
+    constructor(){
+        let buffer = new Uint8Array(0);
+        const decoder = new TextDecoder();
+        super({
+            transform: (chunk, c)=>{
+                const n = new Uint8Array(buffer.length + chunk.length);
+                n.set(buffer);
+                n.set(chunk, buffer.length);
+                buffer = n;
+                while(buffer.length >= 20){
+                    const v = new DataView(buffer.buffer, buffer.byteOffset);
+                    const len = v.getUint32(16);
+                    if (buffer.length < 20 + len) break;
+                    try {
+                        c.enqueue(JSON.parse(decoder.decode(buffer.subarray(20, 20 + len))));
+                    } catch (e) {
+                        c.error(e);
+                    }
+                    buffer = buffer.subarray(20 + len);
+                }
+            }
+        });
+    }
+}
+class MessageToPeertalkTransformStream extends web_TransformStream {
+    constructor(){
+        const encoder = new TextEncoder();
+        super({
+            transform (chunk, controller) {
+                const body = encoder.encode(JSON.stringify(chunk));
+                const len = body.length;
+                const data = new Uint8Array(20 + len);
+                const view = new DataView(data.buffer);
+                view.setUint32(0, 1);
+                view.setUint32(4, 101);
+                view.setUint32(8, 0);
+                view.setUint32(12, len + 4);
+                view.setUint32(16, len);
+                data.set(body, 20);
+                controller.enqueue(data);
+            }
+        });
+    }
+}
+const peertalkCodecFactory = {
+    createEncodeTransformStream () {
+        return new MessageToPeertalkTransformStream();
+    },
+    createDecodeTransformStream () {
+        return new PeertalkToMessageTransformStream();
+    }
+};
+async function createMessageConnection(connectRaw, codecFactory, options) {
+    const conn = await connectRaw(options);
+    const encoder = codecFactory.createEncodeTransformStream();
+    const pipeAbortController = new AbortController();
+    encoder.readable.pipeTo(conn.writable, {
+        preventClose: true,
+        signal: pipeAbortController.signal
+    }).catch((err)=>{
+        if (err?.name !== 'AbortError') conn[Symbol.asyncDispose]();
+    });
+    const readable = conn.readable.pipeThrough(codecFactory.createDecodeTransformStream());
+    return {
+        readable,
+        writable: encoder.writable,
+        async [Symbol.asyncDispose] () {
+            pipeAbortController.abort();
+            await conn[Symbol.asyncDispose]();
+        }
+    };
+}
+async function connectWithPeertalk(connectRaw, options) {
+    await takeoverDebugRouterLock();
+    return createMessageConnection(connectRaw, peertalkCodecFactory, options);
+}
+function _ts_add_disposable_resource(env, value, async) {
+    if (null != value) {
+        if ("object" != typeof value && "function" != typeof value) throw new TypeError("Object expected.");
+        var dispose, inner;
+        if (async) {
+            if (!Symbol.asyncDispose) throw new TypeError("Symbol.asyncDispose is not defined.");
+            dispose = value[Symbol.asyncDispose];
+        }
+        if (void 0 === dispose) {
+            if (!Symbol.dispose) throw new TypeError("Symbol.dispose is not defined.");
+            dispose = value[Symbol.dispose];
+            if (async) inner = dispose;
+        }
+        if ("function" != typeof dispose) throw new TypeError("Object not disposable.");
+        if (inner) dispose = function() {
+            try {
+                inner.call(this);
+            } catch (e) {
+                return Promise.reject(e);
+            }
+        };
+        env.stack.push({
+            value: value,
+            dispose: dispose,
+            async: async
+        });
+    } else if (async) env.stack.push({
+        async: true
+    });
+    return value;
+}
+function android_ts_dispose_resources(env) {
+    var _SuppressedError = "function" == typeof SuppressedError ? SuppressedError : function(error, suppressed, message) {
+        var e = new Error(message);
+        return e.name = "SuppressedError", e.error = error, e.suppressed = suppressed, e;
+    };
+    return (android_ts_dispose_resources = function(env) {
+        function fail(e) {
+            env.error = env.hasError ? new _SuppressedError(e, env.error, "An error was suppressed during disposal.") : e;
+            env.hasError = true;
+        }
+        var r, s = 0;
+        function next() {
+            while(r = env.stack.pop())try {
+                if (!r.async && 1 === s) return s = 0, env.stack.push(r), Promise.resolve().then(next);
+                if (r.dispose) {
+                    var result = r.dispose.call(r.value);
+                    if (r.async) return s |= 2, Promise.resolve(result).then(next, function(e) {
+                        fail(e);
+                        return next();
+                    });
+                } else s |= 1;
+            } catch (e) {
+                fail(e);
+            }
+            if (1 === s) return env.hasError ? Promise.reject(env.error) : Promise.resolve();
+            if (env.hasError) throw env.error;
+        }
+        return next();
+    })(env);
+}
+const android_debug = node_createDebug('devtool-mcp-server:connector:android');
+const KNOWNS_APPS = [
+    {
+        packageName: 'com.lynx.uiapp',
+        name: 'Lynx Example'
+    },
+    {
+        packageName: 'com.lynx.explorer',
+        name: 'Lynx Explorer'
+    }
+];
+class AndroidTransport {
+    client;
+    constructor(spec = {
+        port: 5037
+    }){
+        this.client = new AdbServerClient(new AdbServerNodeTcpConnector(spec));
+    }
+    async connect(options) {
+        return connectWithPeertalk((opts)=>this.#connectRaw(opts), options);
+    }
+    async #createAdb(deviceId) {
+        const adb = await this.client.createAdb({
+            serial: deviceId
+        });
+        return Object.assign(adb, {
+            async [Symbol.asyncDispose] () {
+                await adb.close();
+            }
+        });
+    }
+    async close() {
+        android_debug('Android transport closed');
+    }
+    async #connectRaw({ deviceId, port, signal }) {
+        const adb = await this.client.createAdb({
+            serial: deviceId
+        });
+        android_debug(`connect: create connection to deviceId: ${deviceId}, port: ${port}`);
+        signal?.throwIfAborted();
+        const service = `tcp:${port}`;
+        let socket;
+        try {
+            socket = await adb.createSocket(service);
+        } catch (err) {
+            await adb.close();
+            android_debug(`connect: create socket to ${service} failed with err: %o`, err);
+            throw err;
+        }
+        if (signal?.aborted) {
+            await socket.close();
+            await adb.close();
+            signal.throwIfAborted();
+        }
+        const abortHandler = ()=>{
+            Promise.resolve(socket.close()).catch((err)=>{
+                android_debug(`connect: socket ${service} close on abort err: %o`, err);
+            });
+        };
+        signal?.addEventListener('abort', abortHandler, {
+            once: true
+        });
+        Promise.resolve(socket.closed).catch((err)=>{
+            android_debug(`connect: socket ${service} closed with err: %o`, err);
+        });
+        return {
+            readable: socket.readable,
+            writable: socket.writable,
+            async [Symbol.asyncDispose] () {
+                signal?.removeEventListener('abort', abortHandler);
+                android_debug(`connect: close connection to deviceId: ${deviceId}, port: ${port}`);
+                try {
+                    await socket.close();
+                } finally{
+                    await adb.close();
+                }
+            }
+        };
+    }
+    async listDevices() {
+        const devices = await this.client.getDevices();
+        android_debug('listDevices: devices %o', devices);
+        return devices.map(({ serial })=>({
+                os: 'Android',
+                id: serial
+            }));
+    }
+    async listAvailableApps(deviceId) {
+        const env = {
+            stack: [],
+            error: void 0,
+            hasError: false
+        };
+        try {
+            const adb = _ts_add_disposable_resource(env, await this.#createAdb(deviceId), true);
+            const output = await adb.subprocess.noneProtocol.spawnWaitText([
+                'pm',
+                'list',
+                'packages',
+                '-3'
+            ]);
+            const packages = new Set(output.split('\n').map((line)=>line.replace('package:', '').trim()).filter((i)=>'' !== i));
+            android_debug("listAvailableApps all packages: %o", packages);
+            return KNOWNS_APPS.filter((app)=>packages.has(app.packageName));
+        } catch (e) {
+            env.error = e;
+            env.hasError = true;
+        } finally{
+            const result = android_ts_dispose_resources(env);
+            if (result) await result;
+        }
+    }
+    async openApp(deviceId, packageName, { withDataCleared } = {}) {
+        const env = {
+            stack: [],
+            error: void 0,
+            hasError: false
+        };
+        try {
+            const apps = await this.listAvailableApps(deviceId);
+            const adb = _ts_add_disposable_resource(env, await this.#createAdb(deviceId), true);
+            if (!apps.some((app)=>app.packageName === packageName)) throw new Error(`package ${packageName} not found`);
+            if (withDataCleared) {
+                const output = await adb.subprocess.noneProtocol.spawnWaitText([
+                    'pm',
+                    'clear',
+                    packageName
+                ]);
+                android_debug(`openApp clear data output ${output}`);
+            }
+            const output = await adb.subprocess.noneProtocol.spawnWaitText([
+                'monkey',
+                '-p',
+                packageName,
+                '-c',
+                'android.intent.category.LAUNCHER',
+                '1'
+            ]);
+            android_debug(`openApp LAUNCHER output ${output}`);
+            if (output.includes('No activities found')) throw new Error(`No launchable activity found for package ${packageName}.`);
+            if (output.includes('monkey aborted')) throw new Error(`Failed to open app ${packageName}.`);
+        } catch (e) {
+            env.error = e;
+            env.hasError = true;
+        } finally{
+            const result = android_ts_dispose_resources(env);
+            if (result) await result;
+        }
+    }
+}
+function isCustomizedMessage(msg) {
+    return 'object' == typeof msg && null !== msg && 'Customized' === msg.event;
+}
+function isControlRequest(msg) {
+    return 'object' == typeof msg && null !== msg && 'Control' === msg.event;
+}
+function isListClientsRequest(msg) {
+    return 'object' == typeof msg && null !== msg && 'ListClients' === msg.event;
+}
+function isPingEvent(msg) {
+    return 'object' == typeof msg && null !== msg && 'Ping' === msg.event;
+}
+function isRegisterEvent(msg) {
+    return 'object' == typeof msg && null !== msg && 'Register' === msg.event;
+}
+const DAEMON_WS_PATH = '/devtool/connector';
+const DAEMON_VERSION_PATH = `${DAEMON_WS_PATH}/version`;
+const DAEMON_SHUTDOWN_PATH = `${DAEMON_WS_PATH}/shutdown`;
+const DAEMON_INSPECTOR_PATH = `${DAEMON_WS_PATH}/inspector`;
+const manager_debug = node_createDebug('devtool-mcp-server:daemon:manager');
+const manager_DEBUG_ROUTER_DIR = node_path.join(node_os.homedir(), '.DebugRouterConnector');
+const PIDFILE = node_path.join(manager_DEBUG_ROUTER_DIR, 'daemon.pid');
+const LOG = node_path.join(manager_DEBUG_ROUTER_DIR, 'daemon.log');
+const ERR = node_path.join(manager_DEBUG_ROUTER_DIR, 'daemon.err');
+function resolveDaemonEntryPath(moduleUrl = import.meta.url) {
+    return createRequire(moduleUrl).resolve('#daemon-entry');
+}
+class DaemonManager {
+    static async ensureRunning(port = 21783) {
+        const url = `ws://127.0.0.1:${port}${DAEMON_WS_PATH}`;
+        if (await DaemonManager.#isAlive(port)) {
+            manager_debug('daemon already running on port %d', port);
+            return url;
+        }
+        manager_debug('daemon not running, spawning...');
+        await DaemonManager.#spawn(port);
+        await DaemonManager.#waitReady(port, 5000);
+        manager_debug('daemon is ready on port %d', port);
+        return url;
+    }
+    static async kill() {
+        try {
+            const pidStr = await promises.readFile(PIDFILE, 'utf-8');
+            const pid = Number.parseInt(pidStr.trim(), 10);
+            if (!Number.isNaN(pid)) {
+                manager_debug('killing daemon pid %d', pid);
+                process.kill(pid, 'SIGTERM');
+            }
+        } catch  {
+            manager_debug('no pidfile found or cannot read it');
+        }
+    }
+    static async #isAlive(port) {
+        return new Promise((resolve)=>{
+            const socket = node_net.createConnection({
+                host: '127.0.0.1',
+                port
+            }, ()=>{
+                socket.destroy();
+                resolve(true);
+            });
+            socket.on('error', ()=>{
+                socket.destroy();
+                resolve(false);
+            });
+            socket.setTimeout(1000, ()=>{
+                socket.destroy();
+                resolve(false);
+            });
+        });
+    }
+    static async #spawn(port) {
+        await promises.mkdir(manager_DEBUG_ROUTER_DIR, {
+            recursive: true
+        });
+        const entryPath = resolveDaemonEntryPath();
+        const out = openSync(LOG, 'w');
+        const err = openSync(ERR, 'w');
+        const child = external_node_child_process_spawn(process.execPath, [
+            entryPath,
+            '--port',
+            String(port)
+        ], {
+            detached: true,
+            stdio: [
+                'ignore',
+                out,
+                err
+            ],
+            env: {
+                ...process.env,
+                DEBUG: process.env['DEBUG'] ?? ''
+            }
+        });
+        closeSync(out);
+        closeSync(err);
+        child.unref();
+        if (void 0 !== child.pid) {
+            await promises.writeFile(PIDFILE, String(child.pid), 'utf-8');
+            manager_debug('spawned daemon with pid %d', child.pid);
+        }
+    }
+    static async #waitReady(port, timeoutMs) {
+        const deadline = Date.now() + timeoutMs;
+        while(Date.now() < deadline){
+            if (await DaemonManager.#isAlive(port)) return;
+            await promises_setTimeout(200);
+        }
+        throw new Error(`Daemon failed to start within ${timeoutMs}ms on port ${port}`);
+    }
+}
+const desktop_debug = node_createDebug('devtool-mcp-server:connector:desktop');
+class DesktopTransport {
+    async connect(options) {
+        return connectWithPeertalk((opts)=>this.#connectRaw(opts), options);
+    }
+    async close() {
+        desktop_debug('Desktop transport closed');
+    }
+    async listDevices() {
+        return [
+            {
+                id: 'localhost',
+                os: 'Desktop'
+            }
+        ];
+    }
+    async listAvailableApps(deviceId) {
+        return [];
+    }
+    async openApp(deviceId, packageName) {
+        throw new Error('openApp is not supported on DesktopTransport');
+    }
+    async #connectRaw({ deviceId, port, signal }) {
+        if ('localhost' !== deviceId) throw new Error(`DesktopTransport only supports 'localhost' deviceId, got: ${deviceId}`);
+        desktop_debug(`connect: connecting to 127.0.0.1:${port}`);
+        const socket = node_net.createConnection({
+            host: '127.0.0.1',
+            port,
+            signal
+        });
+        try {
+            if (socket.connecting) await new Promise((resolve, reject)=>{
+                socket.once('connect', resolve);
+                socket.once('error', reject);
+            });
+            desktop_debug(`connect: connected to 127.0.0.1:${port}`);
+            const { readable, writable } = Duplex.toWeb(socket);
+            return {
+                readable,
+                writable,
+                async [Symbol.asyncDispose] () {
+                    desktop_debug(`connect: closing connection to 127.0.0.1:${port}`);
+                    socket.destroy();
+                }
+            };
+        } catch (err) {
+            desktop_debug(`connect: error connecting to 127.0.0.1:${port} %O`, err);
+            socket.destroy();
+            throw err;
+        }
+    }
+}
+const EPOCH_2001 = 978307200000;
+function readSizedInt(view, offset, size) {
+    switch(size){
+        case 1:
+            return view.getUint8(offset);
+        case 2:
+            return view.getUint16(offset);
+        case 4:
+            return view.getUint32(offset);
+        case 8:
+            {
+                const hi = view.getUint32(offset);
+                const lo = view.getUint32(offset + 4);
+                return 0x100000000 * hi + lo;
+            }
+        default:
+            throw new Error(`Unsupported int size: ${size}`);
+    }
+}
+function parseBinary(data) {
+    const view = new DataView(data.buffer, data.byteOffset, data.byteLength);
+    const len = data.byteLength;
+    const header = String.fromCharCode(...data.subarray(0, 8));
+    if ('bplist00' !== header) throw new Error('Invalid binary plist: bad magic');
+    const trailerOffset = len - 32;
+    const offsetTableOffsetSize = view.getUint8(trailerOffset + 6);
+    const objectRefSize = view.getUint8(trailerOffset + 7);
+    const numObjects = readSizedInt(view, trailerOffset + 8, 8);
+    const topObject = readSizedInt(view, trailerOffset + 16, 8);
+    const offsetTableOffset = readSizedInt(view, trailerOffset + 24, 8);
+    const offsets = [];
+    for(let i = 0; i < numObjects; i++)offsets.push(readSizedInt(view, offsetTableOffset + i * offsetTableOffsetSize, offsetTableOffsetSize));
+    function parseObject(index) {
+        let offset = offsets[index];
+        const marker = view.getUint8(offset);
+        const type = marker >> 4;
+        let size = 0x0f & marker;
+        offset++;
+        if (0 !== type && 8 !== type && 0x0f === size) {
+            const extMarker = view.getUint8(offset);
+            offset++;
+            const extSize = 1 << (0x0f & extMarker);
+            size = readSizedInt(view, offset, extSize);
+            offset += extSize;
+        }
+        switch(type){
+            case 0x0:
+                if (0x00 === marker) return null;
+                if (0x08 === marker) return false;
+                if (0x09 === marker) return true;
+                throw new Error(`Unknown singleton: 0x${marker.toString(16)}`);
+            case 0x1:
+                {
+                    const byteCount = 1 << size;
+                    if (byteCount <= 4) return readSizedInt(view, offset, byteCount);
+                    const hi = view.getInt32(offset);
+                    const lo = view.getUint32(offset + 4);
+                    return 0x100000000 * hi + lo;
+                }
+            case 0x2:
+                {
+                    const byteCount = 1 << size;
+                    if (4 === byteCount) return view.getFloat32(offset);
+                    if (8 === byteCount) return view.getFloat64(offset);
+                    throw new Error(`Unsupported real size: ${byteCount}`);
+                }
+            case 0x3:
+                {
+                    const timestamp = view.getFloat64(offset);
+                    return new Date(1000 * timestamp + EPOCH_2001);
+                }
+            case 0x4:
+                return new Uint8Array(data.buffer, data.byteOffset + offset, size);
+            case 0x5:
+                {
+                    let s = '';
+                    for(let i = 0; i < size; i++)s += String.fromCharCode(view.getUint8(offset + i));
+                    return s;
+                }
+            case 0x6:
+                {
+                    let s = '';
+                    for(let i = 0; i < size; i++)s += String.fromCharCode(view.getUint16(offset + 2 * i));
+                    return s;
+                }
+            case 0x8:
+                {
+                    const byteCount = size + 1;
+                    return {
+                        UID: readSizedInt(view, offset, byteCount)
+                    };
+                }
+            case 0xa:
+                {
+                    const arr = [];
+                    for(let i = 0; i < size; i++){
+                        const ref = readSizedInt(view, offset + i * objectRefSize, objectRefSize);
+                        arr.push(parseObject(ref));
+                    }
+                    return arr;
+                }
+            case 0xd:
+                {
+                    const dict = {};
+                    for(let i = 0; i < size; i++){
+                        const keyRef = readSizedInt(view, offset + i * objectRefSize, objectRefSize);
+                        const valRef = readSizedInt(view, offset + (size + i) * objectRefSize, objectRefSize);
+                        const key = parseObject(keyRef);
+                        dict[key] = parseObject(valRef);
+                    }
+                    return dict;
+                }
+            default:
+                throw new Error(`Unknown object type: 0x${type.toString(16)}`);
+        }
+    }
+    return parseObject(topObject);
+}
+class OpenStepParser {
+    input;
+    pos;
+    constructor(input){
+        this.input = input;
+        this.pos = 0;
+    }
+    skipWhitespaceAndComments() {
+        while(this.pos < this.input.length){
+            const ch = this.input[this.pos];
+            if (/\s/.test(ch)) {
                 this.pos++;
-                const arr = [];
+                continue;
+            }
+            if ('/' === ch && this.pos + 1 < this.input.length && '*' === this.input[this.pos + 1]) {
+                this.pos += 2;
+                const end = this.input.indexOf('*/', this.pos);
+                if (-1 === end) throw new Error('Unterminated block comment');
+                this.pos = end + 2;
+                continue;
+            }
+            if ('/' === ch && this.pos + 1 < this.input.length && '/' === this.input[this.pos + 1]) {
+                this.pos += 2;
+                const end = this.input.indexOf('\n', this.pos);
+                this.pos = -1 === end ? this.input.length : end + 1;
+                continue;
+            }
+            break;
+        }
+    }
+    parseValue() {
+        this.skipWhitespaceAndComments();
+        if (this.pos >= this.input.length) throw new Error('Unexpected end of input');
+        const ch = this.input[this.pos];
+        if ('{' === ch) return this.parseDict();
+        if ('(' === ch) return this.parseArray();
+        if ('<' === ch) return this.parseData();
+        if ('"' === ch) return this.parseQuotedString();
+        return this.parseUnquotedString();
+    }
+    parseDict() {
+        this.pos++;
+        const obj = {};
+        while(true){
+            this.skipWhitespaceAndComments();
+            if (this.pos >= this.input.length) throw new Error('Unterminated dictionary');
+            if ('}' === this.input[this.pos]) {
+                this.pos++;
+                return obj;
+            }
+            const key = this.parseValue();
+            this.skipWhitespaceAndComments();
+            if (this.pos >= this.input.length || '=' !== this.input[this.pos]) throw new Error(`Expected '=' after key "${key}" at position ${this.pos}`);
+            this.pos++;
+            const value = this.parseValue();
+            obj[key] = value;
+            this.skipWhitespaceAndComments();
+            if (this.pos < this.input.length && ';' === this.input[this.pos]) this.pos++;
+        }
+    }
+    parseArray() {
+        this.pos++;
+        const arr = [];
+        this.skipWhitespaceAndComments();
+        if (this.pos < this.input.length && ')' === this.input[this.pos]) {
+            this.pos++;
+            return arr;
+        }
+        while(true){
+            arr.push(this.parseValue());
+            this.skipWhitespaceAndComments();
+            if (this.pos >= this.input.length) throw new Error('Unterminated array');
+            if (')' === this.input[this.pos]) {
+                this.pos++;
+                return arr;
+            }
+            if (',' === this.input[this.pos]) {
+                this.pos++;
                 this.skipWhitespaceAndComments();
                 if (this.pos < this.input.length && ')' === this.input[this.pos]) {
                     this.pos++;
                     return arr;
                 }
-                while(true){
-                    arr.push(this.parseValue());
-                    this.skipWhitespaceAndComments();
-                    if (this.pos >= this.input.length) throw new Error('Unterminated array');
-                    if (')' === this.input[this.pos]) {
-                        this.pos++;
-                        return arr;
-                    }
-                    if (',' === this.input[this.pos]) {
-                        this.pos++;
-                        this.skipWhitespaceAndComments();
-                        if (this.pos < this.input.length && ')' === this.input[this.pos]) {
-                            this.pos++;
-                            return arr;
-                        }
-                    } else throw new Error(`Expected ',' or ')' in array at position ${this.pos}`);
-                }
-            }
-            parseData() {
+            } else throw new Error(`Expected ',' or ')' in array at position ${this.pos}`);
+        }
+    }
+    parseData() {
+        this.pos++;
+        let hex = '';
+        while(this.pos < this.input.length){
+            const ch = this.input[this.pos];
+            if ('>' === ch) {
                 this.pos++;
-                let hex = '';
-                while(this.pos < this.input.length){
-                    const ch = this.input[this.pos];
-                    if ('>' === ch) {
-                        this.pos++;
-                        const clean = hex.replace(/\s+/g, '');
-                        const bytes = new Uint8Array(clean.length / 2);
-                        for(let i = 0; i < clean.length; i += 2)bytes[i / 2] = parseInt(clean.substring(i, i + 2), 16);
-                        return bytes;
-                    }
-                    hex += ch;
-                    this.pos++;
-                }
-                throw new Error('Unterminated data');
+                const clean = hex.replace(/\s+/g, '');
+                const bytes = new Uint8Array(clean.length / 2);
+                for(let i = 0; i < clean.length; i += 2)bytes[i / 2] = parseInt(clean.substring(i, i + 2), 16);
+                return bytes;
             }
-            parseQuotedString() {
+            hex += ch;
+            this.pos++;
+        }
+        throw new Error('Unterminated data');
+    }
+    parseQuotedString() {
+        this.pos++;
+        let result = '';
+        while(this.pos < this.input.length){
+            const ch = this.input[this.pos];
+            if ('\\' === ch) {
                 this.pos++;
-                let result = '';
-                while(this.pos < this.input.length){
-                    const ch = this.input[this.pos];
-                    if ('\\' === ch) {
-                        this.pos++;
-                        if (this.pos >= this.input.length) throw new Error('Unterminated string escape');
-                        const esc = this.input[this.pos];
-                        switch(esc){
-                            case '"':
-                                result += '"';
-                                break;
-                            case '\\':
-                                result += '\\';
-                                break;
-                            case 'n':
-                                result += '\n';
-                                break;
-                            case 't':
-                                result += '\t';
-                                break;
-                            case 'r':
-                                result += '\r';
-                                break;
-                            case '0':
-                                result += '\0';
-                                break;
-                            default:
-                                result += esc;
-                                break;
-                        }
-                        this.pos++;
-                        continue;
-                    }
-                    if ('"' === ch) {
-                        this.pos++;
-                        return result;
-                    }
-                    result += ch;
-                    this.pos++;
+                if (this.pos >= this.input.length) throw new Error('Unterminated string escape');
+                const esc = this.input[this.pos];
+                switch(esc){
+                    case '"':
+                        result += '"';
+                        break;
+                    case '\\':
+                        result += '\\';
+                        break;
+                    case 'n':
+                        result += '\n';
+                        break;
+                    case 't':
+                        result += '\t';
+                        break;
+                    case 'r':
+                        result += '\r';
+                        break;
+                    case '0':
+                        result += '\0';
+                        break;
+                    default:
+                        result += esc;
+                        break;
                 }
-                throw new Error('Unterminated string');
+                this.pos++;
+                continue;
             }
-            parseUnquotedString() {
-                const start = this.pos;
-                while(this.pos < this.input.length){
-                    const ch = this.input[this.pos];
-                    if (/[a-zA-Z0-9._\/$:-]/.test(ch)) this.pos++;
-                    else break;
-                }
-                if (this.pos === start) throw new Error(`Unexpected character '${this.input[this.pos]}' at position ${this.pos}`);
-                return this.input.substring(start, this.pos);
+            if ('"' === ch) {
+                this.pos++;
+                return result;
             }
+            result += ch;
+            this.pos++;
         }
-        function parseOpenStep(input) {
-            const parser = new OpenStepParser(input);
-            const value = parser.parseValue();
-            return value;
+        throw new Error('Unterminated string');
+    }
+    parseUnquotedString() {
+        const start = this.pos;
+        while(this.pos < this.input.length){
+            const ch = this.input[this.pos];
+            if (/[a-zA-Z0-9._\/$:-]/.test(ch)) this.pos++;
+            else break;
         }
-    },
-    "../../../node_modules/.pnpm/plist@5.0.0/node_modules/plist/dist/parse.js" (__unused_rspack___webpack_module__, __webpack_exports__, __webpack_require__) {
-        __webpack_require__.d(__webpack_exports__, {
-            q: ()=>parse
-        });
-        var _xmldom_xmldom__rspack_import_0 = __webpack_require__("../../../node_modules/.pnpm/@xmldom+xmldom@0.9.10/node_modules/@xmldom/xmldom/lib/index.js");
-        var _parse_binary_js__rspack_import_1 = __webpack_require__("../../../node_modules/.pnpm/plist@5.0.0/node_modules/plist/dist/parse-binary.js");
-        var _parse_openstep_js__rspack_import_2 = __webpack_require__("../../../node_modules/.pnpm/plist@5.0.0/node_modules/plist/dist/parse-openstep.js");
-        function base64ToUint8Array(base64) {
-            const binary = atob(base64);
-            const bytes = new Uint8Array(binary.length);
-            for(let i = 0; i < binary.length; i++)bytes[i] = binary.charCodeAt(i);
-            return bytes;
-        }
-        const TEXT_NODE = 3;
-        const CDATA_NODE = 4;
-        const COMMENT_NODE = 8;
-        function shouldIgnoreNode(node) {
-            return node.nodeType === TEXT_NODE || node.nodeType === COMMENT_NODE || node.nodeType === CDATA_NODE;
-        }
-        function isEmptyNode(node) {
-            if (!node.childNodes || 0 === node.childNodes.length) return true;
-            return false;
-        }
-        function invariant(test, message) {
-            if (!test) throw new Error(message);
-        }
-        function parse(xml) {
-            if (xml instanceof ArrayBuffer) return (0, _parse_binary_js__rspack_import_1.f)(new Uint8Array(xml));
-            if (xml instanceof Uint8Array) return (0, _parse_binary_js__rspack_import_1.f)(xml);
-            if ('string' == typeof xml && xml.startsWith('bplist')) {
-                const encoder = new TextEncoder();
-                return (0, _parse_binary_js__rspack_import_1.f)(encoder.encode(xml));
+        if (this.pos === start) throw new Error(`Unexpected character '${this.input[this.pos]}' at position ${this.pos}`);
+        return this.input.substring(start, this.pos);
+    }
+}
+function parseOpenStep(input) {
+    const parser = new OpenStepParser(input);
+    const value = parser.parseValue();
+    return value;
+}
+const lib = __webpack_require__("../../../node_modules/.pnpm/@xmldom+xmldom@0.9.10/node_modules/@xmldom/xmldom/lib/index.js");
+function base64ToUint8Array(base64) {
+    const binary = atob(base64);
+    const bytes = new Uint8Array(binary.length);
+    for(let i = 0; i < binary.length; i++)bytes[i] = binary.charCodeAt(i);
+    return bytes;
+}
+const TEXT_NODE = 3;
+const CDATA_NODE = 4;
+const COMMENT_NODE = 8;
+function shouldIgnoreNode(node) {
+    return node.nodeType === TEXT_NODE || node.nodeType === COMMENT_NODE || node.nodeType === CDATA_NODE;
+}
+function isEmptyNode(node) {
+    if (!node.childNodes || 0 === node.childNodes.length) return true;
+    return false;
+}
+function invariant(test, message) {
+    if (!test) throw new Error(message);
+}
+function parse(xml) {
+    if (xml instanceof ArrayBuffer) return parseBinary(new Uint8Array(xml));
+    if (xml instanceof Uint8Array) return parseBinary(xml);
+    if ('string' == typeof xml && xml.startsWith('bplist')) {
+        const encoder = new TextEncoder();
+        return parseBinary(encoder.encode(xml));
+    }
+    if ('string' == typeof xml) {
+        const trimmed = xml.trimStart();
+        if (('{' === trimmed[0] || '(' === trimmed[0]) && !trimmed.startsWith('<?xml') && !trimmed.startsWith('<!DOCTYPE') && !trimmed.startsWith('<plist')) return parseOpenStep(xml);
+    }
+    const doc = new lib.S4().parseFromString(xml, "text/xml");
+    const root = doc.documentElement;
+    invariant(null !== root && "plist" === root.nodeName, "malformed document. First element should be <plist>");
+    let plist = parsePlistXML(root);
+    if (Array.isArray(plist) && 1 == plist.length) plist = plist[0];
+    return plist;
+}
+function parsePlistXML(node) {
+    if (!node) return null;
+    if ("plist" === node.nodeName) {
+        const new_arr = [];
+        if (isEmptyNode(node)) return new_arr;
+        for(let i = 0; i < node.childNodes.length; i++)if (!shouldIgnoreNode(node.childNodes[i])) new_arr.push(parsePlistXML(node.childNodes[i]));
+        return new_arr;
+    }
+    if ("dict" === node.nodeName) {
+        const new_obj = {};
+        let key = null;
+        let counter = 0;
+        if (isEmptyNode(node)) return new_obj;
+        for(let i = 0; i < node.childNodes.length; i++)if (!shouldIgnoreNode(node.childNodes[i])) {
+            if (counter % 2 === 0) {
+                invariant("key" === node.childNodes[i].nodeName, "Missing key while parsing <dict/>.");
+                key = parsePlistXML(node.childNodes[i]);
+            } else {
+                invariant("key" !== node.childNodes[i].nodeName, "Unexpected <key> while parsing <dict/>. Keys and values must alternate.");
+                new_obj[key] = parsePlistXML(node.childNodes[i]);
             }
-            if ('string' == typeof xml) {
-                const trimmed = xml.trimStart();
-                if (('{' === trimmed[0] || '(' === trimmed[0]) && !trimmed.startsWith('<?xml') && !trimmed.startsWith('<!DOCTYPE') && !trimmed.startsWith('<plist')) return (0, _parse_openstep_js__rspack_import_2.k)(xml);
-            }
-            const doc = new _xmldom_xmldom__rspack_import_0.DOMParser().parseFromString(xml, "text/xml");
-            const root = doc.documentElement;
-            invariant(null !== root && "plist" === root.nodeName, "malformed document. First element should be <plist>");
-            let plist = parsePlistXML(root);
-            if (Array.isArray(plist) && 1 == plist.length) plist = plist[0];
-            return plist;
+            counter += 1;
         }
-        function parsePlistXML(node) {
-            if (!node) return null;
-            if ("plist" === node.nodeName) {
-                const new_arr = [];
-                if (isEmptyNode(node)) return new_arr;
-                for(let i = 0; i < node.childNodes.length; i++)if (!shouldIgnoreNode(node.childNodes[i])) new_arr.push(parsePlistXML(node.childNodes[i]));
-                return new_arr;
+        if (counter % 2 === 1) new_obj[key] = "";
+        return new_obj;
+    }
+    if ("array" === node.nodeName) {
+        const new_arr = [];
+        if (isEmptyNode(node)) return new_arr;
+        for(let i = 0; i < node.childNodes.length; i++)if (!shouldIgnoreNode(node.childNodes[i])) {
+            const res = parsePlistXML(node.childNodes[i]);
+            if (null != res) new_arr.push(res);
+        }
+        return new_arr;
+    }
+    if ("#text" === node.nodeName) ;
+    else if ("key" === node.nodeName) {
+        if (isEmptyNode(node)) return "";
+        invariant("__proto__" !== node.childNodes[0].nodeValue, "__proto__ keys can lead to prototype pollution. More details on CVE-2022-22912");
+        return node.childNodes[0].nodeValue;
+    } else if ("string" === node.nodeName) {
+        let res = "";
+        if (isEmptyNode(node)) return res;
+        for(let i = 0; i < node.childNodes.length; i++){
+            const type = node.childNodes[i].nodeType;
+            if (type === TEXT_NODE || type === CDATA_NODE) res += node.childNodes[i].nodeValue;
+        }
+        return res;
+    } else if ("integer" === node.nodeName) {
+        invariant(!isEmptyNode(node), 'Cannot parse "" as integer.');
+        return parseInt(node.childNodes[0].nodeValue, 10);
+    } else if ("real" === node.nodeName) {
+        invariant(!isEmptyNode(node), 'Cannot parse "" as real.');
+        let res = "";
+        for(let i = 0; i < node.childNodes.length; i++)if (node.childNodes[i].nodeType === TEXT_NODE) res += node.childNodes[i].nodeValue;
+        return parseFloat(res);
+    } else if ("data" === node.nodeName) {
+        let res = "";
+        if (isEmptyNode(node)) return base64ToUint8Array(res);
+        for(let i = 0; i < node.childNodes.length; i++)if (node.childNodes[i].nodeType === TEXT_NODE) res += node.childNodes[i].nodeValue.replace(/\s+/g, "");
+        return base64ToUint8Array(res);
+    } else if ("date" === node.nodeName) {
+        invariant(!isEmptyNode(node), 'Cannot parse "" as Date.');
+        return new Date(node.childNodes[0].nodeValue);
+    } else if ("null" === node.nodeName) ;
+    else if ("true" === node.nodeName) return true;
+    else if ("false" === node.nodeName) return false;
+    else throw new Error("Invalid PLIST tag " + node.nodeName);
+    return null;
+}
+const xmlbuilder_lib = __webpack_require__("../../../node_modules/.pnpm/xmlbuilder@15.1.1/node_modules/xmlbuilder/lib/index.js");
+function uint8ArrayToBase64(bytes) {
+    let binary = '';
+    for(let i = 0; i < bytes.length; i++)binary += String.fromCharCode(bytes[i]);
+    return btoa(binary);
+}
+function build(obj, opts) {
+    const XMLHDR = {
+        version: '1.0',
+        encoding: 'UTF-8'
+    };
+    const XMLDTD = {
+        pubid: '-//Apple//DTD PLIST 1.0//EN',
+        sysid: 'http://www.apple.com/DTDs/PropertyList-1.0.dtd'
+    };
+    const doc = xmlbuilder_lib.create('plist');
+    doc.dec(XMLHDR.version, XMLHDR.encoding);
+    doc.dtd(XMLDTD.pubid, XMLDTD.sysid);
+    doc.att('version', '1.0');
+    walk_obj(obj, doc);
+    if (!opts) opts = {};
+    opts.pretty = false !== opts.pretty;
+    return doc.end(opts);
+}
+function walk_obj(next, next_child) {
+    if (void 0 === next) return;
+    if (Array.isArray(next)) {
+        next_child = next_child.ele('array');
+        for(let i = 0; i < next.length; i++)walk_obj(next[i], next_child);
+    } else if (next instanceof ArrayBuffer) next_child.ele('data').raw(uint8ArrayToBase64(new Uint8Array(next)));
+    else if (ArrayBuffer.isView(next)) {
+        const bytes = next instanceof Uint8Array ? next : new Uint8Array(next.buffer, next.byteOffset, next.byteLength);
+        next_child.ele('data').raw(uint8ArrayToBase64(bytes));
+    } else if ('object' != typeof next || null === next || next instanceof Date) {
+        if ('number' == typeof next) {
+            const tag_type = next % 1 === 0 ? 'integer' : 'real';
+            next_child.ele(tag_type).txt(next.toString());
+        } else if ('bigint' == typeof next) next_child.ele('integer').txt(next.toString());
+        else if (next instanceof Date) next_child.ele('date').txt(new Date(next).toISOString().replace(/\.\d{3}Z$/, 'Z'));
+        else if ('boolean' == typeof next) next_child.ele(next ? 'true' : 'false');
+        else if ('string' == typeof next) next_child.ele('string').txt(next);
+    } else {
+        next_child = next_child.ele('dict');
+        for(const prop in next)if (Object.hasOwn(next, prop)) {
+            const val = next[prop];
+            if (null == val) continue;
+            next_child.ele('key').txt(prop);
+            walk_obj(val, next_child);
+        }
+    }
+}
+const HEADER_SIZE = 16;
+const USBMUXD_VERSION = 1;
+const USBMUXD_PACKET_TYPE_PLIST = 8;
+const TAG = 1;
+class Usbmux {
+    connectOptions;
+    constructor(connectOptions){
+        if ('string' == typeof connectOptions) this.connectOptions = {
+            path: connectOptions
+        };
+        else if (connectOptions) this.connectOptions = connectOptions;
+        else this.connectOptions = {
+            path: '/var/run/usbmuxd'
+        };
+    }
+    async listDevices(signal) {
+        const { socket, response } = await this.#sendAndReceive({
+            MessageType: 'ListDevices',
+            ClientVersionString: 'usbmux-driver',
+            ProgName: 'usbmux-driver'
+        }, signal);
+        socket.destroy();
+        return response.DeviceList;
+    }
+    async connect(deviceId, port, signal) {
+        const networkPort = port >> 8 & 0xff | port << 8 & 0xff00;
+        const { socket, response, tail } = await this.#sendAndReceive({
+            MessageType: 'Connect',
+            ClientVersionString: 'usbmux-driver',
+            ProgName: 'usbmux-driver',
+            DeviceID: Number(deviceId),
+            PortNumber: networkPort
+        }, signal);
+        if ('Result' === response.MessageType && 0 === response.Number) {
+            if (tail.length > 0) socket.unshift(tail);
+            const { readable, writable } = Duplex.toWeb(socket);
+            return {
+                readable,
+                writable,
+                dispose: ()=>socket.destroy()
+            };
+        }
+        socket.destroy();
+        throw new Error(`Invalid response for Connect: ${JSON.stringify(response)}`);
+    }
+    async #sendAndReceive(payload, signal) {
+        const socket = __rspack_external_node_net_0373943e.createConnection(this.connectOptions);
+        if (signal) {
+            const abortHandler = ()=>socket.destroy();
+            signal.addEventListener('abort', abortHandler, {
+                once: true
+            });
+            socket.once('close', ()=>signal.removeEventListener('abort', abortHandler));
+        }
+        try {
+            await once(socket, 'connect', {
+                signal
+            });
+            socket.write(encodeRequest());
+            let buffer = Buffer.alloc(0);
+            for await (const [chunk] of on(socket, 'data', {
+                signal
+            })){
+                buffer = Buffer.concat([
+                    buffer,
+                    chunk
+                ]);
+                if (buffer.length < HEADER_SIZE) continue;
+                const length = buffer.readUInt32LE(0);
+                if (buffer.length < length) continue;
+                const responseBuffer = buffer.subarray(HEADER_SIZE, length);
+                const tail = buffer.subarray(length);
+                const response = parse(responseBuffer.toString('utf8'));
+                return {
+                    socket,
+                    response,
+                    tail
+                };
             }
-            if ("dict" === node.nodeName) {
-                const new_obj = {};
-                let key = null;
-                let counter = 0;
-                if (isEmptyNode(node)) return new_obj;
-                for(let i = 0; i < node.childNodes.length; i++)if (!shouldIgnoreNode(node.childNodes[i])) {
-                    if (counter % 2 === 0) {
-                        invariant("key" === node.childNodes[i].nodeName, "Missing key while parsing <dict/>.");
-                        key = parsePlistXML(node.childNodes[i]);
-                    } else {
-                        invariant("key" !== node.childNodes[i].nodeName, "Unexpected <key> while parsing <dict/>. Keys and values must alternate.");
-                        new_obj[key] = parsePlistXML(node.childNodes[i]);
-                    }
-                    counter += 1;
-                }
-                if (counter % 2 === 1) new_obj[key] = "";
-                return new_obj;
+            throw new Error('Connection closed before response received');
+        } catch (error) {
+            socket.destroy();
+            throw error;
+        }
+        function encodeRequest() {
+            const xml = build(payload);
+            const body = Buffer.from(xml, 'utf8');
+            const length = HEADER_SIZE + body.length;
+            const header = Buffer.alloc(HEADER_SIZE);
+            header.writeUInt32LE(length, 0);
+            header.writeUInt32LE(USBMUXD_VERSION, 4);
+            header.writeUInt32LE(USBMUXD_PACKET_TYPE_PLIST, 8);
+            header.writeUInt32LE(TAG, 12);
+            return Buffer.concat([
+                header,
+                body
+            ]);
+        }
+    }
+}
+const ios_debug = node_createDebug('devtool-mcp-server:connector:ios');
+class iOSTransport {
+    #client;
+    constructor(options){
+        this.#client = new Usbmux(options);
+    }
+    async connect(options) {
+        return connectWithPeertalk((opts)=>this.#connectRaw(opts), options);
+    }
+    async close() {
+        ios_debug('iOS transport closed');
+    }
+    async #connectRaw({ deviceId, port, signal }) {
+        ios_debug(`connect: create connection to deviceId: ${deviceId}, port: ${port}`);
+        const id = await this.#resolveUsbmuxDeviceId(deviceId, signal);
+        const conn = await this.#client.connect(id, port, signal);
+        return {
+            readable: conn.readable,
+            writable: conn.writable,
+            async [Symbol.asyncDispose] () {
+                ios_debug(`connect: close connection to deviceId: ${deviceId}, port: ${port}`);
+                conn.dispose();
             }
-            if ("array" === node.nodeName) {
-                const new_arr = [];
-                if (isEmptyNode(node)) return new_arr;
-                for(let i = 0; i < node.childNodes.length; i++)if (!shouldIgnoreNode(node.childNodes[i])) {
-                    const res = parsePlistXML(node.childNodes[i]);
-                    if (null != res) new_arr.push(res);
-                }
-                return new_arr;
-            }
-            if ("#text" === node.nodeName) ;
-            else if ("key" === node.nodeName) {
-                if (isEmptyNode(node)) return "";
-                invariant("__proto__" !== node.childNodes[0].nodeValue, "__proto__ keys can lead to prototype pollution. More details on CVE-2022-22912");
-                return node.childNodes[0].nodeValue;
-            } else if ("string" === node.nodeName) {
-                let res = "";
-                if (isEmptyNode(node)) return res;
-                for(let i = 0; i < node.childNodes.length; i++){
-                    const type = node.childNodes[i].nodeType;
-                    if (type === TEXT_NODE || type === CDATA_NODE) res += node.childNodes[i].nodeValue;
-                }
-                return res;
-            } else if ("integer" === node.nodeName) {
-                invariant(!isEmptyNode(node), 'Cannot parse "" as integer.');
-                return parseInt(node.childNodes[0].nodeValue, 10);
-            } else if ("real" === node.nodeName) {
-                invariant(!isEmptyNode(node), 'Cannot parse "" as real.');
-                let res = "";
-                for(let i = 0; i < node.childNodes.length; i++)if (node.childNodes[i].nodeType === TEXT_NODE) res += node.childNodes[i].nodeValue;
-                return parseFloat(res);
-            } else if ("data" === node.nodeName) {
-                let res = "";
-                if (isEmptyNode(node)) return base64ToUint8Array(res);
-                for(let i = 0; i < node.childNodes.length; i++)if (node.childNodes[i].nodeType === TEXT_NODE) res += node.childNodes[i].nodeValue.replace(/\s+/g, "");
-                return base64ToUint8Array(res);
-            } else if ("date" === node.nodeName) {
-                invariant(!isEmptyNode(node), 'Cannot parse "" as Date.');
-                return new Date(node.childNodes[0].nodeValue);
-            } else if ("null" === node.nodeName) ;
-            else if ("true" === node.nodeName) return true;
-            else if ("false" === node.nodeName) return false;
-            else throw new Error("Invalid PLIST tag " + node.nodeName);
+        };
+    }
+    async #resolveUsbmuxDeviceId(deviceId, signal) {
+        const numericDeviceId = Number(deviceId);
+        if (Number.isInteger(numericDeviceId)) return numericDeviceId;
+        const devices = await this.#client.listDevices(signal);
+        const device = devices.find(({ Properties })=>Properties.SerialNumber === deviceId);
+        if (!device) throw new Error(`iOS device with id: ${deviceId} not found`);
+        return device.DeviceID;
+    }
+    async listDevices() {
+        const devices = await this.#client.listDevices(AbortSignal.timeout(1000));
+        ios_debug('listDevices: devices %o', devices);
+        return devices.map(({ Properties })=>({
+                os: 'iOS',
+                id: Properties.SerialNumber
+            }));
+    }
+    async listAvailableApps() {
+        throw new Error('Not implemented');
+    }
+    async openApp(_, __, ___) {
+        throw new Error('Not implemented');
+    }
+}
+__webpack_require__("../../../node_modules/.pnpm/ws@8.21.0/node_modules/ws/lib/stream.js");
+__webpack_require__("../../../node_modules/.pnpm/ws@8.21.0/node_modules/ws/lib/extension.js");
+__webpack_require__("../../../node_modules/.pnpm/ws@8.21.0/node_modules/ws/lib/permessage-deflate.js");
+__webpack_require__("../../../node_modules/.pnpm/ws@8.21.0/node_modules/ws/lib/receiver.js");
+__webpack_require__("../../../node_modules/.pnpm/ws@8.21.0/node_modules/ws/lib/sender.js");
+__webpack_require__("../../../node_modules/.pnpm/ws@8.21.0/node_modules/ws/lib/subprotocol.js");
+__webpack_require__("../../../node_modules/.pnpm/ws@8.21.0/node_modules/ws/lib/websocket.js");
+__webpack_require__("../../../node_modules/.pnpm/ws@8.21.0/node_modules/ws/lib/websocket-server.js");
+function isInitializeResponse(response) {
+    return 'Register' === response.event;
+}
+function isHeadlessPrepareResponse(response) {
+    return 'Customized' === response.event && 'HeadlessPrepare' === response.data.type;
+}
+function isListSessionResponse(response) {
+    return 'Customized' === response.event && 'SessionList' === response.data.type;
+}
+function isGetGlobalSwitchResponse(response) {
+    return 'Customized' === response.event && 'GetGlobalSwitch' === response.data.type;
+}
+function isSetGlobalSwitchResponse(response) {
+    return 'Customized' === response.event && 'SetGlobalSwitch' === response.data.type;
+}
+function isCustomizedResponseWithType(response, type) {
+    return 'Customized' === response.event && response.data.type === type;
+}
+class ClientId {
+    static serialize(deviceId, port) {
+        return `${encodeURIComponent(deviceId)}:${port}`;
+    }
+    static deserialize(clientId) {
+        try {
+            const lastColonIndex = clientId.lastIndexOf(':');
+            if (-1 === lastColonIndex) return null;
+            const port = Number.parseInt(clientId.substring(lastColonIndex + 1), 10);
+            if (Number.isNaN(port)) return null;
+            return {
+                deviceId: decodeURIComponent(clientId.substring(0, lastColonIndex)),
+                port
+            };
+        } catch  {
             return null;
         }
-    },
-    "../../../node_modules/.pnpm/ws@8.21.0/node_modules/ws/wrapper.mjs" (__unused_rspack___webpack_module__, __webpack_exports__, __webpack_require__) {
-        __webpack_require__.d(__webpack_exports__, {
-            kb: ()=>_lib_websocket_js__rspack_import_6,
-            zu: ()=>_lib_websocket_server_js__rspack_import_7
-        });
-        __webpack_require__("../../../node_modules/.pnpm/ws@8.21.0/node_modules/ws/lib/stream.js");
-        __webpack_require__("../../../node_modules/.pnpm/ws@8.21.0/node_modules/ws/lib/extension.js");
-        __webpack_require__("../../../node_modules/.pnpm/ws@8.21.0/node_modules/ws/lib/permessage-deflate.js");
-        __webpack_require__("../../../node_modules/.pnpm/ws@8.21.0/node_modules/ws/lib/receiver.js");
-        __webpack_require__("../../../node_modules/.pnpm/ws@8.21.0/node_modules/ws/lib/sender.js");
-        __webpack_require__("../../../node_modules/.pnpm/ws@8.21.0/node_modules/ws/lib/subprotocol.js");
-        var _lib_websocket_js__rspack_import_6 = __webpack_require__("../../../node_modules/.pnpm/ws@8.21.0/node_modules/ws/lib/websocket.js");
-        var _lib_websocket_server_js__rspack_import_7 = __webpack_require__("../../../node_modules/.pnpm/ws@8.21.0/node_modules/ws/lib/websocket-server.js");
     }
-});
+}
+export { AndroidTransport, ClientId, DAEMON_INSPECTOR_PATH, DAEMON_SHUTDOWN_PATH, DAEMON_VERSION_PATH, DAEMON_WS_PATH, DaemonManager, DesktopTransport, MessageToPeertalkTransformStream, PeertalkToMessageTransformStream, Usbmux, connectWithPeertalk, createMessageConnection, iOSTransport, isControlRequest, isCustomizedMessage, isCustomizedResponseWithType, isGetGlobalSwitchResponse, isHeadlessPrepareResponse, isInitializeResponse, isListClientsRequest, isListSessionResponse, isPingEvent, isRegisterEvent, isSetGlobalSwitchResponse, node_createDebug, peertalkCodecFactory };

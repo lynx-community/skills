@@ -29,3 +29,4 @@ async function main() {
     console.log(`The position of function_id: ${function_id}, pc_index: ${pc_index} is ${position.line}:${position.column}`);
 }
 main();
+export { };

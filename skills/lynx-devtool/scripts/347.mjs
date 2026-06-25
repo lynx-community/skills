@@ -1,13 +1,17 @@
 import { __webpack_require__ } from "./rslib-runtime.mjs";
 import { randomInt } from "node:crypto";
-import "./374.mjs";
-const web_ = __webpack_require__("node:stream/web");
-const manager = __webpack_require__("../../mcp-servers/devtool-connector/src/daemon/manager.ts");
-const node = __webpack_require__("../../../node_modules/.pnpm/obug@2.1.3/node_modules/obug/dist/node.js");
-const debug = (0, node.U)('devtool-mcp-server:daemon:transport');
+import { ReadableStream, TransformStream, WritableStream } from "node:stream/web";
+import { DesktopTransport, isGetGlobalSwitchResponse, DaemonManager, isInitializeResponse, AndroidTransport, isCustomizedResponseWithType, ClientId, isListSessionResponse, isHeadlessPrepareResponse, node_createDebug, iOSTransport, isSetGlobalSwitchResponse } from "./182.mjs";
+var ws_stream_namespaceObject = {};
+__webpack_require__.r(ws_stream_namespaceObject);
+__webpack_require__.d(ws_stream_namespaceObject, {
+    U: ()=>WsWebSocketStream,
+    wsStreams: ()=>ws_stream_wsStreams
+});
+const debug = node_createDebug('devtool-mcp-server:daemon:transport');
 class DaemonTransport {
     #port;
-    constructor(port = manager.$G){
+    constructor(port = 21783){
         this.#port = port;
     }
     async close() {}
@@ -39,7 +43,7 @@ class DaemonTransport {
     async connect(options) {
         const { deviceId, port, signal } = options;
         debug('connect to %s:%d via daemon', deviceId, port);
-        await manager.oX.ensureRunning(this.#port);
+        await DaemonManager.ensureRunning(this.#port);
         const conn = await this.#createWebSocketConnection(signal);
         try {
             await this.#controlRequestOnConn(conn, 'subscribe', {
@@ -52,7 +56,7 @@ class DaemonTransport {
                 cause: error
             });
         }
-        const writable = new web_.WritableStream({
+        const writable = new WritableStream({
             async write (chunk) {
                 const message = routeDaemonMessage(chunk, conn.assignedId, port);
                 await writeMessage(conn.writable, stringifyMessage(message), signal);
@@ -71,7 +75,7 @@ class DaemonTransport {
         };
     }
     async #controlRequest(method, params) {
-        await manager.oX.ensureRunning(this.#port);
+        await DaemonManager.ensureRunning(this.#port);
         const conn = await this.#createWebSocketConnection();
         try {
             return await this.#controlRequestOnConn(conn, method, params);
@@ -103,11 +107,9 @@ class DaemonTransport {
         throw new Error(`No response for control request: ${method}`);
     }
     async #createWebSocketConnection(signal) {
-        const url = await manager.oX.ensureRunning(this.#port);
+        const url = await DaemonManager.ensureRunning(this.#port);
         signal?.throwIfAborted();
-        const { wsStreams } = await Promise.resolve().then(()=>({
-                wsStreams: ws_stream_wsStreams
-            }));
+        const { wsStreams } = await Promise.resolve(ws_stream_namespaceObject);
         const wss = wsStreams.create(url);
         const abortHandler = ()=>{
             wss.close();
@@ -241,7 +243,7 @@ async function writeMessage(writable, chunk, signal) {
         writer.releaseLock();
     }
 }
-class JSONStringToObjectStream extends web_.TransformStream {
+class JSONStringToObjectStream extends TransformStream {
     constructor(){
         super({
             transform (chunk, controller) {
@@ -254,7 +256,7 @@ class JSONStringToObjectStream extends web_.TransformStream {
         });
     }
 }
-const wrapper = __webpack_require__("../../../node_modules/.pnpm/ws@8.21.0/node_modules/ws/wrapper.mjs");
+const websocket = __webpack_require__("../../../node_modules/.pnpm/ws@8.21.0/node_modules/ws/lib/websocket.js");
 class WsWebSocketStream {
     #ws;
     opened;
@@ -262,7 +264,7 @@ class WsWebSocketStream {
     #resolveClosed;
     #rejectClosed;
     constructor(url){
-        this.#ws = new wrapper.kb(url);
+        this.#ws = new websocket(url);
         this.closed = new Promise((resolve, reject)=>{
             this.#resolveClosed = resolve;
             this.#rejectClosed = reject;
@@ -285,7 +287,7 @@ class WsWebSocketStream {
             };
             ws.once('open', ()=>{
                 cleanup();
-                const readable = new web_.ReadableStream({
+                const readable = new ReadableStream({
                     start (controller) {
                         ws.on('message', (data)=>{
                             controller.enqueue('string' == typeof data ? data : data.toString());
@@ -305,7 +307,7 @@ class WsWebSocketStream {
                         ws.close();
                     }
                 });
-                const writable = new web_.WritableStream({
+                const writable = new WritableStream({
                     write (chunk) {
                         return new Promise((res, rej)=>{
                             ws.send(chunk, (err)=>{
@@ -345,14 +347,7 @@ const ws_stream_wsStreams = {
         return new WsWebSocketStream(url);
     }
 };
-const types = __webpack_require__("../../mcp-servers/devtool-connector/src/types.ts");
-types.hl;
-types.l$;
-types.cm;
-types.aS;
-types.gF;
-types.Vp;
-class CustomizedClientIdTransformStream extends web_.TransformStream {
+class CustomizedClientIdTransformStream extends TransformStream {
     constructor(clientId){
         super({
             transform (chunk, controller) {
@@ -372,7 +367,7 @@ class CustomizedClientIdTransformStream extends web_.TransformStream {
         });
     }
 }
-class CustomizedRequestTransformStream extends web_.TransformStream {
+class CustomizedRequestTransformStream extends TransformStream {
     constructor(options){
         const { type, sessionId = -1, messageBuilder } = options;
         super({
@@ -392,11 +387,11 @@ class CustomizedRequestTransformStream extends web_.TransformStream {
         });
     }
 }
-class CustomizedResponseTransformStream extends web_.TransformStream {
+class CustomizedResponseTransformStream extends TransformStream {
     constructor(type, id){
         super({
             transform (response, controller) {
-                if (!(0, types.hl)(response, type)) return;
+                if (!isCustomizedResponseWithType(response, type)) return;
                 try {
                     const message = JSON.parse(response.data.data.message);
                     if (void 0 === id || message?.id === id) controller.enqueue(message);
@@ -409,7 +404,7 @@ class CustomizedResponseTransformStream extends web_.TransformStream {
         });
     }
 }
-class ResponseParserTransformStream extends web_.TransformStream {
+class ResponseParserTransformStream extends TransformStream {
     constructor(options){
         const { parseResult, checkError } = options;
         super({
@@ -495,7 +490,7 @@ class CDPOutputTransformStream extends ResponseParserTransformStream {
         });
     }
 }
-class FilterTransformStream extends web_.TransformStream {
+class FilterTransformStream extends TransformStream {
     constructor(filter){
         super({
             transform (chunk, controller) {
@@ -504,7 +499,7 @@ class FilterTransformStream extends web_.TransformStream {
         });
     }
 }
-class InspectStream extends web_.TransformStream {
+class InspectStream extends TransformStream {
     constructor(callback){
         super({
             transform (chunk, controller) {
@@ -514,11 +509,11 @@ class InspectStream extends web_.TransformStream {
         });
     }
 }
-class SessionGuardTransformStream extends web_.TransformStream {
+class SessionGuardTransformStream extends TransformStream {
     constructor(sessionId){
         super({
             transform (chunk, controller) {
-                if ((0, types.gF)(chunk)) {
+                if (isListSessionResponse(chunk)) {
                     const sessions = chunk.data.data;
                     if (!Array.isArray(sessions)) return void controller.enqueue(chunk);
                     if (!sessions.some((s)=>s?.session_id === sessionId)) return void controller.terminate();
@@ -528,8 +523,6 @@ class SessionGuardTransformStream extends web_.TransformStream {
         });
     }
 }
-const client_id = __webpack_require__("../../mcp-servers/devtool-connector/src/client-id.ts");
-client_id.R;
 function _ts_add_disposable_resource(env, value, async) {
     if (null != value) {
         if ("object" != typeof value && "function" != typeof value) throw new TypeError("Object expected.");
@@ -591,7 +584,7 @@ function src_ts_dispose_resources(env) {
         return next();
     })(env);
 }
-const src_debug = (0, node.U)('devtool-mcp-server:connector');
+const src_debug = node_createDebug('devtool-mcp-server:connector');
 function hasClientList(transport) {
     return 'function' == typeof transport.listClients;
 }
@@ -640,7 +633,7 @@ class Connector {
         const { setTimeout } = await import("node:timers/promises");
         while(!signal.aborted){
             try {
-                const clients = hasClientList(transport) ? (await transport.listClients()).filter(({ id })=>client_id.R.deserialize(id)?.deviceId === deviceId) : await this.#listClientsForDevice(transport, deviceId);
+                const clients = hasClientList(transport) ? (await transport.listClients()).filter(({ id })=>ClientId.deserialize(id)?.deviceId === deviceId) : await this.#listClientsForDevice(transport, deviceId);
                 if (clients.some(({ info })=>info.AppProcessName === packageName || info.bundleId === packageName || info.bundleName === packageName)) break;
             } catch (err) {
                 src_debug(`openApp ${deviceId} ${packageName} client not found %o`, err);
@@ -667,7 +660,7 @@ class Connector {
             const inputStream = [
                 new CustomizedClientIdTransformStream(port),
                 new InspectStream((msg)=>src_debug(`sendMessageNoReply ${deviceId}:${port} send %o`, JSON.stringify(msg)))
-            ].reduce((stream, transform)=>stream.pipeThrough(transform), web_.ReadableStream.from([
+            ].reduce((stream, transform)=>stream.pipeThrough(transform), ReadableStream.from([
                 message
             ]));
             await inputStream.pipeTo(conn.writable, {
@@ -737,7 +730,7 @@ class Connector {
         }, {
             input: [],
             output: [
-                new FilterTransformStream(types.cm)
+                new FilterTransformStream(isHeadlessPrepareResponse)
             ]
         });
         return state;
@@ -766,7 +759,7 @@ class Connector {
         }, {
             input: [],
             output: [
-                new FilterTransformStream(types.gF)
+                new FilterTransformStream(isListSessionResponse)
             ]
         });
         return sessions.map((session)=>({
@@ -782,7 +775,7 @@ class Connector {
                 new GlobalSwitchRequestTransformStream('GetGlobalSwitch')
             ],
             output: [
-                new FilterTransformStream(types.l$)
+                new FilterTransformStream(isGetGlobalSwitchResponse)
             ]
         });
         if ('object' == typeof message) return message?.global_value === 'true' || message?.global_value === true;
@@ -797,7 +790,7 @@ class Connector {
                 new GlobalSwitchRequestTransformStream('SetGlobalSwitch')
             ],
             output: [
-                new FilterTransformStream(types.Vp)
+                new FilterTransformStream(isSetGlobalSwitchResponse)
             ]
         });
     }
@@ -828,7 +821,7 @@ class Connector {
         });
     }
     #resolveClientId(clientId) {
-        const parsed = client_id.R.deserialize(clientId);
+        const parsed = ClientId.deserialize(clientId);
         if (!parsed) throw new Error(`Invalid clientId: ${clientId}`);
         return parsed;
     }
@@ -896,7 +889,7 @@ class Connector {
             hasError: false
         };
         try {
-            const outputStream = _ts_add_disposable_resource(env, await this.#connect(transport, options, web_.ReadableStream.from([
+            const outputStream = _ts_add_disposable_resource(env, await this.#connect(transport, options, ReadableStream.from([
                 input
             ]), pipeline), true);
             for await (const response of outputStream){
@@ -904,7 +897,7 @@ class Connector {
                 return response;
             }
             await outputStream.inputClosed;
-            const clientId = client_id.R.serialize(options.deviceId, options.port);
+            const clientId = ClientId.serialize(options.deviceId, options.port);
             throw new Error(`No response found for clientId: ${clientId}`);
         } catch (e) {
             env.error = e;
@@ -931,10 +924,10 @@ class Connector {
             }, {
                 input: [],
                 output: [
-                    new FilterTransformStream(types.aS)
+                    new FilterTransformStream(isInitializeResponse)
                 ]
             });
-            const clientId = client_id.R.serialize(deviceId, port);
+            const clientId = ClientId.serialize(deviceId, port);
             await this.#setupClient(transport, clientId);
             return {
                 id: clientId,
@@ -965,7 +958,7 @@ class Connector {
                     new GlobalSwitchRequestTransformStream('SetGlobalSwitch')
                 ],
                 output: [
-                    new FilterTransformStream(types.Vp)
+                    new FilterTransformStream(isSetGlobalSwitchResponse)
                 ]
             });
         } catch (err) {
@@ -973,12 +966,6 @@ class Connector {
         }
     }
 }
-const android = __webpack_require__("../../mcp-servers/devtool-connector/src/transport/android.ts");
-android.R;
-const desktop = __webpack_require__("../../mcp-servers/devtool-connector/src/transport/desktop.ts");
-desktop.y;
-const ios = __webpack_require__("../../mcp-servers/devtool-connector/src/transport/ios.ts");
-ios.H;
 function getAndroidTransportSpec() {
     const port = Number.parseInt(process.env['ADB_SERVER_PORT'] ?? '5037', 10);
     return {
@@ -988,21 +975,12 @@ function getAndroidTransportSpec() {
 }
 function createDefaultTransports() {
     return [
-        new android.R(getAndroidTransportSpec()),
-        new desktop.y(),
-        new ios.H()
+        new AndroidTransport(getAndroidTransportSpec()),
+        new DesktopTransport(),
+        new iOSTransport()
     ];
 }
 function createDefaultConnector(transports = createDefaultTransports()) {
     return new Connector(transports);
 }
-const peertalk = __webpack_require__("../../mcp-servers/devtool-connector/src/transport/peertalk.ts");
-peertalk.j;
-peertalk.l;
-const usbmux = __webpack_require__("../../mcp-servers/devtool-connector/src/transport/usbmux.ts");
-usbmux.H;
-const base = __webpack_require__("../../mcp-servers/devtool-connector/src/transport/base.ts");
-base.Xy;
-base.Ah;
-base.pb;
-export { AppResponseTransformStream, CDPOutputTransformStream, CDPRequestTransformStream, CDPResponseTransformStream, Connector, CustomizedClientIdTransformStream, CustomizedRequestTransformStream, CustomizedResponseTransformStream, DaemonTransport, FilterTransformStream, GlobalSwitchRequestTransformStream, InspectStream, ResponseParserTransformStream, SessionGuardTransformStream, WsWebSocketStream, createDefaultConnector, createDefaultTransports, randomInt, ws_stream_wsStreams as wsStreams };
+export { AppResponseTransformStream, CDPOutputTransformStream, CDPRequestTransformStream, CDPResponseTransformStream, Connector, CustomizedClientIdTransformStream, CustomizedRequestTransformStream, CustomizedResponseTransformStream, DaemonTransport, FilterTransformStream, GlobalSwitchRequestTransformStream, InspectStream, ResponseParserTransformStream, SessionGuardTransformStream, WsWebSocketStream, createDefaultConnector, createDefaultTransports, ws_stream_wsStreams as wsStreams };
