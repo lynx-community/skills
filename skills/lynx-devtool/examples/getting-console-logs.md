@@ -3,6 +3,9 @@
 ```bash
 # Get only errors and warnings
 node <path_to_the_skill>/scripts/index.mjs get-console --level error,warning
+
+# Get main-thread console logs only
+node <path_to_the_skill>/scripts/index.mjs get-console --thread main
 ```
 
 ## Exploring Object Properties
@@ -20,8 +23,8 @@ node <path_to_the_skill>/scripts/index.mjs get-console -s <session_id>
 **Example Output:**
 
 ```
-- [log]: <Array(1) (objectId:13561514816)>
-- [log]: <Object (objectId:13561514624)>
+- [log/background]: <Array(1) (objectId:13561514816)>
+- [log/main-thread]: <Object (objectId:13561514624)>
 ```
 
 ### Step 2: Retrieve Object Properties
