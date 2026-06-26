@@ -1,0 +1,41 @@
+{
+  "name": "@lynx-js/skill-lynx-devtool",
+  "version": "0.13.4",
+  "private": true,
+  "repository": {
+    "url": "https://github.com/lynx-community/skills"
+  },
+  "type": "module",
+  "imports": {
+    "#daemon-entry": "./scripts/daemon-entry.mjs"
+  },
+  "bin": {
+    "lynx-devtool": "./scripts/index.mjs"
+  },
+  "files": [
+    "package.json",
+    "SKILL.md",
+    "scripts",
+    "public",
+    "references",
+    "examples",
+    "reference.md",
+    "examples.md"
+  ],
+  "scripts": {
+    "build": "rslib build",
+    "test:e2e": "node --test --test-concurrency=1 'e2e/**/*.test.ts'"
+  },
+  "devDependencies": {
+    "@lynx-js/devtool-connector": "workspace:*",
+    "@rslib/core": "^0.23.0",
+    "@rspack/core": "^2.0.8",
+    "@types/node": "24",
+    "commander": "14",
+    "core-js": "^3.49.0",
+    "obug": "^2.1.3"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
