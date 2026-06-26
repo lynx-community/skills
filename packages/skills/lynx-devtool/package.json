@@ -1,6 +1,7 @@
 {
   "name": "@lynx-js/skill-lynx-devtool",
   "version": "0.13.4",
+  "private": true,
   "repository": {
     "url": "https://github.com/lynx-community/skills"
   },
@@ -12,7 +13,6 @@
     "lynx-devtool": "./scripts/index.mjs"
   },
   "files": [
-    "package.json",
     "SKILL.md",
     "scripts",
     "public",
