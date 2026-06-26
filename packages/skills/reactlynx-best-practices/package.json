@@ -23,7 +23,7 @@
   "devDependencies": {
     "@microsoft/api-extractor": "^7.56.2",
     "@rslib/core": "catalog:rstack",
-    "@rstest/adapter-rslib": "^0.1.1",
+    "@rstest/adapter-rslib": "^0.10.6",
     "@rstest/core": "catalog:rstack",
     "@types/node": "^24.10.4",
     "typescript": "^5.9.3"

@@ -9,10 +9,10 @@ packages:
 
 catalogs:
   rstack:
-    '@rslib/core': 0.19.2
-    '@rsbuild/core': 1.7.1
-    '@rspack/core': 1.7.0
-    '@rstest/core': 0.7.9
+    '@rslib/core': 0.23.0
+    '@rsbuild/core': 2.1.0
+    '@rspack/core': 2.1.0
+    '@rstest/core': 0.10.6
   adb:
     '@yume-chan/adb': ^2.6.0
     '@yume-chan/adb-server-node-tcp': ^2.5.2
