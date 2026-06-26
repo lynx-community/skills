@@ -2679,7 +2679,7 @@ Expecting one of '${allowedValues.join("', '")}'`);
 const commander = __webpack_require__("../../../node_modules/.pnpm/commander@14.0.3/node_modules/commander/index.js");
 const { DM: esm_program, gu: createCommand, er: createArgument, Ww: createOption, b7: CommanderError, Di: InvalidArgumentError, a2: InvalidOptionArgumentError, uB: Command, ef: Argument, c$: Option, _V: Help } = commander;
 var package_namespaceObject = {
-    rE: "0.13.3"
+    rE: "0.13.4"
 };
 function getAndroidTransportSpec(env) {
     const port = Number.parseInt(env['ADB_SERVER_PORT'] ?? '5037', 10);

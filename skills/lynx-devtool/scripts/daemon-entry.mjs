@@ -325,7 +325,7 @@ class StaticServer {
     }
 }
 var package_namespaceObject = {
-    rE: "0.9.3"
+    rE: "0.9.4"
 };
 const CONNECTOR_VERSION = package_namespaceObject.rE;
 const websocket_server = __webpack_require__("../../../node_modules/.pnpm/ws@8.21.0/node_modules/ws/lib/websocket-server.js");
