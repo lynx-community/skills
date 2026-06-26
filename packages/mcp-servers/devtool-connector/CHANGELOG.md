@@ -1,5 +1,11 @@
 # @lynx-js/devtool-connector
 
+## 0.9.5
+
+### Patch Changes
+
+- 1ff373d: Allow all available Android Apps.
+
 ## 0.9.4
 
 ### Patch Changes
