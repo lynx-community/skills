@@ -14146,16 +14146,6 @@ function android_ts_dispose_resources(env) {
     })(env);
 }
 const android_debug = node_createDebug('devtool-mcp-server:connector:android');
-const KNOWNS_APPS = [
-    {
-        packageName: 'com.lynx.uiapp',
-        name: 'Lynx Example'
-    },
-    {
-        packageName: 'com.lynx.explorer',
-        name: 'Lynx Explorer'
-    }
-];
 class AndroidTransport {
     client;
     constructor(spec = {
@@ -14246,9 +14236,12 @@ class AndroidTransport {
                 'packages',
                 '-3'
             ]);
-            const packages = new Set(output.split('\n').map((line)=>line.replace('package:', '').trim()).filter((i)=>'' !== i));
+            const packages = output.split('\n').map((line)=>line.replace('package:', '').trim()).filter((i)=>'' !== i);
             android_debug("listAvailableApps all packages: %o", packages);
-            return KNOWNS_APPS.filter((app)=>packages.has(app.packageName));
+            return packages.map((packageName)=>({
+                    packageName,
+                    name: packageName
+                }));
         } catch (e) {
             env.error = e;
             env.hasError = true;
@@ -14264,9 +14257,15 @@ class AndroidTransport {
             hasError: false
         };
         try {
-            const apps = await this.listAvailableApps(deviceId);
             const adb = _ts_add_disposable_resource(env, await this.#createAdb(deviceId), true);
-            if (!apps.some((app)=>app.packageName === packageName)) throw new Error(`package ${packageName} not found`);
+            const pmOutput = await adb.subprocess.noneProtocol.spawnWaitText([
+                'pm',
+                'list',
+                'packages',
+                packageName
+            ]);
+            const installed = pmOutput.split('\n').some((line)=>line.trim() === `package:${packageName}`);
+            if (!installed) throw new Error(`package ${packageName} not found`);
             if (withDataCleared) {
                 const output = await adb.subprocess.noneProtocol.spawnWaitText([
                     'pm',
