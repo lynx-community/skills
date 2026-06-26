@@ -13,6 +13,7 @@
     "lynx-devtool": "./scripts/index.mjs"
   },
   "files": [
+    "package.json",
     "SKILL.md",
     "scripts",
     "public",
