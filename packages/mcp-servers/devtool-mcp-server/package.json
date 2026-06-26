@@ -1,6 +1,6 @@
 {
   "name": "@lynx-js/devtool-mcp-server",
-  "version": "0.13.3",
+  "version": "0.13.4",
   "description": "A mcp server that lets coding agents to control, operate and preview Lynx pages.",
   "license": "Apache-2.0",
   "type": "module",
@@ -51,8 +51,6 @@
     "node": ">=18.19"
   },
   "publishConfig": {
-    "main": "./dist/index.js",
-    "types": "./dist/index.d.ts",
     "bin": "./dist/main.js",
     "exports": {
       ".": {
@@ -66,6 +64,8 @@
         "default": "./dist/connector.js"
       },
       "./package.json": "./package.json"
-    }
+    },
+    "main": "./dist/index.js",
+    "types": "./dist/index.d.ts"
   }
 }

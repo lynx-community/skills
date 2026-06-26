@@ -1,6 +1,6 @@
 {
   "name": "@lynx-js/skill-rspeedy-bundle-size",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "Analyze and reduce the bundle size of rspeedy/Lynx (ReactLynx) apps",
   "repository": {
     "url": "https://github.com/lynx-community/skills"
