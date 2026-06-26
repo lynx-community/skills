@@ -1,6 +1,9 @@
 {
   "name": "@lynx-js/skill-lynx-devtool",
   "version": "0.13.4",
+  "repository": {
+    "url": "https://github.com/lynx-community/skills"
+  },
   "type": "module",
   "imports": {
     "#daemon-entry": "./scripts/daemon-entry.mjs"

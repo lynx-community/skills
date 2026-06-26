@@ -1,6 +1,9 @@
 {
   "name": "@lynx-js/devtool-connector",
   "version": "0.9.4",
+  "repository": {
+    "url": "https://github.com/lynx-community/skills"
+  },
   "license": "Apache-2.0",
   "type": "module",
   "imports": {
