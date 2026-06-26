@@ -18,11 +18,6 @@ import type {
 
 const debug = createDebug('devtool-mcp-server:connector:android');
 
-const KNOWNS_APPS: Array<App> = [
-  { packageName: 'com.lynx.uiapp', name: 'Lynx Example' },
-  { packageName: 'com.lynx.explorer', name: 'Lynx Explorer' },
-];
-
 export class AndroidTransport implements Transport {
   protected readonly client: AdbServerClient;
 
@@ -130,15 +125,13 @@ export class AndroidTransport implements Transport {
       'packages',
       '-3', // third-party apps only
     ]);
-    const packages = new Set(
-      output
-        .split('\n')
-        .map((line) => line.replace('package:', '').trim())
-        .filter((i) => i !== ''),
-    );
+    const packages = output
+      .split('\n')
+      .map((line) => line.replace('package:', '').trim())
+      .filter((i) => i !== '');
     debug(`listAvailableApps all packages: %o`, packages);
 
-    return KNOWNS_APPS.filter((app) => packages.has(app.packageName));
+    return packages.map((packageName) => ({ packageName, name: packageName }));
   }
 
   async openApp(
@@ -146,10 +139,18 @@ export class AndroidTransport implements Transport {
     packageName: string,
     { withDataCleared }: OpenAppOptions = {},
   ): Promise<void> {
-    const apps = await this.listAvailableApps(deviceId);
     await using adb = await this.#createAdb(deviceId);
 
-    if (!apps.some((app) => app.packageName === packageName)) {
+    const pmOutput = await adb.subprocess.noneProtocol.spawnWaitText([
+      'pm',
+      'list',
+      'packages',
+      packageName,
+    ]);
+    const installed = pmOutput
+      .split('\n')
+      .some((line) => line.trim() === `package:${packageName}`);
+    if (!installed) {
       throw new Error(`package ${packageName} not found`);
     }
 
