@@ -1,46 +1,46 @@
 {
   "skill_name": "vanilla-lynx",
-  "description": "End-to-end task evals for building Lynx apps directly with vanilla Lynx Element PAPI APIs instead of ReactLynx JSX.",
+  "description": "End-to-end task evals for building Lynx apps directly with vanilla Lynx Element PAPI APIs, Rspeedy native artifacts, and main/background runtime event communication.",
   "evals": [
     {
       "id": 1,
-      "name": "scaffold-template-webpack-layout",
-      "prompt": "我要做一个不用 ReactLynx/JSX 的 Lynx 卡片，直接用 vanilla Lynx Element PAPI。请告诉我 template-webpack 方案下推荐的文件布局和每个文件负责什么。",
-      "expected_output": "A file layout containing `src/main-thread.ts`, `src/background.ts`, `src/style.css`, `src/rspeedy-env.d.ts`, `lynx.config.js`, and `plugin.js`, with responsibilities for main-thread tree creation, background events/data, CSS, types, entry config, and bundle assembly.",
+      "name": "scaffold-native-lynx-artifact-layout",
+      "prompt": "我要做一个不用 ReactLynx/JSX 的 Lynx 卡片，直接用 vanilla Lynx Element PAPI。请按当前 skill 给出可被 Rspeedy 构建成原生 .bundle 的最小项目结构，并说明每个文件负责什么。",
+      "expected_output": "A Rspeedy vanilla Lynx project layout containing `package.json`, `lynx.config.js`, `plugin.js`, `src/card/main-thread.ts`, optional `src/card/background.ts`, `src/card/style.css`, and `src/rspeedy-env.d.ts`, with responsibilities for main-thread Element PAPI tree creation, lifecycle rendering, UI updates, optional background heavier work and patch dispatch, CSS styles, type declarations, entry/plugin configuration, and native `.bundle` artifact generation.",
       "expectations": [
         "The answer explicitly says not to use ReactLynx, JSX, virtual DOM, or browser DOM APIs for this scenario.",
-        "The layout includes a main-thread file such as `src/main-thread.ts` for creating and mutating the Element PAPI tree.",
-        "The layout includes a background file such as `src/background.ts` for data loading and event handling.",
-        "The layout includes a CSS file such as `src/style.css` for common styles.",
-        "The layout mentions `lynx.config.js` and `plugin.js` for template-webpack bundle assembly."
+        "The layout includes `package.json` with Rspeedy build or dev scripts, plus `lynx.config.js` for the Rspeedy entry point and plugins.",
+        "The layout includes `src/card/main-thread.ts` or another `main-thread.ts` entry and says it owns page creation, lifecycle rendering, UI updates, and Element PAPI tree mutation.",
+        "The layout says `background.ts` is optional and should only be added for heavier business logic, async work, timers, native calls, or data processing, with patches sent back to main thread.",
+        "The layout includes a CSS entry, `src/rspeedy-env.d.ts`, and `plugin.js`, and says `plugin.js` splits main/background bundles and emits the native Lynx `.bundle` artifact."
       ],
       "files": []
     },
     {
       "id": 2,
       "name": "main-thread-counter-tree",
-      "prompt": "给我一个 vanilla Lynx main-thread 计数器骨架：创建 page、view、text，点击区域通过事件发给 background，收到 patch 后更新文本并 flush。只要关键代码结构，不要 React 代码。",
-      "expected_output": "A main-thread Element PAPI structure using `__CreatePage`, `__GetElementUniqueID`, `__CreateView`, text creation, `__AppendElement`, patch-driven update, and `__FlushElementTree`.",
+      "prompt": "给我一个 vanilla Lynx main-thread 计数器骨架：主线程创建 page/view/text，监听 engine 生命周期，点击后把任务发给 background，收到 background patch 后更新文本并 flush。只要关键代码结构，不要 React 代码。",
+      "expected_output": "A main-thread entry that uses `lynx.getEngine()` for `__RenderPage`, `__UpdatePage`, and `__DestroyLifetime`, uses Element PAPI APIs on the main thread to create and mutate the tree, uses `lynx.getJSContext()` to communicate with the background thread, flushes only after later updates, and removes runtime listeners during destroy.",
       "expectations": [
-        "The code uses `__CreatePage` to create the page root.",
-        "The code uses `__GetElementUniqueID` and `__CreateView` for child view creation.",
-        "The code uses text creation such as `__CreateRawText` or `__CreateText` and appends it with `__AppendElement`.",
-        "The update path treats incoming background data as a patch or render input for the main thread.",
-        "The code calls `__FlushElementTree()` after creating or updating the tree."
+        "The code uses `lynx.getEngine()` and the engine-defined lifecycle event names `__RenderPage`, `__UpdatePage`, and `__DestroyLifetime` exactly.",
+        "The code creates the UI tree on the main thread with Element PAPI APIs such as `__CreatePage`, `__GetElementUniqueID`, `__CreateView`, `__CreateText` or `__CreateRawText`, and `__AppendElement`.",
+        "The code uses `lynx.getJSContext()` to access the background-thread environment and dispatch a UI task or data event to it.",
+        "The code receives a background patch, mutates existing text or child nodes on the main thread, and calls `__FlushElementTree()` after that later mutation.",
+        "The code does not call `__FlushElementTree()` during initial `renderPage`, and it removes engine or background listeners when `__DestroyLifetime` runs."
       ],
       "files": []
     },
     {
       "id": 3,
       "name": "double-thread-data-sync",
-      "prompt": "vanilla Lynx app 里主线程和后台线程怎么分工？我需要 first-screen data、点击事件、异步更新，然后把 patch 发回主线程。",
-      "expected_output": "An explanation that main thread owns Element PAPI tree mutations and receives `processData`/`updatePage` render input, while background reads init data, handles events, performs async work, and sends patches through the bridge.",
+      "prompt": "vanilla Lynx 双线程数据同步里 main-thread.ts 和 background.ts 怎么分工？请按当前事件 API 说明 first-screen data、点击任务、异步/重计算、patch 回主线程、销毁清理。",
+      "expected_output": "An explanation that main thread owns Element PAPI tree creation, mutation, lifecycle rendering, and UI flushes; main thread uses `lynx.getJSContext()` to forward processed data, UI tasks, and destroy lifecycle to background; background uses `lynx.getCoreContext()` to listen for main-thread messages, run heavier work, keep background-owned state, and dispatch serializable patches back; main thread applies patches and cleanup removes listeners.",
       "expectations": [
-        "The response says the main thread owns UI tree creation and Element PAPI mutations.",
-        "The response says the main thread receives first-screen data or patches through functions such as `processData` and `updatePage`.",
-        "The response says the background thread reads init data and handles events.",
-        "The response says async/native/timer work belongs on the background thread, not in main-thread tree code.",
-        "The response says background updates are sent back to main thread as patches that are merged and flushed."
+        "The response says `main-thread.ts` owns Element PAPI tree creation, node mutation, UI flushes, and engine lifecycle handling for `__RenderPage`, `__UpdatePage`, and `__DestroyLifetime` through `lynx.getEngine()`.",
+        "The response says `main-thread.ts` uses `lynx.getJSContext()` to dispatch processed first-screen or update data, UI tasks, and destroy lifecycle to the background-thread environment.",
+        "The response says `background.ts` uses `lynx.getCoreContext()` to listen for main-thread messages and dispatch `UpdateDataFromBackground` or equivalent serializable patches back.",
+        "The response says heavier async, timer, native, data-processing, or business logic belongs in `background.ts`, and background code must not call Element PAPI APIs or `__FlushElementTree()`.",
+        "The response says main thread applies background patches to Element PAPI nodes, calls `__FlushElementTree()` after later UI mutations, and runtime listeners are removed during destroy."
       ],
       "files": []
     }

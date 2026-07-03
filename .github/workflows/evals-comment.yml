@@ -53,7 +53,7 @@ jobs:
           SKILL_TASK_GRADER_MODEL: ${{ vars.SKILL_EVAL_TASK_GRADER_MODEL }}
           SKILL_TASK_MAX_EVALS_PER_SKILL: ${{ vars.SKILL_EVAL_TASK_MAX_EVALS_PER_SKILL || '1' }}
           SKILL_TASK_MODEL: ${{ vars.SKILL_EVAL_TASK_MODEL }}
-          SKILL_TASK_SKIP_SKILLS: ${{ vars.SKILL_EVAL_TASK_SKIP_SKILLS || 'habitat-usage,vanilla-lynx' }}
+          SKILL_TASK_SKIP_SKILLS: ${{ vars.SKILL_EVAL_TASK_SKIP_SKILLS || 'habitat-usage' }}
           SKILL_TASK_TIMEOUT: ${{ vars.SKILL_EVAL_TASK_TIMEOUT || '300' }}
         run: |
           mkdir -p artifacts
@@ -114,7 +114,7 @@ jobs:
           ARK_MODEL: ${{ vars.SKILL_EVAL_MODEL || vars.ARK_MODEL }}
           SKILL_TRIGGER_MODEL: ${{ vars.SKILL_EVAL_TRIGGER_MODEL }}
           SKILL_TRIGGER_RUNS_PER_QUERY: ${{ vars.SKILL_EVAL_TRIGGER_RUNS_PER_QUERY || '1' }}
-          SKILL_TRIGGER_SKIP_SKILLS: ${{ vars.SKILL_EVAL_TRIGGER_SKIP_SKILLS || vars.SKILL_EVAL_TASK_SKIP_SKILLS || 'habitat-usage,vanilla-lynx' }}
+          SKILL_TRIGGER_SKIP_SKILLS: ${{ vars.SKILL_EVAL_TRIGGER_SKIP_SKILLS || vars.SKILL_EVAL_TASK_SKIP_SKILLS || 'habitat-usage' }}
           SKILL_TRIGGER_TIMEOUT: ${{ vars.SKILL_EVAL_TRIGGER_TIMEOUT || '90' }}
         run: |
           mkdir -p artifacts
