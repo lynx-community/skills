@@ -4,7 +4,7 @@
     "should_trigger": true
   },
   {
-    "query": "template-webpack 里 main-thread.ts、background.ts、style.css 该怎么组织？",
+    "query": "构建原生 Lynx 产物时 main-thread.ts、background.ts、style.css 该怎么组织？",
     "should_trigger": true
   },
   {
