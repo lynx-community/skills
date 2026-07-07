@@ -8,6 +8,7 @@ Read `event.md` for `lynx.getEngine()` and event environment APIs. If the page n
 
 - Create the page root and child nodes with Element PAPI APIs.
 - Apply classes, attributes, inline styles, datasets, and child relationships.
+- Bind lightweight node events on the main thread and remove those listeners during cleanup.
 - Render initial data from `__RenderPage`.
 - Apply later engine data to the UI tree.
 - Rely on the SDK default flush for initial `renderPage`; call `__FlushElementTree()` after later UI mutations.
@@ -32,6 +33,10 @@ Recommended APIs:
 - `__SetDataset` and `__AddDataset`: store metadata for events or lookup.
 - `__AppendElement`: attach a child node.
 - `__ReplaceElements`: replace child ranges during updates.
+- `__GetChildren`: inspect current child nodes before replacement or cleanup.
+- `__AddEventListener`: bind UI events to Element PAPI nodes on the main thread.
+- `__RemoveEventListener`: remove node event listeners during cleanup.
+- `__ElementIsEqual`: compare Element PAPI node references when cleaning listener registries.
 
 Do not use these APIs in main-thread examples or apps:
 
@@ -43,6 +48,9 @@ Do not use these APIs in main-thread examples or apps:
 - `__CreateStyleObject`
 - `__SetStyleObject`
 - `__UpdateStyleObject`
+- `__AddEvent`
+
+Do not use `__AddEvent` to bind UI events. Use `__AddEventListener` and remove the listener with the matching `__RemoveEventListener` call.
 
 ## Build the Tree
 
@@ -74,6 +82,72 @@ const image = __CreateImage(pageId);
 __SetClasses(image, "hero-image");
 __SetAttribute(image, "src", "https://example.com/image.png");
 __AppendElement(container, image);
+```
+
+## Bind Element Events
+
+Bind Element PAPI node events directly on the main thread. Keep the handler lightweight when the event only mutates UI state. If the event needs heavier business logic, async work, timers, or native calls, bind the UI event on the main thread and dispatch a serializable task to the background thread.
+
+Track every listener you add so node replacement and `__DestroyLifetime` cleanup can remove the listener with the same node, event name, handler, and options object. The `bindBackgroundEvent` helper uses the `dispatchTaskToBackground` function shown in [Background-Driven Update](#background-driven-update).
+
+```javascript
+const elementEventListeners = [];
+
+function bindMainThreadEvent(node, name, handler, eventOptions = {}) {
+  __AddEventListener(node, name, handler, eventOptions);
+  elementEventListeners.push({ node, name, handler, eventOptions });
+}
+
+function bindBackgroundEvent(node, name, handlerName, data) {
+  bindMainThreadEvent(node, name, () => {
+    dispatchTaskToBackground(handlerName, data);
+  });
+}
+
+function clearNodeEvents(element) {
+  for (const child of __GetChildren(element)) {
+    clearNodeEvents(child);
+  }
+
+  for (let index = elementEventListeners.length - 1; index >= 0; index -= 1) {
+    const listener = elementEventListeners[index];
+    if (!__ElementIsEqual(listener.node, element)) continue;
+
+    elementEventListeners.splice(index, 1);
+    __RemoveEventListener(
+      listener.node,
+      listener.name,
+      listener.handler,
+      listener.eventOptions,
+    );
+  }
+}
+
+function clearNodesEvents(elements) {
+  for (const element of elements) {
+    clearNodeEvents(element);
+  }
+}
+
+function clearAllEvents() {
+  const currentListeners = elementEventListeners.splice(0);
+  for (const { node, name, handler, eventOptions } of currentListeners) {
+    __RemoveEventListener(node, name, handler, eventOptions);
+  }
+}
+```
+
+Use the helpers when creating tappable or interactive nodes:
+
+```javascript
+bindMainThreadEvent(actionArea, "tap", () => {
+  updatePage({ value: "Submitted" });
+});
+
+bindBackgroundEvent(actionArea, "longpress", "computeSummary", [
+  { value: 3 },
+  { value: 4 },
+]);
 ```
 
 ## Render and Update Drivers
@@ -151,6 +225,7 @@ function cleanup() {
   engine.removeEventListener(renderPageEventName, onRenderPage);
   engine.removeEventListener(updatePageEventName, onUpdatePage);
   engine.removeEventListener(destroyLifetimeEventName, cleanup);
+  clearAllEvents();
   valueText = undefined;
 }
 
