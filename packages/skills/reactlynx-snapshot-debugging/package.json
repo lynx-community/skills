@@ -1,0 +1,23 @@
+{
+  "name": "@lynx-js/skill-reactlynx-snapshot-debugging",
+  "version": "0.0.0",
+  "description": "Diagnose and fix ReactLynx 3 (RL3) Snapshot runtime errors such as 'snapshotPatchApply failed: ctx not found' and 'Snapshot not found', using dual-thread hydrate/snapshotPatch analysis.",
+  "repository": {
+    "url": "https://github.com/lynx-community/skills"
+  },
+  "type": "module",
+  "files": [
+    "SKILL.md",
+    "scripts",
+    "references",
+    "examples",
+    "reference.md",
+    "examples.md",
+    "rules"
+  ],
+  "scripts": {},
+  "devDependencies": {},
+  "engines": {
+    "node": ">=18"
+  }
+}

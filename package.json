@@ -46,6 +46,7 @@
     "@lynx-js/skill-lynx-typescript": "workspace:*",
     "@lynx-js/skill-lynx-ui": "3.133.4",
     "@lynx-js/skill-reactlynx-best-practices": "workspace:*",
+    "@lynx-js/skill-reactlynx-snapshot-debugging": "workspace:*",
     "@lynx-js/skill-rspeedy-bundle-size": "workspace:*",
     "@lynx-js/skill-vanilla-lynx": "workspace:*"
   },

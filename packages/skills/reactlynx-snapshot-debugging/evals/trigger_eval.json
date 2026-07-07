@@ -1,0 +1,38 @@
+[
+  {
+    "query": "ReactLynx 报 snapshotPatchApply failed: ctx not found, snapshot type: '__Card__:__snapshot_d9459_61989_1'，怎么修？",
+    "should_trigger": true
+  },
+  {
+    "query": "线上报 Error: Snapshot not found: __Card__:__snapshot_d6204_98358_1，本地没问题，帮我排查。",
+    "should_trigger": true
+  },
+  {
+    "query": "RL3 页面 hydrate 之后白屏，后台线程报 cannot read property '0' of undefined，主线程也有报错，怎么定位根因？",
+    "should_trigger": true
+  },
+  {
+    "query": "怎么打印 ReactLynx 双线程通信里的 OnLifecycleEvent SnapshotInstance 树和 rLynxChange 的 snapshotPatch？",
+    "should_trigger": true
+  },
+  {
+    "query": "帮我把这个 snapshotPatch 数组反解成可读的操作列表。",
+    "should_trigger": true
+  },
+  {
+    "query": "ReactLynx 里 useLayoutEffect 为什么不适合做布局测量？",
+    "should_trigger": false
+  },
+  {
+    "query": "帮我用 vanilla Lynx Element PAPI 写一个计数器卡片。",
+    "should_trigger": false
+  },
+  {
+    "query": "Lynx DevTool 怎么拉 console 日志？",
+    "should_trigger": false
+  },
+  {
+    "query": "帮我把 rspeedy 的包体积优化一下。",
+    "should_trigger": false
+  }
+]

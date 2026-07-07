@@ -1,0 +1,48 @@
+{
+  "skill_name": "reactlynx-snapshot-debugging",
+  "description": "Task evals for diagnosing and fixing ReactLynx 3 Snapshot runtime errors (ctx not found / Snapshot not found) via dual-thread hydrate and snapshotPatch analysis.",
+  "evals": [
+    {
+      "id": 1,
+      "name": "ctx-not-found-root-cause",
+      "prompt": "我的 ReactLynx 3 页面白屏，日志里主线程先报 not a function，后台线程在 hydrate 时报 cannot read property '0' of undefined，最后主线程报 snapshotPatchApply failed: ctx not found, snapshot type: '__Card__:__snapshot_d9459_61989_1'。怎么排查和修复？",
+      "expected_output": "An explanation that ctx not found is a downstream symptom: the real root cause is the earlier main-thread 'not a function' crash which leaves the main-thread SnapshotInstance tree empty and breaks hydrate, so subsequent snapshotPatchApply cannot find the ctx. Guidance to rule out the upstream error first, use the Lynx debugger's 'Stop at Entry' (main-thread / MTS) to find the real main-thread throw location, and gate background-only code (e.g. wrap the offending call in `if (__BACKGROUND__) { ... }`) so unsupported native/JSB code is not bundled into the main thread.",
+      "expectations": [
+        "The answer says ctx not found is usually a secondary symptom and the first/earlier non-snapshot error (the main-thread 'not a function') must be found and fixed first.",
+        "The answer explains that a main-thread crash prevents createSnapshot definitions from running so the main-thread SnapshotInstance tree ends up empty (only root), and that a background hydrate throw breaks subsequent snapshotPatchApply.",
+        "The answer recommends enabling the Lynx debugger's 'Stop at Entry' (main-thread / MTS) and reloading to get accurate main-thread line/column numbers for the real throw.",
+        "The answer recommends gating background-only / unsupported-on-main-thread code (for example wrapping it in `if (__BACKGROUND__) { ... }`, or its deprecated alias `__JS__`) so it is not compiled into the main-thread bundle.",
+        "The answer identifies snapshotPatchApply as the throw site and does not claim the fix is inside snapshotPatchApply itself."
+      ],
+      "files": []
+    },
+    {
+      "id": 2,
+      "name": "snapshot-not-found-investigation",
+      "prompt": "ReactLynx 3 线上报 Error: Snapshot not found: __Card__:__snapshot_d6204_98358_1，但本地开发没问题。这是什么原因，怎么查？",
+      "expected_output": "An explanation that 'Snapshot not found' throws in the SnapshotInstance constructor because the Snapshot definition for that type is not registered, and that a prod-only reproduction points at a compile/bundling problem. Guidance to first rule out an earlier main-thread crash, then grep the built lepus.js/main-thread.js for the exact snapshot type string; if absent it is a build/bundling issue, if present analyze OnLifecycleEvent/rLynxChange traffic; escalate upstream with a minimal reproduction if unresolved.",
+      "expectations": [
+        "The answer says the error throws in the SnapshotInstance constructor and means the Snapshot definition (the type) is missing/not registered, distinct from ctx not found.",
+        "The answer says to first rule out another main-thread error that terminates the bundle early and drops later createSnapshot definitions.",
+        "The answer tells the user to search the built main-thread output (lepus.js / main-thread.js) for the exact type '__snapshot_d6204_98358_1'.",
+        "The answer says a dev-passes / prod-fails pattern indicates a compile or bundling problem, and that if the type is present at build time the next step is analyzing OnLifecycleEvent and rLynxChange.",
+        "The answer suggests escalating upstream (e.g. a lynx-stack issue with a minimal reproduction) for complex/unresolved cases."
+      ],
+      "files": []
+    },
+    {
+      "id": 3,
+      "name": "decode-snapshot-patch-and-instrument",
+      "prompt": "我想搞清楚 ReactLynx 3 后台线程发给主线程的 snapshotPatch 到底做了什么，比如 [0, \"__Card__:__snapshot_fffe1_test_3\", 2, 0, \"__Card__:__snapshot_fffe1_test_4\", 7, 1, 2, 7, null, 1, -1, 2, null]。怎么反解？还有怎么打印双线程通信数据？",
+      "expected_output": "A decoding of the flat snapshotPatch using the opcode table (0=CreateElement[type,id], 1=InsertBefore[parentId,childId,beforeId], 2=RemoveChild, 3=SetAttribute, 4=SetAttributes), yielding CreateElement id 2, CreateElement id 7, InsertBefore child 7 into parent 2, InsertBefore child 2 into parent -1 (root). Plus guidance to install the entry-file instrumentation that wraps OnLifecycleEvent (main->background SnapshotInstance tree) and rLynxChange (background->main snapshotPatch, pretty-formatted) and logs Element PAPI calls.",
+      "expectations": [
+        "The answer decodes the array as a sequence of ops by reading one opcode then consuming its parameters, producing at least: CreateElement id 2, CreateElement id 7, InsertBefore into parent 2, InsertBefore into parent -1.",
+        "The answer gives the opcode meanings, at minimum 0=CreateElement, 1=InsertBefore, 2=RemoveChild, 3=SetAttribute, 4=SetAttributes.",
+        "The answer notes parentId -1 is the root.",
+        "The answer explains you can instrument the entry (index.tsx) to wrap OnLifecycleEvent and rLynxChange to print the SnapshotInstance tree and the pretty-formatted snapshotPatch.",
+        "The answer connects a missing CreateElement for a referenced id to the ctx not found error."
+      ],
+      "files": []
+    }
+  ]
+}

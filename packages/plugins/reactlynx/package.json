@@ -18,7 +18,8 @@
     "build": "build-plugin"
   },
   "dependencies": {
-    "@lynx-js/skill-reactlynx-best-practices": "workspace:*"
+    "@lynx-js/skill-reactlynx-best-practices": "workspace:*",
+    "@lynx-js/skill-reactlynx-snapshot-debugging": "workspace:*"
   },
   "devDependencies": {
     "build-plugin": "workspace:*"
