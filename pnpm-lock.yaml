@@ -36,6 +36,9 @@ importers:
       '@lynx-js/skill-habitat-usage':
         specifier: workspace:*
         version: link:packages/skills/habitat-usage
+      '@lynx-js/skill-lynx-a2ui':
+        specifier: workspace:*
+        version: link:packages/skills/lynx-a2ui
       '@lynx-js/skill-lynx-debug-info-remapping':
         specifier: workspace:*
         version: link:packages/skills/lynx-debug-info-remapping
@@ -271,6 +274,8 @@ importers:
       obug:
         specifier: ^2.1.3
         version: 2.1.3
+
+  packages/skills/lynx-a2ui: {}
 
   packages/skills/lynx-typescript: {}
 

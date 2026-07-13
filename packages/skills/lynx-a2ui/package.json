@@ -1,0 +1,20 @@
+{
+  "name": "@lynx-js/skill-lynx-a2ui",
+  "version": "0.0.0",
+  "description": "Generate A2UI v0.9 JSON protocol messages for Lynx GenUI.",
+  "repository": {
+    "url": "https://github.com/lynx-community/skills"
+  },
+  "type": "module",
+  "files": [
+    "package.json",
+    "SKILL.md"
+  ],
+  "scripts": {
+    "build": "node src/sync-from-lynx-stack.mjs",
+    "sync": "node src/sync-from-lynx-stack.mjs"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
