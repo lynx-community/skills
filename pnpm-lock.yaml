@@ -39,6 +39,9 @@ importers:
       '@lynx-js/skill-lynx-a2ui':
         specifier: workspace:*
         version: link:packages/skills/lynx-a2ui
+      '@lynx-js/skill-lynx-check-css-support':
+        specifier: workspace:*
+        version: link:packages/skills/lynx-check-css-support
       '@lynx-js/skill-lynx-debug-info-remapping':
         specifier: workspace:*
         version: link:packages/skills/lynx-debug-info-remapping
@@ -239,6 +242,33 @@ importers:
         specifier: ^5.9.3
         version: 5.9.3
 
+  packages/skills/lynx-a2ui: {}
+
+  packages/skills/lynx-check-css-support:
+    dependencies:
+      '@lynx-js/css-defines':
+        specifier: 0.0.16
+        version: 0.0.16
+    devDependencies:
+      '@rslib/core':
+        specifier: catalog:rstack
+        version: 0.23.0(@microsoft/api-extractor@7.56.2(@types/node@24.13.2))(core-js@3.49.0)(typescript@5.9.3)
+      '@types/node':
+        specifier: ^24.10.4
+        version: 24.13.2
+      commander:
+        specifier: ^13.1.0
+        version: 13.1.0
+      ky:
+        specifier: ^1.14.3
+        version: 1.14.3
+      typescript:
+        specifier: ^5.9.3
+        version: 5.9.3
+      zod:
+        specifier: ^4.3.5
+        version: 4.4.3
+
   packages/skills/lynx-debug-info-remapping:
     devDependencies:
       '@rslib/core':
@@ -274,8 +304,6 @@ importers:
       obug:
         specifier: ^2.1.3
         version: 2.1.3
-
-  packages/skills/lynx-a2ui: {}
 
   packages/skills/lynx-typescript: {}
 
@@ -770,6 +798,9 @@ packages:
     resolution: {integrity: sha512-wgm9Ehl2jpeqP3zw/7mo3kRHFp5MEDhqAdwy1fTGkHAwnkGOVsgpvQhL8B5n1qlb01jV3n/bI0ZfZp5lWA1k4w==}
     engines: {node: '>=18.0.0'}
 
+  '@lynx-js/css-defines@0.0.16':
+    resolution: {integrity: sha512-eeOzMWp4bO1y1gd+uMthaRr3HPaWjWsR92CTPjiaSS4JUqX92mM17pG97MNe+OFeHTm5ltIBjhCJa8TuE3ir5w==}
+
   '@lynx-js/skill-lynx-trace-analysis@0.0.6':
     resolution: {integrity: sha512-2vvoMidxnmaxxtrkLFOXy6GK7nXtWC5m7dqLWPacnHm7FmNBRjVPrQCC49v5X8tAcuN2LQjkcTu+ebIYvfq4/w==}
     engines: {node: '>=18'}
@@ -1248,6 +1279,10 @@ packages:
 
   colorette@2.0.20:
     resolution: {integrity: sha512-IfEDxwoWIjkeXL1eXcDiow4UbKjhLdq6/EuSVR9GMN7KVH3r9gQ83e73hsz1Nd1T3ijd5xv1wcWRYO+D6kCI2w==}
+
+  commander@13.1.0:
+    resolution: {integrity: sha512-/rFeCpNJQbhSZjGVwO9RFV3xPqbnERS8MmIQzCtD/zl6gpJuV/bMLuN92oG3F7d8oDEHHRrujSXNUr8fpjntKw==}
+    engines: {node: '>=18'}
 
   commander@14.0.3:
     resolution: {integrity: sha512-H+y0Jo/T1RZ9qPP4Eh1pkcQcLRglraJaSLoyOtHxu6AapkjWVCy2Sit1QQ4x3Dng8qDlSsZEet7g5Pq06MvTgw==}
@@ -1733,6 +1768,10 @@ packages:
 
   keyv@4.5.4:
     resolution: {integrity: sha512-oxVHkHR/EJf2CNXnWxRLW6mg7JyCCUcG0DtEGmL2ctUo1PNTin1PUil+r/+4r5MpVgC/fn1kjsx7mjSujKqIpw==}
+
+  ky@1.14.3:
+    resolution: {integrity: sha512-9zy9lkjac+TR1c2tG+mkNSVlyOpInnWdSMiue4F+kq8TwJSgv6o8jhLRg8Ho6SnZ9wOYUq/yozts9qQCfk7bIw==}
+    engines: {node: '>=18'}
 
   levn@0.4.1:
     resolution: {integrity: sha512-+bT2uH4E5LGE7h/n3evcS/sQlJXCpIp6ym8OWJ5eV6+67Dsql/LaaT7qJBAt2rzfoa/5QBGBhxDix1dMt2kQKQ==}
@@ -2382,6 +2421,9 @@ packages:
   zod@3.25.76:
     resolution: {integrity: sha512-gzUt/qt81nXsFGKIFcC3YnfEAx5NkunCfnDlvuBSSFS02bcXu4Lmea0AFIUwbLWxWPx3d9p8S5QoaujKcNQxcQ==}
 
+  zod@4.4.3:
+    resolution: {integrity: sha512-ytENFjIJFl2UwYglde2jchW2Hwm4GJFLDiSXWdTrJQBIN9Fcyp7n4DhxJEiWNAJMV1/BqWfW/kkg71UDcHJyTQ==}
+
   zx@8.8.5:
     resolution: {integrity: sha512-SNgDF5L0gfN7FwVOdEFguY3orU5AkfFZm9B5YSHog/UDHv+lvmd82ZAsOenOkQixigwH2+yyH198AwNdKhj+RA==}
     engines: {node: '>= 12.17.0'}
@@ -2786,6 +2828,8 @@ snapshots:
   '@isaacs/fs-minipass@4.0.1':
     dependencies:
       minipass: 7.1.2
+
+  '@lynx-js/css-defines@0.0.16': {}
 
   '@lynx-js/skill-lynx-trace-analysis@0.0.6': {}
 
@@ -3498,6 +3542,8 @@ snapshots:
 
   colorette@2.0.20: {}
 
+  commander@13.1.0: {}
+
   commander@14.0.3: {}
 
   concat-map@0.0.1: {}
@@ -3996,6 +4042,8 @@ snapshots:
   keyv@4.5.4:
     dependencies:
       json-buffer: 3.0.1
+
+  ky@1.14.3: {}
 
   levn@0.4.1:
     dependencies:
@@ -4582,5 +4630,7 @@ snapshots:
       zod: 3.25.76
 
   zod@3.25.76: {}
+
+  zod@4.4.3: {}
 
   zx@8.8.5: {}

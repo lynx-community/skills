@@ -1,0 +1,76 @@
+{
+  "skill_name": "lynx-check-css-support",
+  "description": "End-to-end task evals for querying @lynx-js/css-defines compatibility data, interpreting backend/version availability, and routing behavioral CSS questions to the official Lynx documentation.",
+  "evals": [
+    {
+      "id": 1,
+      "name": "android-grid-before-minimum-version",
+      "prompt": "I am targeting Lynx 2.0 on Android and want to use `display: grid`. Check the published compatibility data and tell me whether I can use it. Include the minimum supported version and the data package version you consulted.",
+      "expected_output": "A CLI-backed answer stating that display.grid requires Lynx 2.1 on Android, so it is not yet available in Lynx 2.0, together with the queried @lynx-js/css-defines version.",
+      "expectations": [
+        "The response runs or cites the bundled query for property `display`, feature `grid`, backend `android`, and Lynx version `2.0`.",
+        "The result is reported as `requires-newer-version`, not available or unsupported.",
+        "The published minimum `version_added` is reported as Lynx 2.1.",
+        "The answer mentions the @lynx-js/css-defines version shown by the script.",
+        "The answer does not use the definition-level or value-level version as backend compatibility evidence."
+      ],
+      "files": []
+    },
+    {
+      "id": 2,
+      "name": "compare-brightness-backends",
+      "prompt": "Compare the `brightness` feature of the Lynx CSS `filter` property across every rendering backend. I did not specify a target Lynx version, so give me each backend's published minimum or non-numeric support marker and identify the package version used.",
+      "expected_output": "A complete all-backend compatibility comparison for filter.brightness using the bundled CLI, preserving numeric minimum versions and boolean support markers.",
+      "expectations": [
+        "The response queries property `filter` with feature `brightness` and does not restrict the query to one backend.",
+        "Android, iOS, Harmony, and the published Clay backends are reported with `version_added` 3.6.",
+        "WebLynx is reported with the published boolean marker `true`, without inventing a numeric minimum.",
+        "The response explains that `available` without a target means supported at some version, while still reporting the minimum version values.",
+        "The answer mentions the @lynx-js/css-defines version shown by the script."
+      ],
+      "files": []
+    },
+    {
+      "id": 3,
+      "name": "support-and-semantics-routing",
+      "prompt": "For a ReactLynx page targeting Android Lynx 2.0, tell me whether `display: grid` is supported and also explain exactly how Lynx grid sizes implicit rows compared with browsers.",
+      "expected_output": "A compatibility result obtained from the bundled CLI, followed by an explicit handoff to the official Lynx documentation for behavioral grid semantics rather than inferring browser parity from compat_data.",
+      "expectations": [
+        "The support portion is answered from the bundled compatibility CLI for display.grid on Android Lynx 2.0.",
+        "The response reports `requires-newer-version` with minimum Lynx 2.1.",
+        "The response states that compat_data establishes declared availability but not complete runtime or browser behavioral parity.",
+        "The behavioral question is routed to the official Lynx documentation instead of being answered from compatibility data alone.",
+        "The answer mentions the @lynx-js/css-defines version shown by the script."
+      ],
+      "files": []
+    },
+    {
+      "id": 4,
+      "name": "report-deprecated-compatibility-status",
+      "prompt": "Check the `support_linear_orientation` compatibility feature of the Lynx CSS property `linear-direction` across backends. I also need to know whether the selected compatibility entry is deprecated or experimental, and which @lynx-js/css-defines version supplied the answer.",
+      "expected_output": "A CLI-backed compatibility answer that visibly warns that linear-direction.support_linear_orientation is deprecated, preserves its backend support data, and identifies the queried package version.",
+      "expectations": [
+        "The response queries the bundled CLI for property `linear-direction` and feature `support_linear_orientation` rather than inferring support from documentation or TypeScript types.",
+        "The selected compatibility status is reported as deprecated.",
+        "The response does not claim that the selected compatibility entry is experimental because its published experimental flag is false.",
+        "Backend availability and version_added values are preserved independently from the deprecation warning.",
+        "The answer mentions the @lynx-js/css-defines version shown by the script."
+      ],
+      "files": []
+    },
+    {
+      "id": 5,
+      "name": "check-dataset-freshness",
+      "prompt": "Check whether this skill's bundled @lynx-js/css-defines dataset is current. Do not download, install, cache, or modify any dataset files; just report the bundled and latest published versions.",
+      "expected_output": "A version-only update check using the bundled CLI's --check-updates option, reporting both versions and whether a reviewed skill update is available without changing local data.",
+      "expectations": [
+        "The response runs the bundled CLI with `--check-updates` rather than querying a CSS property.",
+        "The answer reports the bundled @lynx-js/css-defines version.",
+        "The answer reports the latest numeric version returned by the public npm registry.",
+        "The response states whether an update is available.",
+        "The response does not download, install, cache, or treat the newer dataset contents as compatibility evidence."
+      ],
+      "files": []
+    }
+  ]
+}

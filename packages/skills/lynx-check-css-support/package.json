@@ -1,0 +1,33 @@
+{
+  "name": "@lynx-js/skill-lynx-check-css-support",
+  "version": "0.0.0",
+  "description": "Check Lynx CSS support by property, feature, backend, and Lynx version",
+  "repository": {
+    "url": "https://github.com/lynx-community/skills"
+  },
+  "type": "module",
+  "files": [
+    "SKILL.md",
+    "agents",
+    "scripts"
+  ],
+  "scripts": {
+    "build": "rslib build && node build.mjs",
+    "test": "pnpm typecheck && pnpm build && node --test test/*.test.mjs",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@lynx-js/css-defines": "0.0.16"
+  },
+  "devDependencies": {
+    "@rslib/core": "catalog:rstack",
+    "@types/node": "^24.10.4",
+    "commander": "^13.1.0",
+    "ky": "^1.14.3",
+    "typescript": "^5.9.3",
+    "zod": "^4.3.5"
+  },
+  "engines": {
+    "node": ">=18.17"
+  }
+}

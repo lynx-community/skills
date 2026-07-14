@@ -5,6 +5,7 @@ A collection of [Agent skills](https://agentskills.io/) for [Lynx](https://lynxj
 ## Available Skills
 
 - [reactlynx-best-practices](./packages/skills/reactlynx-best-practices): ReactLynx dual-thread best practices, static analysis, and auto-fixes.
+- [lynx-check-css-support](./packages/skills/lynx-check-css-support): Check Lynx CSS property and feature support by backend and Lynx version.
 - [lynx-debug-info-remapping](./packages/skills/lynx-debug-info-remapping): Remap `function_id:pc_index` runtime errors to original source positions with `debug-info.json`.
 - [lynx-devtool](./packages/skills/lynx-devtool): Inspect and debug Lynx apps through DevTool CLI, CDP/App commands, console logs, sources, and screenshots.
 - [lynx-trace-analysis](https://www.npmjs.com/package/@lynx-js/skill-lynx-trace-analysis): Analyze Lynx traces to diagnose loading, rendering, smoothness, and native module performance issues.
