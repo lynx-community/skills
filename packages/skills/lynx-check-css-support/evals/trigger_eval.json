@@ -1,0 +1,74 @@
+[
+  {
+    "query": "Does Lynx 2.0 on Android support `display: grid`, and what is the minimum supported Lynx version?",
+    "should_trigger": true
+  },
+  {
+    "query": "Compare `filter: brightness()` support across Android, iOS, Harmony, Clay, and WebLynx backends.",
+    "should_trigger": true
+  },
+  {
+    "query": "Check the `gap` compat_data feature named `Flex` for Harmony and tell me its version_added value.",
+    "should_trigger": true
+  },
+  {
+    "query": "Before I ship this ReactLynx style change, verify whether `transform.rotateX` is available on clay_android in Lynx 3.2.",
+    "should_trigger": true
+  },
+  {
+    "query": "Inspect the raw @lynx-js/css-defines JSON for `clip-path.circle()` and summarize its backend compatibility.",
+    "should_trigger": true
+  },
+  {
+    "query": "这个 Lynx 页面要用 `text-decoration-thickness`，请查一下 Harmony 3.4 是否支持，以及最低版本是多少。",
+    "should_trigger": true
+  },
+  {
+    "query": "Which Lynx rendering backends explicitly mark the `display.unsupported_value` compatibility feature as false or unknown?",
+    "should_trigger": true
+  },
+  {
+    "query": "The compat data mentions a targetSdkVersion condition for this CSS feature. Query it and preserve the exact condition in the answer.",
+    "should_trigger": true
+  },
+  {
+    "query": "Is the bundled @lynx-js/css-defines dataset current, or has a newer version been published? Check without installing anything.",
+    "should_trigger": true
+  },
+  {
+    "query": "How does `display: grid` place and size child nodes in Lynx? I need layout semantics, not a backend or version support check.",
+    "should_trigger": false
+  },
+  {
+    "query": "Show me the Lynx syntax and a complete usage example for `grid-template-columns` with two responsive columns.",
+    "should_trigger": false
+  },
+  {
+    "query": "Why does margin collapsing behave differently between browsers and Lynx, and how should I rewrite the layout?",
+    "should_trigger": false
+  },
+  {
+    "query": "What is the default value of `display` in Lynx, and what is the behavioral difference between `linear` and `flex`?",
+    "should_trigger": false
+  },
+  {
+    "query": "Find the Lynx API documentation for the `filter` property and explain what the `blur()` function does.",
+    "should_trigger": false
+  },
+  {
+    "query": "TypeScript says `gridTemplateColumns` is not assignable to CSSProperties in my ReactLynx component. How should I fix the types?",
+    "should_trigger": false
+  },
+  {
+    "query": "Can I use CSS subgrid in Chrome and Safari today? Please compare current browser support.",
+    "should_trigger": false
+  },
+  {
+    "query": "My Lynx grid renders with overlapping children even though the property is recognized. Help me debug the layout implementation.",
+    "should_trigger": false
+  },
+  {
+    "query": "Update every npm dependency in my repository to its latest version and fix the lockfile.",
+    "should_trigger": false
+  }
+]
