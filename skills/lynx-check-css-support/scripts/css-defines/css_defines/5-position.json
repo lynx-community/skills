@@ -1,0 +1,258 @@
+{
+  "name": "position",
+  "id": 5,
+  "type": "enum",
+  "default_value": "relative",
+  "version": "1.0",
+  "desc": "The `position` CSS property sets how an element is positioned in a document.",
+  "author": "wangzhixuan",
+  "consumption_status": "layout-only",
+  "values": [
+    {
+      "value": "absolute",
+      "version": "1.0",
+      "desc": ""
+    },
+    {
+      "value": "relative",
+      "version": "1.0",
+      "desc": ""
+    },
+    {
+      "value": "fixed",
+      "version": "1.0",
+      "desc": ""
+    },
+    {
+      "value": "sticky",
+      "version": "1.4",
+      "desc": ""
+    }
+  ],
+  "formal_syntax": "absolute | relative | fixed | sticky",
+  "compat_data": {
+    "position": {
+      "__compat": {
+        "lynx_path": "docs/zh/api/css/css-style/position",
+        "mdn_url": "https://developer.mozilla.org/zh-CN/docs/Web/CSS/position",
+        "spec_url": [],
+        "status": {
+          "deprecated": false,
+          "experimental": false
+        },
+        "support": {
+          "android": {
+            "notes": "",
+            "version_added": "1.0"
+          },
+          "ios": {
+            "notes": "",
+            "version_added": "1.0"
+          },
+          "harmony": {
+            "notes": "",
+            "version_added": "3.4"
+          },
+          "clay_android": {
+            "version_added": "1.0"
+          },
+          "clay_ios": {
+            "version_added": "1.0"
+          },
+          "clay_macos": {
+            "version_added": "1.0"
+          },
+          "clay_windows": {
+            "version_added": "1.0"
+          },
+          "web_lynx": {
+            "version_added": true
+          }
+        }
+      },
+      "relative": {
+        "__compat": {
+          "status": {
+            "deprecated": false,
+            "experimental": false
+          },
+          "support": {
+            "android": {
+              "notes": "",
+              "version_added": "1.0"
+            },
+            "ios": {
+              "notes": "",
+              "version_added": "1.0"
+            },
+            "harmony": {
+              "notes": "",
+              "version_added": "3.4"
+            },
+            "clay_android": {
+              "version_added": "1.0"
+            },
+            "clay_ios": {
+              "version_added": "1.0"
+            },
+            "clay_macos": {
+              "version_added": "1.0"
+            },
+            "clay_windows": {
+              "version_added": "1.0"
+            },
+            "web_lynx": {
+              "version_added": true
+            }
+          }
+        }
+      },
+      "absolute": {
+        "__compat": {
+          "status": {
+            "deprecated": false,
+            "experimental": false
+          },
+          "support": {
+            "android": {
+              "notes": "",
+              "version_added": "1.0"
+            },
+            "ios": {
+              "notes": "",
+              "version_added": "1.0"
+            },
+            "harmony": {
+              "notes": "",
+              "version_added": "3.4"
+            },
+            "clay_android": {
+              "version_added": "1.0"
+            },
+            "clay_ios": {
+              "version_added": "1.0"
+            },
+            "clay_macos": {
+              "version_added": "1.0"
+            },
+            "clay_windows": {
+              "version_added": "1.0"
+            },
+            "web_lynx": {
+              "version_added": true
+            }
+          }
+        }
+      },
+      "fixed": {
+        "__compat": {
+          "status": {
+            "deprecated": false,
+            "experimental": false
+          },
+          "support": {
+            "android": {
+              "notes": "",
+              "version_added": "1.0"
+            },
+            "ios": {
+              "notes": "",
+              "version_added": "1.0"
+            },
+            "harmony": {
+              "notes": "",
+              "version_added": "3.4"
+            },
+            "clay_android": {
+              "version_added": "1.0"
+            },
+            "clay_ios": {
+              "version_added": "1.0"
+            },
+            "clay_macos": {
+              "version_added": "1.0"
+            },
+            "clay_windows": {
+              "version_added": "1.0"
+            },
+            "web_lynx": {
+              "version_added": true
+            }
+          }
+        }
+      },
+      "sticky": {
+        "__compat": {
+          "status": {
+            "deprecated": false,
+            "experimental": false
+          },
+          "support": {
+            "android": {
+              "notes": "",
+              "version_added": "1.4"
+            },
+            "ios": {
+              "notes": "",
+              "version_added": "1.4"
+            },
+            "harmony": {
+              "notes": "",
+              "version_added": "3.4"
+            },
+            "clay_android": {
+              "version_added": "1.4"
+            },
+            "clay_ios": {
+              "version_added": "1.4"
+            },
+            "clay_macos": {
+              "version_added": "1.4"
+            },
+            "clay_windows": {
+              "version_added": "1.4"
+            },
+            "web_lynx": {
+              "version_added": true
+            }
+          }
+        }
+      },
+      "static": {
+        "__compat": {
+          "status": {
+            "deprecated": false,
+            "experimental": false
+          },
+          "support": {
+            "android": {
+              "notes": "",
+              "version_added": false
+            },
+            "ios": {
+              "notes": "",
+              "version_added": false
+            },
+            "harmony": {
+              "notes": "",
+              "version_added": false
+            },
+            "clay_android": {
+              "version_added": false
+            },
+            "clay_ios": {
+              "version_added": false
+            },
+            "clay_macos": {
+              "version_added": false
+            },
+            "clay_windows": {
+              "version_added": false
+            }
+          }
+        }
+      }
+    }
+  },
+  "is_shorthand": false
+}

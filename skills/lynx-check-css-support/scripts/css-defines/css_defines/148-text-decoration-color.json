@@ -1,0 +1,11 @@
+{
+  "name": "text-decoration-color",
+  "id": 148,
+  "type": "color",
+  "default_value": "black",
+  "version": "1.0",
+  "author": "tangruiwen",
+  "consumption_status": "skip",
+  "desc": "",
+  "is_shorthand": false
+}

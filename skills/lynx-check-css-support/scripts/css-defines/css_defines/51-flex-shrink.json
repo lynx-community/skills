@@ -1,0 +1,54 @@
+{
+  "name": "flex-shrink",
+  "id": 51,
+  "type": "number",
+  "default_value": "1",
+  "version": "1.0",
+  "author": "wangzhixuan",
+  "consumption_status": "layout-only",
+  "desc": "Defines the shrink factor of the flex element on the main axis.",
+  "compat_data": {
+    "flex-shrink": {
+      "__compat": {
+        "lynx_path": "api/css/properties/flex-shrink",
+        "mdn_url": "https://developer.mozilla.org/zh-CN/docs/Web/CSS/flex-shrink",
+        "spec_url": [],
+        "status": {
+          "deprecated": false,
+          "experimental": false
+        },
+        "support": {
+          "android": {
+            "notes": "",
+            "version_added": "1.0"
+          },
+          "ios": {
+            "notes": "",
+            "version_added": "1.0"
+          },
+          "harmony": {
+            "notes": "",
+            "version_added": "3.4"
+          },
+          "clay_android": {
+            "version_added": "1.0"
+          },
+          "clay_ios": {
+            "version_added": "1.0"
+          },
+          "clay_macos": {
+            "version_added": "1.0"
+          },
+          "clay_windows": {
+            "version_added": "1.0"
+          },
+          "web_lynx": {
+            "version_added": true
+          }
+        }
+      }
+    }
+  },
+  "is_shorthand": false,
+  "formal_syntax": "<number [0,∞]>"
+}
