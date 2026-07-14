@@ -1,6 +1,6 @@
 {
   "name": "@lynx-js/skill-lynx-check-css-support",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "Check Lynx CSS support by property, feature, backend, and Lynx version",
   "repository": {
     "url": "https://github.com/lynx-community/skills"
@@ -29,5 +29,8 @@
   },
   "engines": {
     "node": ">=18.17"
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }
