@@ -1,6 +1,6 @@
 {
   "skill_name": "reactlynx-best-practices",
-  "description": "End-to-end task evals for the reactlynx-best-practices skill. These evals cover thread-boundary review, event propagation, main-thread scripts, lifecycle, lynx.__globalProps update mode, code splitting, and profiling guidance.",
+  "description": "End-to-end task evals for the reactlynx-best-practices skill. These evals cover thread-boundary review, event propagation, main-thread scripts, lifecycle, component-library packaging, lynx.__globalProps update mode, code splitting, and profiling guidance.",
   "evals": [
     {
       "id": 1,
@@ -101,6 +101,22 @@
         "The response states that `useGlobalPropsChanged` can respond to `lynx.__globalProps` changes regardless of `globalPropsMode`.",
         "The response explains that direct `lynx.__globalProps` reads not backed by `useGlobalPropsChanged` will no longer get framework `forceUpdate` re-renders from the root component after switching to `'event'`.",
         "The response says existing projects may keep the default `reactive` behavior if they are not intentionally migrating update semantics."
+      ],
+      "files": []
+    },
+    {
+      "id": 8,
+      "name": "component-library-preserve-jsx",
+      "prompt": "我在发布一个 ReactLynx 组件库，现在用 `tsc` 把 `src/index.ts` 和组件 `.tsx` 编译到 `dist`，tsconfig 配了 `\"jsx\": \"react\"`，产物里出现了 `React.createElement(...)`。这个库应该怎么导出和编译？",
+      "expected_output": "Guidance that prefers publishing the ReactLynx component library's TS/TSX source so the consumer toolchain performs the JSX transform. If tsc must emit executable files, it should use `jsx: \"preserve\"`, account for the emitted `.jsx` extension, and verify that no later Babel, SWC, or bundler stage lowers JSX to `React.createElement`.",
+      "expectations": [
+        "The response identifies this as a reusable ReactLynx component-library packaging concern rather than an application-entry JSX configuration question.",
+        "The response recommends publishing TS/TSX source as the preferred option.",
+        "The response explains that the consuming ReactLynx toolchain should own the JSX transform.",
+        "The response says to set `jsx` to `preserve` if `tsc` emits executable files.",
+        "The response notes that preserved `.tsx` input can be emitted as `.jsx` and package exports must target the real output path.",
+        "The response warns against `jsx: \"react\"`, `jsxFactory: \"React.createElement\"`, or another build stage emitting `React.createElement(...)`.",
+        "The response recommends inspecting the packed artifact or validating it in a ReactLynx consumer."
       ],
       "files": []
     }

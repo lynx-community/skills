@@ -32,6 +32,10 @@
     "should_trigger": true
   },
   {
+    "query": "发布 ReactLynx 组件库时应该直接导出 TSX 源码，还是用 tsc 把 JSX 编译成 React.createElement？",
+    "should_trigger": true
+  },
+  {
     "query": "帮我配置 Rspeedy 的 tsconfig，让 CSS Modules 有类型。",
     "should_trigger": false
   },

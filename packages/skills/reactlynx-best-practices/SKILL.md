@@ -1,6 +1,6 @@
 ---
 name: reactlynx-best-practices
-description: Review, write, and refactor ReactLynx code using dual-thread, lifecycle, main-thread script, lynx.__globalProps, code-splitting, and profiling best practices.
+description: Review, write, and refactor ReactLynx code and component libraries using dual-thread, lifecycle, main-thread script, package publishing, lynx.__globalProps, code-splitting, and profiling best practices.
 ---
 
 # ReactLynx Best Practices
@@ -12,6 +12,7 @@ This skill intentionally does not require `@ast-grep/napi` or any native parser 
 ## When to Apply
 
 - Writing new ReactLynx components or application code.
+- Publishing or reviewing reusable ReactLynx component libraries.
 - Reviewing ReactLynx code for thread-boundary, lifecycle, event, lynx.__globalProps, code-splitting, or performance issues.
 - Refactoring code that calls `lynx.getJSModule`, `NativeModules`, `runOnMainThread`, `runOnBackground`, `lazy`, `Suspense`, or `useLayoutEffect`.
 - Investigating performance traces that include ReactLynx render, diff, commit, patch, or setState events.
@@ -45,7 +46,7 @@ If the mode is not explicit, infer it from the user's wording. Prefer `review` b
 For repository work, search before editing:
 
 ```bash
-rg "lynx.getJSModule|NativeModules|useLayoutEffect|main-thread:|runOnMainThread|runOnBackground|lazy\\(|Suspense|background only|globalPropsMode|__globalProps" <target>
+rg "lynx.getJSModule|NativeModules|useLayoutEffect|main-thread:|runOnMainThread|runOnBackground|lazy\\(|Suspense|background only|globalPropsMode|__globalProps|jsx|exports" <target>
 ```
 
 Read nearby components, custom hooks, custom components that forward event handlers, Rspeedy config, and performance-related code before making changes.
@@ -77,6 +78,7 @@ Always combine scanner output with these manual checks:
 - Events: normal `bind*`/`catch*` handlers run on the background thread; `main-thread:*` handlers require `'main thread'` and have stricter limitations.
 - MTS: captured values must be JSON-serializable, captured variables cannot be modified, nested main-thread functions are unsupported, and cross-thread calls must use `runOnMainThread()` or `runOnBackground()`.
 - Shared modules: import helpers with `with { runtime: 'shared' }` only for code sharing, not state sharing.
+- Component libraries: prefer publishing TS/TSX source so the consumer's ReactLynx toolchain owns the JSX transform. If `tsc` emits executable files, keep `jsx: "preserve"` and verify that no later build step lowers JSX to `React.createElement`.
 - `lynx.__globalProps`: Host-injected cross-page/global data updated through `updateGlobalProps`.
 - `globalPropsMode`: `'reactive'` triggers root `forceUpdate`; `'event'` requires explicit updates with `useGlobalPropsChanged`. When migrating to `'event'`, scan direct `lynx.__globalProps` reads because root `forceUpdate` no longer applies.
 - Code splitting: lazy components need default exports, `Suspense`, CSS scope awareness, and error handling for important boundaries.
@@ -118,6 +120,7 @@ if (plan) {
 | [avoid-use-layout-effect](./rules/avoid-use-layout-effect.md) | MEDIUM | Lifecycle and layout reads |
 | [proper-event-handlers](./rules/proper-event-handlers.md) | MEDIUM | `bindtap`, `catchtap`, propagation, dataset, custom prop handlers |
 | [main-thread-scripts-guide](./rules/main-thread-scripts-guide.md) | MEDIUM | `main-thread:*`, `useMainThreadRef`, cross-thread calls, shared modules |
+| [component-library-packaging](./rules/component-library-packaging.md) | HIGH | ReactLynx component-library exports, TSX source publishing, `tsc`, JSX preservation |
 | [global-props-mode](./rules/global-props-mode.md) | MEDIUM | `globalPropsMode` config, direct `lynx.__globalProps` reads, `useGlobalPropsChanged` migration |
 | [code-splitting](./rules/code-splitting.md) | MEDIUM | `lazy`, `Suspense`, standalone lazy bundles, CSS bundle scope |
 | [performance-profiling](./rules/performance-profiling.md) | MEDIUM | ReactLynx trace events, flow IDs, displayName |
