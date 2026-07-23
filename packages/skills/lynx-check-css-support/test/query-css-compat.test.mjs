@@ -4,15 +4,18 @@
 import assert from 'node:assert/strict';
 import { execFile } from 'node:child_process';
 import test from 'node:test';
+import { fileURLToPath } from 'node:url';
 import { promisify } from 'node:util';
 
 const execFileAsync = promisify(execFile);
-const cliPath = new URL('../scripts/query-css-compat.mjs', import.meta.url);
+const cliPath = fileURLToPath(
+  new URL('../scripts/query-css-compat.mjs', import.meta.url),
+);
 
 async function query(...args) {
   const { stdout } = await execFileAsync(
     process.execPath,
-    [cliPath.pathname, ...args, '--json'],
+    [cliPath, ...args, '--json'],
     { encoding: 'utf8' },
   );
   return JSON.parse(stdout);
@@ -82,7 +85,7 @@ test('rejects a feature query when compat_data is null', async () => {
   await assert.rejects(
     execFileAsync(
       process.execPath,
-      [cliPath.pathname, 'content', '--feature', 'definitely-not-real'],
+      [cliPath, 'content', '--feature', 'definitely-not-real'],
       { encoding: 'utf8' },
     ),
     (error) => {
@@ -105,7 +108,7 @@ test('rejects an unknown CSS property', async () => {
   try {
     await execFileAsync(
       process.execPath,
-      [cliPath.pathname, 'definitely-not-a-property'],
+      [cliPath, 'definitely-not-a-property'],
       { encoding: 'utf8' },
     );
     assert.fail('Expected the CLI to reject an unknown property');
@@ -124,7 +127,7 @@ test('rejects inherited object properties as backend names', async () => {
   await assert.rejects(
     execFileAsync(
       process.execPath,
-      [cliPath.pathname, 'display', '--backend', 'constructor'],
+      [cliPath, 'display', '--backend', 'constructor'],
       { encoding: 'utf8' },
     ),
     (error) => {
@@ -194,7 +197,7 @@ test('keeps leading-hyphen option values distinct from properties', async () => 
   await assert.rejects(
     execFileAsync(
       process.execPath,
-      [cliPath.pathname, 'display', '--feature', '-not-a-feature'],
+      [cliPath, 'display', '--feature', '-not-a-feature'],
       { encoding: 'utf8' },
     ),
     (error) => {
@@ -213,7 +216,7 @@ test('prints help without interpreting it as a CSS property', async () => {
   // When: help is requested without a property.
   const { stdout } = await execFileAsync(
     process.execPath,
-    [cliPath.pathname, '--help'],
+    [cliPath, '--help'],
     { encoding: 'utf8' },
   );
 
@@ -224,11 +227,9 @@ test('prints help without interpreting it as a CSS property', async () => {
 test("preserves Commander's short help option", async () => {
   // Given: Commander also exposes the short help form.
   // When: -h is passed without a property.
-  const { stdout } = await execFileAsync(
-    process.execPath,
-    [cliPath.pathname, '-h'],
-    { encoding: 'utf8' },
-  );
+  const { stdout } = await execFileAsync(process.execPath, [cliPath, '-h'], {
+    encoding: 'utf8',
+  });
 
   // Then: it prints usage instead of becoming a CSS property.
   assert.match(stdout, /Usage: query-css-compat/);
@@ -256,7 +257,7 @@ test('rejects a filename-derived name that is not a published property', async (
   // Given: x-caret-gradient appears only as a filename suffix.
   // When: the missing-hyphen spelling is queried.
   await assert.rejects(
-    execFileAsync(process.execPath, [cliPath.pathname, 'x-caret-gradient'], {
+    execFileAsync(process.execPath, [cliPath, 'x-caret-gradient'], {
       encoding: 'utf8',
     }),
     (error) => {

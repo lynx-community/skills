@@ -7,18 +7,20 @@ import { mkdtemp, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import test from 'node:test';
-import { pathToFileURL } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import { promisify } from 'node:util';
 
 const execFileAsync = promisify(execFile);
-const cliPath = new URL('../scripts/query-css-compat.mjs', import.meta.url);
+const cliPath = fileURLToPath(
+  new URL('../scripts/query-css-compat.mjs', import.meta.url),
+);
 
 async function runWithPreload(t, preloadSource, ...args) {
   const root = await mkdtemp(join(tmpdir(), 'lynx-css-update-check-'));
   t.after(() => rm(root, { recursive: true, force: true }));
   const preloadPath = join(root, 'mock-fetch.mjs');
   await writeFile(preloadPath, preloadSource);
-  return execFileAsync(process.execPath, [cliPath.pathname, ...args], {
+  return execFileAsync(process.execPath, [cliPath, ...args], {
     encoding: 'utf8',
     env: {
       ...process.env,
@@ -200,7 +202,7 @@ test('still requires a property for compatibility queries', async () => {
   // Given: neither a property nor the standalone update-check flag is supplied.
   // When: the CLI is invoked without arguments.
   await assert.rejects(
-    execFileAsync(process.execPath, [cliPath.pathname], { encoding: 'utf8' }),
+    execFileAsync(process.execPath, [cliPath], { encoding: 'utf8' }),
     (error) => {
       assert(error instanceof Error);
 

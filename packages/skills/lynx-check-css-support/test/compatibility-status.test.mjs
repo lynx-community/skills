@@ -4,10 +4,13 @@
 import assert from 'node:assert/strict';
 import { execFile } from 'node:child_process';
 import test from 'node:test';
+import { fileURLToPath } from 'node:url';
 import { promisify } from 'node:util';
 
 const execFileAsync = promisify(execFile);
-const cliPath = new URL('../scripts/query-css-compat.mjs', import.meta.url);
+const cliPath = fileURLToPath(
+  new URL('../scripts/query-css-compat.mjs', import.meta.url),
+);
 const deprecatedProperty = 'linear-direction';
 const deprecatedFeature = 'support_linear_orientation';
 
@@ -16,13 +19,7 @@ test('returns the selected compatibility status in JSON', async () => {
   // When: the property is queried as JSON.
   const { stdout } = await execFileAsync(
     process.execPath,
-    [
-      cliPath.pathname,
-      deprecatedProperty,
-      '--feature',
-      deprecatedFeature,
-      '--json',
-    ],
+    [cliPath, deprecatedProperty, '--feature', deprecatedFeature, '--json'],
     { encoding: 'utf8' },
   );
   const result = JSON.parse(stdout);
@@ -39,7 +36,7 @@ test('prints a deprecated warning in human-readable output', async () => {
   // When: the property is queried in the default human-readable format.
   const { stdout } = await execFileAsync(
     process.execPath,
-    [cliPath.pathname, deprecatedProperty, '--feature', deprecatedFeature],
+    [cliPath, deprecatedProperty, '--feature', deprecatedFeature],
     { encoding: 'utf8' },
   );
 
