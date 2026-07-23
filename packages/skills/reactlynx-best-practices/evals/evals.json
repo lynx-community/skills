@@ -108,15 +108,19 @@
       "id": 8,
       "name": "component-library-preserve-jsx",
       "prompt": "我在发布一个 ReactLynx 组件库，现在用 `tsc` 把 `src/index.ts` 和组件 `.tsx` 编译到 `dist`，tsconfig 配了 `\"jsx\": \"react\"`，产物里出现了 `React.createElement(...)`。这个库应该怎么导出和编译？",
-      "expected_output": "Guidance that prefers publishing the ReactLynx component library's TS/TSX source so the consumer toolchain performs the JSX transform. If tsc must emit executable files, it should use `jsx: \"preserve\"`, account for the emitted `.jsx` extension, and verify that no later Babel, SWC, or bundler stage lowers JSX to `React.createElement`.",
+      "expected_output": "Guidance that publishes type-erased ESM whose JSX-bearing files preserve JSX as `.jsx`, plus matching declarations, while exporting the actual `.js` or `.jsx` entry emitted by the build and exposing TS/TSX source only through an explicit source field or supported condition. It should configure TypeScript or Rslib to preserve JSX, verify positive JSX syntax in the packed artifact, detect classic, automatic, and custom-factory lowering, and explain the version and optimization tradeoffs of generated `React.createElement` output.",
       "expectations": [
         "The response identifies this as a reusable ReactLynx component-library packaging concern rather than an application-entry JSX configuration question.",
-        "The response recommends publishing TS/TSX source as the preferred option.",
+        "The response recommends type-erased `dist` ESM with matching `.d.ts` declarations and keeps JSX-bearing component files as `.jsx`.",
+        "The response keeps TS/TSX source optional through `jsnext:source` or an explicitly supported package condition instead of making raw source the universal default entry.",
         "The response explains that the consuming ReactLynx toolchain should own the JSX transform.",
         "The response says to set `jsx` to `preserve` if `tsc` emits executable files.",
-        "The response notes that preserved `.tsx` input can be emitted as `.jsx` and package exports must target the real output path.",
-        "The response warns against `jsx: \"react\"`, `jsxFactory: \"React.createElement\"`, or another build stage emitting `React.createElement(...)`.",
-        "The response recommends inspecting the packed artifact or validating it in a ReactLynx consumer."
+        "The response notes that preserved `.tsx` input emits as `.jsx`, plain `.ts` input emits as `.js`, and package exports must target the real output path.",
+        "For Rslib, the response configures `swcReactOptions.runtime` as `preserve`, uses `bundle: false`, and emits `[name].jsx` filenames.",
+        "The response positively verifies that authored JSX syntax remains in the packed runtime artifact.",
+        "The response checks for classic `React.createElement`, automatic `_jsx` / `_jsxs` / `_jsxDEV` / `jsxDEV` helpers or `jsx-runtime` imports, and configured custom factories.",
+        "The response explains that intentional `React.createElement` is supported by `@lynx-js/react` 0.121.0 and newer, while generated calls can exclude older peers and prevent consumer-side JSX-specific transforms.",
+        "The response recommends validating the packed package in a small ReactLynx consumer."
       ],
       "files": []
     }

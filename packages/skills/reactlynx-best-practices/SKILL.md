@@ -26,6 +26,9 @@ This skill intentionally does not require `@ast-grep/napi` or any native parser 
 - Performance Profiling: https://lynxjs.org/next/react/performance/profiling
 - lynx.__globalProps: https://lynxjs.org/next/api/lynx-api/lynx/lynx-global-props.html
 - globalPropsMode: https://lynxjs.org/next/zh/api/rspeedy/react-rsbuild-plugin.pluginreactlynxoptions.globalpropsmode.html
+- Rslib React and preserved JSX: https://rslib.rs/guide/solution/react
+- TypeScript JSX emit modes: https://www.typescriptlang.org/docs/handbook/jsx
+- ReactLynx 0.121.0 `React.createElement` support: https://github.com/lynx-family/lynx-stack/blob/main/packages/react/CHANGELOG.md#01210
 
 ## Workflow
 
@@ -78,7 +81,7 @@ Always combine scanner output with these manual checks:
 - Events: normal `bind*`/`catch*` handlers run on the background thread; `main-thread:*` handlers require `'main thread'` and have stricter limitations.
 - MTS: captured values must be JSON-serializable, captured variables cannot be modified, nested main-thread functions are unsupported, and cross-thread calls must use `runOnMainThread()` or `runOnBackground()`.
 - Shared modules: import helpers with `with { runtime: 'shared' }` only for code sharing, not state sharing.
-- Component libraries: prefer publishing TS/TSX source so the consumer's ReactLynx toolchain owns the JSX transform. If `tsc` emits executable files, keep `jsx: "preserve"` and verify that no later build step lowers JSX to `React.createElement`.
+- Component libraries: publish type-erased `dist` ESM with authored JSX preserved in JSX-bearing `.jsx` files and matching declarations; export the actual `.js` or `.jsx` entry that the build emits. Expose TS/TSX source only through an explicit source field or supported condition. Check Rslib, TypeScript, Babel, and SWC output for classic, automatic, or custom-factory JSX lowering. Treat intentional `React.createElement` according to the `@lynx-js/react` peer range instead of assuming every call is incompatible.
 - `lynx.__globalProps`: Host-injected cross-page/global data updated through `updateGlobalProps`.
 - `globalPropsMode`: `'reactive'` triggers root `forceUpdate`; `'event'` requires explicit updates with `useGlobalPropsChanged`. When migrating to `'event'`, scan direct `lynx.__globalProps` reads because root `forceUpdate` no longer applies.
 - Code splitting: lazy components need default exports, `Suspense`, CSS scope awareness, and error handling for important boundaries.
@@ -120,7 +123,7 @@ if (plan) {
 | [avoid-use-layout-effect](./rules/avoid-use-layout-effect.md) | MEDIUM | Lifecycle and layout reads |
 | [proper-event-handlers](./rules/proper-event-handlers.md) | MEDIUM | `bindtap`, `catchtap`, propagation, dataset, custom prop handlers |
 | [main-thread-scripts-guide](./rules/main-thread-scripts-guide.md) | MEDIUM | `main-thread:*`, `useMainThreadRef`, cross-thread calls, shared modules |
-| [component-library-packaging](./rules/component-library-packaging.md) | HIGH | ReactLynx component-library exports, TSX source publishing, `tsc`, JSX preservation |
+| [component-library-packaging](./rules/component-library-packaging.md) | HIGH | ReactLynx component-library exports, type-erased ESM, preserved JSX, Rslib, `tsc` |
 | [global-props-mode](./rules/global-props-mode.md) | MEDIUM | `globalPropsMode` config, direct `lynx.__globalProps` reads, `useGlobalPropsChanged` migration |
 | [code-splitting](./rules/code-splitting.md) | MEDIUM | `lazy`, `Suspense`, standalone lazy bundles, CSS bundle scope |
 | [performance-profiling](./rules/performance-profiling.md) | MEDIUM | ReactLynx trace events, flow IDs, displayName |
