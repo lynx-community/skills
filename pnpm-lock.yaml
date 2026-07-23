@@ -48,6 +48,9 @@ importers:
       '@lynx-js/skill-lynx-devtool':
         specifier: workspace:*
         version: link:packages/skills/lynx-devtool
+      '@lynx-js/skill-lynx-openui':
+        specifier: 0.0.1
+        version: 0.0.1
       '@lynx-js/skill-lynx-trace-analysis':
         specifier: 0.0.6
         version: 0.0.6
@@ -800,6 +803,10 @@ packages:
 
   '@lynx-js/css-defines@0.0.16':
     resolution: {integrity: sha512-eeOzMWp4bO1y1gd+uMthaRr3HPaWjWsR92CTPjiaSS4JUqX92mM17pG97MNe+OFeHTm5ltIBjhCJa8TuE3ir5w==}
+
+  '@lynx-js/skill-lynx-openui@0.0.1':
+    resolution: {integrity: sha512-A9fRrxBc4I8motIvbO74S/80v9o0WNcQBeB2tR61a5D+MlMsykJSudxxhRw1OlVvqsHHdJRz0cIWPM1Qz841UA==}
+    engines: {node: '>=18'}
 
   '@lynx-js/skill-lynx-trace-analysis@0.0.6':
     resolution: {integrity: sha512-2vvoMidxnmaxxtrkLFOXy6GK7nXtWC5m7dqLWPacnHm7FmNBRjVPrQCC49v5X8tAcuN2LQjkcTu+ebIYvfq4/w==}
@@ -2830,6 +2837,8 @@ snapshots:
       minipass: 7.1.2
 
   '@lynx-js/css-defines@0.0.16': {}
+
+  '@lynx-js/skill-lynx-openui@0.0.1': {}
 
   '@lynx-js/skill-lynx-trace-analysis@0.0.6': {}
 
