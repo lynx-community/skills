@@ -1,0 +1,34 @@
+[
+  {
+    "query": "把“活动报名表”这个自然语言需求转换成 A2UI v0.9 JSON 消息，直接给 A2UI renderer 渲染。",
+    "should_trigger": true
+  },
+  {
+    "query": "Fetch the latest Lynx GenUI catalog and return createSurface, updateDataModel, and updateComponents messages for a trip picker.",
+    "should_trigger": true
+  },
+  {
+    "query": "A2UI_USER_ACTION 已经提交了表单，请给现有 surface 返回最小的 updateDataModel patch，不要重建页面。",
+    "should_trigger": true
+  },
+  {
+    "query": "Use this custom catalog JSON to generate a catalog-valid A2UI product comparison surface with data bindings and actions.",
+    "should_trigger": true
+  },
+  {
+    "query": "在 ReactLynx 项目里实现 A2UI renderer，并注册一套自定义 catalog components，代码应该怎么组织？",
+    "should_trigger": false
+  },
+  {
+    "query": "解释 A2UI、MCP 和 AG UI 的架构差异以及它们各自适合的传输场景。",
+    "should_trigger": false
+  },
+  {
+    "query": "用 ReactLynx TSX 写一个带姓名输入框和确认按钮的活动报名页面。",
+    "should_trigger": false
+  },
+  {
+    "query": "Generate an OpenAPI JSON Schema for my REST endpoint's request and response bodies.",
+    "should_trigger": false
+  }
+]

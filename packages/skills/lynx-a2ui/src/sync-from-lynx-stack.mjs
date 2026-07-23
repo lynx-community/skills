@@ -10,8 +10,7 @@ import { fileURLToPath } from 'node:url';
 
 const DEFAULT_REPO = 'https://github.com/lynx-family/lynx-stack.git';
 const DEFAULT_REF = 'main';
-const DEFAULT_SOURCE_PATH =
-  'packages/genui/a2ui/skills/lynx-a2ui/SKILL.md';
+const DEFAULT_SOURCE_PATH = 'packages/genui/a2ui/skills/lynx-a2ui/SKILL.md';
 
 const scriptDir = dirname(fileURLToPath(import.meta.url));
 const packageDir = resolve(scriptDir, '..');
@@ -52,7 +51,7 @@ function parseArgs(argv) {
       case '--help':
       case '-h':
         printHelp();
-        process.exit(0);
+        return process.exit(0);
       default:
         throw new Error(`Unknown argument: ${arg}`);
     }
