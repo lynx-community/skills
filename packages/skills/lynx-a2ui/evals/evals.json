@@ -1,0 +1,36 @@
+{
+  "skill_name": "lynx-a2ui",
+  "description": "End-to-end task evals for generating catalog-valid A2UI v0.9 message streams for a fresh data-bound surface and for applying the smallest valid patch after a user action.",
+  "evals": [
+    {
+      "id": 1,
+      "name": "fresh-data-bound-rsvp-form",
+      "prompt": "Fetch the latest default Lynx GenUI A2UI catalog, then generate a compact RSVP form as A2UI v0.9 messages. The form needs a fixed title, a data-bound name input, a data-bound attending toggle, and a submit button. Initialize the name to an empty string and attending to false. The button must emit an event named `submit_rsvp` whose context contains the current name and attending values. Use surface id `main` and return only the final protocol payload.",
+      "expected_output": "A pretty-printed JSON-only A2UI v0.9 message array that creates the main surface with the fetched catalog id, initializes the form data before any binding reads it, and defines one flat, catalog-valid root component graph containing the requested inputs and submit action.",
+      "expectations": [
+        "The response contains only a parseable, pretty-printed JSON array with no Markdown fence, prose, comments, HTML, CSS, JavaScript, or trailing commas.",
+        "Every array item has `version` equal to `v0.9`, and the fresh response orders `createSurface` before `updateDataModel` and the first `updateComponents` message.",
+        "The `createSurface` message uses surface id `main` and the `catalogId` from the fetched default Lynx GenUI A2UI catalog.",
+        "The data model initializes both the name as an empty string and attending as false before components bind to those values.",
+        "The first `updateComponents` message contains exactly one component whose id is `root`; all component ids are unique kebab-case ids, and child relationships use id references rather than inline nested components.",
+        "Components use property-based `component` discriminators and only component names, props, dynamic value shapes, and action shapes allowed by the fetched catalog.",
+        "The requested input and toggle read the initialized data paths, and the submit button emits `submit_rsvp` with context bindings for the current name and attending values."
+      ],
+      "files": []
+    },
+    {
+      "id": 2,
+      "name": "action-response-data-only-patch",
+      "prompt": "The existing A2UI surface `main` already has a status Text component bound to `/status/message`. Respond to this latest user input with the smallest valid A2UI v0.9 patch, and return only the protocol payload:\n\nA2UI_USER_ACTION: {\"surfaceId\":\"main\",\"action\":{\"name\":\"submit_rsvp\",\"context\":{\"name\":\"Mina\",\"attending\":true}}}\n\nSet the status to a success result that confirms Mina is attending. Do not replace the whole UI.",
+      "expected_output": "A non-empty JSON-only A2UI v0.9 patch for the existing main surface, using a data-model update for /status and avoiding surface recreation or unnecessary component replacement.",
+      "expectations": [
+        "The response contains only a non-empty, parseable JSON array whose messages all use `version` equal to `v0.9`.",
+        "The patch keeps surface id `main` and does not emit `createSurface`, `deleteSurface`, or a replacement fresh UI.",
+        "An `updateDataModel` message updates `/status` with a success value whose message confirms that Mina is attending.",
+        "The response does not emit `updateComponents`, because the prompt states that an existing Text component already reads `/status/message` and no visible structure needs to change.",
+        "The response does not include the original form definition or claim that the RSVP succeeded before processing the supplied action."
+      ],
+      "files": []
+    }
+  ]
+}
