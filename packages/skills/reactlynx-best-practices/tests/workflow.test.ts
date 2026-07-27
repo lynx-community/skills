@@ -6,6 +6,7 @@ import {
   formatFixPlan,
   formatScanReport,
   ReactLynxWorkflow,
+  rules,
   runSkillWithFixes,
   WORKFLOW_GUIDE,
 } from '../src/index';
@@ -161,6 +162,16 @@ export function App() {
     expect(formatted).toContain('Fix Plan');
     expect(formatted).toContain('Total issues: 1');
     expect(formatted).toContain('Auto-fixable: 1');
+  });
+});
+
+describe('rules', () => {
+  it('should register component-library-packaging metadata', () => {
+    const rule = rules['component-library-packaging'];
+
+    expect(rule.id).toBe('component-library-packaging');
+    expect(rule.severity).toBe('warning');
+    expect(rule.message).toContain('JSX preserved');
   });
 });
 
