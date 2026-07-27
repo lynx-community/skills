@@ -23,6 +23,7 @@ Recommended APIs:
 - `__CreatePage`: create the page root.
 - `__GetElementUniqueID`: get the root element id for child creation.
 - `__CreateView`: create a container node.
+- `__CreateScrollView`: create a scrollable container node.
 - `__CreateText`: create a text node.
 - `__CreateRawText`: create text content for a text node.
 - `__CreateImage`: create an image node.
@@ -54,7 +55,10 @@ Do not use `__AddEvent` to bind UI events. Use `__AddEventListener` and remove t
 
 ## Build the Tree
 
-Create the page root once, then create and append child nodes. Keep node references that need later updates in module scope.
+Create the page root once, then create and append child nodes. Keep node
+references that need later updates in module scope.
+
+### Non-Scrollable Container
 
 ```javascript
 const page = __CreatePage("0", 0);
@@ -82,6 +86,24 @@ const image = __CreateImage(pageId);
 __SetClasses(image, "hero-image");
 __SetAttribute(image, "src", "https://example.com/image.png");
 __AppendElement(container, image);
+```
+
+### Scrollable Container
+
+Use `__CreateScrollView` for a scrollable container and give it a fixed height.
+
+```javascript
+const page = __CreatePage("0", 0);
+const pageId = __GetElementUniqueID(page);
+__SetClasses(page, "page");
+
+const scrollView = __CreateScrollView(pageId);
+__SetAttribute(scrollView, "scroll-orientation", "vertical");
+__SetInlineStyles(scrollView, "height: 500px;");
+__AppendElement(page, scrollView);
+
+const scrollContent = __CreateView(pageId);
+__AppendElement(scrollView, scrollContent);
 ```
 
 ## Bind Element Events
