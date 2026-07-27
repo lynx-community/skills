@@ -598,6 +598,11 @@ const rules = {
         severity: 'warning',
         message: "Use main thread scripts only for low-latency UI work and respect MTS restrictions."
     },
+    'component-library-packaging': {
+        id: 'component-library-packaging',
+        severity: 'warning',
+        message: 'Publish type-erased ReactLynx component libraries with JSX preserved in JSX-bearing runtime files.'
+    },
     'global-props-mode': {
         id: 'global-props-mode',
         severity: 'warning',

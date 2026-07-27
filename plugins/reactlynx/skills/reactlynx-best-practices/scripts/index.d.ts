@@ -125,6 +125,11 @@ export declare const rules: {
         severity: "warning";
         message: string;
     };
+    'component-library-packaging': {
+        id: string;
+        severity: "warning";
+        message: string;
+    };
     'global-props-mode': {
         id: string;
         severity: "warning";
