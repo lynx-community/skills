@@ -1,7 +1,7 @@
 // Copyright 2026 The Lynx Authors. All rights reserved.
 // Licensed under the Apache License Version 2.0 that can be found in the
 // LICENSE file in the root directory of this source tree.
-import { cp, readdir, readFile, writeFile } from 'node:fs/promises';
+import { cp, readdir, readFile, rm, writeFile } from 'node:fs/promises';
 import { createRequire } from 'node:module';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -12,6 +12,18 @@ const packageRoot = dirname(
 );
 const sourceRoot = resolve(packageRoot, 'skills', 'using-lynx-api-docs');
 const targetRoot = dirname(fileURLToPath(import.meta.url));
+const generatedEntries = [
+  'SKILL.md',
+  'best-practices.md',
+  'quick-reference.md',
+  'config',
+  'css',
+  'elements',
+  'examples',
+  'layout',
+  'lynx-vs-web',
+  'patterns',
+];
 const excludedEntries = new Set([
   'AGENTS.md',
   'AGENTS.public.md',
@@ -19,6 +31,12 @@ const excludedEntries = new Set([
   'README.md',
   'README.public.md',
 ]);
+
+await Promise.all(
+  generatedEntries.map((entry) =>
+    rm(resolve(targetRoot, entry), { recursive: true, force: true }),
+  ),
+);
 
 for (const entry of await readdir(sourceRoot)) {
   if (excludedEntries.has(entry)) {

@@ -1,0 +1,45 @@
+{
+  "skill_name": "lynx-api-docs",
+  "description": "End-to-end task evals for retrieving authoritative Lynx element, CSS, layout, migration, and implementation guidance from the bundled public API documentation.",
+  "evals": [
+    {
+      "id": 1,
+      "name": "scroll-view-api-lookup",
+      "prompt": "Before implementing a ReactLynx infinite feed, use the installed Lynx API documentation to verify the public attributes, scroll events, and ref methods available on `<scroll-view>`. Identify the specific documentation file you consulted and do not infer APIs from browser elements.",
+      "expected_output": "A documentation-backed summary of the public scroll-view surface, organized by attributes, events, and methods, with the installed element reference identified as the source.",
+      "expectations": [
+        "The response reads or cites the installed `elements/scroll-view.md` reference.",
+        "Attributes, events, and ref methods are distinguished instead of being presented as one invented API list.",
+        "The answer does not infer behavior from HTML scrolling elements or general browser knowledge.",
+        "Any API detail not established by the installed reference is reported as unverified rather than guessed."
+      ],
+      "files": []
+    },
+    {
+      "id": 2,
+      "name": "choose-layout-for-two-dimensional-content",
+      "prompt": "I need a Lynx product gallery with aligned rows and columns and items that can span multiple tracks. Compare the installed Linear, Flex, Grid, and Relative Layout documentation, recommend the appropriate layout, and call out Lynx-specific constraints I should verify before coding.",
+      "expected_output": "A concise recommendation grounded in the bundled layout references, selecting Grid for the two-dimensional spanning requirement and identifying relevant Lynx-specific constraints without assuming browser parity.",
+      "expectations": [
+        "The response consults the installed layout references rather than relying only on web layout knowledge.",
+        "Grid is recommended because the requirement is explicitly two-dimensional and includes track spanning.",
+        "The answer distinguishes Grid from Linear, Flex, and Relative Layout in terms relevant to the requested gallery.",
+        "Lynx-specific syntax, defaults, or limitations are verified from the references or explicitly left unverified."
+      ],
+      "files": []
+    },
+    {
+      "id": 3,
+      "name": "review-web-to-lynx-styling",
+      "prompt": "Review this proposed Lynx styling approach before I implement it: use `<div>` and `<span>`, rely on normal browser flow, assume `content-box`, and copy several web CSS properties without checking support. Use the installed Lynx API documentation to identify the invalid assumptions and propose the documentation-backed direction.",
+      "expected_output": "A review that rejects the web-only element and layout assumptions, explains the relevant Lynx defaults, and routes each implementation decision to the bundled element, CSS, layout, or web-migration references.",
+      "expectations": [
+        "The response identifies that Lynx uses elements such as `<view>` and `<text>` rather than HTML `<div>` and `<span>`.",
+        "The response identifies Lynx layout and box-sizing assumptions from the installed references rather than treating browser defaults as authoritative.",
+        "The response requires checking bundled CSS documentation before using web CSS properties.",
+        "The response points to the relevant `elements/`, `css/`, `layout/`, or `lynx-vs-web/` references and does not invent unsupported replacements."
+      ],
+      "files": []
+    }
+  ]
+}
