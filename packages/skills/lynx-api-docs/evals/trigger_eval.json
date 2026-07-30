@@ -1,0 +1,42 @@
+[
+  {
+    "query": "Check the installed Lynx API docs for every public attribute, event, and ref method supported by `<scroll-view>`.",
+    "should_trigger": true
+  },
+  {
+    "query": "Before writing this ReactLynx page, verify which Lynx elements and CSS properties are valid instead of assuming browser behavior.",
+    "should_trigger": true
+  },
+  {
+    "query": "Compare Linear, Flex, Grid, and Relative Layout in Lynx and recommend one for this two-dimensional card gallery.",
+    "should_trigger": true
+  },
+  {
+    "query": "Why does this web layout migrate incorrectly to Lynx? Check the bundled Lynx-versus-Web references and propose a documented rewrite.",
+    "should_trigger": true
+  },
+  {
+    "query": "Review this TTML and styling change against the authoritative public Lynx element and CSS documentation.",
+    "should_trigger": true
+  },
+  {
+    "query": "Does `display: grid` work on Android with Lynx 2.0, and which engine version first supports it?",
+    "should_trigger": false
+  },
+  {
+    "query": "TypeScript says this ReactLynx event handler is incompatible with the component prop type. Fix the type error.",
+    "should_trigger": false
+  },
+  {
+    "query": "Use Lynx DevTool to inspect the running page, capture console logs, and take a screenshot.",
+    "should_trigger": false
+  },
+  {
+    "query": "Which lynx-ui dialog component should I use, and what props does that component expose?",
+    "should_trigger": false
+  },
+  {
+    "query": "Compare current CSS Grid support in Chrome, Safari, and Firefox for a normal web application.",
+    "should_trigger": false
+  }
+]
