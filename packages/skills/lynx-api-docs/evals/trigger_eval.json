@@ -1,0 +1,74 @@
+[
+  {
+    "query": "把这个带 div、img、h2 和 button 的 Web React 卡片迁移成正确的 ReactLynx 元素和事件写法。",
+    "should_trigger": true
+  },
+  {
+    "query": "Lynx 默认 Linear Layout 怎么做横向排列，并用 linear-weight 分配剩余空间？",
+    "should_trigger": true
+  },
+  {
+    "query": "用 Lynx 的 list 和 list-item 写一个长 feed，并在滚动到底部时加载更多。",
+    "should_trigger": true
+  },
+  {
+    "query": "How do implicit rows and explicit grid line placement work in Lynx Grid layout?",
+    "should_trigger": true
+  },
+  {
+    "query": "Can a Lynx view contain raw text, or must the label be wrapped in a text element?",
+    "should_trigger": true
+  },
+  {
+    "query": "为什么从网页迁移到 Lynx 后 margin 不会折叠，而且默认 box-sizing 和布局模式也不同？",
+    "should_trigger": true
+  },
+  {
+    "query": "Migrate ordinary body scrolling to a Lynx page and explain where scroll-view belongs.",
+    "should_trigger": true
+  },
+  {
+    "query": "Review this .ttml page for invalid Web elements and Lynx-specific CSS or layout assumptions.",
+    "should_trigger": true
+  },
+  {
+    "query": "Which Lynx pseudo-classes are documented, and how should I rewrite this hover-based interaction?",
+    "should_trigger": true
+  },
+  {
+    "query": "Does Lynx 2.0 on Android support display: grid, and what minimum SDK version enables it?",
+    "should_trigger": false
+  },
+  {
+    "query": "Query @lynx-js/css-defines and compare filter brightness compatibility across every rendering backend.",
+    "should_trigger": false
+  },
+  {
+    "query": "ReactLynx says my custom-input tag is missing from JSX.IntrinsicElements. Write the TypeScript module augmentation.",
+    "should_trigger": false
+  },
+  {
+    "query": "How do I add appTheme to lynx.__globalProps with an @lynx-js/types declaration file?",
+    "should_trigger": false
+  },
+  {
+    "query": "ReactLynx 双线程里 NativeModules 调用应该放在 render、effect 还是事件处理函数中？",
+    "should_trigger": false
+  },
+  {
+    "query": "帮我分析 Lynx trace 里的 FCP、模板加载和跨线程调用耗时。",
+    "should_trigger": false
+  },
+  {
+    "query": "What props and ref methods does the @lynx-js/lynx-ui ScrollView component export?",
+    "should_trigger": false
+  },
+  {
+    "query": "Can I use CSS subgrid in current Chrome and Safari? Compare browser compatibility.",
+    "should_trigger": false
+  },
+  {
+    "query": "Configure tsconfig so a ReactLynx Rspeedy project recognizes CSS Modules and ?lynx-bundle imports.",
+    "should_trigger": false
+  }
+]

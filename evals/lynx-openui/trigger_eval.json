@@ -1,0 +1,74 @@
+[
+  {
+    "query": "Generate raw OpenUI Lang v0.5 for OpenUiRenderer: a compact mobile summary card with two actions.",
+    "should_trigger": true
+  },
+  {
+    "query": "把这个自然语言 UI 需求转换成只包含 OpenUI DSL 的 response，第一行先声明 root。",
+    "should_trigger": true
+  },
+  {
+    "query": "Use the supplied list_tasks tool in an OpenUI Query and render its rows with inline @Each.",
+    "should_trigger": true
+  },
+  {
+    "query": "Create an OpenUI Mutation flow with $state, an explicit confirmation Button, and success feedback.",
+    "should_trigger": true
+  },
+  {
+    "query": "Write a TextField in OpenUI Lang that binds directly to $city and drives the supplied weather Query.",
+    "should_trigger": true
+  },
+  {
+    "query": "The host uses mergeStatements edit mode; return only the changed OpenUI assignments for this revision.",
+    "should_trigger": true
+  },
+  {
+    "query": "Generate a streaming-friendly OpenUI program using only Stack, Card, Text, Modal, and Button from this catalog.",
+    "should_trigger": true
+  },
+  {
+    "query": "Fix this OpenUI Lang call where named arguments and the missing Stack wrap position shift all later props.",
+    "should_trigger": true
+  },
+  {
+    "query": "Validate that every reference in this Lynx OpenUI response resolves and no statements are orphaned.",
+    "should_trigger": true
+  },
+  {
+    "query": "Implement a new ReactLynx OpenUiRenderer component in TypeScript and add unit tests.",
+    "should_trigger": false
+  },
+  {
+    "query": "Return an A2UI JSON message describing a product card and its click action.",
+    "should_trigger": false
+  },
+  {
+    "query": "Build this mobile card as ReactLynx JSX with view, text, image, and a CSS stylesheet.",
+    "should_trigger": false
+  },
+  {
+    "query": "Which Lynx rendering backends support display grid in SDK 2.0?",
+    "should_trigger": false
+  },
+  {
+    "query": "TypeScript says my custom Lynx element is missing from JSX.IntrinsicElements; write the declaration file.",
+    "should_trigger": false
+  },
+  {
+    "query": "How should I use the @lynx-js/lynx-ui Button component and type its props in ReactLynx?",
+    "should_trigger": false
+  },
+  {
+    "query": "Design an OpenAPI 3.1 specification for a task-management REST service.",
+    "should_trigger": false
+  },
+  {
+    "query": "Create a responsive HTML and Tailwind dashboard that runs in a web browser.",
+    "should_trigger": false
+  },
+  {
+    "query": "Explain general open UI design principles for making an accessible settings screen.",
+    "should_trigger": false
+  }
+]

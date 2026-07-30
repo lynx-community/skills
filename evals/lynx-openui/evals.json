@@ -1,0 +1,61 @@
+{
+  "skill_name": "lynx-openui",
+  "description": "End-to-end task evals for generating valid OpenUI Lang v0.5 programs for the Lynx OpenUI renderer, including static UI, tool-backed data, mutable input state, mutations, and edit-mode patches.",
+  "evals": [
+    {
+      "id": 1,
+      "name": "static-summary-with-conversational-action",
+      "prompt": "Return raw OpenUI Lang v0.5 only for `<OpenUiRenderer response={...}>`. Build a compact mobile weekly-summary card with title `Weekly Summary`, subtitle `Updated just now`, body lines `Revenue is up 18%.` and `Three accounts need follow-up.`, plus a primary `Show details` button that asks the assistant to show the account details. No tools are available.",
+      "expected_output": "A complete static OpenUI program whose root is declared first and reaches a summary Card and Buttons group, with supported positional component calls and an explicit `@ToAssistant` action.",
+      "expectations": [
+        "The first non-empty line is a `root = Stack(...)` assignment whose references include the visible summary and action sections.",
+        "The program uses only built-in catalog components such as `Card`, `CardHeader`, `TextContent`, `Buttons`, and `Button`, with positional arguments in the documented order.",
+        "The `Show details` button uses `Action([@ToAssistant(\"Show the account details\")])` or an equivalent explicit conversational continuation.",
+        "No `Query` or `Mutation` is emitted because the caller supplied no tool.",
+        "The response contains only one-assignment-per-line OpenUI Lang, with no Markdown fence, prose, JSON, HTML, JSX, or CSS, and every declaration is reachable from `root`."
+      ],
+      "files": []
+    },
+    {
+      "id": 2,
+      "name": "query-backed-repeated-task-list",
+      "prompt": "Generate raw OpenUI Lang v0.5 for a task screen. The host supplies a read tool `list_tasks` accepting `{ status: string }` and returning `{ rows: Array<{ title: string, status: string }> }`. Query open tasks, show the count in the header, render every row as a card with title and status, and add a manual Refresh button. Include representative initial data so the UI renders before the tool resolves.",
+      "expected_output": "A complete OpenUI program using an ordinary `Query` declaration with a shape-correct default result, `@Count` for the header, inline `@Each` for repeated cards, and a visible refresh action that runs the query.",
+      "expectations": [
+        "The program starts with `root = Stack(...)` and declares `tasks = Query(\"list_tasks\", { status: \"open\" }, ...)` on an ordinary identifier rather than a `$` state identifier.",
+        "The Query includes a compact representative default object with a `rows` array whose entries contain both `title` and `status`.",
+        "The visible header derives its count with `@Count(tasks.rows)` or an equivalent documented expression.",
+        "Repeated UI uses `List(@Each(tasks.rows, \"task\", ...))`, keeping every `task`-dependent component inline inside the `@Each` template.",
+        "A visible Refresh button invokes `Action([@Run(tasks)])`; the response invents no additional tool or component and contains only OpenUI Lang."
+      ],
+      "files": []
+    },
+    {
+      "id": 3,
+      "name": "state-bound-input-and-explicit-save",
+      "prompt": "Generate raw OpenUI Lang v0.5 for editing a display name. The host supplies a write tool `save_profile` accepting `{ displayName: string }` and returning `{ ok: boolean }`. Start with `Ada`, bind a short text field directly to mutable state, show the current name, save only when the user taps a primary Save button, and show loading/success/default status text.",
+      "expected_output": "A complete OpenUI program with declared `$displayName` state, same-key TextField binding, an ordinary Mutation that consumes the state, an explicit Save action, and mutation-status-driven feedback.",
+      "expectations": [
+        "The program declares `$displayName = \"Ada\"` and uses that same state value in visible UI and the mutation arguments.",
+        "The TextField uses the documented same-key positional pattern, including `null` for the unused action position and the exact literal name `\"$displayName\"`.",
+        "The write tool is declared as an ordinary identifier such as `save = Mutation(\"save_profile\", { displayName: $displayName })`, not as `$save`.",
+        "The mutation runs only from a visible primary Save button using `Action([@Run(save)])`, not from the input change action.",
+        "Visible feedback branches on `save.status` for loading and success while retaining a default instruction, and the response contains only reachable OpenUI Lang declarations."
+      ],
+      "files": []
+    },
+    {
+      "id": 4,
+      "name": "merge-statements-targeted-patch",
+      "prompt": "The host explicitly uses edit mode with `mergeStatements`. Existing program:\n`root = Stack([header, action], \"column\", false, \"m\", \"stretch\", \"start\")`\n`header = CardHeader(\"Trip\", \"Draft\")`\n`action = Button(\"Open guide\", Action([@ToAssistant(\"Tell me about the trip\")]), \"secondary\")`\nChange only the subtitle to `Ready` and make the existing button open the caller-provided trustworthy URL `https://example.com/trip`. Return the smallest raw OpenUI patch.",
+      "expected_output": "An edit-mode OpenUI patch containing only replacement assignments for `header` and `action`, preserving the unchanged root graph and using `@OpenUrl` with the supplied URL.",
+      "expectations": [
+        "The response includes a replacement `header = CardHeader(\"Trip\", \"Ready\")` assignment.",
+        "The response includes a replacement `action = Button(...)` whose action is `Action([@OpenUrl(\"https://example.com/trip\")])` and whose secondary variant remains valid.",
+        "The unchanged `root` assignment is omitted because the root graph did not change.",
+        "No unchanged statements, invented declarations, prose, Markdown fence, JSON, JSX, or CSS are returned."
+      ],
+      "files": []
+    }
+  ]
+}

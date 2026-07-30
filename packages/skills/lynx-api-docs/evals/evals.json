@@ -1,0 +1,62 @@
+{
+  "skill_name": "lynx-api-docs",
+  "description": "End-to-end task evals for retrieving and applying the installed Lynx API documentation when migrating Web UI, choosing Lynx layouts, and using Lynx elements.",
+  "evals": [
+    {
+      "id": 1,
+      "name": "migrate-interactive-web-card",
+      "prompt": "把这个 Web React 卡片迁移成 ReactLynx 组件，并指出关键的平台差异：`<div className=\"card\"><img src={image} alt={title} /><h3>{title}</h3><p>{description}</p><button onClick={open}>Open</button></div>`。不要照搬浏览器 DOM 语义，请先查已安装的 Lynx API 文档再给代码。",
+      "expected_output": "A ReactLynx card using documented Lynx elements and event syntax: `view` for containers, `image` for the image, `text` for all visible text, and a tappable `view` with `bindtap` instead of a Web button with `onClick`, together with the relevant Web-to-Lynx caveats.",
+      "expectations": [
+        "The response applies the installed Web migration and element documentation rather than treating Lynx as a browser DOM.",
+        "The code replaces `div` with `view`, `img` with `image`, and the heading and paragraph with `text` elements.",
+        "All visible strings and expressions, including the button label, are wrapped in `text` rather than appearing directly under `view`.",
+        "The Web `button` and `onClick` are replaced with a Lynx `view` using `bindtap={open}` or an equivalent documented Lynx tap handler.",
+        "The explanation notes at least one relevant Lynx layout or CSS default, such as default Linear layout, `border-box`, or the absence of margin collapsing, instead of assuming Web block-flow behavior."
+      ],
+      "files": []
+    },
+    {
+      "id": 2,
+      "name": "linear-layout-weighted-columns",
+      "prompt": "请用 Lynx 默认的 Linear Layout 写一个横向三栏布局，不要改成 Flexbox：左栏固定 200px，main 和 aside 把剩余宽度按 2:1 分配，三栏在交叉轴居中。给最小 TSX 和 CSS，并解释剩余空间怎么算。",
+      "expected_output": "A documented Linear Layout example with a row container, a fixed-width sidebar, `linear-weight: 2` and `linear-weight: 1` for the remaining columns, and cross-axis centering.",
+      "expectations": [
+        "The container uses `display: linear` and `linear-direction: row` rather than Flexbox or Web block layout.",
+        "The sidebar has `width: 200px`, while main and aside use `linear-weight: 2` and `linear-weight: 1` respectively.",
+        "The answer explains that the fixed sidebar consumes main-axis space first and the weighted children divide only the remaining space in a 2:1 ratio.",
+        "The container uses `align-items: center` for cross-axis centering in a row Linear Layout.",
+        "The TSX uses Lynx `view` containers and wraps visible labels or content in `text` elements."
+      ],
+      "files": []
+    },
+    {
+      "id": 3,
+      "name": "large-feed-list-with-load-more",
+      "prompt": "我要在 ReactLynx 中渲染一个会持续增长的长 feed。每项都有稳定的 `id` 和 `title`，列表要纵向滚动，到底部阈值时调用 `handleLoadMore`。请根据 `<list>` API 给最小实现，并说明保证滚动区域和列表性能的必要约束。",
+      "expected_output": "A vertical Lynx `list` containing keyed `list-item` children, wired to `bindscrolltolower`, with a resolved list height and stable item identities plus the documented performance guardrails.",
+      "expectations": [
+        "The implementation uses `<list scroll-y bindscrolltolower={handleLoadMore}>` or equivalent documented boolean/event syntax.",
+        "Each repeated row is a direct `list-item` with both a stable React `key` and stable `item-key` derived from the item's id.",
+        "The list receives a resolved height, such as `height: 100vh`, so its scroll area is measurable.",
+        "Visible item titles are rendered inside `text`, and the answer recommends predictable `list-item` heights where possible.",
+        "The response explains that `list` is appropriate for a large or growing collection and that a small static child set can use `scroll-view` instead."
+      ],
+      "files": []
+    },
+    {
+      "id": 4,
+      "name": "compatible-grid-item-placement",
+      "prompt": "用 Lynx Grid 写一个四等分列的 gallery：普通行高 80px；large tile 占第 1-2 列和第 1-2 行；wide tile 占第 3 行全部四列。项目不保证 Lynx 3.9，也没有开启额外 Grid flag，请给兼容默认配置的 CSS，并解释为什么不用放置 shorthand。",
+      "expected_output": "A four-column Lynx Grid using explicit start/end grid lines for both special tiles, avoiding `grid-column` and `grid-row` shorthands that require Lynx 3.9+ and `enableGridPlacementShorthands`.",
+      "expectations": [
+        "The grid container uses `display: grid`, `grid-template-columns: repeat(4, 1fr)`, and `grid-auto-rows: 80px`.",
+        "The large tile uses column lines 1 to 3 and row lines 1 to 3 via `grid-column-start/end` and `grid-row-start/end`.",
+        "The wide tile uses column lines 1 to 5 and row lines 3 to 4 via the explicit start/end properties.",
+        "The answer avoids `grid-column` and `grid-row` shorthands for this target.",
+        "The explanation states that those shorthands are only available in Lynx 3.9+ when `enableGridPlacementShorthands: true` is enabled."
+      ],
+      "files": []
+    }
+  ]
+}
