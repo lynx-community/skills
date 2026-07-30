@@ -39,6 +39,9 @@ importers:
       '@lynx-js/skill-lynx-a2ui':
         specifier: workspace:*
         version: link:packages/skills/lynx-a2ui
+      '@lynx-js/skill-lynx-api-docs':
+        specifier: workspace:*
+        version: link:packages/skills/lynx-api-docs
       '@lynx-js/skill-lynx-check-css-support':
         specifier: workspace:*
         version: link:packages/skills/lynx-check-css-support
@@ -246,6 +249,12 @@ importers:
         version: 5.9.3
 
   packages/skills/lynx-a2ui: {}
+
+  packages/skills/lynx-api-docs:
+    devDependencies:
+      '@lynx-js/lynx-api-docs':
+        specifier: 0.3.8
+        version: 0.3.8
 
   packages/skills/lynx-check-css-support:
     dependencies:
@@ -803,6 +812,11 @@ packages:
 
   '@lynx-js/css-defines@0.0.16':
     resolution: {integrity: sha512-eeOzMWp4bO1y1gd+uMthaRr3HPaWjWsR92CTPjiaSS4JUqX92mM17pG97MNe+OFeHTm5ltIBjhCJa8TuE3ir5w==}
+
+  '@lynx-js/lynx-api-docs@0.3.8':
+    resolution: {integrity: sha512-4DSaRkCxdbjrq5vYylBWUqa/JNkMrZlfX2dyfkxdYusJopI/HTmV/OUXzzXM8rxPdb2ihx1kMJY7T8BIUNLf3g==}
+    engines: {node: '>=14'}
+    hasBin: true
 
   '@lynx-js/skill-lynx-openui@0.0.1':
     resolution: {integrity: sha512-A9fRrxBc4I8motIvbO74S/80v9o0WNcQBeB2tR61a5D+MlMsykJSudxxhRw1OlVvqsHHdJRz0cIWPM1Qz841UA==}
@@ -2837,6 +2851,8 @@ snapshots:
       minipass: 7.1.2
 
   '@lynx-js/css-defines@0.0.16': {}
+
+  '@lynx-js/lynx-api-docs@0.3.8': {}
 
   '@lynx-js/skill-lynx-openui@0.0.1': {}
 

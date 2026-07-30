@@ -1,0 +1,29 @@
+{
+  "name": "@lynx-js/skill-lynx-api-docs",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Use authoritative public Lynx API documentation from coding agents",
+  "type": "module",
+  "files": [
+    "SKILL.md",
+    "best-practices.md",
+    "quick-reference.md",
+    "config",
+    "css",
+    "elements",
+    "examples",
+    "layout",
+    "lynx-vs-web",
+    "patterns"
+  ],
+  "scripts": {
+    "build": "node ./build.mjs",
+    "test": "node --test test.mjs"
+  },
+  "devDependencies": {
+    "@lynx-js/lynx-api-docs": "0.3.8"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
