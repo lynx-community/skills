@@ -1,6 +1,6 @@
 {
   "skill_name": "vanilla-lynx",
-  "description": "End-to-end task evals for building Lynx apps directly with vanilla Lynx Element PAPI APIs, Rspeedy native artifacts, and main/background runtime event communication.",
+  "description": "End-to-end task evals for building Lynx apps directly with vanilla Lynx Element PAPI APIs, Rspeedy native artifacts, Lynx CSS constraints, and main/background runtime event communication.",
   "evals": [
     {
       "id": 1,
@@ -41,6 +41,22 @@
         "The response says `background.ts` uses `lynx.getCoreContext()` to listen for main-thread messages and dispatch `UpdateDataFromBackground` or equivalent serializable patches back.",
         "The response says heavier async, timer, native, data-processing, or business logic belongs in `background.ts`, and background code must not call Element PAPI APIs or `__FlushElementTree()`.",
         "The response says main thread applies background patches to Element PAPI nodes, calls `__FlushElementTree()` after later UI mutations, and runtime listeners are removed during destroy."
+      ],
+      "files": []
+    },
+    {
+      "id": 4,
+      "name": "style-web-css-for-vanilla-lynx",
+      "prompt": "我要给 vanilla Lynx Element PAPI 页面写 style.css。请说明从 Web CSS 迁移时最容易踩坑的布局、盒模型、文本换行、响应式、选择器和定位差异，并说明主线程怎样把 class 应用到节点上。",
+      "expected_output": "Guidance based on the style reference that keeps reusable CSS in the style entry, applies classes with Element PAPI on the main thread, uses explicit Lynx layouts, and avoids unsupported or Web-incompatible CSS behavior.",
+      "expectations": [
+        "The response keeps reusable styles in `style.css` and applies classes from the main thread with `__SetClasses()` or `__AddClass()` rather than browser DOM APIs.",
+        "The response explains that Lynx defaults to column Linear layout, does not support inline, table, or float layout, and should use explicit Linear, Flex, or Grid layout as appropriate.",
+        "The response says Lynx defaults to `border-box`, does not collapse margins, and may require explicit minimum sizes or `flex-shrink: 0` to protect flex content.",
+        "The response says text must use text nodes, does not wrap by default, and should use `white-space: normal` when wrapping is required.",
+        "The response says `@media` is unsupported and recommends `rem` with `vw`, viewport units, or JavaScript for responsive behavior.",
+        "The response warns that structural pseudo-classes and `::before` or `::after` can parse without taking effect, and recommends explicit classes or real nodes.",
+        "The response says fixed-position elements need explicit `left` and `top`, and `z-index` must be paired with `position`."
       ],
       "files": []
     }
