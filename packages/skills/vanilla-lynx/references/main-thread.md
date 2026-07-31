@@ -264,9 +264,17 @@ The event names below mirror [`background.md`](background.md) for the example on
 
 ```javascript
 const updateDataFromBackgroundEventName = "UpdateDataFromBackground";
+const updateDataFromMainThreadEventName = "UpdateDataFromMainThread";
 const dispatchEventToBackgroundEventName = "DispatchEventToBackground";
 
 const backgroundThread = lynx.getJSContext();
+
+function dispatchDataToBackground(data) {
+  backgroundThread.dispatchEvent({
+    type: updateDataFromMainThreadEventName,
+    data,
+  });
+}
 
 function dispatchTaskToBackground(handlerName, data) {
   backgroundThread.dispatchEvent({
@@ -298,6 +306,10 @@ function onBackgroundData(event) {
 }
 
 function cleanupBackgroundBridge() {
+  backgroundThread.dispatchEvent({
+    type: destroyLifetimeEventName,
+    data: undefined,
+  });
   backgroundThread.removeEventListener(
     updateDataFromBackgroundEventName,
     onBackgroundData,
@@ -313,3 +325,5 @@ engine.addEventListener(destroyLifetimeEventName, cleanupBackgroundBridge);
 
 dispatchTaskToBackground("computeSummary", [{ value: 3 }, { value: 4 }]);
 ```
+
+Call `dispatchDataToBackground(processedData)` after processing Engine render or update data. Forward `__DestroyLifetime` before removing the bridge so `background.ts` can release its listeners.

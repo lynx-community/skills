@@ -8,12 +8,7 @@
   "type": "module",
   "files": [
     "SKILL.md",
-    "scripts",
-    "references",
-    "examples",
-    "reference.md",
-    "examples.md",
-    "rules"
+    "references"
   ],
   "scripts": {},
   "devDependencies": {},

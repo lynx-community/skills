@@ -8,6 +8,10 @@
     "should_trigger": true
   },
   {
+    "query": "vanilla Lynx 的 style.css 能直接照搬 Web CSS 吗？Element PAPI 节点怎么应用 class？",
+    "should_trigger": true
+  },
+  {
     "query": "__CreatePage、__CreateView、__AppendElement 这些 Element API 怎么创建页面树？",
     "should_trigger": true
   },
