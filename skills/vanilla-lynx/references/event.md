@@ -1,8 +1,8 @@
 # Runtime Communication API Reference
 
-Use this reference to choose the correct vanilla Lynx event API surface.
+Use this reference to choose the correct vanilla Lynx event target and event names. Read [`main-thread.md`](main-thread.md) and [`background.md`](background.md) for complete implementations.
 
-## Event API Surfaces
+## Choose an Event Target
 
 | API surface             | Runtime side                | Use for                                                               |
 | ----------------------- | --------------------------- | --------------------------------------------------------------------- |
@@ -10,182 +10,54 @@ Use this reference to choose the correct vanilla Lynx event API surface.
 | `lynx.getCoreContext()` | background script           | Get the main-thread environment from the background thread            |
 | `lynx.getJSContext()`   | main-thread script          | Get the background-thread JavaScript environment from the main thread |
 
-After getting one of these environments, use the same EventTarget-style methods:
+Each target exposes the same EventTarget-style methods:
 
 ```javascript
 const target = lynx.getJSContext();
 
 function handleEvent(event) {
-  const data = event.data;
+  updatePage(event.data);
 }
 
 target.addEventListener("EventName", handleEvent);
-
 target.dispatchEvent({
   type: "EventName",
   data: { key: "value" },
 });
-
 target.removeEventListener("EventName", handleEvent);
 ```
 
-Choose `target` from the runtime boundary:
+- Add and remove a listener on the same target with the same event name and handler reference.
+- Remove every listener during `__DestroyLifetime`.
+- Keep dispatched payloads small and serializable; do not send functions or Element PAPI node handles.
 
-- Use `lynx.getEngine()` when the target is the engine environment.
-- Use `lynx.getCoreContext()` in `background.ts` when the target is the main-thread environment.
-- Use `lynx.getJSContext()` in `main-thread.ts` when the target is the background-thread environment.
+## Lifecycle Event Names
 
-## Event Names
+The following names are engine-defined and must not be customized:
 
-`__RenderPage`, `__UpdatePage`, and `__DestroyLifetime` are engine-defined lifecycle event names. Use them exactly as provided by Lynx; they are not app-defined names and do not support customization.
+| Event | Meaning | Main-thread responsibility |
+| --- | --- | --- |
+| `__RenderPage` | Initial render payload | Process the payload and create the Element PAPI tree |
+| `__UpdatePage` | Later update payload | Apply the update and call `__FlushElementTree()` |
+| `__DestroyLifetime` | LynxView teardown | Remove listeners and forward destroy to the background when present |
 
-```javascript
-const renderPageEventName = "__RenderPage";
-const updatePageEventName = "__UpdatePage";
-const destroyLifetimeEventName = "__DestroyLifetime";
-```
+## App Event Names
 
-The other names below are app-level communication event names used by the examples. Real apps can rename or replace them to match the app protocol, as long as both `main-thread.ts` and `background.ts` use the same names.
+The examples use these app-defined names. An app may rename them, but both runtime sides must use the same protocol.
 
-```javascript
-const updateDataFromMainThreadEventName = "UpdateDataFromMainThread";
-const updateDataFromBackgroundEventName = "UpdateDataFromBackground";
-const dispatchEventToBackgroundEventName = "DispatchEventToBackground";
-```
+| Event | Direction | Purpose |
+| --- | --- | --- |
+| `UpdateDataFromMainThread` | Main → background | Forward processed Engine render or update data |
+| `DispatchEventToBackground` | Main → background | Request heavier app-level work from a UI event |
+| `UpdateDataFromBackground` | Background → main | Return a serializable state patch for a main-thread UI update |
 
-Use the data events in separate directions:
+The main thread owns every Element PAPI mutation and UI flush. The background thread owns heavier work and sends patches instead of mutating UI.
 
-- `UpdateDataFromMainThread`: main thread dispatches processed Engine render/update data to the background environment. Background treats it as input for background-owned state.
-- `UpdateDataFromBackground`: background dispatches a patch back to the main-thread environment. Main thread treats it as a background-driven UI update, mutates Element PAPI nodes as needed, and flushes.
-- `DispatchEventToBackground`: main thread dispatches app-level UI tasks to the background environment.
+## Implementation Routing
 
-## `lynx.getEngine()`
-
-Use `lynx.getEngine()` in both main-thread and background scripts when code needs the Lynx engine environment. Main-thread code commonly listens to engine lifecycle events:
-
-- `__RenderPage`: initial page render data from the engine.
-- `__UpdatePage`: later page update data from the engine.
-- `__DestroyLifetime`: LynxView destroy lifecycle.
-
-```javascript
-const engine = lynx.getEngine();
-
-function onRenderPage(event) {
-  const [data] = event.data;
-  renderPage(processData(data));
-}
-
-function onUpdatePage(event) {
-  const [data] = event.data;
-  updatePage(processData(data));
-}
-
-function cleanup() {
-  engine.removeEventListener(renderPageEventName, onRenderPage);
-  engine.removeEventListener(updatePageEventName, onUpdatePage);
-  engine.removeEventListener(destroyLifetimeEventName, cleanup);
-}
-
-engine.addEventListener(renderPageEventName, onRenderPage);
-engine.addEventListener(updatePageEventName, onUpdatePage);
-engine.addEventListener(destroyLifetimeEventName, cleanup);
-```
-
-When the app has a background thread, the main thread should access the background environment through `lynx.getJSContext()`.
-
-## `lynx.getCoreContext()`
-
-Use `lynx.getCoreContext()` in `background.ts` to get the main-thread environment.
-
-Background listens through the main-thread environment for data, UI tasks, and destroy:
-
-```javascript
-const mainThread = lynx.getCoreContext();
-
-function onUpdateDataFromMainThread(event) {
-  updateDataFromMainThread(event.data);
-}
-
-function onDispatchEventToBackground(event) {
-  const payload = event.data;
-  if (!payload || typeof payload.handlerName !== "string") return;
-  handleEvent(payload.handlerName, payload.data);
-}
-
-function cleanupBackground() {
-  mainThread.removeEventListener(
-    updateDataFromMainThreadEventName,
-    onUpdateDataFromMainThread,
-  );
-  mainThread.removeEventListener(
-    dispatchEventToBackgroundEventName,
-    onDispatchEventToBackground,
-  );
-  mainThread.removeEventListener(destroyLifetimeEventName, cleanupBackground);
-}
-
-mainThread.addEventListener(
-  updateDataFromMainThreadEventName,
-  onUpdateDataFromMainThread,
-);
-mainThread.addEventListener(
-  dispatchEventToBackgroundEventName,
-  onDispatchEventToBackground,
-);
-mainThread.addEventListener(destroyLifetimeEventName, cleanupBackground);
-```
-
-Background dispatches background-driven updates back to the main-thread environment through `lynx.getCoreContext()`:
-
-```javascript
-mainThread.dispatchEvent({
-  type: updateDataFromBackgroundEventName,
-  data: patch,
-});
-```
-
-## `lynx.getJSContext()`
-
-Use `lynx.getJSContext()` in `main-thread.ts` to get the background-thread JavaScript environment.
-
-```javascript
-const background = lynx.getJSContext();
-
-background.dispatchEvent({
-  type: updateDataFromMainThreadEventName,
-  data: processedData,
-});
-
-background.dispatchEvent({
-  type: dispatchEventToBackgroundEventName,
-  data: { handlerName: "addTodo", data: undefined },
-});
-
-background.dispatchEvent({
-  type: destroyLifetimeEventName,
-  data: undefined,
-});
-
-function onUpdateDataFromBackground(event) {
-  updatePage(event.data ?? {});
-}
-
-background.addEventListener(
-  updateDataFromBackgroundEventName,
-  onUpdateDataFromBackground,
-);
-
-function cleanupBackgroundPatchListener() {
-  background.removeEventListener(
-    updateDataFromBackgroundEventName,
-    onUpdateDataFromBackground,
-  );
-}
-```
-
-## Common Flow
-
-1. Main thread uses `lynx.getEngine().addEventListener(...)` for `__RenderPage`, `__UpdatePage`, and `__DestroyLifetime`.
-2. Main thread uses `lynx.getJSContext()` to get the background-thread environment, then dispatches processed data, UI tasks, and destroy lifecycle through it.
-3. Background uses `lynx.getCoreContext()` to get the main-thread environment, listens for forwarded data, UI tasks, and destroy lifecycle, then dispatches patches back through it.
-4. Main thread receives messages from the background environment and performs the needed UI updates.
+| Task | Read |
+| --- | --- |
+| Bind Element PAPI node events | [`main-thread.md#bind-element-events`](main-thread.md#bind-element-events) |
+| Handle Engine render, update, and destroy | [`main-thread.md#engine-driven-render-and-update`](main-thread.md#engine-driven-render-and-update) |
+| Dispatch background tasks, data, and destroy or apply returned patches | [`main-thread.md#background-driven-update`](main-thread.md#background-driven-update) |
+| Receive main-thread messages, run heavier work, and return patches | [`background.md`](background.md) |
