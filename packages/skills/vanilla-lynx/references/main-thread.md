@@ -180,6 +180,8 @@ Main-thread UI updates are driven by Engine lifecycle events. Initial `renderPag
 
 Use the engine environment returned from `lynx.getEngine()` for Engine-driven rendering and updates. The engine dispatches `__RenderPage` with the first render payload, dispatches `__UpdatePage` with later update payloads, and dispatches `__DestroyLifetime` for cleanup. The main-thread script listens to both `__RenderPage` and `__UpdatePage`: `__RenderPage` creates the initial tree, and `__UpdatePage` applies later main-thread updates.
 
+Currently, Lynx SDK requires an `processData` implementation on `globalThis` which could be replaced by `normalizeData` in the main-thread script to process native init data.
+
 Basic Engine-driven render/update shape:
 
 - `__RenderPage`: process Engine input and create the initial Element PAPI tree.
@@ -191,12 +193,16 @@ const renderPageEventName = "__RenderPage";
 const updatePageEventName = "__UpdatePage";
 const destroyLifetimeEventName = "__DestroyLifetime";
 
+Object.assign(globalThis, {
+  processData: () => {},
+});
+
 const engine = lynx.getEngine();
 
 let currentState = {};
 let valueText;
 
-function processData(data) {
+function normalizeData(data) {
   return {
     ...data,
     color: data?.color ?? "red",
@@ -235,12 +241,12 @@ function updatePage(patch) {
 
 function onRenderPage(event) {
   const [data] = event.data;
-  renderPage(processData(data));
+  renderPage(normalizeData(data));
 }
 
 function onUpdatePage(event) {
   const [data] = event.data;
-  updatePage(processData(data));
+  updatePage(normalizeData(data));
 }
 
 function cleanup() {
