@@ -1,5 +1,11 @@
 # @lynx-js/skill-reactlynx-best-practices
 
+## 0.1.2
+
+### Patch Changes
+
+- b57af8d: Correct ReactLynx component-library packaging guidance for preserved JSX output, Rslib configuration, package exports, and React runtime compatibility.
+
 ## 0.1.1
 
 ### Patch Changes
