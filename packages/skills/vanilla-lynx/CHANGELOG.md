@@ -1,5 +1,12 @@
 # @lynx-js/skill-vanilla-lynx
 
+## 0.0.3
+
+### Patch Changes
+
+- 3719237: Add `processData` implementation to `globalThis` for current SDK compatibility.
+- 0b42f05: Refactor the description of the event context.
+
 ## 0.0.2
 
 ### Patch Changes
