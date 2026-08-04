@@ -21,7 +21,8 @@ Use this skill to build Lynx apps directly with Element PAPI and Lynx Runtime AP
 - Do not call Element PAPI APIs or `__FlushElementTree()` from the `background.ts` entry.
 - Do not call `__FlushElementTree()` from initial `renderPage`; the SDK flushes initial render by default. Call `__FlushElementTree()` after later UI mutations.
 - Add a `background.ts` entry only for heavier business logic, async work, timers, native calls, or data processing. The main thread drives tasks; the background thread responds and sends patches back.
-- Use `lynx.getEngine()` in main-thread or background scripts to get the engine environment, `lynx.getJSContext()` in `main-thread.ts` to get the background-thread environment, and `lynx.getCoreContext()` in `background.ts` to get the main-thread environment.
+- Main-thread and background scripts can both call `lynx.getEngine()`, `lynx.getJSContext()`, and `lynx.getCoreContext()`. Use `lynx.getEngine()` for the engine environment, `lynx.getJSContext()` for the background-thread environment, and `lynx.getCoreContext()` for the main-thread environment.
+- For cross-thread events, prefer dispatching from the sending thread and adding or removing the listener in the target thread. Main-thread scripts should avoid adding listeners through `lynx.getJSContext()`, and background scripts should avoid adding listeners through `lynx.getCoreContext()`. Use `lynx.getJSContext()` for the complete Main → Background event flow and `lynx.getCoreContext()` for the complete Background → Main event flow.
 - Treat `__RenderPage`, `__UpdatePage`, and `__DestroyLifetime` as engine-defined lifecycle event names; do not customize them.
 - Remove every runtime event listener during destroy.
 - Read `references/style.md` before authoring Lynx CSS or migrating styles from the Web.

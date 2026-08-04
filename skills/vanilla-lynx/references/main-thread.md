@@ -110,7 +110,7 @@ __AppendElement(scrollView, scrollContent);
 
 Bind Element PAPI node events directly on the main thread. Keep the handler lightweight when the event only mutates UI state. If the event needs heavier business logic, async work, timers, or native calls, bind the UI event on the main thread and dispatch a serializable task to the background thread.
 
-Track every listener you add so node replacement and `__DestroyLifetime` cleanup can remove the listener with the same node, event name, handler, and options object. The `bindBackgroundEvent` helper uses the `dispatchTaskToBackground` function shown in [Background-Driven Update](#background-driven-update).
+Track every listener you add so node replacement and `__DestroyLifetime` cleanup can remove the listener with the same node, event name, handler, and options object. The `bindBackgroundEvent` helper uses the `dispatchEventToBackground` function shown in [Background-Driven Update](#background-driven-update).
 
 ```javascript
 const elementEventListeners = [];
@@ -122,7 +122,7 @@ function bindMainThreadEvent(node, name, handler, eventOptions = {}) {
 
 function bindBackgroundEvent(node, name, handlerName, data) {
   bindMainThreadEvent(node, name, () => {
-    dispatchTaskToBackground(handlerName, data);
+    dispatchEventToBackground(handlerName, data);
   });
 }
 
@@ -268,11 +268,14 @@ For complex tasks that need a background thread, read [`background.md`](backgrou
 
 The event names below mirror [`background.md`](background.md) for the example only. Real apps can choose their own shared event names.
 
+Use `lynx.getJSContext()` to dispatch events that background owns and handles. Use `lynx.getCoreContext()` to add and remove listeners that main thread owns and handles.
+
 ```javascript
-const updateDataFromBackgroundEventName = "UpdateDataFromBackground";
+const patchFromBackgroundEventName = "PatchFromBackground";
 const updateDataFromMainThreadEventName = "UpdateDataFromMainThread";
 const dispatchEventToBackgroundEventName = "DispatchEventToBackground";
 
+const mainThread = lynx.getCoreContext();
 const backgroundThread = lynx.getJSContext();
 
 function dispatchDataToBackground(data) {
@@ -282,7 +285,7 @@ function dispatchDataToBackground(data) {
   });
 }
 
-function dispatchTaskToBackground(handlerName, data) {
+function dispatchEventToBackground(handlerName, data) {
   backgroundThread.dispatchEvent({
     type: dispatchEventToBackgroundEventName,
     data: {
@@ -292,7 +295,7 @@ function dispatchTaskToBackground(handlerName, data) {
   });
 }
 
-function onBackgroundData(event) {
+function onBackgroundPatch(event) {
   const patch = event.data;
   if (!patch || typeof patch !== "object" || Array.isArray(patch)) return;
 
@@ -316,20 +319,20 @@ function cleanupBackgroundBridge() {
     type: destroyLifetimeEventName,
     data: undefined,
   });
-  backgroundThread.removeEventListener(
-    updateDataFromBackgroundEventName,
-    onBackgroundData,
+  mainThread.removeEventListener(
+    patchFromBackgroundEventName,
+    onBackgroundPatch,
   );
   engine.removeEventListener(destroyLifetimeEventName, cleanupBackgroundBridge);
 }
 
-backgroundThread.addEventListener(
-  updateDataFromBackgroundEventName,
-  onBackgroundData,
+mainThread.addEventListener(
+  patchFromBackgroundEventName,
+  onBackgroundPatch,
 );
 engine.addEventListener(destroyLifetimeEventName, cleanupBackgroundBridge);
 
-dispatchTaskToBackground("computeSummary", [{ value: 3 }, { value: 4 }]);
+dispatchEventToBackground("computeSummary", [{ value: 3 }, { value: 4 }]);
 ```
 
 Call `dispatchDataToBackground(processedData)` after processing Engine render or update data. Forward `__DestroyLifetime` before removing the bridge so `background.ts` can release its listeners.
