@@ -2,7 +2,7 @@
 
 Add a `background.ts` entry when a vanilla Lynx app needs to handle heavier work. The background thread responds to messages from the main thread, owns background state, and runs tasks such as async requests, timers, native calls, data processing, or other business logic.
 
-Read `event.md` for `lynx.getCoreContext()` and event environment APIs.
+Read `event.md` for `lynx.getJSContext()`, `lynx.getCoreContext()`, and event environment APIs.
 
 ## Role
 
@@ -15,51 +15,54 @@ Read `event.md` for `lynx.getCoreContext()` and event environment APIs.
 
 Simple UI updates do not need a background thread; keep them in `main-thread.ts`.
 
-## Listen for Main-Thread Messages
+## Listen for Messages dispatched from Main Thread
 
-Call `setupBackground()` once at module startup. Use the main-thread environment returned by `lynx.getCoreContext()` to listen for main-thread messages and dispatch patches back.
+Call `setupBackground()` once at module startup. Use the background-thread environment returned by `lynx.getJSContext()` to listen for messages which are dispatched from the main thread by `lynx.getJSContext().dispatchEvent`.
 
 ```javascript
-const mainThread = lynx.getCoreContext();
+const backgroundThread = lynx.getJSContext();
 const backgroundListeners = [];
 
 function addBackgroundListener(name, handler) {
-  mainThread.addEventListener(name, handler);
+  backgroundThread.addEventListener(name, handler);
   backgroundListeners.push({ name, handler });
 }
 
 function clearBackgroundListeners() {
   const currentListeners = backgroundListeners.splice(0);
   for (const { name, handler } of currentListeners) {
-    mainThread.removeEventListener(name, handler);
+    backgroundThread.removeEventListener(name, handler);
   }
 }
 
 function setupBackground() {
-  addBackgroundListener('UpdateDataFromMainThread', (event) => {
+  addBackgroundListener("UpdateDataFromMainThread", (event) => {
     const data = event.data;
-    if (data && typeof data === 'object' && !Array.isArray(data)) {
+    if (data && typeof data === "object" && !Array.isArray(data)) {
       updateDataFromMainThread(data);
     }
   });
 
-  addBackgroundListener('DispatchEventToBackground', (event) => {
+  addBackgroundListener("DispatchEventToBackground", (event) => {
     const payload = event.data;
-    if (!payload || typeof payload.handlerName !== 'string') return;
+    if (!payload || typeof payload.handlerName !== "string") return;
     handleBackgroundTask(payload.handlerName, payload.data);
   });
 
-  addBackgroundListener('__DestroyLifetime', () => {
+  addBackgroundListener("__DestroyLifetime", () => {
     clearBackgroundListeners();
   });
 }
 ```
 
-## Respond to Main-Thread Messages
+## Dispatch Patches to the Main Thread
 
-Keep background data private to the background runtime. Treat `UpdateDataFromMainThread` as incoming data from the main thread, and route task messages by `handlerName`. When background-owned state changes while responding to main-thread messages, dispatch `UpdateDataFromBackground` with only changed keys as a patch. The main thread owns the actual UI mutation.
+Sync background changes to the main thread by calling `dispatchEvent()` on the main-thread environment returned by `lynx.getCoreContext()`. Prefer having the main thread own the corresponding `PatchFromBackground` listener instead of adding or removing that listener from the background thread.
+
+Keep background data private to the background runtime. When it changes, compare it with the last synchronized state and dispatch only changed keys in a `PatchFromBackground` event. The main thread receives the patch and owns the actual UI mutation.
 
 ```javascript
+const mainThread = lynx.getCoreContext();
 const data = {};
 let lastSyncedData = { ...data };
 let isFirstScreenDataFromMainThread = true;
@@ -68,22 +71,7 @@ function getData() {
   return data;
 }
 
-function setData(patch, shouldSyncToMainThread = true) {
-  Object.assign(data, patch);
-  if (!shouldSyncToMainThread) {
-    lastSyncedData = { ...data };
-    return;
-  }
-  dispatchDataToMainThread();
-}
-
-function updateDataFromMainThread(nextData) {
-  const shouldSyncToMainThread = !isFirstScreenDataFromMainThread;
-  isFirstScreenDataFromMainThread = false;
-  setData(nextData, shouldSyncToMainThread);
-}
-
-function dispatchDataToMainThread() {
+function dispatchPatchToMainThread() {
   const patch = {};
   for (const [key, value] of Object.entries(data)) {
     if (value !== lastSyncedData[key]) {
@@ -93,31 +81,48 @@ function dispatchDataToMainThread() {
   if (Object.keys(patch).length === 0) return;
   lastSyncedData = { ...data };
   mainThread.dispatchEvent({
-    type: 'UpdateDataFromBackground',
+    type: "PatchFromBackground",
     data: patch,
   });
 }
+
+function setData(patch, shouldSyncToMainThread = true) {
+  Object.assign(data, patch);
+  if (!shouldSyncToMainThread) {
+    lastSyncedData = { ...data };
+    return;
+  }
+  dispatchPatchToMainThread();
+}
+
+function updateDataFromMainThread(nextData) {
+  const shouldSyncToMainThread = !isFirstScreenDataFromMainThread;
+  isFirstScreenDataFromMainThread = false;
+  setData(nextData, shouldSyncToMainThread);
+}
 ```
+
+## Handle Background Tasks
 
 Handle task requests by `handlerName`. Unknown task names should return without mutating state. Keep async requests, timers, native calls, data processing, and other heavier business logic here instead of in `main-thread.ts`.
 
 ```javascript
 function handleBackgroundTask(handlerName, taskData) {
-  if (handlerName === 'increment') {
+  if (handlerName === "increment") {
     const currentData = getData();
     setData({ count: (currentData.count ?? 0) + 1 });
     return true;
   }
 
-  if (handlerName === 'computeSummary') {
+  if (handlerName === "computeSummary") {
     const values = Array.isArray(taskData) ? taskData : [];
     const total = values.reduce((sum, item) => sum + (item.value ?? 0), 0);
     setData({ total });
     return true;
   }
 
-  if (handlerName.startsWith('select:')) {
-    setData({ selectedId: handlerName.slice('select:'.length) });
+  if (handlerName.startsWith("select:")) {
+    setData({ selectedId: handlerName.slice("select:".length) });
     return true;
   }
 
