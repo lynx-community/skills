@@ -1,16 +1,16 @@
 {
   "skill_name": "lynx-devtool",
-  "description": "End-to-end task evals for the lynx-devtool skill. These evals cover listing clients and sessions, CDP inspection, console retrieval, app navigation, and screenshots using the commands available in this repository.",
+  "description": "End-to-end task evals for the lynx-devtool skill. These evals cover listing clients and sessions, CDP inspection, evaluating JavaScript on a device, console retrieval, app navigation, and screenshots using the `agent-lynx` commands available in this repository.",
   "evals": [
     {
       "id": 1,
       "name": "list-clients-and-sessions",
       "prompt": "I want to know which Lynx apps are currently debuggable and what debug sessions exist. Write a shell script `inspect.sh` that uses the lynx-devtool CLI to print both lists. Do not include unrelated commands.",
-      "expected_output": "A shell script that invokes `node <skill>/scripts/index.mjs list-clients` and `node <skill>/scripts/index.mjs list-sessions`.",
+      "expected_output": "A shell script that invokes `agent-lynx list-clients` and `agent-lynx list-sessions`.",
       "expectations": [
         "The answer writes or shows a shell script named `inspect.sh`.",
-        "The script invokes the `list-clients` subcommand through `node ... scripts/index.mjs list-clients`.",
-        "The script invokes the `list-sessions` subcommand through `node ... scripts/index.mjs list-sessions`.",
+        "The script invokes the `list-clients` subcommand through `agent-lynx list-clients`.",
+        "The script invokes the `list-sessions` subcommand through `agent-lynx list-sessions`.",
         "The script does not invoke unrelated subcommands such as `cdp`, `app`, `open`, or `take-screenshot`."
       ],
       "files": []
@@ -33,7 +33,7 @@
       "id": 3,
       "name": "get-console-errors-and-warnings",
       "prompt": "Give me the exact one-line command that fetches only the last 10 error and warning console messages from the current Lynx session. Put it in `console-cmd.sh` and do not add extra output.",
-      "expected_output": "A one-line command invoking `node <skill>/scripts/index.mjs get-console` with `--level error,warning` and `--limit 10`.",
+      "expected_output": "A one-line command invoking `agent-lynx get-console` with `--level error,warning` and `--limit 10`.",
       "expectations": [
         "The response writes or shows a file named `console-cmd.sh`.",
         "The file content invokes the `get-console` subcommand.",
@@ -54,6 +54,20 @@
         "The screenshot command includes the `--fullscreen` flag.",
         "The screenshot command writes to `/tmp/lynx-shot.jpeg` via `-o` or `--output`.",
         "The answer does not use unrelated tools such as adb screencap."
+      ],
+      "files": []
+    },
+    {
+      "id": 5,
+      "name": "evaluate-lynx-global-properties",
+      "prompt": "I need to read the running Lynx page's `lynx.__globalProps` as JSON from the command line. Give me the exact one-line command in `read-global-properties.sh`.",
+      "expected_output": "A one-line command invoking `agent-lynx evaluate` with a `JSON.stringify(lynx.__globalProps)` expression.",
+      "expectations": [
+        "The response writes or shows a file named `read-global-properties.sh`.",
+        "The command invokes the `evaluate` subcommand.",
+        "The evaluated expression reads `lynx.__globalProps`.",
+        "The expression is wrapped in `JSON.stringify(...)` so the result is returned by value as JSON.",
+        "The answer does not use `cdp -m Runtime.evaluate` with a raw `--thread main` target, since `__globalProps` lives on the background VM."
       ],
       "files": []
     }

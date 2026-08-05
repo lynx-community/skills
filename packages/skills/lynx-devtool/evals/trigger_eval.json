@@ -8,11 +8,15 @@
     "should_trigger": true
   },
   {
-    "query": "Lynx 页面 JS 报错了，用 lynx-devtool CLI 拉一下 console error 和 warning。",
+    "query": "Lynx 页面 JS 报错了，用 agent-lynx CLI 拉一下 console error 和 warning。",
     "should_trigger": true
   },
   {
     "query": "我想用 lynx-devtool 打开一个 lynx:// URL 并截全屏 screenshot。",
+    "should_trigger": true
+  },
+  {
+    "query": "帮我用 agent-lynx 在设备上跑一下 JS，读一下当前页面的 lynx.__globalProps。",
     "should_trigger": true
   },
   {

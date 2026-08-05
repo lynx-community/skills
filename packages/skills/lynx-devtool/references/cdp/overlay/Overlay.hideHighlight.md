@@ -2,6 +2,5 @@
 
 - `Overlay.hideHighlight` - Hide highlight
 - Input: None
-- Output: `{result: {}}`
+- Output: `{}`
 - Description: Removes any active node highlighting
-

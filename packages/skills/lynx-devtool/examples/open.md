@@ -3,7 +3,7 @@
 Open a specific URL in the Lynx app.
 
 ```bash
-node <path_to_the_skill>/scripts/index.mjs open <url> [options]
+agent-lynx open <url> [options]
 ```
 
 - `<url>`: The URL to open.
@@ -12,5 +12,5 @@ node <path_to_the_skill>/scripts/index.mjs open <url> [options]
 Example:
 
 ```bash
-node <path_to_the_skill>/scripts/index.mjs open "lynx://example/page"
+agent-lynx open "lynx://example/page"
 ```

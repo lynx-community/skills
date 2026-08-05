@@ -2,8 +2,9 @@
 
 - `DOM.getAttributes` - Get attributes
 - Input: `{nodeId: NodeId}`
-- Output: `{result: {attributes: Array<{name: string, value: string}>}}`
+- Output: `{attributes: string[]}`
 - Description: Returns all attributes of the specified node
 
-### Search Functions
+The `attributes` array alternates attribute names and values, for example `["class", "Logo"]`.
 
+### Search Functions

@@ -5,24 +5,25 @@ List all parsed scripts in the current Lynx session.
 ## Usage
 
 ```bash
-node scripts/index.mjs get-sources [options]
+agent-lynx get-sources [options]
 ```
 
 ## Options
 
 - `-c, --client <clientId>`: Client ID. If not provided, the command will attempt to discover the first available client.
-- `-s, --session <sessionId>`: Session ID. If not provided, the command will attempt to discover the latest available session.
+- `-s, --session <sessionId>`: Session ID. If not provided, the command will attempt to discover the latest session (with the largest session ID).
 
 ## Behavior
 
-1.  **Connection**: Connects to the DevTool via WebSocket.
-2.  **Refresh Scripts**: Sends `Debugger.disable` followed by `Debugger.enable` to trigger the re-emission of `Debugger.scriptParsed` events for all existing scripts.
-3.  **Collection**: Listens for `Debugger.scriptParsed` events.
-4.  **Timeout**: The command runs for a maximum of 5 seconds. It also stops early if no new scripts are received for 2 seconds (idle timeout).
+1. **Connection**: Connects to the DevTool via WebSocket.
+2. **Refresh Scripts**: Sends `Debugger.disable` followed by `Debugger.enable` to trigger the re-emission of `Debugger.scriptParsed` events for all existing scripts.
+3. **Collection**: Listens for `Debugger.scriptParsed` events.
+4. **Timeout**: The command runs for a maximum of 5 seconds. It also stops early if no new scripts are received for 2 seconds (idle timeout).
 
 ## Output
 
 The output is a JSON array of objects, where each object represents a parsed script and contains:
+
 - `scriptId`: The unique identifier for the script.
 - `url`: The URL or path of the script.
 
@@ -46,5 +47,5 @@ The output is a JSON array of objects, where each object represents a parsed scr
 This command will list all scripts that are currently loaded in the VM.
 
 ```bash
-node scripts/index.mjs get-sources
+agent-lynx get-sources
 ```

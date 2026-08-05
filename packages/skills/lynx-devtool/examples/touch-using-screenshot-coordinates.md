@@ -16,13 +16,13 @@ For click automation, use CDP DOM methods instead.
 ## Minimal command flow
 
 ```bash
-node <path_to_the_skill>/scripts/index.mjs cdp -c <client_id> -s <session_id> -m DOM.getDocument '{"depth":0}'
-node <path_to_the_skill>/scripts/index.mjs cdp -c <client_id> -s <session_id> -m DOM.querySelector '{"nodeId":<root_node_id>,"selector":"[lynx-test-tag=\"target\"]"}'
-node <path_to_the_skill>/scripts/index.mjs cdp -c <client_id> -s <session_id> -m DOM.scrollIntoViewIfNeeded '{"nodeId":<target_node_id>}'
-node <path_to_the_skill>/scripts/index.mjs cdp -c <client_id> -s <session_id> -m DOM.getBoxModel '{"nodeId":<target_node_id>}'
-node <path_to_the_skill>/scripts/index.mjs cdp -c <client_id> -s <session_id> -m DOM.getNodeForLocation '{"x":<center_x>,"y":<center_y>}'
-node <path_to_the_skill>/scripts/index.mjs cdp -c <client_id> -s <session_id> -m Input.emulateTouchFromMouseEvent '{"type":"mousePressed","x":<center_x>,"y":<center_y>,"timestamp":0,"button":"left","clickCount":1}'
-node <path_to_the_skill>/scripts/index.mjs cdp -c <client_id> -s <session_id> -m Input.emulateTouchFromMouseEvent '{"type":"mouseReleased","x":<center_x>,"y":<center_y>,"button":"left","clickCount":1}'
+agent-lynx cdp -c <client_id> -s <session_id> -m DOM.getDocument '{"depth":0}'
+agent-lynx cdp -c <client_id> -s <session_id> -m DOM.querySelector '{"nodeId":<root_node_id>,"selector":"[lynx-test-tag=\"target\"]"}'
+agent-lynx cdp -c <client_id> -s <session_id> -m DOM.scrollIntoViewIfNeeded '{"nodeId":<target_node_id>}'
+agent-lynx cdp -c <client_id> -s <session_id> -m DOM.getBoxModel '{"nodeId":<target_node_id>}'
+agent-lynx cdp -c <client_id> -s <session_id> -m DOM.getNodeForLocation '{"x":<center_x>,"y":<center_y>}'
+agent-lynx cdp -c <client_id> -s <session_id> -m Input.emulateTouchFromMouseEvent '{"type":"mousePressed","x":<center_x>,"y":<center_y>,"timestamp":0,"button":"left","clickCount":1}'
+agent-lynx cdp -c <client_id> -s <session_id> -m Input.emulateTouchFromMouseEvent '{"type":"mouseReleased","x":<center_x>,"y":<center_y>,"button":"left","clickCount":1}'
 ```
 
 If a screenshot and DOM disagree, trust the DOM-derived point for clicking. For deeper debugging, see [Click Coordinate Troubleshooting](../references/troubleshooting/click-coordinates.md).
