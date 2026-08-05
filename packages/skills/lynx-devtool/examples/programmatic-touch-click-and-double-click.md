@@ -9,7 +9,7 @@ It demonstrates:
 - Multi-step gesture sequencing in one stream
 
 ```js
-import { createDefaultConnector } from "<path_to_the_skill>/scripts/connector.mjs";
+import { createDefaultConnector } from "agent-lynx/connector";
 import { ReadableStream } from "node:stream/web";
 
 const connector = createDefaultConnector();

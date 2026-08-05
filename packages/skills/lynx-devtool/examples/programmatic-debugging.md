@@ -1,6 +1,6 @@
 # Programmatic Debugging
 
-This example shows a realistic JavaScript workflow using `<path_to_the_skill>/scripts/connector.mjs` instead of the CLI.
+This example shows a realistic JavaScript workflow using `agent-lynx/connector` instead of the CLI.
 
 It follows the same steps you would take manually:
 
@@ -10,7 +10,10 @@ It follows the same steps you would take manually:
 4. Send CDP and App commands directly.
 
 ```js
-import { createDefaultConnector } from "<path_to_the_skill>/scripts/connector.mjs";
+import {
+  createDefaultConnector,
+  evaluateExpression,
+} from "agent-lynx/connector";
 
 const connector = createDefaultConnector();
 
@@ -35,23 +38,22 @@ if (!session) {
   throw new Error("No Lynx sessions found");
 }
 
-const document = await connector.sendCDPMessage(
+const version = await connector.sendCDPMessage(
   client.id,
   session.session_id,
-  "DOM.getDocument",
-  { depth: 1 },
+  "Lynx.getVersion",
 );
 
-console.log("document", document);
+console.log("Lynx version", version);
 
-const evaluation = await connector.sendCDPMessage(
+const globalProps = await evaluateExpression(
+  connector,
   client.id,
   session.session_id,
-  "Runtime.evaluate",
-  { expression: "globalThis.location?.href ?? 'unknown'" },
+  "JSON.stringify(lynx.__globalProps)",
 );
 
-console.log("evaluation", evaluation);
+console.log("global props", globalProps);
 
 await connector.sendAppMessage(client.id, "App.openPage", {
   url: "lynx://example/page",
