@@ -2,8 +2,8 @@
   "extends": "../../tsconfig.json",
   "compilerOptions": {
     "isolatedDeclarations": false,
-    "noEmit": true,
+    "rootDir": "./src",
     "types": ["node"]
   },
-  "include": ["src", "test"]
+  "include": ["src/connector.ts", "src/evaluate-expression.ts"]
 }
