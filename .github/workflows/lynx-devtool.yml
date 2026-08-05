@@ -4,6 +4,7 @@ on:
   pull_request:
     branches: [main]
     paths:
+      - "packages/agent-lynx/**"
       - "packages/mcp-servers/devtool-connector/**"
       - "packages/mcp-servers/devtool-mcp-server/**"
       - "packages/skills/lynx-devtool/**"
@@ -11,6 +12,7 @@ on:
   push:
     branches: [main]
     paths:
+      - "packages/agent-lynx/**"
       - "packages/mcp-servers/devtool-connector/**"
       - "packages/mcp-servers/devtool-mcp-server/**"
       - "packages/skills/lynx-devtool/**"
@@ -91,8 +93,8 @@ jobs:
           echo "EMBEDDED_LYNX_REACT_PID=$!" >> "$GITHUB_ENV"
           ./.github/scripts/wait-debug-router.sh /tmp/embedded-lynx-reactlynx.log
 
-      - name: E2E (skill reactlynx)
-        working-directory: packages/skills/lynx-devtool
+      - name: E2E (agent-lynx reactlynx)
+        working-directory: packages/agent-lynx
         env:
           LYNX_DEVTOOL_MCP_TESTING_PAGE_URL: ${{ env.REACT_DEVTOOL_BUNDLE_URL }}
           LYNX_DEVTOOL_MCP_TESTING_OPEN_URL: ${{ env.REACT_DEVTOOL_BUNDLE_URL }}
