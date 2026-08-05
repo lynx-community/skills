@@ -47,6 +47,11 @@ test('DaemonTransport listClients sends explicit Control listClients request', a
 
   const address = server.address();
   assert(address && typeof address !== 'string');
+  t.mock.method(
+    DaemonManager,
+    'ensureRunning',
+    async () => `ws://127.0.0.1:${address.port}/devtool/connector`,
+  );
 
   const transport = new DaemonTransport(address.port);
   const clients = await transport.listClients();
@@ -95,6 +100,11 @@ test('DaemonTransport closes daemon connection when subscribe fails', async (t) 
 
   const address = server.address();
   assert(address && typeof address !== 'string');
+  t.mock.method(
+    DaemonManager,
+    'ensureRunning',
+    async () => `ws://127.0.0.1:${address.port}/devtool/connector`,
+  );
 
   const transport = new DaemonTransport(address.port);
   await assert.rejects(() =>

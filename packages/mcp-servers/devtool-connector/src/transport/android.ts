@@ -7,13 +7,14 @@ import { type Adb, AdbServerClient } from '@yume-chan/adb';
 import { AdbServerNodeTcpConnector } from '@yume-chan/adb-server-node-tcp';
 import { createDebug } from 'obug';
 import { connectWithPeertalk } from './base.ts';
-import type {
-  App,
-  Connection,
-  Device,
-  OpenAppOptions,
-  Transport,
-  TransportConnectOptions,
+import {
+  type App,
+  type Connection,
+  type Device,
+  type OpenAppOptions,
+  requireNumericPort,
+  type Transport,
+  type TransportConnectOptions,
 } from './transport.ts';
 
 const debug = createDebug('devtool-mcp-server:connector:android');
@@ -54,13 +55,16 @@ export class AndroidTransport implements Transport {
     port,
     signal,
   }: TransportConnectOptions): Promise<Connection> {
+    const numericPort = requireNumericPort(port);
     const adb = await this.client.createAdb({ serial: deviceId });
 
-    debug(`connect: create connection to deviceId: ${deviceId}, port: ${port}`);
+    debug(
+      `connect: create connection to deviceId: ${deviceId}, port: ${numericPort}`,
+    );
 
     signal?.throwIfAborted();
 
-    const service = `tcp:${port}`;
+    const service = `tcp:${numericPort}`;
 
     let socket: Awaited<ReturnType<Adb['createSocket']>>;
     try {
@@ -94,7 +98,7 @@ export class AndroidTransport implements Transport {
       async [Symbol.asyncDispose]() {
         signal?.removeEventListener('abort', abortHandler);
         debug(
-          `connect: close connection to deviceId: ${deviceId}, port: ${port}`,
+          `connect: close connection to deviceId: ${deviceId}, port: ${numericPort}`,
         );
         try {
           await socket.close();

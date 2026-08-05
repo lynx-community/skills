@@ -29,11 +29,14 @@ export {
   CDPResponseTransformStream,
 } from './streams/cdp.ts';
 
+import { throwClientDiscoveryFailures } from './client-discovery-errors.ts';
 import { ClientId } from './client-id.ts';
+import { isDaemonLifecycleError } from './daemon/manager.ts';
 import { DaemonTransport } from './transport/daemon.ts';
 import type {
   App,
   Client,
+  Connection,
   Device,
   OpenAppOptions,
   Transport,
@@ -42,13 +45,13 @@ import type {
 import {
   type AppInfo,
   type CDPRequestMessage,
+  createCorrelatedFilter,
   type GetGlobalSwitchResponse,
   type GlobalKeys,
   type HeadlessPrepareRequest,
   type HeadlessPrepareResponse,
   type HeadlessPrepareState,
   type InitializeRequest,
-  type InitializeResponse,
   isGetGlobalSwitchResponse,
   isHeadlessPrepareResponse,
   isInitializeResponse,
@@ -56,10 +59,26 @@ import {
   isSetGlobalSwitchResponse,
   type ListSessionRequest,
   type ListSessionResponse,
+  type Response,
   type Session,
 } from './types.ts';
 
 const debug = createDebug('devtool-mcp-server:connector');
+const openAppClientWaitTimeoutMs = 55_000;
+const clientSetupSwitches = [
+  { key: 'enable_devtool', value: true, required: true },
+  // `enable_quickjs_debug` is required for `Runtime.*` and `HeapProfiler.*` to work,
+  // so we enable it by default. It won't have effect if the devtool doesn't support quickjs debug.
+  // And it will not turn off `enable_v8` if it's already on, so it won't break v8 debug.
+  { key: 'enable_quickjs_debug', value: true, required: true },
+  // PixelCopy only captures the visible surface viewport. Prefer software drawing so screenshots can
+  // include the complete LynxView, while keeping this optional for clients that do not support it.
+  { key: 'enable_pixel_copy', value: false, required: false },
+] as const satisfies readonly {
+  key: GlobalKeys;
+  value: boolean;
+  required: boolean;
+}[];
 
 interface OutputStream<O> extends AsyncDisposable, ReadableStream<O> {
   inputClosed: Promise<void>;
@@ -80,6 +99,12 @@ function hasClientList(transport: Transport): transport is ClientListTransport {
   return typeof transport.listClients === 'function';
 }
 
+function isNonEmptyListSessionResponse(
+  response: Response,
+): response is ListSessionResponse {
+  return isListSessionResponse(response) && response.data.data.length > 0;
+}
+
 export class Connector {
   #transports: Transport[];
   #daemonTransports: DaemonTransport[];
@@ -92,6 +117,8 @@ export class Connector {
   }
 
   async listClients(): Promise<Client[]> {
+    const discoveryFailures: unknown[] = [];
+
     // 0. Try to get clients from daemon transport, which supports multiplexing.
     const daemonClientResults = await Promise.allSettled(
       this.#daemonTransports.map(async (transport) => {
@@ -105,11 +132,27 @@ export class Connector {
     const fulfilledDaemonClientResults = daemonClientResults.filter(
       (r) => r.status === 'fulfilled',
     );
+    discoveryFailures.push(
+      ...daemonClientResults
+        .filter((r) => r.status === 'rejected')
+        .map((r) => r.reason),
+    );
     const daemonClients = fulfilledDaemonClientResults.flatMap((r) => r.value);
 
     if (fulfilledDaemonClientResults.length > 0) {
       debug('Using clients from daemon transport: %o', daemonClients);
       return daemonClients;
+    }
+
+    const daemonLifecycleFailure = daemonClientResults
+      .filter((result) => result.status === 'rejected')
+      .map((result) => result.reason)
+      .find(isDaemonLifecycleError);
+    if (daemonLifecycleFailure) {
+      // A lifecycle failure means the daemon may still own the one permitted
+      // debug-router connection. Falling back to direct transports here could
+      // create a second active connection and break both callers.
+      throw daemonLifecycleFailure;
     }
 
     // 1. Try direct connection for other transports.
@@ -124,6 +167,7 @@ export class Connector {
 
     for (const result of transportDevices) {
       if (result.status === 'rejected') {
+        discoveryFailures.push(result.reason);
         debug(
           'listClients: listDevices failed on one transport: %O',
           result.reason,
@@ -131,9 +175,18 @@ export class Connector {
       }
     }
 
+    const fulfilledTransportDevices = transportDevices.filter(
+      (result) => result.status === 'fulfilled',
+    );
+    if (
+      fulfilledTransportDevices.length === 0 &&
+      discoveryFailures.length > 0
+    ) {
+      throwClientDiscoveryFailures(discoveryFailures);
+    }
+
     const results = await Promise.allSettled(
-      transportDevices
-        .filter((r) => r.status === 'fulfilled')
+      fulfilledTransportDevices
         .map((r) => r.value)
         .flatMap(({ transport, devices }) =>
           devices.flatMap(({ id }) =>
@@ -142,9 +195,19 @@ export class Connector {
         ),
     );
 
-    return results
-      .filter((r) => r.status === 'fulfilled')
-      .flatMap((r) => r.value);
+    const fulfilledClientResults = results.filter(
+      (r) => r.status === 'fulfilled',
+    );
+    if (fulfilledClientResults.length === 0 && results.length > 0) {
+      throwClientDiscoveryFailures([
+        ...discoveryFailures,
+        ...results
+          .filter((result) => result.status === 'rejected')
+          .map((result) => result.reason),
+      ]);
+    }
+
+    return fulfilledClientResults.flatMap((r) => r.value);
   }
 
   async listDevices(): Promise<Device[]> {
@@ -167,13 +230,13 @@ export class Connector {
     deviceId: string,
     packageName: string,
     options?: OpenAppOptions,
-  ): Promise<void> {
+  ): Promise<string> {
     const transport = await this.#findTransportWithDeviceId(deviceId);
 
     await transport.openApp(deviceId, packageName, options);
 
     const signal = AbortSignal.any(
-      [options?.signal, AbortSignal.timeout(60_000)].filter(
+      [options?.signal, AbortSignal.timeout(openAppClientWaitTimeoutMs)].filter(
         (i) => i !== undefined,
       ),
     );
@@ -187,22 +250,29 @@ export class Connector {
             )
           : await this.#listClientsForDevice(transport, deviceId);
 
-        if (
-          clients.some(
-            ({ info }) =>
-              /** Android */ info.AppProcessName === packageName ||
-              /** iOS */ info.bundleId === packageName ||
-              info.bundleName === packageName,
-          )
-        ) {
-          break;
+        const appClient = clients.find(
+          ({ info }) =>
+            /** Android */ info.AppProcessName === packageName ||
+            /** iOS */ info.bundleId === packageName ||
+            /** OpenHarmony */ info.bundleName === packageName,
+        );
+        if (appClient !== undefined) {
+          return appClient.id;
         }
       } catch (err) {
         // ignore error
         debug(`openApp ${deviceId} ${packageName} client not found %o`, err);
       }
-      await setTimeout(1_000);
+      try {
+        await setTimeout(1_000, undefined, { signal });
+      } catch {
+        break;
+      }
     }
+
+    throw new Error(
+      `Timed out waiting for app client ${packageName} on device ${deviceId}.`,
+    );
   }
 
   async sendMessage<T, R>(
@@ -276,6 +346,38 @@ export class Connector {
         output: [
           new CustomizedResponseTransformStream('App', id),
           new AppResponseTransformStream(method),
+        ],
+      },
+    );
+  }
+
+  /**
+   * Open a page on the given client by sending an `OpenCard` Customized event.
+   */
+  async openPage(clientId: string, url: string): Promise<ListSessionResponse> {
+    return await this.#sendMessage<
+      Record<string, unknown>,
+      ListSessionResponse
+    >(
+      clientId,
+      {
+        event: 'Customized',
+        data: {
+          type: 'OpenCard',
+          data: {
+            type: 'url',
+            url,
+          },
+          sender: -1,
+        },
+        from: -1,
+      },
+      {
+        input: [],
+        output: [
+          // Pulling an old page and plugging the requested page both broadcast an
+          // uncorrelated SessionList. An empty list cannot mean OpenCard succeeded.
+          new FilterTransformStream(isNonEmptyListSessionResponse),
         ],
       },
     );
@@ -394,6 +496,7 @@ export class Connector {
   }
 
   async #sendListSessionMessage(clientId: string): Promise<Session[]> {
+    const id = randomInt(10_000, 50_000);
     const {
       data: { data: sessions },
     } = await this.#sendMessage<ListSessionRequest, ListSessionResponse>(
@@ -403,11 +506,16 @@ export class Connector {
         data: {
           type: 'ListSession',
           data: {},
+          id,
         },
       },
       {
         input: [],
-        output: [new FilterTransformStream(isListSessionResponse)],
+        output: [
+          new FilterTransformStream(
+            createCorrelatedFilter(isListSessionResponse, id),
+          ),
+        ],
       },
     );
 
@@ -529,13 +637,23 @@ export class Connector {
     transports: Transport[],
     deviceId: string,
   ): Promise<Transport | null> {
-    return await Promise.any(
-      transports.map(async (transport) => {
-        const devices = await transport.listDevices();
-        if (devices.some(({ id }) => id === deviceId)) return transport;
-        throw new Error('Not found in this transport');
-      }),
-    ).catch(() => null);
+    try {
+      return await Promise.any(
+        transports.map(async (transport) => {
+          const devices = await transport.listDevices();
+          if (devices.some(({ id }) => id === deviceId)) return transport;
+          throw new Error('Not found in this transport');
+        }),
+      );
+    } catch (error) {
+      if (error instanceof AggregateError) {
+        const daemonLifecycleFailure = error.errors.find(
+          isDaemonLifecycleError,
+        );
+        if (daemonLifecycleFailure) throw daemonLifecycleFailure;
+      }
+      return null;
+    }
   }
 
   async #connect<I, O>(
@@ -549,6 +667,7 @@ export class Connector {
     const conn = await transport.connect<I, O>(options);
 
     const inputAbortController = new AbortController();
+    const inputAbortReason = new Error('Connector input stream disposed');
 
     const inputClosed = [
       ...pipeline.input,
@@ -566,10 +685,13 @@ export class Connector {
         signal: inputAbortController.signal,
       })
       .catch((err) => {
-        if (err?.name !== 'AbortError') {
-          debug(`connect ${deviceId}:${port} input stream err %O`, err);
+        if (err === inputAbortReason) {
+          return;
         }
+        debug(`connect ${deviceId}:${port} input stream err %O`, err);
+        throw err;
       });
+    const inputSettled = inputClosed.catch(() => {});
 
     const outputStream = [
       new InspectStream((msg) =>
@@ -577,8 +699,7 @@ export class Connector {
       ),
       ...pipeline.output,
     ].reduce(
-      (stream, transform) =>
-        stream.pipeThrough(transform, { preventCancel: true }),
+      (stream, transform) => stream.pipeThrough(transform),
       conn.readable,
     );
 
@@ -586,9 +707,13 @@ export class Connector {
       inputClosed,
       async [Symbol.asyncDispose]() {
         debug(`connect ${deviceId}:${port} close connection`);
-        inputAbortController.abort();
-        await inputClosed.catch(() => {});
-        return conn[Symbol.asyncDispose]();
+        inputAbortController.abort(inputAbortReason);
+        const connectionDisposed = Promise.resolve().then(() =>
+          conn[Symbol.asyncDispose](),
+        );
+        void connectionDisposed.catch(() => {});
+        await inputSettled;
+        return connectionDisposed;
       },
     });
   }
@@ -617,22 +742,51 @@ export class Connector {
     input: I,
     pipeline: Pipeline,
   ): Promise<O> {
-    await using outputStream = await this.#connect<I, O>(
+    const outputStream = await this.#connect<I, O>(
       transport,
       options,
       // We have polyfill for this
       ReadableStream.from([input]),
       pipeline,
     );
-    for await (const response of outputStream) {
+    const reader = outputStream.getReader();
+    let failed = false;
+    let primaryError: unknown;
+    let result!: O;
+    try {
+      const read = reader.read();
+      await Promise.race([read, outputStream.inputClosed]);
+      const response = await read;
       await outputStream.inputClosed;
-      return response;
+      if (!response.done) {
+        result = response.value;
+      } else {
+        const clientId = ClientId.serialize(options.deviceId, options.port);
+        throw new Error(`No response found for clientId: ${clientId}`);
+      }
+    } catch (err) {
+      failed = true;
+      primaryError = err;
+    } finally {
+      await reader.cancel(primaryError).catch(() => {});
+      reader.releaseLock();
     }
 
-    await outputStream.inputClosed;
+    try {
+      await outputStream[Symbol.asyncDispose]();
+    } catch (err) {
+      if (!failed) {
+        failed = true;
+        primaryError = err;
+      } else {
+        debug('connection cleanup suppressed after request failure %O', err);
+      }
+    }
 
-    const clientId = ClientId.serialize(options.deviceId, options.port);
-    throw new Error(`No response found for clientId: ${clientId}`);
+    if (failed) {
+      throw primaryError;
+    }
+    return result;
   }
 
   async #listClientsForDevice(
@@ -641,45 +795,127 @@ export class Connector {
   ): Promise<{ id: string; info: AppInfo; port: number }[]> {
     const MIN_PORT = 8901;
     const PORTS = Array.from({ length: 10 }, (_, i) => MIN_PORT + i);
-    const signal = AbortSignal.timeout(5_000);
+    const discoverySignal = AbortSignal.timeout(5_000);
     const results = await Promise.allSettled(
       PORTS.map(async (port: number) => {
-        const {
-          data: { info },
-        } = await this.#sendMessageWithTransport<
-          InitializeRequest,
-          InitializeResponse
-        >(
+        const info = await this.#discoverAndSetupClient(
           transport,
-          { deviceId, port, signal },
-          { event: 'Initialize', data: port },
-          {
-            input: [],
-            output: [new FilterTransformStream(isInitializeResponse)],
-          },
+          deviceId,
+          port,
+          discoverySignal,
         );
-
-        const clientId = ClientId.serialize(deviceId, port);
-        await this.#setupClient(transport, clientId);
-
-        return { id: clientId, info, port };
+        return { id: ClientId.serialize(deviceId, port), info, port };
       }),
     );
 
-    return results
+    const clients = results
       .filter((result) => result.status === 'fulfilled')
       .map((result) => result.value);
+    if (clients.length === 0) {
+      discoverySignal.throwIfAborted();
+    }
+    return clients;
+  }
+
+  async #discoverAndSetupClient(
+    transport: Transport,
+    deviceId: string,
+    port: number,
+    discoverySignal: AbortSignal,
+  ): Promise<AppInfo> {
+    const lifetime = new AbortController();
+    const forwardStageSignal = (signal: AbortSignal): (() => void) => {
+      const abort = () => lifetime.abort(signal.reason);
+      signal.addEventListener('abort', abort, { once: true });
+      if (signal.aborted) abort();
+      try {
+        lifetime.signal.throwIfAborted();
+      } catch (err) {
+        signal.removeEventListener('abort', abort);
+        throw err;
+      }
+      return () => signal.removeEventListener('abort', abort);
+    };
+
+    const exchange = async <T extends Response>(
+      connection: Connection<Response, unknown>,
+      message: unknown,
+      predicate: (response: Response) => response is T,
+      signal: AbortSignal,
+    ): Promise<T> => {
+      const stopForwardingSignal = forwardStageSignal(signal);
+      try {
+        signal.throwIfAborted();
+        const writer = connection.writable.getWriter();
+        debug('connect input stream send %o', JSON.stringify(message));
+        await writer.write(message).finally(() => writer.releaseLock());
+
+        signal.throwIfAborted();
+        for await (const value of connection.readable.values({
+          preventCancel: true,
+        })) {
+          signal.throwIfAborted();
+          debug('connect output stream receive %O', value);
+          if (predicate(value)) return value;
+        }
+        signal.throwIfAborted();
+        throw new Error(
+          'Connection closed before receiving the expected response',
+        );
+      } catch (err) {
+        signal.throwIfAborted();
+        throw err;
+      } finally {
+        stopForwardingSignal();
+      }
+    };
+
+    const stopForwardingDiscovery = forwardStageSignal(discoverySignal);
+    await using connection = await transport
+      .connect<unknown, Response>({
+        deviceId,
+        port,
+        signal: lifetime.signal,
+      })
+      .finally(stopForwardingDiscovery);
+    const register = await exchange(
+      connection,
+      { event: 'Initialize', data: port } satisfies InitializeRequest,
+      isInitializeResponse,
+      discoverySignal,
+    );
+
+    for (const { key, value, required } of clientSetupSwitches) {
+      try {
+        await exchange(
+          connection,
+          {
+            event: 'Customized',
+            data: {
+              type: 'SetGlobalSwitch',
+              data: {
+                client_id: port,
+                session_id: -1,
+                message: { global_key: key, global_value: value },
+              },
+              sender: port,
+            },
+          },
+          isSetGlobalSwitchResponse,
+          AbortSignal.timeout(3_000),
+        );
+      } catch (err) {
+        debug(`setupClient ${deviceId}:${port} ${key} failed %O`, err);
+        if (required) throw err;
+      }
+    }
+
+    return register.data.info;
   }
 
   async #setupClient(transport: Transport, clientId: string): Promise<void> {
     const { deviceId, port } = this.#resolveClientId(clientId);
-    for (const input of [
-      { key: 'enable_devtool', value: true },
-      // `enable_quickjs_debug` is required for `Runtime.*` and `HeapProfiler.*` to work,
-      // so we enable it by default. It won't have effect if the devtool doesn't support quickjs debug.
-      // And it will not turn off `enable_v8` if it's already on, so it won't break v8 debug.
-      { key: 'enable_quickjs_debug', value: true },
-    ] as const) {
+    for (const { key, value } of clientSetupSwitches) {
       try {
         await this.#sendMessageWithTransport<
           { key: GlobalKeys; value: boolean },
@@ -687,14 +923,14 @@ export class Connector {
         >(
           transport,
           { deviceId, port, signal: AbortSignal.timeout(3_000) },
-          input,
+          { key, value },
           {
             input: [new GlobalSwitchRequestTransformStream('SetGlobalSwitch')],
             output: [new FilterTransformStream(isSetGlobalSwitchResponse)],
           },
         );
       } catch (err) {
-        debug(`setupClient ${deviceId}:${port} ${input.key} failed %O`, err);
+        debug(`setupClient ${deviceId}:${port} ${key} failed %O`, err);
       }
     }
   }

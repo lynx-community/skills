@@ -3,12 +3,29 @@
 // LICENSE file in the root directory of this source tree.
 
 import type { ReadableStream, WritableStream } from 'node:stream/web';
+import type { ClientTarget } from '../client-id.ts';
 import type { AppInfo } from '../types.ts';
 
 export interface TransportConnectOptions {
   deviceId: string;
-  port: number;
+  port: ClientTarget;
   signal?: AbortSignal | undefined;
+}
+
+/**
+ * Narrow a {@link ClientTarget} to the numeric debug-router port required by
+ * port-forwarding transports.
+ */
+export function requireNumericPort(port: ClientTarget): number {
+  if (typeof port === 'number') {
+    return port;
+  }
+  if (/^\d+$/.test(port)) {
+    return Number(port);
+  }
+  throw new TypeError(
+    `Transport requires a numeric port, received target: ${port}`,
+  );
 }
 
 export interface OpenAppOptions {

@@ -14,6 +14,7 @@ export default defineConfig({
       index: './src/index.ts',
       'transport/index': './src/transport/index.ts',
       'streams/index': './src/streams/index.ts',
+      'command/index': './src/command/index.ts',
     },
   },
   lib: [

@@ -6,6 +6,7 @@ import { randomInt } from 'node:crypto';
 import type { ReadableStream } from 'node:stream/web';
 import { TransformStream, WritableStream } from 'node:stream/web';
 import { createDebug } from 'obug';
+import type { ClientTarget } from '../client-id.ts';
 import { DaemonManager, DEFAULT_DAEMON_PORT } from '../daemon/manager.ts';
 import type { ClientListEntry, ControlResponse } from '../daemon/protocol.ts';
 import type {
@@ -318,7 +319,7 @@ export class DaemonTransport implements Transport {
 function routeDaemonMessage<T>(
   chunk: T,
   sender: number,
-  port: number,
+  port: ClientTarget,
 ): unknown {
   if (isRecord(chunk) && chunk['event'] === 'Customized') {
     const data = isRecord(chunk['data']) ? chunk['data'] : {};

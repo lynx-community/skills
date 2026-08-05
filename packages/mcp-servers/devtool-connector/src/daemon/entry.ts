@@ -8,12 +8,18 @@
  * Spawned by DaemonManager as a detached child process.
  * Usage: node daemon/entry.ts --port 21783
  */
+import fs from 'node:fs/promises';
+import os from 'node:os';
+import path from 'node:path';
 import { parseArgs } from 'node:util';
 import { AndroidTransport } from '../transport/android.ts';
 import { DesktopTransport } from '../transport/desktop.ts';
 import { iOSTransport } from '../transport/ios.ts';
 import { DEFAULT_DAEMON_PORT } from './manager.ts';
 import { DevtoolDaemon } from './server.ts';
+
+const DEBUG_ROUTER_DIR = path.join(os.homedir(), '.DebugRouterConnector');
+const PIDFILE = path.join(DEBUG_ROUTER_DIR, 'daemon.pid');
 
 function getAndroidTransportSpec(env: NodeJS.ProcessEnv): {
   host: string;
@@ -55,6 +61,16 @@ const daemon = new DevtoolDaemon(
 );
 
 await daemon.start(port);
+
+// Only the process that actually won the port writes daemon.pid. Writing this
+// in DaemonManager before listen() lets a losing spawn race overwrite the
+// winner's identity with a PID that has already exited.
+try {
+  await fs.mkdir(DEBUG_ROUTER_DIR, { recursive: true });
+  await fs.writeFile(PIDFILE, String(process.pid), 'utf8');
+} catch {
+  // The pidfile is diagnostic only; daemon availability must not depend on it.
+}
 
 // Handle graceful shutdown
 process.on('SIGTERM', () => {

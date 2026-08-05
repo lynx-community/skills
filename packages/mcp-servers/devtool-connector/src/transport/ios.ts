@@ -5,13 +5,14 @@
 import type { NetConnectOpts } from 'node:net';
 import { createDebug } from 'obug';
 import { connectWithPeertalk } from './base.ts';
-import type {
-  App,
-  Connection,
-  Device,
-  OpenAppOptions,
-  Transport,
-  TransportConnectOptions,
+import {
+  type App,
+  type Connection,
+  type Device,
+  type OpenAppOptions,
+  requireNumericPort,
+  type Transport,
+  type TransportConnectOptions,
 } from './transport.ts';
 import { Usbmux } from './usbmux.ts';
 
@@ -42,17 +43,20 @@ export class iOSTransport implements Transport {
     port,
     signal,
   }: TransportConnectOptions): Promise<Connection> {
-    debug(`connect: create connection to deviceId: ${deviceId}, port: ${port}`);
+    const numericPort = requireNumericPort(port);
+    debug(
+      `connect: create connection to deviceId: ${deviceId}, port: ${numericPort}`,
+    );
 
     const id = await this.#resolveUsbmuxDeviceId(deviceId, signal);
-    const conn = await this.#client.connect(id, port, signal);
+    const conn = await this.#client.connect(id, numericPort, signal);
 
     return {
       readable: conn.readable,
       writable: conn.writable,
       async [Symbol.asyncDispose]() {
         debug(
-          `connect: close connection to deviceId: ${deviceId}, port: ${port}`,
+          `connect: close connection to deviceId: ${deviceId}, port: ${numericPort}`,
         );
         conn.dispose();
       },

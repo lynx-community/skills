@@ -11,11 +11,35 @@ import type {
   Transport,
   TransportConnectOptions,
 } from '../src/transport/transport.ts';
+import { requireNumericPort } from '../src/transport/transport.ts';
 
 class SetupAwareTransport implements Transport {
   readonly #deviceId = 'device under:test';
+  readonly #failRegisterPorts: Set<number>;
+  readonly #failSetup: { key: string; port: number } | undefined;
+  readonly #onSetupRequest:
+    | ((key: string, port: number) => boolean | undefined)
+    | undefined;
   readonly #ports = [8901, 8902];
-  readonly setupRequests: { key: string; port: number }[] = [];
+  readonly messagesByConnection = new Map<
+    number,
+    { kind: string; port: number }[]
+  >();
+  readonly setupRequests: { key: string; value: boolean; port: number }[] = [];
+  connectCalls = 0;
+  disposeCalls = 0;
+
+  constructor(
+    options: {
+      failRegisterPorts?: number[];
+      failSetup?: { key: string; port: number };
+      onSetupRequest?: (key: string, port: number) => boolean | undefined;
+    } = {},
+  ) {
+    this.#failRegisterPorts = new Set(options.failRegisterPorts);
+    this.#failSetup = options.failSetup;
+    this.#onSetupRequest = options.onSetupRequest;
+  }
 
   async close(): Promise<void> {}
 
@@ -38,37 +62,68 @@ class SetupAwareTransport implements Transport {
 
     let enqueueResponse: ((value: unknown) => void) | undefined;
     let closeReadable: (() => void) | undefined;
+    const connectionId = ++this.connectCalls;
+    const dispose = () => {
+      this.disposeCalls += 1;
+      options.signal?.removeEventListener('abort', abortHandler);
+      closeReadable?.();
+    };
+    const abortHandler = () => closeReadable?.();
+    options.signal?.addEventListener('abort', abortHandler, { once: true });
+    const messages: { kind: string; port: number }[] = [];
+    this.messagesByConnection.set(connectionId, messages);
 
     const readable = new ReadableStream<unknown>({
       start(controller) {
         enqueueResponse = (value) => controller.enqueue(value);
-        closeReadable = () => controller.close();
+        closeReadable = () => {
+          try {
+            controller.close();
+          } catch {
+            // The Connector may already have cancelled after consuming the response.
+          }
+        };
       },
     });
 
     const writable = new WritableStream<unknown>({
       write: (chunk) => {
-        if (this.#isExpectedInitialize(chunk, options.port)) {
-          enqueueResponse?.(this.#createRegisterResponse(options.port));
-          closeReadable?.();
+        const port = requireNumericPort(options.port);
+        if (this.#isExpectedInitialize(chunk, port)) {
+          messages.push({ kind: 'Initialize', port });
+          if (this.#failRegisterPorts.has(port)) {
+            closeReadable?.();
+          } else {
+            enqueueResponse?.(this.#createRegisterResponse(port));
+          }
           return;
         }
 
-        const setupKey = this.#getSetGlobalSwitchKey(chunk);
-        if (setupKey) {
-          this.setupRequests.push({ key: setupKey, port: options.port });
+        const setupRequest = this.#getSetGlobalSwitchRequest(chunk);
+        if (setupRequest) {
+          messages.push({ kind: setupRequest.key, port });
+          this.setupRequests.push({ ...setupRequest, port });
+          if (this.#onSetupRequest?.(setupRequest.key, port) === false) {
+            return;
+          }
+          if (
+            this.#failSetup?.port === port &&
+            this.#failSetup.key === setupRequest.key
+          ) {
+            closeReadable?.();
+            return;
+          }
           enqueueResponse?.({
             event: 'Customized',
             data: {
               type: 'SetGlobalSwitch',
               data: {
-                client_id: options.port,
+                client_id: port,
                 session_id: -1,
                 message: 'ok',
               },
             },
           });
-          closeReadable?.();
           return;
         }
 
@@ -82,7 +137,9 @@ class SetupAwareTransport implements Transport {
     return {
       readable,
       writable,
-      async [Symbol.asyncDispose]() {},
+      async [Symbol.asyncDispose]() {
+        dispose();
+      },
     };
   }
 
@@ -118,7 +175,9 @@ class SetupAwareTransport implements Transport {
     );
   }
 
-  #getSetGlobalSwitchKey(message: unknown): string | null {
+  #getSetGlobalSwitchRequest(
+    message: unknown,
+  ): { key: string; value: boolean } | null {
     if (
       typeof message !== 'object' ||
       message === null ||
@@ -136,12 +195,17 @@ class SetupAwareTransport implements Transport {
       typeof message.data.data.message !== 'object' ||
       message.data.data.message === null ||
       !('global_key' in message.data.data.message) ||
-      typeof message.data.data.message.global_key !== 'string'
+      typeof message.data.data.message.global_key !== 'string' ||
+      !('global_value' in message.data.data.message) ||
+      typeof message.data.data.message.global_value !== 'boolean'
     ) {
       return null;
     }
 
-    return message.data.data.message.global_key;
+    return {
+      key: message.data.data.message.global_key,
+      value: message.data.data.message.global_value,
+    };
   }
 }
 
@@ -157,14 +221,149 @@ describe('Connector listClients setup', () => {
       ClientId.serialize('device under:test', 8902),
     ]);
     t.assert.deepStrictEqual(transport.setupRequests, [
-      { key: 'enable_devtool', port: 8901 },
-      { key: 'enable_devtool', port: 8902 },
-      { key: 'enable_quickjs_debug', port: 8901 },
-      { key: 'enable_quickjs_debug', port: 8902 },
+      { key: 'enable_devtool', value: true, port: 8901 },
+      { key: 'enable_devtool', value: true, port: 8902 },
+      { key: 'enable_quickjs_debug', value: true, port: 8901 },
+      { key: 'enable_quickjs_debug', value: true, port: 8902 },
+      { key: 'enable_pixel_copy', value: false, port: 8901 },
+      { key: 'enable_pixel_copy', value: false, port: 8902 },
     ]);
+    t.assert.equal(
+      transport.connectCalls,
+      10,
+      'one scan should open one connection per probed port',
+    );
+    t.assert.equal(transport.disposeCalls, 10);
+    for (const port of [8901, 8902]) {
+      t.assert.deepStrictEqual(
+        [...transport.messagesByConnection.values()].filter((messages) =>
+          messages.some((message) => message.port === port),
+        ),
+        [
+          [
+            { kind: 'Initialize', port },
+            { kind: 'enable_devtool', port },
+            { kind: 'enable_quickjs_debug', port },
+            { kind: 'enable_pixel_copy', port },
+          ],
+        ],
+        `port ${port} should use one connection generation for discovery and setup`,
+      );
+    }
 
     await connector.listClients();
 
-    t.assert.equal(transport.setupRequests.length, 8);
+    t.assert.equal(transport.setupRequests.length, 12);
+    t.assert.equal(transport.connectCalls, 20);
+    t.assert.equal(transport.disposeCalls, 20);
+  });
+
+  test('publishes a client only after both setup acknowledgments', async (t) => {
+    for (const key of ['enable_devtool', 'enable_quickjs_debug']) {
+      const transport = new SetupAwareTransport({
+        failRegisterPorts: [8902],
+        failSetup: { key, port: 8901 },
+      });
+
+      const clients = await new Connector([transport]).listClients();
+
+      t.assert.deepStrictEqual(
+        clients,
+        [],
+        `${key} failure must not publish the client`,
+      );
+      t.assert.equal(transport.connectCalls, 10);
+      t.assert.equal(transport.disposeCalls, 10);
+    }
+  });
+
+  test('keeps clients that do not support the optional pixel copy setup', async (t) => {
+    const transport = new SetupAwareTransport({
+      failRegisterPorts: [8902],
+      failSetup: { key: 'enable_pixel_copy', port: 8901 },
+    });
+
+    const clients = await new Connector([transport]).listClients();
+
+    t.assert.deepStrictEqual(
+      clients.map(({ id }) => id),
+      [ClientId.serialize('device under:test', 8901)],
+    );
+    t.assert.deepStrictEqual(transport.setupRequests, [
+      { key: 'enable_devtool', value: true, port: 8901 },
+      { key: 'enable_quickjs_debug', value: true, port: 8901 },
+      { key: 'enable_pixel_copy', value: false, port: 8901 },
+    ]);
+  });
+
+  test('does not let the completed discovery deadline abort setup', async (t) => {
+    const discovery = new AbortController();
+    const originalTimeout = AbortSignal.timeout.bind(AbortSignal);
+    t.mock.method(AbortSignal, 'timeout', (delay: number) =>
+      delay === 5_000 ? discovery.signal : originalTimeout(delay),
+    );
+    const transport = new SetupAwareTransport({
+      failRegisterPorts: [8902],
+      onSetupRequest(key, port) {
+        if (key === 'enable_devtool' && port === 8901) discovery.abort();
+      },
+    });
+
+    const clients = await new Connector([transport]).listClients();
+
+    t.assert.deepStrictEqual(
+      clients.map(({ id }) => id),
+      [ClientId.serialize('device under:test', 8901)],
+    );
+    t.assert.deepStrictEqual(transport.setupRequests, [
+      { key: 'enable_devtool', value: true, port: 8901 },
+      { key: 'enable_quickjs_debug', value: true, port: 8901 },
+      { key: 'enable_pixel_copy', value: false, port: 8901 },
+    ]);
+  });
+
+  test('setup deadline interrupts a pending response without publishing the client', async (t) => {
+    const discovery = new AbortController();
+    const setup = new AbortController();
+    const setupRequested = Promise.withResolvers<void>();
+    const setupAborted = Promise.withResolvers<void>();
+    t.mock.method(AbortSignal, 'timeout', (delay: number) =>
+      delay === 5_000 ? discovery.signal : setup.signal,
+    );
+    const transport = new SetupAwareTransport({
+      failRegisterPorts: [8902],
+      onSetupRequest(key, port) {
+        if (key === 'enable_devtool' && port === 8901) {
+          setupRequested.resolve();
+          setImmediate(() => {
+            setup.abort();
+            setupAborted.resolve();
+          });
+          return false;
+        }
+      },
+    });
+    const clientsPromise = new Connector([transport]).listClients();
+
+    await setupRequested.promise;
+    await setupAborted.promise;
+    const settled = await settlesBeforeImmediate(clientsPromise);
+    if (!settled) discovery.abort();
+    const clients = await clientsPromise;
+
+    t.assert.equal(settled, true);
+    t.assert.deepStrictEqual(clients, []);
   });
 });
+
+async function settlesBeforeImmediate(
+  promise: Promise<unknown>,
+): Promise<boolean> {
+  return await Promise.race([
+    promise.then(
+      () => true,
+      () => true,
+    ),
+    new Promise<false>((resolve) => setImmediate(() => resolve(false))),
+  ]);
+}
