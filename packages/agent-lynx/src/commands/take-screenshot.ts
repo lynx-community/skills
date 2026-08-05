@@ -3,11 +3,9 @@
 // LICENSE file in the root directory of this source tree.
 
 import fs from 'node:fs/promises';
-import { ReadableStream } from 'node:stream/web';
-import { setTimeout } from 'node:timers/promises';
+import { captureScreenshot } from '@lynx-js/devtool-connector/command';
 import type { Command } from 'commander';
 import {
-  CLIENT_NAME_OPTION,
   CLIENT_OPTION,
   type Context,
   resolveClientAndSession,
@@ -22,7 +20,6 @@ export function registerTakeScreenshotCommand(
     .command('take-screenshot')
     .description('Take a screenshot of the current page')
     .option(...CLIENT_OPTION)
-    .option(...CLIENT_NAME_OPTION)
     .option(...SESSION_OPTION)
     .option(
       '--fullscreen',
@@ -40,59 +37,15 @@ export function registerTakeScreenshotCommand(
       const { output, fullscreen } = options;
 
       const numericSessionId = Number(sessionId);
-      const signal = AbortSignal.timeout(10_000);
-      const { promise: framePromise, resolve: resolveFrame } =
-        Promise.withResolvers<void>();
-      const { promise: ackPromise, resolve: resolveAck } =
-        Promise.withResolvers<void>();
-
-      await using stream = await connector.sendCDPStream(
+      const data = await captureScreenshot(
+        connector,
         clientId,
         numericSessionId,
-        new ReadableStream({
-          async start(controller) {
-            controller.enqueue({
-              method: 'Page.startScreencast',
-              params: {
-                format: 'jpeg',
-                quality: 80,
-                mode: fullscreen ? 'fullscreen' : 'lynxview',
-              },
-            });
-            const hasFrame = await Promise.race([
-              framePromise.then(() => true),
-              setTimeout(10_000, false, { ref: false }),
-            ]);
-            if (hasFrame) {
-              controller.enqueue({
-                method: 'Page.screencastFrameAck',
-              });
-            }
-            controller.close();
-            resolveAck();
-          },
-        }),
-        { signal },
+        { fullscreen },
       );
+      const fileName = output ?? `screenshot-${Date.now()}.jpeg`;
+      await fs.writeFile(fileName, Buffer.from(data, 'base64'));
 
-      for await (const { method, params: eventParams } of stream) {
-        if (method === 'Page.screencastFrame') {
-          const { data } = eventParams as { data: string };
-          if (data) {
-            resolveFrame();
-            await ackPromise;
-
-            const fileName = output ?? `screenshot-${Date.now()}.jpeg`;
-            await fs.writeFile(fileName, Buffer.from(data, 'base64'));
-
-            console.log(`Screenshot saved to ${fileName}`);
-            return;
-          }
-        }
-      }
-
-      throw new Error(
-        'Failed to capture screenshot, no Page.screencastFrame event received within 10 seconds.',
-      );
+      console.log(`Screenshot saved to ${fileName}`);
     });
 }

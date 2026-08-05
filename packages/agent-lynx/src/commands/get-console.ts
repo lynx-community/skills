@@ -3,9 +3,9 @@
 // LICENSE file in the root directory of this source tree.
 
 import { ReadableStream } from 'node:stream/web';
+
 import type { Command } from 'commander';
 import {
-  CLIENT_NAME_OPTION,
   CLIENT_OPTION,
   type Context,
   readUntilIdle,
@@ -71,7 +71,6 @@ export function registerGetConsoleCommand(program: Command, context: Context) {
     .command('get-console')
     .description('Capture console logs from the device')
     .option(...CLIENT_OPTION)
-    .option(...CLIENT_NAME_OPTION)
     .option(...SESSION_OPTION)
     .option(
       '--offset <number>',

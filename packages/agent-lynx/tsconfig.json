@@ -1,9 +1,9 @@
 {
-  "extends": "../../../tsconfig.json",
+  "extends": "../../tsconfig.json",
   "compilerOptions": {
     "isolatedDeclarations": false,
     "noEmit": true,
     "types": ["node"]
   },
-  "include": ["src"]
+  "include": ["src", "test"]
 }

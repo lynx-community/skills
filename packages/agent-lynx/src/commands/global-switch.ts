@@ -1,9 +1,9 @@
 // Copyright 2025 The Lynx Authors. All rights reserved.
 // Licensed under the Apache License Version 2.0 that can be found in the
 // LICENSE file in the root directory of this source tree.
+
 import type { Command } from 'commander';
 import {
-  CLIENT_NAME_OPTION,
   CLIENT_OPTION,
   type Context,
   parseOnOff,
@@ -53,7 +53,6 @@ export function registerGlobalSwitchCommand(
     .command('list')
     .description('List all global switch states')
     .option(...CLIENT_OPTION)
-    .option(...CLIENT_NAME_OPTION)
     .option('--fail-fast', 'Abort on first key-read failure')
     .action(async (options) => {
       const { connector, clientId } = await resolveClient(context, options);
@@ -90,7 +89,6 @@ export function registerGlobalSwitchCommand(
       `Global switch key. Supported: ${GLOBAL_SWITCH_KEYS_HELP}`,
     )
     .option(...CLIENT_OPTION)
-    .option(...CLIENT_NAME_OPTION)
     .action(async (options) => {
       const { connector, clientId } = await resolveClient(context, options);
 
@@ -110,7 +108,6 @@ export function registerGlobalSwitchCommand(
     )
     .requiredOption('--status <status>', 'Switch status: on/off')
     .option(...CLIENT_OPTION)
-    .option(...CLIENT_NAME_OPTION)
     .action(async (options) => {
       const { connector, clientId } = await resolveClient(context, options);
 
