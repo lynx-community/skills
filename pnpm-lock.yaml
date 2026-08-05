@@ -156,6 +156,9 @@ importers:
 
   packages/mcp-servers/devtool-connector:
     dependencies:
+      jpeg-js:
+        specifier: ^0.4.4
+        version: 0.4.4
       ws:
         specifier: ^8.21.0
         version: 8.21.0
@@ -1757,6 +1760,9 @@ packages:
 
   jose@6.2.3:
     resolution: {integrity: sha512-YYVDInQKFJfR/xa3ojUTl8c2KoTwiL1R5Wg9YCydwH0x0B9grbzlg5HC7mMjCtUJjbQ/YnGEZIhI5tCgfTb4Hw==}
+
+  jpeg-js@0.4.4:
+    resolution: {integrity: sha512-WZzeDOEtTOBK4Mdsar0IqEU5sMr3vSV2RqkAIzUEV2BHnUfKGyswWFPFwK5EeDo93K3FohSHbLAjj0s1Wzd+dg==}
 
   js-yaml@3.14.2:
     resolution: {integrity: sha512-PMSmkqxr106Xa156c2M265Z+FTrPl+oxd/rgOQy2tijQeK5TxQ43psO1ZCwhVOSdnn+RzkzlRz/eY4BgJBYVpg==}
@@ -4034,6 +4040,8 @@ snapshots:
   jju@1.4.0: {}
 
   jose@6.2.3: {}
+
+  jpeg-js@0.4.4: {}
 
   js-yaml@3.14.2:
     dependencies:

@@ -30,6 +30,11 @@
       "import": "./src/streams/index.ts",
       "default": "./src/streams/index.ts"
     },
+    "./command": {
+      "types": "./src/command/index.ts",
+      "import": "./src/command/index.ts",
+      "default": "./src/command/index.ts"
+    },
     "./test-with-client": {
       "types": "./test/testWithClient.ts",
       "import": "./test/testWithClient.ts",
@@ -50,6 +55,7 @@
     "test:e2e": "node --test --test-concurrency=1 'e2e/**/*.test.ts'"
   },
   "dependencies": {
+    "jpeg-js": "^0.4.4",
     "ws": "^8.21.0"
   },
   "devDependencies": {
@@ -88,6 +94,11 @@
         "types": "./dist/streams/index.d.ts",
         "import": "./dist/streams/index.js",
         "default": "./dist/streams/index.js"
+      },
+      "./command": {
+        "types": "./dist/command/index.d.ts",
+        "import": "./dist/command/index.js",
+        "default": "./dist/command/index.js"
       },
       "./package.json": "./package.json"
     },
