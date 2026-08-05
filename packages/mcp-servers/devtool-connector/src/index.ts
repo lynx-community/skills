@@ -31,6 +31,7 @@ export {
 
 import { throwClientDiscoveryFailures } from './client-discovery-errors.ts';
 import { ClientId } from './client-id.ts';
+import { isDaemonLifecycleError } from './daemon/manager.ts';
 import { DaemonTransport } from './transport/daemon.ts';
 import type {
   App,
@@ -141,6 +142,17 @@ export class Connector {
     if (fulfilledDaemonClientResults.length > 0) {
       debug('Using clients from daemon transport: %o', daemonClients);
       return daemonClients;
+    }
+
+    const daemonLifecycleFailure = daemonClientResults
+      .filter((result) => result.status === 'rejected')
+      .map((result) => result.reason)
+      .find(isDaemonLifecycleError);
+    if (daemonLifecycleFailure) {
+      // A lifecycle failure means the daemon may still own the one permitted
+      // debug-router connection. Falling back to direct transports here could
+      // create a second active connection and break both callers.
+      throw daemonLifecycleFailure;
     }
 
     // 1. Try direct connection for other transports.
@@ -625,13 +637,23 @@ export class Connector {
     transports: Transport[],
     deviceId: string,
   ): Promise<Transport | null> {
-    return await Promise.any(
-      transports.map(async (transport) => {
-        const devices = await transport.listDevices();
-        if (devices.some(({ id }) => id === deviceId)) return transport;
-        throw new Error('Not found in this transport');
-      }),
-    ).catch(() => null);
+    try {
+      return await Promise.any(
+        transports.map(async (transport) => {
+          const devices = await transport.listDevices();
+          if (devices.some(({ id }) => id === deviceId)) return transport;
+          throw new Error('Not found in this transport');
+        }),
+      );
+    } catch (error) {
+      if (error instanceof AggregateError) {
+        const daemonLifecycleFailure = error.errors.find(
+          isDaemonLifecycleError,
+        );
+        if (daemonLifecycleFailure) throw daemonLifecycleFailure;
+      }
+      return null;
+    }
   }
 
   async #connect<I, O>(
