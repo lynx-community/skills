@@ -5,7 +5,17 @@
 import fs from 'node:fs/promises';
 import type { TestContext } from 'node:test';
 import { setTimeout } from 'node:timers/promises';
-import { testWithClient } from '@lynx-js/devtool-connector/test-with-client';
+import {
+  getTestingSession,
+  testWithClient,
+} from '@lynx-js/devtool-connector/test-with-client';
+import { GetBackgroundColors } from '../src/tools/CSS/GetBackgroundColors.ts';
+import { GetComputedStyleForNode } from '../src/tools/CSS/GetComputedStyleForNode.ts';
+import { GetInlineStylesForNode } from '../src/tools/CSS/GetInlineStylesForNode.ts';
+import { GetMatchedStylesForNode } from '../src/tools/CSS/GetMatchedStylesForNode.ts';
+import { GetStyleSheetText } from '../src/tools/CSS/GetStyleSheetText.ts';
+import { GetScriptSource } from '../src/tools/Debugger/GetScriptSource.ts';
+import { ListScripts } from '../src/tools/Debugger/ListScripts.ts';
 import { DescribeNode } from '../src/tools/DOM/DescribeNode.ts';
 import { GetAttributes } from '../src/tools/DOM/GetAttributes.ts';
 import { GetBoxModel } from '../src/tools/DOM/GetBoxModel.ts';
@@ -23,7 +33,9 @@ import { RequestChildNodes } from '../src/tools/DOM/RequestChildNodes.ts';
 import { ScrollIntoViewIfNeeded } from '../src/tools/DOM/ScrollIntoViewIfNeeded.ts';
 import { SetAttributesAsText } from '../src/tools/DOM/SetAttributesAsText.ts';
 import { TakeHeapSnapshot } from '../src/tools/HeapProfiler/TakeHeapSnapshot.ts';
+import { EmulateTouchFromMouseEvent } from '../src/tools/Input/EmulateTouchFromMouseEvent.ts';
 import { GetVersion } from '../src/tools/Lynx/GetVersion.ts';
+import { GetAllMemoryUsage } from '../src/tools/Memory/GetAllMemoryUsage.ts';
 import { GetResourceContent } from '../src/tools/Page/GetResourceContent.ts';
 import { GetResourceTree } from '../src/tools/Page/GetResourceTree.ts';
 import { GetAllPerformanceEntries } from '../src/tools/Performance/GetAllPerformanceEntries.ts';
@@ -31,7 +43,9 @@ import { GetAllTimingInfo } from '../src/tools/Performance/GetAllTimingInfo.ts';
 import { Evaluate } from '../src/tools/Runtime/Evaluate.ts';
 import { GetHeapUsage } from '../src/tools/Runtime/GetHeapUsage.ts';
 import { GetProperties } from '../src/tools/Runtime/GetProperties.ts';
+import { ListConsole } from '../src/tools/Runtime/ListConsole.ts';
 import { GetLynxUITree } from '../src/tools/UITree/GetLynxUITree.ts';
+import { assertExtraTiming } from '../test/utils/assertExtraTiming.ts';
 import type {
   DescribeNodeResponse,
   GetAllPerformanceEntriesResponse,
@@ -49,10 +63,17 @@ import type {
   QuerySelectorResponse,
   UITreeNode,
 } from '../test/utils/cdp-types.ts';
-import { createToolContext } from '../test/utils/testTool.ts';
+import { createToolContext as createUnboundToolContext } from '../test/utils/testTool.ts';
 
 function flattenUITree(node: UITreeNode): UITreeNode[] {
   return [node, ...(node.children ?? []).flatMap(flattenUITree)];
+}
+
+function supportsMemoryUsage(appPackageName: string): boolean {
+  return (
+    appPackageName === 'com.lynx.uiapp' ||
+    appPackageName === 'com.lynx.LynxExample'
+  );
 }
 
 function findFirstElementNode(node: Node): Node | undefined {
@@ -87,11 +108,14 @@ function hasLynx4Metadata(node: UITreeNode): node is UITreeNode & {
 testWithClient('Tools', async (suite, connector, client, target) => {
   await setTimeout(1000);
   const clientId = client.id;
+  const sessionId = (await getTestingSession(connector, clientId)).session_id;
+  const createToolContext: typeof createUnboundToolContext = (
+    tool,
+    toolConnector,
+    toolClientId,
+  ) => createUnboundToolContext(tool, toolConnector, toolClientId, sessionId);
 
-  const latestSessionId = async () => {
-    const sessions = await connector.sendListSessionMessage(clientId);
-    return sessions[sessions.length - 1]?.session_id;
-  };
+  const latestSessionId = async () => sessionId;
 
   await suite.test('DOM.getDocument', async (t: TestContext) => {
     const { call } = createToolContext(GetDocument, connector, clientId);
@@ -387,10 +411,56 @@ testWithClient('Tools', async (suite, connector, client, target) => {
   });
 
   await suite.test('DOM.getNodeForLocation', async (t: TestContext) => {
+    const sessionId = await latestSessionId();
+    t.assert.ok(sessionId, 'Should have a sessionId');
+
+    const { root } = await connector.sendCDPMessage<
+      GetDocumentResponse,
+      { depth: number }
+    >(clientId, sessionId!, 'DOM.getDocument', { depth: -1 });
+    t.assert.ok(root, 'Should have a root node');
+
+    const findLayoutNode = (node: Node): number | undefined => {
+      if (
+        node.nodeType === 1 &&
+        node.nodeName !== 'HTML' &&
+        node.nodeName !== 'BODY' &&
+        node.nodeName !== '#document'
+      ) {
+        return node.nodeId;
+      }
+      if (node.children) {
+        for (const child of node.children) {
+          const found = findLayoutNode(child);
+          if (found) return found;
+        }
+      }
+      return undefined;
+    };
+
+    const nodeId = findLayoutNode(root);
+    t.assert.ok(nodeId, 'Should find a node with layout');
+
+    const box = await connector.sendCDPMessage<
+      GetBoxModelResponse,
+      { nodeId: number }
+    >(clientId, sessionId, 'DOM.getBoxModel', { nodeId });
+    t.assert.ok(box.model?.content, 'Should have content quad');
+
+    const quad = box.model.content;
+    const isNumber = (value: number | undefined): value is number =>
+      typeof value === 'number';
+    const xs = [quad[0], quad[2], quad[4], quad[6]].filter(isNumber);
+    const ys = [quad[1], quad[3], quad[5], quad[7]].filter(isNumber);
+    t.assert.equal(xs.length, 4, 'Should read 4 x coordinates from the quad');
+    t.assert.equal(ys.length, 4, 'Should read 4 y coordinates from the quad');
+    const centerX = Math.round((Math.min(...xs) + Math.max(...xs)) / 2);
+    const centerY = Math.round((Math.min(...ys) + Math.max(...ys)) / 2);
+
     const { call } = createToolContext(GetNodeForLocation, connector, clientId);
     const result = await call<QuerySelectorResponse>({
-      x: 100,
-      y: 100,
+      x: centerX,
+      y: centerY,
     });
 
     t.assert.ok(result.nodeId, 'Should return a nodeId');
@@ -628,6 +698,59 @@ testWithClient('Tools', async (suite, connector, client, target) => {
   );
 
   await suite.test(
+    'Memory.getAllMemoryUsage returns global Lynx memory data',
+    {
+      skip: supportsMemoryUsage(target.appPackageName)
+        ? false
+        : 'Memory.getAllMemoryUsage requires a LynxExample host build with global Memory CDP support',
+    },
+    async (t: TestContext) => {
+      const { call } = createToolContext(
+        GetAllMemoryUsage,
+        connector,
+        clientId,
+      );
+      const result = await call<{
+        collectionStatus: string;
+        completedInstanceCount: number;
+        expectedInstanceCount: number;
+        instances: unknown[];
+        totalBytes: number;
+      }>({
+        sessionId: -1,
+        timeoutMs: 10_000,
+      });
+
+      t.assert.equal(
+        result.collectionStatus,
+        'completed',
+        'Memory collection should complete',
+      );
+      t.assert.ok(
+        result.expectedInstanceCount > 0,
+        'Should inspect at least one Lynx instance',
+      );
+      t.assert.equal(
+        result.completedInstanceCount,
+        result.expectedInstanceCount,
+        'Should collect every expected Lynx instance',
+      );
+      t.assert.ok(
+        Array.isArray(result.instances),
+        'Should return per-instance memory data',
+      );
+      t.assert.ok(
+        result.instances.length > 0,
+        'Should return at least one Lynx instance',
+      );
+      t.assert.ok(
+        Number.isFinite(result.totalBytes),
+        'Should return total memory bytes',
+      );
+    },
+  );
+
+  await suite.test(
     'Runtime.evaluate and Runtime.getProperties inspect an object',
     async (t: TestContext) => {
       const { call: evaluate } = createToolContext(
@@ -677,6 +800,34 @@ testWithClient('Tools', async (suite, connector, client, target) => {
           'answer should preserve its numeric value when returned by value',
         );
       }
+    },
+  );
+
+  await suite.test(
+    'Runtime.evaluate exposes lynx global properties',
+    async (t: TestContext) => {
+      const { call: evaluate } = createToolContext(
+        Evaluate,
+        connector,
+        clientId,
+      );
+      const evaluated = await evaluate<{
+        result?: { type?: string; value?: unknown };
+      }>({
+        expression: 'lynx.__globalProps !== undefined',
+        returnByValue: true,
+      });
+
+      t.assert.equal(
+        evaluated.result?.type,
+        'boolean',
+        'Global props access should return a boolean',
+      );
+      t.assert.equal(
+        evaluated.result?.value,
+        true,
+        'lynx.__globalProps should be available in the evaluate scope',
+      );
     },
   );
 
@@ -769,7 +920,6 @@ testWithClient('Tools', async (suite, connector, client, target) => {
         t.skip('EmbeddedLynx does not support UITree.getLynxUITree yet');
         return;
       }
-
       const { call } = createToolContext(GetLynxUITree, connector, clientId);
       const result = await call<GetLynxUITreeResponse>({});
       const nodes = flattenUITree(result.root);
@@ -854,21 +1004,7 @@ testWithClient('Tools', async (suite, connector, client, target) => {
       );
     }
 
-    const extraTiming = timing.extra_timing;
-    t.assert.ok(
-      typeof extraTiming === 'object' && extraTiming !== null,
-      'Should include extra_timing object',
-    );
-    for (const key of [
-      'open_time',
-      'container_init_start',
-      'container_init_end',
-    ]) {
-      t.assert.ok(
-        typeof (extraTiming as Record<string, unknown>)[key] === 'number',
-        `extra_timing.${key} should be a number`,
-      );
-    }
+    assertExtraTiming(timing.extra_timing);
 
     t.assert.ok(
       typeof timing.update_timings === 'object',
@@ -926,12 +1062,6 @@ testWithClient('Tools', async (suite, connector, client, target) => {
   await suite.test(
     'HeapProfiler.takeHeapSnapshot saves a background snapshot filename by default',
     async (t: TestContext) => {
-      if (target.appPackageName === 'EmbeddedLynx') {
-        t.skip(
-          'EmbeddedLynx does not support background-thread heap snapshots yet',
-        );
-        return;
-      }
       const { call } = createToolContext(TakeHeapSnapshot, connector, clientId);
       const result = await call<string>({});
 
@@ -984,6 +1114,307 @@ testWithClient('Tools', async (suite, connector, client, target) => {
       } finally {
         await fs.unlink(filePath).catch(() => {});
       }
+    },
+  );
+
+  await suite.test('CSS.getComputedStyleForNode', async (t: TestContext) => {
+    const sessionId = await latestSessionId();
+    t.assert.ok(sessionId, 'Should have a sessionId');
+
+    const { root } = await connector.sendCDPMessage<
+      GetDocumentResponse,
+      { depth: number }
+    >(clientId, sessionId!, 'DOM.getDocument', { depth: -1 });
+    const targetNode = findFirstElementNode(root);
+    t.assert.ok(targetNode, 'Should find an element node');
+
+    const { call } = createToolContext(
+      GetComputedStyleForNode,
+      connector,
+      clientId,
+    );
+    const result = await call<{
+      computedStyle: Array<{ name: string; value: string }>;
+    }>({
+      nodeId: targetNode.nodeId,
+    });
+
+    t.assert.ok(
+      Array.isArray(result.computedStyle),
+      'Should return a computedStyle array',
+    );
+    t.assert.ok(
+      result.computedStyle.length > 0,
+      'computedStyle should not be empty',
+    );
+    t.assert.ok(
+      typeof result.computedStyle[0]!.name === 'string',
+      'Each computed style entry should have a name',
+    );
+    t.assert.ok(
+      typeof result.computedStyle[0]!.value === 'string',
+      'Each computed style entry should have a value',
+    );
+  });
+
+  await suite.test('CSS.getBackgroundColors', async (t: TestContext) => {
+    const sessionId = await latestSessionId();
+    t.assert.ok(sessionId, 'Should have a sessionId');
+
+    const { root } = await connector.sendCDPMessage<
+      GetDocumentResponse,
+      { depth: number }
+    >(clientId, sessionId!, 'DOM.getDocument', { depth: -1 });
+    const targetNode = findFirstElementNode(root);
+    t.assert.ok(targetNode, 'Should find an element node');
+
+    const { call } = createToolContext(
+      GetBackgroundColors,
+      connector,
+      clientId,
+    );
+    const result = await call<{
+      backgroundColors?: string[];
+      computedFontSize?: string;
+      computedFontWeight?: string;
+    }>({
+      nodeId: targetNode.nodeId,
+    });
+
+    t.assert.ok(
+      typeof result === 'object' && result !== null,
+      'Should return a result object',
+    );
+  });
+
+  await suite.test('CSS.getInlineStylesForNode', async (t: TestContext) => {
+    const sessionId = await latestSessionId();
+    t.assert.ok(sessionId, 'Should have a sessionId');
+
+    const { root } = await connector.sendCDPMessage<
+      GetDocumentResponse,
+      { depth: number }
+    >(clientId, sessionId!, 'DOM.getDocument', { depth: -1 });
+    const targetNode = findFirstElementNode(root);
+    t.assert.ok(targetNode, 'Should find an element node');
+
+    const { call } = createToolContext(
+      GetInlineStylesForNode,
+      connector,
+      clientId,
+    );
+    const result = await call<{
+      inlineStyle?: { cssProperties: unknown[] };
+      attributesStyle?: { cssProperties: unknown[] };
+    }>({
+      nodeId: targetNode.nodeId,
+    });
+
+    t.assert.ok(
+      typeof result === 'object' && result !== null,
+      'Should return a result object',
+    );
+  });
+
+  await suite.test('CSS.getMatchedStylesForNode', async (t: TestContext) => {
+    const sessionId = await latestSessionId();
+    t.assert.ok(sessionId, 'Should have a sessionId');
+
+    const { root } = await connector.sendCDPMessage<
+      GetDocumentResponse,
+      { depth: number }
+    >(clientId, sessionId!, 'DOM.getDocument', { depth: -1 });
+    const targetNode = findFirstElementNode(root);
+    t.assert.ok(targetNode, 'Should find an element node');
+
+    const { call } = createToolContext(
+      GetMatchedStylesForNode,
+      connector,
+      clientId,
+    );
+    const result = await call<{
+      matchedCSSRules?: unknown[];
+      inlineStyle?: unknown;
+    }>({
+      nodeId: targetNode.nodeId,
+    });
+
+    t.assert.ok(
+      typeof result === 'object' && result !== null,
+      'Should return a result object',
+    );
+  });
+
+  await suite.test('CSS.getStyleSheetText', async (t: TestContext) => {
+    const sessionId = await latestSessionId();
+    t.assert.ok(sessionId, 'Should have a sessionId');
+
+    const { root } = await connector.sendCDPMessage<
+      GetDocumentResponse,
+      { depth: number }
+    >(clientId, sessionId!, 'DOM.getDocument', { depth: -1 });
+    const targetNode = findFirstElementNode(root);
+    t.assert.ok(targetNode, 'Should find an element node');
+
+    const matchedResult = await connector.sendCDPMessage<
+      { matchedCSSRules?: Array<{ rule?: { styleSheetId?: string } }> },
+      { nodeId: number }
+    >(clientId, sessionId!, 'CSS.getMatchedStylesForNode', {
+      nodeId: targetNode.nodeId,
+    });
+
+    const sheetId = matchedResult.matchedCSSRules?.find(
+      (r) => r.rule?.styleSheetId,
+    )?.rule?.styleSheetId;
+    if (!sheetId) {
+      t.skip(
+        'No styleSheetId found on the test page — cannot test CSS.getStyleSheetText',
+      );
+      return;
+    }
+
+    const { call } = createToolContext(GetStyleSheetText, connector, clientId);
+    const result = await call<{ text: string }>({
+      styleSheetId: sheetId,
+    });
+
+    t.assert.ok(
+      typeof result.text === 'string',
+      'Should return stylesheet text',
+    );
+  });
+
+  await suite.test(
+    'Debugger.enable (listScripts)',
+    {
+      skip:
+        target.appPackageName === 'EmbeddedLynx'
+          ? 'EmbeddedLynx does not support Debugger.enable'
+          : false,
+    },
+    async (t: TestContext) => {
+      const { call } = createToolContext(ListScripts, connector, clientId);
+      const result = await call<string>({});
+
+      if (typeof result !== 'string' || !result.includes('scriptId:')) {
+        t.skip(
+          'No scripts found — page was likely opened before DevTool connected',
+        );
+        return;
+      }
+
+      t.assert.ok(
+        result.length > 0,
+        'Should list at least one script with scriptId',
+      );
+    },
+  );
+
+  await suite.test(
+    'Debugger.getScriptSource',
+    {
+      skip:
+        target.appPackageName === 'EmbeddedLynx'
+          ? 'EmbeddedLynx does not support Debugger.enable'
+          : false,
+    },
+    async (t: TestContext) => {
+      const { call: listScripts } = createToolContext(
+        ListScripts,
+        connector,
+        clientId,
+      );
+      const scripts = await listScripts<string>({});
+
+      if (typeof scripts !== 'string') {
+        t.skip(
+          'No scripts found — page was likely opened before DevTool connected',
+        );
+        return;
+      }
+
+      const match = scripts.match(/scriptId:\s*(\S+)/);
+      if (!match) {
+        t.skip('No scripts found — cannot test Debugger.getScriptSource');
+        return;
+      }
+
+      const scriptId = match[1]!.replace(/,$/, '');
+
+      const { call } = createToolContext(GetScriptSource, connector, clientId);
+      const result = await call<string>({
+        scriptId,
+        saveToTmp: false,
+      });
+
+      t.assert.ok(typeof result === 'string', 'Should return a string');
+      t.assert.ok(
+        result.includes('```javascript'),
+        'Should contain script source in code block',
+      );
+    },
+  );
+
+  await suite.test(
+    'Input.emulateTouchFromMouseEvent',
+    async (t: TestContext) => {
+      const { call } = createToolContext(
+        EmulateTouchFromMouseEvent,
+        connector,
+        clientId,
+      );
+      const now = Date.now();
+
+      const pressResult = await call<Record<string, unknown>>({
+        type: 'mousePressed',
+        x: 100,
+        y: 100,
+        timestamp: now,
+        button: 'left',
+      });
+      t.assert.ok(
+        typeof pressResult === 'object' && pressResult !== null,
+        'mousePressed should return a result',
+      );
+
+      const releaseResult = await call<Record<string, unknown>>({
+        type: 'mouseReleased',
+        x: 100,
+        y: 100,
+        timestamp: now + 100,
+        button: 'left',
+      });
+      t.assert.ok(
+        typeof releaseResult === 'object' && releaseResult !== null,
+        'mouseReleased should return a result',
+      );
+    },
+  );
+
+  await suite.test(
+    'Runtime.consoleAPICalled (listConsole)',
+    async (t: TestContext) => {
+      const { call: evaluate } = createToolContext(
+        Evaluate,
+        connector,
+        clientId,
+      );
+      await evaluate<unknown>({
+        expression: "console.log('lynx-use-e2e-marker')",
+      });
+
+      await setTimeout(500);
+
+      const { call } = createToolContext(ListConsole, connector, clientId);
+      const result = await call<string>({
+        level: ['log', 'info', 'warning', 'error'],
+      });
+
+      t.assert.ok(typeof result === 'string', 'Should return a string');
+      t.assert.ok(
+        result.includes('lynx-use-e2e-marker'),
+        'Should contain the logged marker string',
+      );
     },
   );
 });
