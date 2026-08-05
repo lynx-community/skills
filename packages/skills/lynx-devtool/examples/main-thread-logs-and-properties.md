@@ -5,7 +5,7 @@ Use `get-console --thread main` to capture main-thread console output, then insp
 ## 1. Capture main-thread logs
 
 ```bash
-node <path_to_the_skill>/scripts/index.mjs get-console --thread main
+agent-lynx get-console --thread main
 ```
 
 Example output:
@@ -17,7 +17,7 @@ Example output:
 ## 2. Inspect the logged object
 
 ```bash
-node <path_to_the_skill>/scripts/index.mjs cdp --thread main -m Runtime.getProperties '{"objectId":"13561514624","ownProperties":true}'
+agent-lynx cdp --thread main -m Runtime.getProperties '{"objectId":"13561514624","ownProperties":true}'
 ```
 
 This returns the object's enumerable properties from the main-thread VM.

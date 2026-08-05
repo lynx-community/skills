@@ -1,5 +1,7 @@
 # WhiteBoard Methods
 
+Scope: The `WhiteBoard.*` methods are LynxView-specific CDP extensions for Lynx shared data. For WebView targets, use standard Chrome DevTools Protocol storage/runtime APIs instead; these methods may return `method not found`.
+
 The `WhiteBoard` domain provides access to Lynx shared global data. Values are read and written as serialized JSON strings.
 
 ## Related APIs

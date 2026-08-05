@@ -55,22 +55,22 @@ The descriptions below are based on Lynx Engine reference code in `.reference-re
 
 ```bash
 # List all keys and current values
-node scripts/index.mjs global-switch list -c <clientId>
+agent-lynx global-switch list -c <clientId>
 
 # Keep going even if some keys fail (default behavior)
-node scripts/index.mjs global-switch list -c <clientId>
+agent-lynx global-switch list -c <clientId>
 
 # Abort immediately on first read failure
-node scripts/index.mjs global-switch list -c <clientId> --fail-fast
+agent-lynx global-switch list -c <clientId> --fail-fast
 
 # Get one key
-node scripts/index.mjs global-switch get --key enable_devtool -c <clientId>
+agent-lynx global-switch get --key enable_devtool -c <clientId>
 
 # Set one key on
-node scripts/index.mjs global-switch set --key enable_devtool --status on -c <clientId>
+agent-lynx global-switch set --key enable_devtool --status on -c <clientId>
 
 # Set one key off
-node scripts/index.mjs global-switch set --key enable_devtool --status off -c <clientId>
+agent-lynx global-switch set --key enable_devtool --status off -c <clientId>
 ```
 
 ## Output Shape

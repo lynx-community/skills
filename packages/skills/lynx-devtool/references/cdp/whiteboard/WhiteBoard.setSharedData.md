@@ -1,8 +1,10 @@
 # WhiteBoard.setSharedData
 
+Scope: This is a LynxView-specific CDP extension. For WebView targets, use standard Chrome DevTools Protocol storage/runtime APIs instead; this method may return `method not found`.
+
 - `WhiteBoard.setSharedData` - Set or update a shared data entry
 - Input: `{key: string, value: string}`
-- Output: None
+- Output: `{}`
 - Description: Writes the given key/value pair into WhiteBoard shared data. The `value` must be a valid serialized JSON string.
 
 ### Notes

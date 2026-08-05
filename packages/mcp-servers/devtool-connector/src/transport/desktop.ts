@@ -6,12 +6,13 @@ import net from 'node:net';
 import { Duplex } from 'node:stream';
 import { createDebug } from 'obug';
 import { connectWithPeertalk } from './base.ts';
-import type {
-  App,
-  Connection,
-  Device,
-  Transport,
-  TransportConnectOptions,
+import {
+  type App,
+  type Connection,
+  type Device,
+  requireNumericPort,
+  type Transport,
+  type TransportConnectOptions,
 } from './transport.ts';
 
 const debug = createDebug('devtool-mcp-server:connector:desktop');
@@ -56,9 +57,14 @@ export class DesktopTransport implements Transport {
       );
     }
 
-    debug(`connect: connecting to 127.0.0.1:${port}`);
+    const numericPort = requireNumericPort(port);
+    debug(`connect: connecting to 127.0.0.1:${numericPort}`);
 
-    const socket = net.createConnection({ host: '127.0.0.1', port, signal });
+    const socket = net.createConnection({
+      host: '127.0.0.1',
+      port: numericPort,
+      signal,
+    });
 
     try {
       if (!socket.connecting) {
@@ -70,19 +76,19 @@ export class DesktopTransport implements Transport {
         });
       }
 
-      debug(`connect: connected to 127.0.0.1:${port}`);
+      debug(`connect: connected to 127.0.0.1:${numericPort}`);
 
       const { readable, writable } = Duplex.toWeb(socket);
       return {
         readable,
         writable,
         async [Symbol.asyncDispose]() {
-          debug(`connect: closing connection to 127.0.0.1:${port}`);
+          debug(`connect: closing connection to 127.0.0.1:${numericPort}`);
           socket.destroy();
         },
       };
     } catch (err) {
-      debug(`connect: error connecting to 127.0.0.1:${port} %O`, err);
+      debug(`connect: error connecting to 127.0.0.1:${numericPort} %O`, err);
       socket.destroy();
       throw err;
     }

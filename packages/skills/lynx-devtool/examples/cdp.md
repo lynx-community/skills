@@ -6,7 +6,7 @@ Send a Chrome DevTools Protocol (CDP) command to a specific session.
 > You **MUST** read [Supported CDP Methods](../references/cdp/index.md) before sending a CDP command.
 
 ```bash
-node <path_to_the_skill>/scripts/index.mjs cdp -m <method> [options] [params]
+agent-lynx cdp -m <method> [options] [params]
 ```
 
 - `-m, --method <method>`: The CDP method name (e.g., `DOM.getDocument`, `Runtime.evaluate`).
@@ -18,8 +18,8 @@ Example:
 
 ```bash
 # Get the document root
-node <path_to_the_skill>/scripts/index.mjs cdp -m DOM.getDocument
+agent-lynx cdp -m DOM.getDocument
 
 # Evaluate JavaScript
-node <path_to_the_skill>/scripts/index.mjs cdp -m Runtime.evaluate '{"expression": "2 + 2"}'
+agent-lynx cdp -m Runtime.evaluate '{"expression": "2 + 2"}'
 ```
