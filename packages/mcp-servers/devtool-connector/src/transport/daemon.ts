@@ -6,8 +6,8 @@ import { randomInt } from 'node:crypto';
 import type { ReadableStream } from 'node:stream/web';
 import { TransformStream, WritableStream } from 'node:stream/web';
 import { createDebug } from 'obug';
-import { DaemonManager, DEFAULT_DAEMON_PORT } from '../daemon/manager.ts';
 import type { ClientTarget } from '../client-id.ts';
+import { DaemonManager, DEFAULT_DAEMON_PORT } from '../daemon/manager.ts';
 import type { ClientListEntry, ControlResponse } from '../daemon/protocol.ts';
 import type {
   App,
