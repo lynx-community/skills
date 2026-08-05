@@ -203,8 +203,13 @@ export class DaemonTransport implements Transport {
 
       // Read Initialize message
       const reader = readable.getReader();
-      const { value, done } = await reader.read();
-      reader.releaseLock();
+      const { value, done } = await (async () => {
+        try {
+          return await reader.read();
+        } finally {
+          reader.releaseLock();
+        }
+      })();
 
       if (done) {
         throw new Error('WebSocket closed before initialization.');
