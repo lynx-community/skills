@@ -16,6 +16,7 @@ type SentCDPMessage = {
 describe('DOM.getDocument', () => {
   test('disables compression and passes depth through to CDP', async () => {
     const sentMessages: SentCDPMessage[] = [];
+    let listSessionCalls = 0;
     const connector = {
       sendCDPMessage: async (
         clientId: string,
@@ -34,7 +35,10 @@ describe('DOM.getDocument', () => {
           root: { nodeId: 1, nodeName: '#document', childNodeCount: 1 },
         };
       },
-      sendListSessionMessage: async () => [{ session_id: 1 }],
+      sendListSessionMessage: async () => {
+        listSessionCalls += 1;
+        throw new Error('the suite session must be reused');
+      },
     };
     const { GetDocument } = await import('../../src/tools/DOM/GetDocument.ts');
 
@@ -42,6 +46,7 @@ describe('DOM.getDocument', () => {
       GetDocument,
       connector as never,
       'test-client-id:9999',
+      41,
     );
     const result = await call<{
       root: { nodeId: number; nodeName: string; childNodeCount: number };
@@ -52,13 +57,13 @@ describe('DOM.getDocument', () => {
     assert.deepStrictEqual(sentMessages, [
       {
         clientId: 'test-client-id:9999',
-        sessionId: 1,
+        sessionId: 41,
         method: 'DOM.enable',
         params: { useCompression: false },
       },
       {
         clientId: 'test-client-id:9999',
-        sessionId: 1,
+        sessionId: 41,
         method: 'DOM.getDocument',
         params: { depth: -1 },
       },
@@ -66,5 +71,6 @@ describe('DOM.getDocument', () => {
     assert.deepStrictEqual(result, {
       root: { nodeId: 1, nodeName: '#document', childNodeCount: 1 },
     });
+    assert.strictEqual(listSessionCalls, 0);
   });
 });
