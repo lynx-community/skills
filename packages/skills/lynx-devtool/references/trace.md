@@ -10,7 +10,7 @@ and save the compressed result as a Perfetto `.pftrace` file.
 - The target app must have Lynx DevTool enabled and appear in
   `agent-lynx list-clients`.
 
-See the [Lynx trace recording guide](https://lynxjs.org/guide/debugging/lynx-devtool.html)
+See the [Lynx trace recording guide](https://lynxjs.org/guide/devtool/trace/record-trace.html#setup)
 for runtime integration details.
 
 ## Workflow
