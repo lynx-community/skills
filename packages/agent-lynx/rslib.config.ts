@@ -4,24 +4,16 @@
 
 import path from 'node:path';
 import { defineConfig } from '@rslib/core';
-import { CopyRspackPlugin } from '@rspack/core';
 
 const buildTime = new Date();
-const formattedBuildTime = `${buildTime.getFullYear()}-${String(buildTime.getMonth() + 1).padStart(2, '0')}-${String(
-  buildTime.getDate(),
-).padStart(
-  2,
-  '0',
-)} ${String(buildTime.getHours()).padStart(2, '0')}:${String(buildTime.getMinutes()).padStart(2, '0')}`;
+const formattedBuildTime = `${buildTime.getFullYear()}-${String(
+  buildTime.getMonth() + 1,
+).padStart(2, '0')}-${String(buildTime.getDate()).padStart(2, '0')} ${String(
+  buildTime.getHours(),
+).padStart(2, '0')}:${String(buildTime.getMinutes()).padStart(2, '0')}`;
 
 export default defineConfig({
   source: {
-    entry: {
-      index: './src/index.ts',
-      connector: './src/connector.ts',
-      'daemon-entry':
-        './node_modules/@lynx-js/devtool-connector/src/daemon/entry.ts',
-    },
     define: {
       'process.env.NODE_ENV': JSON.stringify('production'),
       'process.env.BUILD_TIME': JSON.stringify(formattedBuildTime),
@@ -31,34 +23,57 @@ export default defineConfig({
     {
       format: 'esm',
       syntax: 'es2022',
+      source: {
+        entry: {
+          connector: './src/connector.ts',
+        },
+        tsconfigPath: './tsconfig.connector.json',
+      },
+      dts: {
+        bundle: {
+          bundledPackages: [],
+        },
+        distPath: './dist',
+      },
+      output: {
+        filename: {
+          js: '[name].mjs',
+        },
+        distPath: './dist',
+      },
+      // Keep @lynx-js/devtool-connector as the package's real runtime dependency.
+      autoExternal: true,
+      autoExtension: false,
+    },
+    {
+      format: 'esm',
+      syntax: 'es2022',
+      source: {
+        entry: {
+          index: './src/index.ts',
+        },
+      },
       dts: false,
       output: {
         filename: {
           js: '[name].mjs',
         },
-        distPath: './scripts',
+        distPath: './dist',
       },
+      // Keep @lynx-js/devtool-connector as the package's real runtime dependency.
+      autoExternal: true,
       autoExtension: false,
-    },
-  ],
-  tools: {
-    rspack: {
-      output: {
-        library: {
-          type: 'modern-module',
-          preserveModules: path.resolve(import.meta.dirname, 'src/commands'),
+      tools: {
+        rspack: {
+          output: {
+            library: {
+              type: 'modern-module',
+              // See: https://v2.rspack.rs/config/output#outputlibrarypreservemodules
+              preserveModules: path.resolve(import.meta.dirname, 'src'),
+            },
+          },
         },
       },
-      plugins: [
-        new CopyRspackPlugin({
-          patterns: [
-            {
-              from: './node_modules/@lynx-js/devtool-connector/public',
-              to: path.resolve(import.meta.dirname, 'public'),
-            },
-          ],
-        }),
-      ],
     },
-  },
+  ],
 });

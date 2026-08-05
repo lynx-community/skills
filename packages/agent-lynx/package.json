@@ -1,0 +1,50 @@
+{
+  "name": "agent-lynx",
+  "version": "0.14.1",
+  "description": "Agent-friendly Lynx DevTool CLI for inspecting and operating Lynx applications.",
+  "repository": {
+    "url": "https://github.com/lynx-community/skills"
+  },
+  "license": "Apache-2.0",
+  "type": "module",
+  "exports": {
+    "./connector": {
+      "types": "./dist/connector.d.ts",
+      "import": "./dist/connector.mjs",
+      "default": "./dist/connector.mjs"
+    },
+    "./bin": "./dist/index.mjs",
+    "./package.json": "./package.json"
+  },
+  "bin": {
+    "agent-lynx": "./dist/index.mjs"
+  },
+  "files": [
+    "CHANGELOG.md",
+    "README.md",
+    "package.json",
+    "dist"
+  ],
+  "scripts": {
+    "build": "rslib build",
+    "test": "node --test 'test/**/*.test.ts'",
+    "test:e2e": "node --test --test-concurrency=1 'e2e/**/*.test.ts'"
+  },
+  "dependencies": {
+    "@lynx-js/devtool-connector": "workspace:*",
+    "@lynx-js/skill-lynx-devtool": "workspace:*",
+    "@lynx-js/trace-processor": "0.0.1"
+  },
+  "devDependencies": {
+    "@rslib/core": "catalog:rstack",
+    "@types/node": "^24.13.2",
+    "commander": "^14.0.3",
+    "core-js": "^3.49.0",
+    "obug": "^2.1.4",
+    "typescript": "^5.9.3",
+    "yaml": "^2.9.0"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
