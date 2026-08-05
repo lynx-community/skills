@@ -12,25 +12,25 @@ This example shows the recommended flow: get the target point from CDP DOM metho
 Get the document root:
 
 ```bash
-node <path_to_the_skill>/scripts/index.mjs cdp -c <client_id> -s <session_id> -m DOM.getDocument '{"depth":0}'
+agent-lynx cdp -c <client_id> -s <session_id> -m DOM.getDocument '{"depth":0}'
 ```
 
 Query a stable selector under the root node:
 
 ```bash
-node <path_to_the_skill>/scripts/index.mjs cdp -c <client_id> -s <session_id> -m DOM.querySelector '{"nodeId":<root_node_id>,"selector":"[lynx-test-tag=\"target\"]"}'
+agent-lynx cdp -c <client_id> -s <session_id> -m DOM.querySelector '{"nodeId":<root_node_id>,"selector":"[lynx-test-tag=\"target\"]"}'
 ```
 
 ## 2) Scroll it into view
 
 ```bash
-node <path_to_the_skill>/scripts/index.mjs cdp -c <client_id> -s <session_id> -m DOM.scrollIntoViewIfNeeded '{"nodeId":<target_node_id>}'
+agent-lynx cdp -c <client_id> -s <session_id> -m DOM.scrollIntoViewIfNeeded '{"nodeId":<target_node_id>}'
 ```
 
 ## 3) Compute a center point from `DOM.getBoxModel`
 
 ```bash
-node <path_to_the_skill>/scripts/index.mjs cdp -c <client_id> -s <session_id> -m DOM.getBoxModel '{"nodeId":<target_node_id>}'
+agent-lynx cdp -c <client_id> -s <session_id> -m DOM.getBoxModel '{"nodeId":<target_node_id>}'
 ```
 
 Use `result.model.content`, which is a quad:
@@ -46,7 +46,7 @@ const y = (Math.min(...ys) + Math.max(...ys)) / 2;
 ## 4) Validate the point
 
 ```bash
-node <path_to_the_skill>/scripts/index.mjs cdp -c <client_id> -s <session_id> -m DOM.getNodeForLocation '{"x":<center_x>,"y":<center_y>}'
+agent-lynx cdp -c <client_id> -s <session_id> -m DOM.getNodeForLocation '{"x":<center_x>,"y":<center_y>}'
 ```
 
 If the returned `nodeId` is the target you expect, use the same point for touch.
@@ -54,6 +54,6 @@ If the returned `nodeId` is the target you expect, use the same point for touch.
 ## 5) Tap with the same coordinates
 
 ```bash
-node <path_to_the_skill>/scripts/index.mjs cdp -c <client_id> -s <session_id> -m Input.emulateTouchFromMouseEvent '{"type":"mousePressed","x":<center_x>,"y":<center_y>,"timestamp":0,"button":"left","clickCount":1}'
-node <path_to_the_skill>/scripts/index.mjs cdp -c <client_id> -s <session_id> -m Input.emulateTouchFromMouseEvent '{"type":"mouseReleased","x":<center_x>,"y":<center_y>,"button":"left","clickCount":1}'
+agent-lynx cdp -c <client_id> -s <session_id> -m Input.emulateTouchFromMouseEvent '{"type":"mousePressed","x":<center_x>,"y":<center_y>,"timestamp":0,"button":"left","clickCount":1}'
+agent-lynx cdp -c <client_id> -s <session_id> -m Input.emulateTouchFromMouseEvent '{"type":"mouseReleased","x":<center_x>,"y":<center_y>,"button":"left","clickCount":1}'
 ```

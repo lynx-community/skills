@@ -3,7 +3,7 @@
 Send an App-level command.
 
 ```bash
-node <path_to_the_skill>/scripts/index.mjs app -m <method> [options] [params]
+agent-lynx app -m <method> [options] [params]
 ```
 
 - `-m, --method <method>`: The App method name (e.g., `App.openPage`).
