@@ -2,5 +2,5 @@
 
 - `DOM.disable` - Disable DOM domain
 - Input: None
-- Output: `{result: {}}`
+- Output: `{}`
 - Description: Disables DOM agent functionality and stops DOM domain events.
