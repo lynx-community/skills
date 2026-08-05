@@ -3,6 +3,7 @@
 // LICENSE file in the root directory of this source tree.
 
 import { TransformStream } from 'node:stream/web';
+import type { ClientTarget } from '../client-id.ts';
 import {
   type AppResponseMessage,
   type CustomizedResponseMap,
@@ -12,7 +13,7 @@ import {
 } from '../types.ts';
 
 export class CustomizedClientIdTransformStream extends TransformStream {
-  constructor(clientId: number) {
+  constructor(clientId: ClientTarget) {
     super({
       transform(chunk, controller) {
         if (chunk.event === 'Customized') {

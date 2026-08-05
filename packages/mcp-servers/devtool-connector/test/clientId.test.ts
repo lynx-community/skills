@@ -28,6 +28,22 @@ describe('ClientId', () => {
 
       t.assert.equal(serialized, 'foo%3Abar:9200');
     });
+
+    test('accepts a string target', (t: TestContext) => {
+      const serialized = ClientId.serialize('device-001', 'router-uuid');
+
+      t.assert.equal(serialized, 'device-001:router-uuid');
+    });
+
+    test('encodes reserved characters in a string target', (t: TestContext) => {
+      const serialized = ClientId.serialize('device-001', 'router:sub-id%');
+
+      t.assert.equal(serialized, 'device-001:router%3Asub-id%25');
+      t.assert.deepStrictEqual(ClientId.deserialize(serialized), {
+        deviceId: 'device-001',
+        port: 'router:sub-id%',
+      });
+    });
   });
 
   describe('deserialize', () => {
@@ -49,8 +65,23 @@ describe('ClientId', () => {
       t.assert.equal(result, null);
     });
 
-    test('returns null when port cannot be parsed', (t: TestContext) => {
+    test('parses a string target', (t: TestContext) => {
       const result = ClientId.deserialize('foo:port');
+
+      t.assert.deepStrictEqual(result, { deviceId: 'foo', port: 'port' });
+    });
+
+    test('does not truncate a string target that starts with digits', (t: TestContext) => {
+      const result = ClientId.deserialize('device-001:123-router');
+
+      t.assert.deepStrictEqual(result, {
+        deviceId: 'device-001',
+        port: '123-router',
+      });
+    });
+
+    test('returns null when the target is empty', (t: TestContext) => {
+      const result = ClientId.deserialize('device-001:');
 
       t.assert.equal(result, null);
     });

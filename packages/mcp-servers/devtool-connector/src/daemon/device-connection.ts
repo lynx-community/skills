@@ -3,6 +3,7 @@
 // LICENSE file in the root directory of this source tree.
 
 import { createDebug } from 'obug';
+import type { ClientTarget } from '../client-id.ts';
 import type {
   Connection,
   Transport,
@@ -29,7 +30,7 @@ export interface DeviceConnectionSubscriber {
 export class DeviceConnection {
   readonly key: string;
   readonly deviceId: string;
-  readonly port: number;
+  readonly port: ClientTarget;
 
   #conn: Connection<unknown, unknown> | null = null;
   #writer: WritableStreamDefaultWriter<unknown> | null = null;
