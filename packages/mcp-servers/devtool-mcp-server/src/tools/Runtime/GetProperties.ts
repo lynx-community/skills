@@ -42,14 +42,6 @@ export const GetProperties = /*#__PURE__*/ defineTool({
     const connector = context.connector();
     const isMainThread = params.thread === 'main';
 
-    await connector.sendCDPMessage(
-      params.clientId,
-      params.sessionId,
-      'Runtime.enable',
-      {},
-      isMainThread,
-    );
-
     const getPropertiesParams = Object.fromEntries(
       [
         ['objectId', params.objectId],

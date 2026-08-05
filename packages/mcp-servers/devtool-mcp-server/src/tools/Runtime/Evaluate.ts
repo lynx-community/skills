@@ -6,9 +6,14 @@ import * as z from 'zod';
 import { clientId, sessionId, thread } from '../../schema/index.ts';
 import { defineTool } from '../defineTool.ts';
 
+function wrapExpression(expression: string): string {
+  return `(function(){var __a=globalThis.multiApps&&globalThis.multiApps[globalThis.currentDebugAppId||globalThis.currentAppId];var lynx=__a&&__a.lynx,nativeLynx=lynx&&lynx.getNativeLynx();return(${expression});})()`;
+}
+
 export const Evaluate = /*#__PURE__*/ defineTool({
   name: 'Runtime_evaluate',
-  description: 'Evaluate a JavaScript expression in the selected Lynx VM.',
+  description:
+    'Evaluate JavaScript in the selected Lynx VM. Background expressions can directly access lynx and nativeLynx; main-thread expressions are sent unchanged.',
   schema: {
     clientId,
     sessionId,
@@ -55,17 +60,12 @@ export const Evaluate = /*#__PURE__*/ defineTool({
     const connector = context.connector();
     const isMainThread = params.thread === 'main';
 
-    await connector.sendCDPMessage(
-      params.clientId,
-      params.sessionId,
-      'Runtime.enable',
-      {},
-      isMainThread,
-    );
-
     const evaluateParams = Object.fromEntries(
       [
-        ['expression', params.expression],
+        [
+          'expression',
+          isMainThread ? params.expression : wrapExpression(params.expression),
+        ],
         ['silent', params.silent],
         ['contextId', params.contextId],
         ['throwOnSideEffect', params.throwOnSideEffect],
