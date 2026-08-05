@@ -761,7 +761,7 @@ testWithClient('Tools', async (suite, connector, client, target) => {
       const evaluated = await evaluate<{
         result?: { objectId?: string; type?: string; description?: string };
       }>({
-        expression: "({ answer: 42, label: 'lynx-use' })",
+        expression: "({ answer: 42, label: 'devtool-e2e' })",
         objectGroup: 'mcp-tools-test',
         generatePreview: true,
       });
@@ -1412,7 +1412,7 @@ testWithClient('Tools', async (suite, connector, client, target) => {
         clientId,
       );
       await evaluate<unknown>({
-        expression: "console.log('lynx-use-e2e-marker')",
+        expression: "console.log('devtool-e2e-marker')",
       });
 
       await setTimeout(500);
@@ -1424,7 +1424,7 @@ testWithClient('Tools', async (suite, connector, client, target) => {
 
       t.assert.ok(typeof result === 'string', 'Should return a string');
       t.assert.ok(
-        result.includes('lynx-use-e2e-marker'),
+        result.includes('devtool-e2e-marker'),
         'Should contain the logged marker string',
       );
     },
