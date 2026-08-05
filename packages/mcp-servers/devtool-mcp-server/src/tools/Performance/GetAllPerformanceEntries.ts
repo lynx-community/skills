@@ -18,13 +18,6 @@ export const GetAllPerformanceEntries = /*#__PURE__*/ defineTool({
   async handler({ params }, response, context) {
     const connector = context.connector();
 
-    await connector.sendCDPMessage(
-      params.clientId,
-      params.sessionId,
-      'Performance.enable',
-      {},
-    );
-
     const result = await connector.sendCDPMessage(
       params.clientId,
       params.sessionId,
