@@ -27,7 +27,7 @@ async function loadGetAllPerformanceEntriesTool() {
 }
 
 describe('Performance.getAllPerformanceEntries', () => {
-  test('enables Performance before reading all entries', async () => {
+  test('reads all entries without enabling Performance first', async () => {
     const sentMessages: SentCDPMessage[] = [];
     const connector = {
       sendCDPMessage: async (
@@ -37,10 +37,6 @@ describe('Performance.getAllPerformanceEntries', () => {
         params: Record<string, never>,
       ) => {
         sentMessages.push({ clientId, sessionId, method, params });
-
-        if (method === 'Performance.enable') {
-          return {};
-        }
 
         assert.strictEqual(method, 'Performance.getAllPerformanceEntries');
         return {
@@ -73,12 +69,6 @@ describe('Performance.getAllPerformanceEntries', () => {
     }>({});
 
     assert.deepStrictEqual(sentMessages, [
-      {
-        clientId: 'test-client-id:9999',
-        sessionId: 1,
-        method: 'Performance.enable',
-        params: {},
-      },
       {
         clientId: 'test-client-id:9999',
         sessionId: 1,

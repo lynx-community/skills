@@ -9,12 +9,12 @@ import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { pipeline } from 'node:stream/promises';
 import { ReadableStream } from 'node:stream/web';
-import { setTimeout } from 'node:timers/promises';
 import {
   type CDPResponseMessage,
   CDPResponseTransformStream,
 } from '@lynx-js/devtool-connector';
 import { clientId, sessionId, thread } from '../../schema/index.ts';
+import { raceWithTimeout } from '../../utils/raceWithTimeout.ts';
 import { defineTool } from '../defineTool.ts';
 
 export const TakeHeapSnapshot = /*#__PURE__*/ defineTool({
@@ -105,10 +105,11 @@ export const TakeHeapSnapshot = /*#__PURE__*/ defineTool({
     try {
       async function* snapshotChunks() {
         while (Date.now() - startTime < MAX_TOTAL_TIME) {
-          const result = await Promise.race([
+          const result = await raceWithTimeout(
             reader.read(),
-            setTimeout(IDLE_TIMEOUT, 'timeout' as const),
-          ]);
+            IDLE_TIMEOUT,
+            'timeout' as const,
+          );
 
           if (result === 'timeout') {
             await reader.cancel();

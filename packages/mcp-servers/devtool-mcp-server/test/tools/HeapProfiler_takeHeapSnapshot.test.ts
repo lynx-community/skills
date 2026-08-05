@@ -83,6 +83,35 @@ const createMockConnector = (
 });
 
 describe('HeapProfiler.takeHeapSnapshot', () => {
+  test('does not retain idle timeout handles after a successful snapshot', async () => {
+    const connector = createMockConnector((requestId) => [
+      {
+        method: 'HeapProfiler.addHeapSnapshotChunk',
+        params: { chunk: JSON.stringify({ snapshot: { complete: true } }) },
+      },
+      { id: requestId, result: {} },
+    ]);
+    const timeoutCountBefore = process
+      .getActiveResourcesInfo()
+      .filter((resource) => resource === 'Timeout').length;
+    const { call } = createToolContext(
+      TakeHeapSnapshot,
+      connector as never,
+      testClientId,
+    );
+    const result = await call<string>({ thread: 'background' });
+    const filePath = result.replace('Heap snapshot saved to ', '');
+
+    try {
+      const timeoutCountAfter = process
+        .getActiveResourcesInfo()
+        .filter((resource) => resource === 'Timeout').length;
+      assert.equal(timeoutCountAfter, timeoutCountBefore);
+    } finally {
+      await fs.unlink(filePath).catch(() => {});
+    }
+  });
+
   test('preserves chunk order when writing a background snapshot', async () => {
     const firstChunk =
       '{"snapshot":{"meta":{},"node_count":1,"edge_count":0,"trace_function_count":0},';

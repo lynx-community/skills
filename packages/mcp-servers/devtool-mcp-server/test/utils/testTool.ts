@@ -13,6 +13,7 @@ export function createToolContext<Schema extends z.ZodRawShape>(
   tool: ToolDefinition<Schema>,
   connector: Connector,
   clientId: string,
+  defaultSessionId?: number,
 ) {
   const call = async <T = unknown>(
     params: Partial<z.infer<z.ZodObject<Schema>>> = {},
@@ -23,17 +24,25 @@ export function createToolContext<Schema extends z.ZodRawShape>(
     // Auto-fill parameters
     const fullParams = { ...params } as Record<string, unknown>;
 
-    if (tool.schema['clientId'] && !fullParams.clientId) {
-      fullParams.clientId = clientId;
+    if (tool.schema['clientId'] && !fullParams['clientId']) {
+      fullParams['clientId'] = clientId;
     }
 
-    if (tool.schema['sessionId'] && !fullParams.sessionId) {
+    if (
+      tool.schema['sessionId'] &&
+      fullParams['sessionId'] == null &&
+      defaultSessionId !== undefined
+    ) {
+      fullParams['sessionId'] = defaultSessionId;
+    }
+
+    if (tool.schema['sessionId'] && fullParams['sessionId'] == null) {
       try {
         // Auto-fetch session
         const sessions = await connector.sendListSessionMessage(clientId);
         const session = sessions[sessions.length - 1];
         if (session) {
-          fullParams.sessionId = session.session_id;
+          fullParams['sessionId'] = session.session_id;
         }
       } catch {
         // Ignore error if session listing fails, maybe tool doesn't strictly need it or will fail gracefully

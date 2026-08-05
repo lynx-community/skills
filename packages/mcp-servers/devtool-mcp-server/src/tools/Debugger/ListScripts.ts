@@ -3,8 +3,8 @@
 // LICENSE file in the root directory of this source tree.
 
 import { ReadableStream } from 'node:stream/web';
-import { setTimeout } from 'node:timers/promises';
 import { clientId, sessionId } from '../../schema/index.ts';
+import { raceWithTimeout } from '../../utils/raceWithTimeout.ts';
 import { defineTool } from '../defineTool.ts';
 
 export const ListScripts = /*#__PURE__*/ defineTool({
@@ -41,10 +41,11 @@ export const ListScripts = /*#__PURE__*/ defineTool({
 
     try {
       while (Date.now() - startTime < MAX_TOTAL_TIME) {
-        const result = await Promise.race([
+        const result = await raceWithTimeout(
           reader.read(),
-          setTimeout(IDLE_TIMEOUT, 'timeout' as const),
-        ]);
+          IDLE_TIMEOUT,
+          'timeout' as const,
+        );
         if (result === 'timeout') {
           await reader.cancel();
           break;
