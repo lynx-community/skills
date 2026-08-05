@@ -2,267 +2,295 @@
 // Licensed under the Apache License Version 2.0 that can be found in the
 // LICENSE file in the root directory of this source tree.
 
-/**
- * Integration test for `lynx-devtool reactlynx tree`.
- *
- * Drives the full wire protocol against a real ReactLynx page running on a
- * connected client, using the standard `testWithClient` harness so the test
- * runs across every supported transport.
- *
- * The page bundle pinned via `LYNX_DEVTOOL_MCP_TESTING_PAGE_URL` is built from
- * a ReactLynx app that ships an upgraded `@lynx-js/preact-devtools` containing
- * the `document.body` and `preactDevtoolsCtx.Node` fixes -- the App therefore
- * honors `refresh` and the test can assert the full
- * init -> refresh -> operation_v2 -> root-order pipeline.
- *
- * Default page URL:
- *   https://unpkg.com/@lynx-example/react-devtool@0.2.0/dist/main.lynx.bundle
- *
- * Override per-environment with `LYNX_DEVTOOL_MCP_TESTING_PAGE_URL`.
- */
-
 import type { TestContext } from 'node:test';
+import {
+  ActionCore,
+  type CommandData,
+  deserializeRendererState,
+  formatReactLynxTree,
+} from '@lynx-js/devtool-connector/command';
 import {
   getTestingSession,
   testWithClient,
 } from '@lynx-js/devtool-connector/test-with-client';
-import {
-  buildSubstringMatcher,
-  findComponents,
-} from '../src/commands/reactlynx/find.ts';
-import { formatTree } from '../src/commands/reactlynx/format.ts';
-import type { RendererState } from '../src/commands/reactlynx/protocol.ts';
-import {
-  buildOutboundFrame,
-  type PreactEnvelope,
-  runReactLynxSession,
-} from '../src/commands/reactlynx/transport.ts';
 
-const run = testWithClient;
+testWithClient(
+  'reactlynx daemon actions',
+  async (t, connector, client, target) => {
+    const session = await getTestingSession(connector, client.id);
+    const actionCore = new ActionCore();
+    const commandTarget = {
+      clientId: client.id,
+      sessionId: session.session_id,
+    };
+    let treeData: CommandData<'reactlynx-tree'> | undefined;
 
-run('reactlynx tree', async (t, connector, client, target) => {
-  let capturedTree: RendererState | undefined;
-
-  const session = await getTestingSession(connector, client.id);
-
-  await t.test(
-    'init + refresh produces a non-empty tree',
-    async (t: TestContext) => {
-      const collected = await runReactLynxSession({
-        connector,
-        clientId: client.id,
-        sessionId: session.session_id,
-        outbound: [buildOutboundFrame('refresh')],
-        idleMs: 1_000,
-        maxMs: 15_000,
-        signal: t.signal,
-      });
-
-      t.assert.ok(
-        collected.framesSeen > 0,
-        `Expected at least one PreactDevtools frame from page ${target.pageUrl}; saw 0. ` +
-          `Verify the page bundle contains a recent @lynx-js/preact-devtools dev build.`,
-      );
-      t.assert.ok(
-        collected.operationFrames > 0,
-        `Expected at least one operation_v2 frame after refresh; saw types=${[...collected.envelopeTypes].join(',')}. ` +
-          `If only root-order/root-order-page arrived, the App is running an outdated ` +
-          `@lynx-js/preact-devtools without the PR #2 / PR #5 fixes.`,
-      );
-      t.assert.ok(
-        collected.rootOrderFrames > 0,
-        `Expected at least one root-order frame after refresh; saw types=${[...collected.envelopeTypes].join(',')}`,
-      );
-
-      t.assert.ok(
-        collected.state.tree.size > 0,
-        'Decoded tree must not be empty after a successful operation_v2 mount',
-      );
-      t.assert.ok(
-        collected.state.roots.length > 0,
-        'Decoded tree must report at least one root',
-      );
-
-      const formatted = formatTree(collected.state, { hideShells: true });
-      t.assert.ok(
-        formatted.text.length > 0,
-        'Formatted tree must be non-empty',
-      );
-      t.assert.ok(
-        formatted.text.startsWith('@c1 ['),
-        `Formatted tree must start with @c1; got: ${formatted.text.split('\n')[0]}`,
-      );
-      t.assert.ok(
-        formatted.labels.length > 0,
-        'Formatted tree must expose at least one @cN label',
-      );
-      t.assert.equal(
-        formatted.labels.length,
-        formatted.text.split('\n').length,
-        'Every visible printed line must correspond to one @cN label',
-      );
-
-      t.diagnostic(
-        `frames=${collected.framesSeen} operation_v2=${collected.operationFrames} ` +
-          `root-order=${collected.rootOrderFrames} types=${[
-            ...collected.envelopeTypes,
-          ]
-            .sort()
-            .join(',')} treeSize=${collected.state.tree.size}`,
-      );
-      t.diagnostic(`first line: ${formatted.text.split('\n')[0]}`);
-
-      capturedTree = collected.state;
-    },
-  );
-
-  await t.test(
-    'findComponents finds at least one match in the live tree',
-    async (t: TestContext) => {
-      if (!capturedTree) {
-        t.skip('tree snapshot not captured (preceding subtest failed)');
-        return;
-      }
-      const matches = findComponents(
-        capturedTree,
-        buildSubstringMatcher('Provider'),
-        {
-          hideShells: true,
-          limit: 50,
-        },
-      );
-      t.assert.ok(
-        matches.length > 0,
-        "Expected at least one component containing 'Provider' in the bundle",
-      );
-      for (const match of matches) {
-        t.assert.match(
-          match.label,
-          /^@c\d+$/,
-          `match.label must be @cN form, got ${match.label}`,
+    await t.test(
+      'tree refresh decodes and caches a labelled component tree',
+      async (t: TestContext) => {
+        const result = await actionCore.execute(
+          'reactlynx-tree',
+          commandTarget,
+          { connector },
+          t.signal,
         );
-        t.assert.ok(match.name.toLowerCase().includes('provider'));
-      }
-      t.diagnostic(
-        `find matches: ${matches.map((m) => `${m.label} ${m.name}`).join(', ')}`,
-      );
-    },
-  );
+        t.assert.equal(result.ok, true, result.error?.message);
+        if (!result.ok) return;
+        const data = result.data as CommandData<'reactlynx-tree'>;
+        t.assert.equal(data.cache.status, 'refreshed');
+        t.assert.ok(
+          data.nodes.length > 0,
+          'decoded component tree must not be empty',
+        );
+        t.assert.ok(
+          data.roots.length > 0,
+          'decoded component tree must expose a root',
+        );
+        t.assert.ok(
+          data.labels.length > 0,
+          'tree must expose at least one @cN label',
+        );
 
-  await t.test(
-    'inspect round-trip returns InspectData for first labelled component',
-    async (t: TestContext) => {
-      if (!capturedTree) {
-        t.skip('tree snapshot not captured (preceding subtest failed)');
-        return;
-      }
-      const labels = formatTree(capturedTree, { hideShells: true }).labels;
-      const targetId = labels[0];
-      t.assert.ok(
-        targetId !== undefined,
-        'tree must expose at least one labelled root',
-      );
-      if (targetId === undefined) return;
+        const formatted = formatReactLynxTree(
+          deserializeRendererState({ roots: data.roots, nodes: data.nodes }),
+          { hideShells: true },
+        );
+        t.assert.ok(formatted.text.startsWith('@c1 ['));
+        t.assert.deepEqual(formatted.labels, data.labels);
+        t.assert.equal(
+          formatted.labels.length,
+          formatted.text.split('\n').length,
+        );
+        t.assert.deepEqual(
+          actionCore.getReactLynxCache(client.id, session.session_id)
+            ?.compactLabels,
+          data.labels,
+        );
+        t.diagnostic(
+          'page=' +
+            target.pageUrl +
+            ' generation=' +
+            (data.cache.status === 'refreshed'
+              ? data.cache.generation
+              : 'n/a') +
+            ' nodes=' +
+            data.nodes.length +
+            ' first=' +
+            formatted.text.split('\n')[0],
+        );
+        treeData = data;
+      },
+    );
 
-      let inspectData: { id: number; name: string; props: unknown } | undefined;
-      await runReactLynxSession({
-        connector,
-        clientId: client.id,
-        sessionId: session.session_id,
-        outbound: [buildOutboundFrame('inspect', targetId)],
-        idleMs: 1_000,
-        maxMs: 5_000,
-        signal: t.signal,
-        onEnvelope: (envelope: PreactEnvelope) => {
-          if (envelope.type !== 'inspect-result') return 'continue';
-          inspectData = envelope.data as typeof inspectData;
-          return 'stop';
-        },
-      });
+    await t.test(
+      'find reuses the cached generation without refreshing',
+      async (t: TestContext) => {
+        if (!treeData) {
+          t.skip('tree action did not complete');
+          return;
+        }
+        const result = await actionCore.execute(
+          'reactlynx-find',
+          { ...commandTarget, pattern: 'view' },
+          { connector },
+          t.signal,
+        );
+        t.assert.equal(result.ok, true, result.error?.message);
+        if (!result.ok) return;
+        const data = result.data as CommandData<'reactlynx-find'>;
+        t.assert.equal(data.cache.status, 'reused');
+        if (
+          data.cache.status === 'reused' &&
+          treeData.cache.status === 'refreshed'
+        ) {
+          t.assert.equal(data.cache.generation, treeData.cache.generation);
+        }
+        t.assert.ok(
+          data.matches.length > 0,
+          "expected a component containing 'view'",
+        );
+        for (const match of data.matches) {
+          t.assert.match(match.label, /^@c\d+$/u);
+          t.assert.ok(match.name.toLowerCase().includes('view'));
+        }
+        t.diagnostic(
+          'find matches: ' +
+            data.matches
+              .map((match) => match.label + ' ' + match.name)
+              .join(', '),
+        );
+      },
+    );
 
-      t.assert.ok(
-        inspectData !== undefined,
-        `Expected an inspect-result frame for id ${targetId} within 5s`,
-      );
-      if (!inspectData) return;
-      t.assert.equal(
-        inspectData.id,
-        targetId,
-        'inspect-result.id must match the requested id',
-      );
-      t.assert.equal(typeof inspectData.name, 'string');
-      t.assert.ok(
-        inspectData.name.length > 0,
-        'inspect-result.name must be non-empty',
-      );
-      t.diagnostic(
-        `inspect-result: id=${inspectData.id} name=${inspectData.name}`,
-      );
-    },
-  );
+    await t.test(
+      'DOM and component refs round-trip through runtime identities',
+      async (t: TestContext) => {
+        if (
+          target.appPackageName === 'EmbeddedLynx' ||
+          target.appPackageName === 'NodeLynxCLI'
+        ) {
+          t.skip(
+            'Clay-based EmbeddedLynx and NodeLynx do not expose the App-side host identity mapping yet',
+          );
+          return;
+        }
+        if (!treeData) {
+          t.skip('tree action did not complete');
+          return;
+        }
+        const snapshot = await actionCore.execute(
+          'snapshot',
+          commandTarget,
+          { connector },
+          t.signal,
+        );
+        t.assert.equal(snapshot.ok, true, snapshot.error?.message);
+        if (!snapshot.ok) return;
+        const snapshotData = snapshot.data as CommandData<'snapshot'>;
+        t.assert.ok(
+          snapshotData.refs.length > 0,
+          'snapshot must expose at least one @eN ref',
+        );
 
-  await t.test(
-    'update-prop round-trip applies the new value and confirms via inspect-result',
-    async (t: TestContext) => {
-      if (!capturedTree) {
-        t.skip('tree snapshot not captured (preceding subtest failed)');
-        return;
-      }
-      const labels = formatTree(capturedTree, { hideShells: true }).labels;
-      const targetId = labels[0];
-      t.assert.ok(
-        targetId !== undefined,
-        'tree must expose at least one labelled root',
-      );
-      if (targetId === undefined) return;
+        const visibleRefs = snapshotData.refs.filter(
+          (ref) => ref.flags.visible && !ref.flags.offscreen,
+        );
+        const parentRefs = new Set(
+          visibleRefs.flatMap((ref) => (ref.parentRef ? [ref.parentRef] : [])),
+        );
+        const candidates = [
+          ...visibleRefs.filter((ref) => parentRefs.has(ref.ref)).reverse(),
+          ...visibleRefs.slice().reverse(),
+        ]
+          .filter(
+            (ref, index, refs) =>
+              refs.findIndex((candidate) => candidate.ref === ref.ref) ===
+              index,
+          )
+          .slice(0, 8);
+        t.assert.ok(
+          candidates.length > 0,
+          'snapshot must expose at least one visible DOM ref',
+        );
 
-      const TEST_KEY = '__lynxDevtoolUpdatePropTest';
-      const TEST_VALUE = `marker-${Date.now()}`;
+        let sourceElement: (typeof candidates)[number] | undefined;
+        let componentData: CommandData<'reactlynx-link'> | undefined;
+        const mappingFailures: string[] = [];
+        for (const candidate of candidates) {
+          const result = await actionCore.execute(
+            'reactlynx-link',
+            { ...commandTarget, ref: candidate.ref, showShells: true },
+            { connector },
+            AbortSignal.any([t.signal, AbortSignal.timeout(1_500)]),
+          );
+          if (!result.ok) {
+            mappingFailures.push(`${candidate.ref}:${result.error.reason}`);
+            continue;
+          }
+          sourceElement = candidate;
+          componentData = result.data as CommandData<'reactlynx-link'>;
+          break;
+        }
+        t.assert.ok(
+          sourceElement && componentData,
+          `none of ${candidates.length} visible DOM candidates mapped to ReactLynx (${mappingFailures.join(', ')})`,
+        );
+        if (!sourceElement || !componentData) return;
 
-      let confirmed: { id: number; props: Record<string, unknown> } | undefined;
-      await runReactLynxSession({
-        connector,
-        clientId: client.id,
-        sessionId: session.session_id,
-        outbound: [
-          buildOutboundFrame('update-prop', {
-            id: targetId,
-            path: `root.${TEST_KEY}`,
-            value: TEST_VALUE,
-          }),
-        ],
-        idleMs: 1_000,
-        maxMs: 5_000,
-        signal: t.signal,
-        onEnvelope: (envelope: PreactEnvelope) => {
-          if (envelope.type !== 'inspect-result') return 'continue';
-          const candidate = envelope.data as {
-            id?: number;
-            props?: Record<string, unknown>;
-          };
-          if (candidate.id !== targetId) return 'continue';
-          confirmed = candidate as typeof confirmed;
-          return 'stop';
-        },
-      });
+        t.assert.equal(componentData.direction, 'element-to-component');
+        t.assert.equal(componentData.relation, 'nearest-component');
+        t.assert.equal(componentData.element.ref, sourceElement.ref);
+        t.assert.match(componentData.component.ref ?? '', /^@c\d+$/u);
+        t.assert.ok(componentData.component.name.length > 0);
+        t.assert.equal(componentData.cache.status, 'reused');
 
-      t.assert.ok(
-        confirmed !== undefined,
-        `Expected an inspect-result for id ${targetId} after update-prop within 5s`,
-      );
-      if (!confirmed) return;
-      t.assert.ok(
-        confirmed.props && typeof confirmed.props === 'object',
-        'post-update inspect-result.props must be an object',
-      );
-      t.assert.equal(
-        confirmed.props[TEST_KEY],
-        TEST_VALUE,
-        `post-update inspect-result.props.${TEST_KEY} must equal the value we sent (${TEST_VALUE})`,
-      );
-      t.diagnostic(
-        `update-prop confirmed: id=${confirmed.id} props.${TEST_KEY}=${JSON.stringify(confirmed.props[TEST_KEY])}`,
-      );
-    },
-  );
-});
+        const toElement = await actionCore.execute(
+          'reactlynx-link',
+          {
+            ...commandTarget,
+            ref: componentData.component.ref!,
+            showShells: true,
+          },
+          { connector },
+          t.signal,
+        );
+        t.assert.equal(toElement.ok, true, toElement.error?.message);
+        if (!toElement.ok) return;
+        const elementData = toElement.data as CommandData<'reactlynx-link'>;
+        t.assert.equal(elementData.direction, 'component-to-element');
+        t.assert.equal(elementData.relation, 'first-host-element');
+        t.assert.equal(elementData.component.id, componentData.component.id);
+        t.assert.match(elementData.element.ref, /^@e\d+$/u);
+        t.assert.ok(
+          snapshotData.refs.some((ref) => ref.ref === elementData.element.ref),
+        );
+        t.assert.equal(elementData.cache.status, 'reused');
+        t.diagnostic(
+          `${sourceElement.ref} -> ${componentData.component.ref} -> ${elementData.element.ref}`,
+        );
+      },
+    );
+
+    await t.test(
+      'component resolves a cached @cN ref and returns InspectData',
+      async (t: TestContext) => {
+        const result = await actionCore.execute(
+          'reactlynx-component',
+          { ...commandTarget, ref: '@c1' },
+          { connector },
+          t.signal,
+        );
+        t.assert.equal(result.ok, true, result.error?.message);
+        if (!result.ok) return;
+        const data = result.data as CommandData<'reactlynx-component'>;
+        t.assert.equal(data.cache.status, 'reused');
+        t.assert.equal(typeof data.component.name, 'string');
+        t.assert.ok(data.component.name.length > 0);
+        t.assert.equal(data.component.id, data.id);
+        t.diagnostic(
+          'inspect-result: id=' + data.id + ' name=' + data.component.name,
+        );
+      },
+    );
+
+    await t.test(
+      'update-prop resolves the same cache and confirms the mutation',
+      async (t: TestContext) => {
+        const key = '__agentLynxReactLynxDaemonTest';
+        const value = 'marker-' + Date.now();
+        const result = await actionCore.execute(
+          'reactlynx-update-prop',
+          { ...commandTarget, ref: '@c1', path: key, value },
+          { connector },
+          t.signal,
+        );
+        t.assert.equal(result.ok, true, result.error?.message);
+        if (!result.ok) return;
+        const data = result.data as CommandData<'reactlynx-update-prop'>;
+        t.assert.equal(data.cache.status, 'reused');
+        t.assert.ok(
+          typeof data.component.props === 'object' &&
+            data.component.props !== null,
+          'post-update inspect-result.props must be an object',
+        );
+        if (
+          typeof data.component.props !== 'object' ||
+          data.component.props === null
+        )
+          return;
+        t.assert.equal(
+          (data.component.props as Record<string, unknown>)[key],
+          value,
+        );
+        t.diagnostic(
+          'update-prop confirmed: id=' +
+            data.id +
+            ' props.' +
+            key +
+            '=' +
+            value,
+        );
+      },
+    );
+  },
+);
