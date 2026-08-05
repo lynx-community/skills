@@ -14,7 +14,6 @@ import {
   recordingOutputPath,
 } from './recorder-analysis.ts';
 import {
-  CLIENT_NAME_OPTION,
   CLIENT_OPTION,
   type Context,
   isAbortError,
@@ -29,7 +28,6 @@ export function registerEndCommand(parent: Command, context: Context) {
     .command('end')
     .description('Stop TestBench recording and save the replay file')
     .option(...CLIENT_OPTION)
-    .option(...CLIENT_NAME_OPTION)
     .option(
       '-o, --output <path>',
       'Output file or directory path (defaults to ~/.lynx-devtool/files/lynxrecorder/recording-<clientId>-<timestamp>.json)',
@@ -86,6 +84,7 @@ export async function runRecordingEnd(
     }
     if (sessionId === -1) continue;
 
+    // Per-stream timeout so a slow earlier stream cannot starve later ones.
     const signal = AbortSignal.timeout(RECORDING_END_TIMEOUT_MS);
     const data = await readStreamFully(
       connector,
