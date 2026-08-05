@@ -1062,6 +1062,12 @@ testWithClient('Tools', async (suite, connector, client, target) => {
   await suite.test(
     'HeapProfiler.takeHeapSnapshot saves a background snapshot filename by default',
     async (t: TestContext) => {
+      if (target.appPackageName === 'EmbeddedLynx') {
+        t.skip(
+          'EmbeddedLynx does not support background-thread heap snapshots yet',
+        );
+        return;
+      }
       const { call } = createToolContext(TakeHeapSnapshot, connector, clientId);
       const result = await call<string>({});
 
@@ -1394,6 +1400,12 @@ testWithClient('Tools', async (suite, connector, client, target) => {
   await suite.test(
     'Runtime.consoleAPICalled (listConsole)',
     async (t: TestContext) => {
+      if (target.appPackageName === 'EmbeddedLynx') {
+        t.skip(
+          'EmbeddedLynx does not replay buffered console entries on Runtime.enable',
+        );
+        return;
+      }
       const { call: evaluate } = createToolContext(
         Evaluate,
         connector,
