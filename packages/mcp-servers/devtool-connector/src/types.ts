@@ -12,6 +12,16 @@ type CustomizedEvent<TType extends string, TData> = Event<
   {
     type: TType;
     data: TData;
+    /**
+     * Optional request-response correlation id.
+     *
+     * When a request carries an `id`, the response echoes it back so the caller
+     * can match which response belongs to which request — similar to how CDP
+     * uses `id`.
+     *
+     * @see https://github.com/lynx-family/debug-router/issues/162
+     */
+    id?: number;
   }
 >;
 
@@ -22,6 +32,7 @@ export type AppInfo = {
   AppProcessName?: string;
   /** iOS only */
   bundleId?: string;
+  /** OpenHarmony only */
   bundleName?: string;
   debugRouterId: string;
   debugRouterVersion: string;
@@ -250,6 +261,46 @@ export function isListSessionResponse(
   return (
     response.event === 'Customized' && response.data.type === 'SessionList'
   );
+}
+
+/**
+ * Create a type guard that accepts a Customized response only when its `id`
+ * correlates with the given request `id`.
+ *
+ * Correlation rules (matching CDP id semantics):
+ * 1. Response has NO `id` field → accept (old SDK that doesn't support id yet)
+ * 2. Response `id` matches our request `id` → accept (our response)
+ * 3. Response `id` is -1 → reject (response to a request without id from another old client)
+ * 4. Response `id` is a different positive number → reject (response to another client's request)
+ *
+ * @param baseFilter - A type guard to check the response type (e.g. isListSessionResponse)
+ * @param requestId - The id we sent in the request
+ *
+ * @example
+ * ```ts
+ * // For ListSession:
+ * new FilterTransformStream(createCorrelatedFilter(isListSessionResponse, id))
+ * // For GetGlobalSwitch (future):
+ * new FilterTransformStream(createCorrelatedFilter(isGetGlobalSwitchResponse, id))
+ * ```
+ *
+ * @see https://github.com/lynx-family/debug-router/issues/162
+ */
+export function createCorrelatedFilter<T extends Response>(
+  baseFilter: (response: Response) => response is T,
+  requestId: number,
+): (response: Response) => response is T {
+  return (response: Response): response is T => {
+    if (!baseFilter(response)) return false;
+    // Only Customized events carry the id field
+    if (response.event !== 'Customized') return true;
+    const responseId = (response.data as { id?: number }).id;
+    // Case 1: old SDK, no id in response — accept
+    if (responseId === undefined) return true;
+    // Case 2: our id echoed back — accept
+    // Case 3 & 4: different id (including -1) — reject
+    return responseId === requestId;
+  };
 }
 
 export function isGetGlobalSwitchResponse(
