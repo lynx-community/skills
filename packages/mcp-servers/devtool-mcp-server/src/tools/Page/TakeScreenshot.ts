@@ -6,8 +6,8 @@ import fs from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { ReadableStream } from 'node:stream/web';
-import { setTimeout } from 'node:timers/promises';
 import { clientId, screenshotMode, sessionId } from '../../schema/index.ts';
+import { raceWithTimeout } from '../../utils/raceWithTimeout.ts';
 import { defineTool } from '../defineTool.ts';
 
 export const TakeScreenshot = /*#__PURE__*/ defineTool({
@@ -44,10 +44,7 @@ export const TakeScreenshot = /*#__PURE__*/ defineTool({
               mode: params.screenshotMode ?? 'lynxview',
             },
           });
-          await Promise.race([
-            promise,
-            setTimeout(10_000, undefined, { signal }).catch(() => {}),
-          ]);
+          await raceWithTimeout(promise, 10_000, undefined, { signal });
           controller.enqueue({
             method: 'Page.stopScreencast',
           });
