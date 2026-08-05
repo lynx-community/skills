@@ -3,9 +3,9 @@
 // LICENSE file in the root directory of this source tree.
 
 import { ReadableStream } from 'node:stream/web';
+
 import type { Command } from 'commander';
 import {
-  CLIENT_NAME_OPTION,
   CLIENT_OPTION,
   type Context,
   readUntilIdle,
@@ -24,7 +24,6 @@ export function registerGetSourcesCommand(program: Command, context: Context) {
     .command('get-sources')
     .description('List all parsed scripts.')
     .option(...CLIENT_OPTION)
-    .option(...CLIENT_NAME_OPTION)
     .option(...SESSION_OPTION)
     .action(async (options) => {
       const { connector, clientId, sessionId } = await resolveClientAndSession(

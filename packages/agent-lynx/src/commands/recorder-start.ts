@@ -1,13 +1,9 @@
 // Copyright 2025 The Lynx Authors. All rights reserved.
 // Licensed under the Apache License Version 2.0 that can be found in the
 // LICENSE file in the root directory of this source tree.
+
 import type { Command } from 'commander';
-import {
-  CLIENT_NAME_OPTION,
-  CLIENT_OPTION,
-  type Context,
-  resolveClient,
-} from './utils.ts';
+import { CLIENT_OPTION, type Context, resolveClient } from './utils.ts';
 
 const DEBUG_MODE_KEY = 'enable_debug_mode';
 const DEBUG_MODE_RESTART_MESSAGE =
@@ -22,11 +18,12 @@ export function registerStartCommand(parent: Command, context: Context) {
     .command('start')
     .description('Start TestBench recording')
     .option(...CLIENT_OPTION)
-    .option(...CLIENT_NAME_OPTION)
     .action(async (options) => {
       const { connector, clientId } = await resolveClient(context, options);
 
       const result = await runRecordingStart(connector, clientId);
+      if (result.started) {
+      }
       console.log(JSON.stringify({ success: result.started, ...result }));
     });
 }
@@ -45,11 +42,16 @@ export async function runRecordingStart(
   );
   if (!debugModeEnabled) {
     await connector.setGlobalSwitch(clientId, DEBUG_MODE_KEY, true);
-    return {
-      started: false,
-      restartRequired: true,
-      message: DEBUG_MODE_RESTART_MESSAGE,
-    };
+
+    const persisted = await connector.getGlobalSwitch(clientId, DEBUG_MODE_KEY);
+    if (persisted) {
+      return {
+        started: false,
+        restartRequired: true,
+        message: DEBUG_MODE_RESTART_MESSAGE,
+      };
+    }
+    // Platform did not persist the switch — proceed to Recording.start directly.
   }
 
   try {

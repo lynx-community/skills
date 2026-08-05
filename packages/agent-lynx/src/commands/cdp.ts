@@ -1,9 +1,9 @@
 // Copyright 2025 The Lynx Authors. All rights reserved.
 // Licensed under the Apache License Version 2.0 that can be found in the
 // LICENSE file in the root directory of this source tree.
+
 import type { Command } from 'commander';
 import {
-  CLIENT_NAME_OPTION,
   CLIENT_OPTION,
   type Context,
   resolveClientAndSession,
@@ -19,7 +19,6 @@ export function registerCdpCommand(program: Command, context: Context) {
       'CDP method (e.g., DOM.getDocument)',
     )
     .option(...CLIENT_OPTION)
-    .option(...CLIENT_NAME_OPTION)
     .option(...SESSION_OPTION)
     .option(
       '--thread <thread>',

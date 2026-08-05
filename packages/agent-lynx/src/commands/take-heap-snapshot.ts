@@ -2,18 +2,19 @@
 // Licensed under the Apache License Version 2.0 that can be found in the
 // LICENSE file in the root directory of this source tree.
 
-import { randomInt } from 'node:crypto';
+import { randomInt, randomUUID } from 'node:crypto';
 import fs from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
+import { pipeline } from 'node:stream/promises';
 import { ReadableStream } from 'node:stream/web';
+
 import {
   type CDPResponseMessage,
   CDPResponseTransformStream,
 } from '@lynx-js/devtool-connector';
 import type { Command } from 'commander';
 import {
-  CLIENT_NAME_OPTION,
   CLIENT_OPTION,
   type Context,
   readUntilIdle,
@@ -29,7 +30,6 @@ export function registerTakeHeapSnapshotCommand(
     .command('take-heap-snapshot')
     .description('Take a heap snapshot and save it to a .heapsnapshot file')
     .option(...CLIENT_OPTION)
-    .option(...CLIENT_NAME_OPTION)
     .option(...SESSION_OPTION)
     .option(
       '--thread <thread>',
@@ -108,62 +108,81 @@ export function registerTakeHeapSnapshotCommand(
         },
       );
 
-      const chunks: string[] = [];
       let didReceiveSnapshotResponse = false;
+      let didWriteSnapshotChunk = false;
       const fileName =
         output ??
         path.join(tmpdir(), `heap-${thread}-${Date.now()}.heapsnapshot`);
+      const temporaryFileName = path.join(
+        path.dirname(fileName),
+        `.${path.basename(fileName)}.${randomUUID()}.tmp`,
+      );
+      const temporaryFile = await fs.open(temporaryFileName, 'wx');
 
-      for await (const value of readUntilIdle(stream, {
-        idleMs: 15_000,
-        maxMs: 60_000,
-      })) {
-        const {
-          method,
-          params: eventParams,
-          id,
-          sessionId: responseSessionId,
-        } = value as CDPResponseMessage & {
-          method?: string;
-          params?: {
-            chunk?: string;
-            finished?: boolean;
+      async function* snapshotChunks() {
+        for await (const value of readUntilIdle(stream, {
+          idleMs: 15_000,
+          maxMs: 60_000,
+        })) {
+          const {
+            method,
+            params: eventParams,
+            id,
+            sessionId: responseSessionId,
+          } = value as CDPResponseMessage & {
+            method?: string;
+            params?: {
+              chunk?: string;
+              finished?: boolean;
+            };
+            sessionId?: string;
           };
-          sessionId?: string;
-        };
 
-        if (method === 'HeapProfiler.addHeapSnapshotChunk') {
-          if (responseSessionId !== expectedSessionId) {
-            continue;
-          }
+          if (method === 'HeapProfiler.addHeapSnapshotChunk') {
+            if (responseSessionId !== expectedSessionId) {
+              continue;
+            }
 
-          const chunk = eventParams?.chunk;
-          if (!chunk) {
-            continue;
-          }
+            const chunk = eventParams?.chunk;
+            if (!chunk) {
+              continue;
+            }
 
-          chunks.push(chunk);
-          if (didReceiveSnapshotResponse) {
-            break;
-          }
-        } else if (method === 'HeapProfiler.reportHeapSnapshotProgress') {
-          if (responseSessionId !== expectedSessionId) {
-          }
-        } else if (id === requestId) {
-          didReceiveSnapshotResponse = true;
-          if (chunks.length > 0) {
-            break;
+            didWriteSnapshotChunk = true;
+            yield chunk;
+            if (didReceiveSnapshotResponse) {
+              break;
+            }
+          } else if (method === 'HeapProfiler.reportHeapSnapshotProgress') {
+            if (responseSessionId !== expectedSessionId) {
+            }
+          } else if (id === requestId) {
+            didReceiveSnapshotResponse = true;
+            if (didWriteSnapshotChunk) {
+              break;
+            }
           }
         }
       }
 
-      if (chunks.length === 0) {
-        throw new Error(
-          'Failed to capture heap snapshot, no chunks received or timed out.',
+      try {
+        await pipeline(
+          snapshotChunks(),
+          temporaryFile.createWriteStream({ encoding: 'utf8' }),
+          { signal: timeoutSignal },
         );
-      }
 
-      await fs.writeFile(fileName, chunks.join(''));
+        if (!didWriteSnapshotChunk) {
+          throw new Error(
+            'Failed to capture heap snapshot, no chunks received or timed out.',
+          );
+        }
+
+        await fs.rename(temporaryFileName, fileName);
+      } finally {
+        await temporaryFile.close().catch(() => {});
+        await fs.unlink(temporaryFileName).catch(() => {});
+      }
 
       console.log(`Heap snapshot saved to ${fileName}`);
     });

@@ -1,9 +1,15 @@
 // Copyright 2025 The Lynx Authors. All rights reserved.
 // Licensed under the Apache License Version 2.0 that can be found in the
 // LICENSE file in the root directory of this source tree.
+
 import { Connector } from '@lynx-js/devtool-connector';
 import type { Command } from 'commander';
 import type { Context } from './utils.ts';
+
+type ListClientsConnector = Pick<Connector, 'listClients'>;
+type ListClientsCommandOptions = {
+  print?: (line: string) => void;
+};
 
 const NO_CLIENTS_FOUND_MESSAGE = [
   'No Lynx DevTool clients were found.',
@@ -13,12 +19,12 @@ const NO_CLIENTS_FOUND_MESSAGE = [
   '2. If the app just launched, wait a moment and rerun `list-clients`.',
   "3. If this is unexpected, rerun with `DEBUG='devtool-mcp-server:connector*'` or try `--no-daemon`.",
   '',
-  'See `skills/lynx-devtool/references/troubleshooting/symptoms.md#list-clients-returns-` for more details.',
+  'Run `agent-lynx skills get lynx-devtool`, then read `references/troubleshooting/symptoms.md#list-clients-returns-` relative to the reported Skill directory.',
 ].join('\n');
 
 export async function runListClientsCommand(
-  connector: Pick<Connector, 'listClients'>,
-  { print = console.log }: { print?: (line: string) => void } = {},
+  connector: ListClientsConnector,
+  { print = console.log }: ListClientsCommandOptions = {},
 ): Promise<void> {
   const clients = await connector.listClients();
 

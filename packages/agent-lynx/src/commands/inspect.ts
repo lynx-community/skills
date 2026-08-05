@@ -1,9 +1,9 @@
 // Copyright 2025 The Lynx Authors. All rights reserved.
 // Licensed under the Apache License Version 2.0 that can be found in the
 // LICENSE file in the root directory of this source tree.
+
 import type { Command } from 'commander';
 import {
-  CLIENT_NAME_OPTION,
   CLIENT_OPTION,
   type Context,
   resolveClientAndSession,
@@ -17,7 +17,6 @@ export function registerInspectCommand(program: Command, context: Context) {
     .command('inspect')
     .description('Output the inspector URL for a client/session')
     .option(...CLIENT_OPTION)
-    .option(...CLIENT_NAME_OPTION)
     .option(...SESSION_OPTION)
     .option('--port <port>', 'Daemon port', String(DEFAULT_DAEMON_PORT))
     .action(async (options) => {
