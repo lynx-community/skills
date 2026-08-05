@@ -38,7 +38,14 @@ export class DeviceConnection {
   #transport: Transport;
   #options: TransportConnectOptions;
   #disposed = false;
+  #disposePromise: Promise<void> | null = null;
+  #terminalCause: unknown;
+  #connectPromise: Promise<Connection<unknown, unknown>> | null = null;
   #readLoopPromise: Promise<void> | null = null;
+  #registered: Promise<AppInfo>;
+  #resolveRegistered!: (appInfo: AppInfo) => void;
+  #rejectRegistered!: (reason?: unknown) => void;
+  #registrationSettled = false;
 
   /** Populated after a successful Initialize/Register handshake. */
   appInfo: AppInfo | null = null;
@@ -49,6 +56,11 @@ export class DeviceConnection {
     this.deviceId = options.deviceId;
     this.port = options.port;
     this.key = `${options.deviceId}:${options.port}`;
+    this.#registered = new Promise<AppInfo>((resolve, reject) => {
+      this.#resolveRegistered = resolve;
+      this.#rejectRegistered = reject;
+    });
+    void this.#registered.catch(() => {});
   }
 
   /**
@@ -63,21 +75,34 @@ export class DeviceConnection {
       );
     }
 
-    const conn = await this.#transport.connect(this.#options);
+    try {
+      this.#connectPromise = this.#transport.connect(this.#options);
+      this.#conn = await this.#connectPromise;
+    } catch (error) {
+      this.#rejectRegistration(error);
+      throw error;
+    }
     if (this.#disposed) {
-      await conn[Symbol.asyncDispose]();
-      throw new Error(
+      const error = new Error(
         `DeviceConnection ${this.key} was disposed before connect completed`,
       );
+      this.#rejectRegistration(error);
+      throw error;
     }
 
-    this.#conn = conn;
     this.#writer = this.#conn.writable.getWriter();
     this.#readLoopPromise = this.#readLoop();
     debug('connected to %s', this.key);
   }
 
+  waitUntilRegistered(): Promise<AppInfo> {
+    return this.#registered;
+  }
+
   addSubscriber(subscriber: DeviceConnectionSubscriber): void {
+    if (this.#disposed) {
+      throw new Error(`Device connection ${this.key} is no longer active`);
+    }
     this.#subscribers.set(subscriber.id, subscriber);
     debug(
       'subscriber %d added to %s (total: %d)',
@@ -110,6 +135,12 @@ export class DeviceConnection {
   }
 
   async send(message: unknown): Promise<void> {
+    if (this.#disposed) {
+      throw (
+        this.#terminalCause ??
+        new Error(`DeviceConnection ${this.key} is no longer active`)
+      );
+    }
     if (!this.#writer) {
       throw new Error(`DeviceConnection ${this.key} is not connected`);
     }
@@ -117,40 +148,71 @@ export class DeviceConnection {
       await this.#writer.write(message);
     } catch (err) {
       debug('send to %s failed: %O', this.key, err);
-      throw err;
+      this.#terminate(err, false);
+      throw this.#terminalCause ?? err;
     }
   }
 
-  async dispose(): Promise<void> {
-    if (this.#disposed) return;
+  dispose(): Promise<void> {
     this.#disposed = true;
+    this.#rejectRegistration(
+      new Error(`DeviceConnection ${this.key} was disposed before Register`),
+    );
+    return this.#startDisposal(true);
+  }
+
+  async #disposeConnection(awaitReadLoop: boolean): Promise<void> {
     debug('disposing device connection %s', this.key);
+    let disposeFailed = false;
+    let disposeCause: unknown;
+
+    try {
+      if (!this.#conn && this.#connectPromise)
+        this.#conn = await this.#connectPromise;
+    } catch {
+      // No connection was acquired, so there is nothing to dispose.
+    }
 
     try {
       this.#writer?.releaseLock();
     } catch {
       // ignore
     }
+    this.#writer = null;
 
     try {
       await this.#conn?.[Symbol.asyncDispose]();
     } catch (err) {
       debug('error disposing connection %s: %O', this.key, err);
+      disposeFailed = true;
+      disposeCause = err;
     }
 
-    await this.#readLoopPromise;
+    if (awaitReadLoop && !disposeFailed) await this.#readLoopPromise;
     this.#subscribers.clear();
+    if (disposeFailed) throw disposeCause;
+  }
+
+  #startDisposal(awaitReadLoop: boolean): Promise<void> {
+    if (!this.#disposePromise) {
+      this.#disposePromise = this.#disposeConnection(awaitReadLoop);
+      void this.#disposePromise.catch((err: unknown) => {
+        debug('device connection %s disposal failed: %O', this.key, err);
+      });
+    }
+    return this.#disposePromise;
   }
 
   async #readLoop(): Promise<void> {
     if (!this.#conn) return;
 
+    let terminalCause: unknown;
     try {
       for await (const message of this.#conn.readable) {
         if (this.appInfo === null) {
           const response = message as Response;
           if (isInitializeResponse(response)) {
-            this.appInfo = response.data.info;
+            this.#resolveRegistration(response.data.info);
             debug('captured appInfo for %s: %O', this.key, this.appInfo);
             continue;
           }
@@ -159,6 +221,7 @@ export class DeviceConnection {
         this.#broadcast(message);
       }
     } catch (err) {
+      terminalCause = err;
       if (!this.#disposed) {
         debug('read loop error on %s: %O', this.key, err);
       }
@@ -166,9 +229,38 @@ export class DeviceConnection {
 
     if (!this.#disposed) {
       debug('device connection %s closed by remote', this.key);
-      this.#disposed = true;
-      this.#closeAllSubscribers();
+      this.#terminate(
+        terminalCause ??
+          new Error(
+            this.appInfo === null
+              ? `Device connection ${this.key} closed before Register`
+              : `Device connection ${this.key} closed by remote`,
+          ),
+        true,
+      );
     }
+  }
+
+  #terminate(cause: unknown, readLoopEnded: boolean): void {
+    if (this.#disposed) return;
+    this.#disposed = true;
+    this.#terminalCause = cause;
+    this.#rejectRegistration(cause);
+    void this.#startDisposal(!readLoopEnded);
+    this.#closeAllSubscribers();
+  }
+
+  #resolveRegistration(appInfo: AppInfo): void {
+    if (this.#registrationSettled) return;
+    this.#registrationSettled = true;
+    this.appInfo = appInfo;
+    this.#resolveRegistered(appInfo);
+  }
+
+  #rejectRegistration(reason: unknown): void {
+    if (this.#registrationSettled) return;
+    this.#registrationSettled = true;
+    this.#rejectRegistered(reason);
   }
 
   #closeAllSubscribers(): void {
@@ -179,6 +271,7 @@ export class DeviceConnection {
         debug('failed to close subscriber %d: %O', subscriber.id, err);
       }
     }
+    this.#subscribers.clear();
   }
 
   #broadcast(message: unknown): void {

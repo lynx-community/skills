@@ -13,8 +13,14 @@ import type {
 
 describe('DaemonTransport connection setup timeout', () => {
   test('listClients returns when a daemon device port connect never settles', async (t) => {
+    // Closing the transport must settle the stalled connect, otherwise the
+    // daemon's shutdown can never finish draining its pending connections.
+    const pendingConnect =
+      Promise.withResolvers<Connection<unknown, unknown>>();
     const hangingTransport: Transport = {
-      async close() {},
+      async close() {
+        pendingConnect.reject(new Error('transport closed'));
+      },
       async listDevices() {
         return [{ id: 'test-device', os: 'Android' as const }];
       },
@@ -26,7 +32,7 @@ describe('DaemonTransport connection setup timeout', () => {
         options: TransportConnectOptions,
       ): Promise<Connection<TOutput, TInput>> {
         if (options.port === 8901) {
-          return await new Promise<Connection<TOutput, TInput>>(() => {});
+          return (await pendingConnect.promise) as Connection<TOutput, TInput>;
         }
 
         throw new Error(`Connection refused on port ${options.port}`);

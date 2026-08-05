@@ -159,6 +159,12 @@ importers:
       jpeg-js:
         specifier: ^0.4.4
         version: 0.4.4
+      obug:
+        specifier: ^2.1.3
+        version: 2.1.3
+      semver:
+        specifier: ^7.7.3
+        version: 7.7.3
       ws:
         specifier: ^8.21.0
         version: 8.21.0
@@ -169,6 +175,9 @@ importers:
       '@types/node':
         specifier: ^24.13.2
         version: 24.13.2
+      '@types/semver':
+        specifier: ^7.7.1
+        version: 7.8.0
       '@types/ws':
         specifier: ^8.18.1
         version: 8.18.1
@@ -181,9 +190,6 @@ importers:
       '@yume-chan/stream-extra':
         specifier: catalog:adb
         version: 2.6.1
-      obug:
-        specifier: ^2.1.3
-        version: 2.1.3
       plist:
         specifier: ^5.0.0
         version: 5.0.0
@@ -1066,6 +1072,9 @@ packages:
 
   '@types/node@24.13.2':
     resolution: {integrity: sha512-fRa09kZTgu8o71KFcDjUFuc7F+dEbZYZmkI0mg5YBTRs0yMKjYHsq/c0urDKeDb+D5qVgXOdFcuu+DZPKOITwA==}
+
+  '@types/semver@7.8.0':
+    resolution: {integrity: sha512-1mAINjtQCXXeLkJ9ehXkwOcBpqtLxiVtKhpUf83DdRNdQKV0iXZpaHYqRr7nj+wvxuJzoAmAwXI+sCNMv1CzLQ==}
 
   '@types/ws@8.18.1':
     resolution: {integrity: sha512-ThVF6DCVhA8kUGy+aazFQ4kXQ7E1Ty7A3ypFOe0IcJV8O/M511G99AW24irKrW56Wt44yG9+ij8FaqoBGkuBXg==}
@@ -3290,6 +3299,8 @@ snapshots:
   '@types/node@24.13.2':
     dependencies:
       undici-types: 7.18.2
+
+  '@types/semver@7.8.0': {}
 
   '@types/ws@8.18.1':
     dependencies:

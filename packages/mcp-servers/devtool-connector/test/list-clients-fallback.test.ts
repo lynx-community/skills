@@ -39,6 +39,15 @@ class RejectingDaemonTransport extends DaemonTransport {
   }
 }
 
+class TestDaemonLifecycleError extends Error {
+  readonly code = 'ERR_DAEMON_LIFECYCLE';
+
+  constructor(message: string) {
+    super(message);
+    this.name = 'DaemonLifecycleError';
+  }
+}
+
 class DirectFallbackProbeTransport implements Transport {
   #devices: Device[];
   listAvailableAppsCalls = 0;
@@ -163,6 +172,42 @@ describe('Connector listClients fallback', () => {
     deadlineController.abort(deadline);
 
     await t.assert.rejects(listing, (error) => error === deadline);
+  });
+
+  test('does not fall back after an exclusive daemon lifecycle failure', async (t) => {
+    const failure = new TestDaemonLifecycleError(
+      'Incompatible daemon still owns the device connection',
+    );
+    const directTransport = new DirectFallbackProbeTransport();
+
+    await t.assert.rejects(
+      new Connector([
+        new RejectingDaemonTransport(failure),
+        directTransport,
+      ]).listClients(),
+      (error) => error === failure,
+    );
+    t.assert.equal(directTransport.listDevicesCalls, 0);
+  });
+
+  test('does not select a direct transport after daemon lifecycle failure', async (t) => {
+    const failure = new TestDaemonLifecycleError(
+      'Connector daemon could not be recreated safely',
+    );
+    const directTransport = new DirectFallbackProbeTransport([
+      { id: 'emulator-5554', os: 'Android' },
+    ]);
+    const connector = new Connector([
+      new RejectingDaemonTransport(failure),
+      directTransport,
+    ]);
+
+    await t.assert.rejects(
+      connector.listAvailableApps('emulator-5554'),
+      (error) => error === failure,
+    );
+    t.assert.equal(directTransport.listDevicesCalls, 0);
+    t.assert.equal(directTransport.listAvailableAppsCalls, 0);
   });
 
   test('aggregates failures when every configured authority rejects', async (t) => {

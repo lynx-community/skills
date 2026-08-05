@@ -35,8 +35,9 @@ async function ensureCommandServer(
   port: number,
   ensureDaemon: boolean,
 ): Promise<void> {
-  // Command protocol negotiation is handled by the daemon layer itself.
-  if (ensureDaemon) await DaemonManager.ensureRunning(port);
+  if (ensureDaemon) {
+    await DaemonManager.ensureRunning(port, { commandProtocol: true });
+  }
 }
 
 async function responseText(response: Response): Promise<string> {
