@@ -89,9 +89,34 @@ testWithClient(
           t.skip('tree action did not complete');
           return;
         }
+        // Derive the pattern from the tree we just captured instead of
+        // hard-coding a component name: production bundles are usually
+        // minified (`eT`, `ov`, ...), so any literal pattern only holds for
+        // one specific bundle. `find` searches the very same compact label
+        // set `tree` reported (both format the cached state with shells
+        // hidden and label it `@cN` in render order), so the first labelled
+        // component's own name is a pattern that must match on any bundle.
+        const nodesById = new Map(
+          treeData.nodes.map((node) => [node.id, node]),
+        );
+        let named: { pattern: string; label: string } | undefined;
+        for (const [index, id] of treeData.labels.entries()) {
+          const name = nodesById.get(id)?.name;
+          if (name) {
+            named = { pattern: name, label: `@c${index + 1}` };
+            break;
+          }
+        }
+        t.assert.ok(
+          named,
+          'tree must expose at least one labelled component with a name',
+        );
+        if (!named) return;
+        const { pattern, label: firstLabel } = named;
+
         const result = await actionCore.execute(
           'reactlynx-find',
-          { ...commandTarget, pattern: 'view' },
+          { ...commandTarget, pattern },
           { connector },
           t.signal,
         );
@@ -107,14 +132,24 @@ testWithClient(
         }
         t.assert.ok(
           data.matches.length > 0,
-          "expected a component containing 'view'",
+          `expected a component containing ${JSON.stringify(pattern)}`,
+        );
+        // Every earlier label is unnamed, so the component the pattern came
+        // from is necessarily the first match: this pins `find` to the same
+        // `@cN` numbering `tree` handed out for this generation.
+        t.assert.equal(
+          data.matches[0]?.label,
+          firstLabel,
+          'find must reuse the @cN numbering from the cached tree generation',
         );
         for (const match of data.matches) {
           t.assert.match(match.label, /^@c\d+$/u);
-          t.assert.ok(match.name.toLowerCase().includes('view'));
+          t.assert.ok(match.name.toLowerCase().includes(pattern.toLowerCase()));
         }
         t.diagnostic(
-          'find matches: ' +
+          'find pattern=' +
+            pattern +
+            ' matches: ' +
             data.matches
               .map((match) => match.label + ' ' + match.name)
               .join(', '),
