@@ -239,7 +239,10 @@ test('the real CLI entry keeps command stdout unchanged and writes the notice to
       env: {
         ...process.env,
         AGENT_LYNX_DISABLE_UPDATE_NOTICE: '',
-        CODEX_SANDBOX_NETWORK_DISABLED: '1',
+        // `1` is a documented kill switch for the update check itself, so it
+        // would disable the very notice this test asserts. The fresh cache
+        // entry above already keeps the run offline.
+        CODEX_SANDBOX_NETWORK_DISABLED: '0',
         XDG_CACHE_HOME: cacheRoot,
       },
     },
