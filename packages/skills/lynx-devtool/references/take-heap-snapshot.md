@@ -5,7 +5,7 @@ Take a QuickJS heap snapshot from the current Lynx session and save it as a `.he
 ## Usage
 
 ```bash
-node scripts/index.mjs take-heap-snapshot [options]
+agent-lynx take-heap-snapshot [options]
 ```
 
 ## Options
@@ -36,17 +36,17 @@ Heap snapshot saved to /tmp/heap-background-1234567890.heapsnapshot
 ### Save a background-thread snapshot to the default temp file
 
 ```bash
-node scripts/index.mjs take-heap-snapshot
+agent-lynx take-heap-snapshot
 ```
 
 ### Save a main-thread snapshot
 
 ```bash
-node scripts/index.mjs take-heap-snapshot --thread main
+agent-lynx take-heap-snapshot --thread main
 ```
 
 ### Save to a specific file
 
 ```bash
-node scripts/index.mjs take-heap-snapshot --output ./session.heapsnapshot
+agent-lynx take-heap-snapshot --output ./session.heapsnapshot
 ```

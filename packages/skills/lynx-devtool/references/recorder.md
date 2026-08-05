@@ -5,8 +5,8 @@ Record Lynx page interactions via TestBench (CDP-based). Captures all actions (t
 ## Usage
 
 ```bash
-node scripts/index.mjs recorder start [options]
-node scripts/index.mjs recorder end [options]
+agent-lynx recorder start [options]
+agent-lynx recorder end [options]
 ```
 
 ## Options
@@ -56,19 +56,19 @@ On success `recorder end` writes the recording to disk:
 ### Start recording
 
 ```bash
-node scripts/index.mjs recorder start
+agent-lynx recorder start
 ```
 
 ### Start recording with a specific client
 
 ```bash
-node scripts/index.mjs recorder start --client HDT-12345
+agent-lynx recorder start --client <clientId>
 ```
 
 ### Stop recording and save to a custom path
 
 ```bash
-node scripts/index.mjs recorder end --output ./my-recording.json
+agent-lynx recorder end --output ./my-recording.json
 ```
 
 ## Diagnosing Recording Files

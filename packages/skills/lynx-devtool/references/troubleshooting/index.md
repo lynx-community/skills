@@ -35,16 +35,16 @@ One more important detail: `list-clients` uses `Promise.allSettled()`. Many tran
 Start with the base connector logs:
 
 ```bash
-DEBUG='devtool-mcp-server:connector' node <path_to_the_skill>/scripts/index.mjs list-clients
+DEBUG='devtool-mcp-server:connector' agent-lynx list-clients
 ```
 
 Then narrow or widen as needed:
 
 ```bash
-DEBUG='devtool-mcp-server:connector*' node <path_to_the_skill>/scripts/index.mjs list-clients
-DEBUG='devtool-mcp-server:connector:android' node <path_to_the_skill>/scripts/index.mjs list-clients
-DEBUG='devtool-mcp-server:connector:ios' node <path_to_the_skill>/scripts/index.mjs list-clients
-DEBUG='devtool-mcp-server:connector:desktop' node <path_to_the_skill>/scripts/index.mjs list-clients
+DEBUG='devtool-mcp-server:connector*' agent-lynx list-clients
+DEBUG='devtool-mcp-server:connector:android' agent-lynx list-clients
+DEBUG='devtool-mcp-server:connector:ios' agent-lynx list-clients
+DEBUG='devtool-mcp-server:connector:desktop' agent-lynx list-clients
 ```
 
 - `devtool-mcp-server:connector`: high-level connector flow like `Initialize`, `Register`, `SetGlobalSwitch`, and `close connection`
@@ -197,5 +197,5 @@ What to do:
 Debug logs are written to `stderr`. If you still want to pipe the JSON result into `jq`, redirect `stderr` to a file:
 
 ```bash
-DEBUG='devtool-mcp-server:connector' node <path_to_the_skill>/scripts/index.mjs list-clients 2> /tmp/devtool-connector-debug.log
+DEBUG='devtool-mcp-server:connector' agent-lynx list-clients 2> /tmp/devtool-connector-debug.log
 ```

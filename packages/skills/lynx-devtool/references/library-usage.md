@@ -1,12 +1,12 @@
 # Library Usage
 
-Use `scripts/connector.mjs` when you want to interact with Lynx DevTool from JavaScript instead of invoking the CLI.
+Use `agent-lynx/connector` when you want to interact with Lynx DevTool from JavaScript instead of invoking the CLI.
 
 These examples mirror the common workflow in `@lynx-js/devtool-connector`: initialize a connector, discover devices and clients, select a session, then issue CDP or App requests.
 
 ## What it exports
 
-`<path_to_the_skill>/scripts/connector.mjs` re-exports:
+`agent-lynx/connector` re-exports:
 
 - Everything from `@lynx-js/devtool-connector`
 - Everything from `@lynx-js/devtool-connector/transport`
@@ -17,12 +17,17 @@ It also adds two convenience helpers:
 - `createDefaultTransports()`
 - `createDefaultConnector()`
 
-These helpers use the same transport setup as the CLI entry.
+These helpers are daemon-only. `createDefaultTransports()` returns one
+`DaemonTransport`, so separate scripts reuse the daemon-owned device
+connection instead of opening ad-hoc debug-router connections.
+
+The low-level transport exports are unchanged and remain available for callers
+that explicitly construct a custom connector.
 
 ## Example: create a connector and list clients
 
 ```js
-import { createDefaultConnector } from "<path_to_the_skill>/scripts/connector.mjs";
+import { createDefaultConnector } from "agent-lynx/connector";
 
 const connector = createDefaultConnector();
 const clients = await connector.listClients();
@@ -35,7 +40,7 @@ console.log(clients);
 This is usually the first thing to do in a script so you can understand what targets are currently reachable.
 
 ```js
-import { createDefaultConnector } from "<path_to_the_skill>/scripts/connector.mjs";
+import { createDefaultConnector } from "agent-lynx/connector";
 
 const connector = createDefaultConnector();
 
@@ -56,7 +61,7 @@ console.log("sessions", sessions);
 ## Example: list sessions for a client
 
 ```js
-import { createDefaultConnector } from "<path_to_the_skill>/scripts/connector.mjs";
+import { createDefaultConnector } from "agent-lynx/connector";
 
 const connector = createDefaultConnector();
 const [client] = await connector.listClients();
@@ -70,10 +75,13 @@ const sessions = await connector.sendListSessionMessage(client.id);
 console.log(sessions);
 ```
 
-## Example: call a CDP method
+## Example: evaluate JavaScript in the selected Lynx VM
 
 ```js
-import { createDefaultConnector } from "<path_to_the_skill>/scripts/connector.mjs";
+import {
+  createDefaultConnector,
+  evaluateExpression,
+} from "agent-lynx/connector";
 
 const connector = createDefaultConnector();
 const [client] = await connector.listClients();
@@ -88,11 +96,11 @@ if (!session) {
   throw new Error("No Lynx sessions found");
 }
 
-const result = await connector.sendCDPMessage(
+const result = await evaluateExpression(
+  connector,
   client.id,
   session.session_id,
-  "Runtime.evaluate",
-  { expression: "2 + 2" },
+  "JSON.stringify(lynx.__globalProps)",
 );
 
 console.log(result);
@@ -103,7 +111,7 @@ console.log(result);
 This matches the common DevTool flow of selecting the first available client/session and then fetching the document root.
 
 ```js
-import { createDefaultConnector } from "<path_to_the_skill>/scripts/connector.mjs";
+import { createDefaultConnector } from "agent-lynx/connector";
 
 const connector = createDefaultConnector();
 const [client] = await connector.listClients();
@@ -131,7 +139,7 @@ console.log(document);
 ## Example: call an App method
 
 ```js
-import { createDefaultConnector } from "<path_to_the_skill>/scripts/connector.mjs";
+import { createDefaultConnector } from "agent-lynx/connector";
 
 const connector = createDefaultConnector();
 const [client] = await connector.listClients();
@@ -150,7 +158,7 @@ await connector.sendAppMessage(client.id, "App.openPage", {
 This is useful when a script needs to drive navigation before issuing CDP requests.
 
 ```js
-import { createDefaultConnector } from "<path_to_the_skill>/scripts/connector.mjs";
+import { createDefaultConnector } from "agent-lynx/connector";
 
 const connector = createDefaultConnector();
 const [client] = await connector.listClients();
@@ -184,7 +192,7 @@ console.log(pageInfo);
 Use the streaming APIs when you need event-style output, such as console events or other continuous protocol messages.
 
 ```js
-import { createDefaultConnector } from "<path_to_the_skill>/scripts/connector.mjs";
+import { createDefaultConnector } from "agent-lynx/connector";
 import { ReadableStream } from "node:stream/web";
 
 const connector = createDefaultConnector();
@@ -220,7 +228,8 @@ try {
 
 ## Example: construct transports manually
 
-Use manual construction if you need to customize the transport list.
+Use manual construction only when you intentionally need to bypass the daemon
+and customize the transport list.
 
 ```js
 import {
@@ -228,7 +237,7 @@ import {
   Connector,
   DesktopTransport,
   iOSTransport,
-} from "<path_to_the_skill>/scripts/connector.mjs";
+} from "agent-lynx/connector";
 
 const connector = new Connector([
   new AndroidTransport({ host: "127.0.0.1", port: 5037 }),
