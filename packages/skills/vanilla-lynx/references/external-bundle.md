@@ -1,8 +1,12 @@
 # External Bundles: Build with rslib, Load with `lynx.fetchBundle`
 
-Use this reference to ship a package as a standalone Lynx bundle and load it at runtime with the raw
+Use this reference to ship any package as a standalone Lynx bundle and load it at runtime with the raw
 runtime APIs — `lynx.fetchBundle` plus `lynx.loadScript` — instead of letting a bundler plugin generate
 the loading code for you.
+
+This is the general mechanism for splitting code out of an app: a utility library, an SDK wrapper, a
+component library, a rarely-used feature, or a runtime shared by several cards. Nothing about it is
+specific to any one package.
 
 Two halves, and they have to agree on names:
 
@@ -10,10 +14,6 @@ Two halves, and they have to agree on names:
    inside one `.lynx.bundle` (native) or `.web.bundle` (web) file.
 2. **Consumer**: your app fetches that file by URL, then evaluates a named section and gets back its
    `module.exports`.
-
-`@lynx-js/react-umd` is the canonical producer: it wraps the whole ReactLynx runtime into
-`react-prod.lynx.bundle` so apps and component bundles can share a single runtime copy instead of
-each inlining their own.
 
 ## Choose hand-written loading or the plugin
 
@@ -24,9 +24,9 @@ Hand-write `fetchBundle` when you own the ordering:
 - hosts that are not built by Rspeedy, or that must resolve the URL themselves at runtime
 
 Prefer `pluginExternalBundle` from `@lynx-js/external-bundle-rsbuild-plugin` when the bundle exports
-**ReactLynx components used in JSX**. Those need their main-thread section evaluated before the first
-render that touches them, and the plugin emits its loading code into the chunk's *runtime* init, which
-runs before any of your module code. Reproducing that ordering by hand is possible but easy to get
+**components rendered in the main thread**. Those need their main-thread section evaluated before the
+first render that touches them, and the plugin emits its loading code into the chunk's *runtime* init,
+which runs before any of your module code. Reproducing that ordering by hand is possible but easy to get
 subtly wrong, and there is no synchronous escape hatch on web.
 
 ## Producer: build the external bundle
@@ -99,21 +99,27 @@ Without `DEBUG`, the plugin deletes the per-chunk assets after encoding and only
 `NODE_ENV=development` builds unminified and skips bytecode compilation of main-thread chunks, which is
 what you want while debugging a bundle you are loading by hand.
 
-### Depending on the host's ReactLynx
+### Leaving dependencies out of the bundle
 
-A component bundle should not inline its own copy of ReactLynx. Mark those modules external so they
-resolve to a shared runtime at evaluation time:
+By default everything the entry imports is inlined. To keep a dependency out — because the host already
+has it, or because two bundles must share one instance of it — declare it external:
 
 ```ts
 output: {
-  externalsPresets: { reactlynx: true },
+  externals: {
+    'shared-lib': 'SharedLib',                 // whole namespace
+    'shared-lib/utils': ['SharedLib', 'Utils'], // a subpath of it
+  },
 }
 ```
 
-The preset rewrites `@lynx-js/react`, `@lynx-js/react/jsx-runtime`, `preact` and friends into property
-reads off `lynx[Symbol.for('__LYNX_EXTERNAL_GLOBAL__')].ReactLynx`. Set
-`output.globalObject: 'globalThis'` to mount on `globalThis` instead, which is what you want when the
-JS context is shared across cards.
+Each request is rewritten into a property read off `lynx[Symbol.for('__LYNX_EXTERNAL_GLOBAL__')]`, so
+`'shared-lib/utils'` above compiles to `lynx[Symbol.for('__LYNX_EXTERNAL_GLOBAL__')].SharedLib.Utils`.
+Set `output.globalObject: 'globalThis'` to mount on `globalThis` instead, which is what you want when
+the JS context is shared across cards. `output.externalsPresets` carries ready-made maps for common
+dependency sets, and `externalsPresetDefinitions` lets you name your own.
+
+Whatever you externalize becomes the consumer's responsibility to provide — see the ordering rule below.
 
 ## Consumer: load it at runtime
 
@@ -156,6 +162,9 @@ function loadSection(url, sectionName) {
     lynx.loadScript(sectionName, { bundleName: response.url })
   );
 }
+
+// background-thread utility library, nothing else needed
+const utils = await loadSection(`${CDN}/utils-lib.lynx.bundle`, 'utils');
 ```
 
 Pass `response.url` as `bundleName`, not your original URL string. The runtime keys its decoded-bundle
@@ -165,37 +174,34 @@ The URL must be absolute. A root-relative `/utils-lib.lynx.bundle` fails on devi
 error, so a dev server serving external bundles needs `assetPrefix` pointed at a LAN address rather than
 `localhost`.
 
-### Mount dependencies before you evaluate
+### Mount externals before you evaluate
 
-A section built with `externalsPresets` reads its externals at *module evaluation time* — the very
-moment `loadScript` runs. If the mount point is missing, evaluation throws
-`Cannot read properties of undefined (reading 'ReactJSXRuntime')` from inside the bundle, which reads
-like a corrupt artifact but is really an ordering bug.
+A bundle built with `externals` reads them at *module evaluation time* — the very moment `loadScript`
+runs. If the mount point is missing, evaluation throws a `TypeError` from inside the bundle, along the
+lines of `Cannot read properties of undefined (reading 'Utils')`. That reads like a corrupt artifact but
+is really an ordering bug: nothing had populated `lynx[Symbol.for('__LYNX_EXTERNAL_GLOBAL__')]` yet.
 
-So loading a ReactLynx-dependent bundle is two stages: bring up the runtime, mount it, then load the
-consumer.
+So a bundle with externals loads in two stages — provide the dependency, mount it, then load the
+consumer:
 
 ```js
 const EXTERNAL_GLOBAL = Symbol.for('__LYNX_EXTERNAL_GLOBAL__');
 
-async function loadComponentLib() {
+async function loadFeature() {
   const mount = lynx[EXTERNAL_GLOBAL] ??= {};
 
-  // 1. the shared ReactLynx runtime, from @lynx-js/react-umd
-  mount.ReactLynx = await loadSection(`${CDN}/react-prod.lynx.bundle`, 'ReactLynx');
+  // 1. whatever the feature bundle expects to find, under the name it compiled against
+  mount.SharedLib = await loadSection(`${CDN}/shared-lib.lynx.bundle`, 'shared');
 
   // 2. the bundle that was compiled against it
-  return loadSection(`${CDN}/comp-lib.lynx.bundle`, 'comp-lib');
+  return loadSection(`${CDN}/feature.lynx.bundle`, 'feature');
 }
 ```
 
-`@lynx-js/react-umd` exposes `ReactLynx` (background) and `ReactLynx__main-thread`, and its subpaths —
-`React`, `ReactInternal`, `ReactJSXRuntime`, `Preact`, and so on — are exactly the names
-`externalsPresets: { reactlynx: true }` compiled into the consumer bundle. Use the `dev` bundle under
-`NODE_ENV=development`; only that one carries the refresh runtime.
-
-Keep one ReactLynx instance per JS context. Two copies means two sets of Preact `options` hooks and two
-snapshot registries, and components render blank or lose state in ways that do not point back here.
+The mount name is the first element of the external's library name, so it has to match the producer
+config exactly. The dependency does not have to come from another bundle — anything already in the host
+can be assigned there — but keep exactly one instance per JS context. Two copies of a library that holds
+state means two independent sets of that state, and the resulting bugs do not point back here.
 
 ### Main-thread sections and CSS
 
@@ -246,7 +252,8 @@ function fetchWithRetry(url, retries) {
 - Section name matches the rslib entry key, with `__main-thread` / `:CSS` derived from it
 - `pluginReactLynx()` present in the rslib config, even for a plain TS library
 - Layer strings are `'react:background'` / `'react:main-thread'`, not `'background'` / `'main-thread'`
-- Dependencies mounted on `lynx[Symbol.for('__LYNX_EXTERNAL_GLOBAL__')]` before `loadScript`
+- Externals mounted on `lynx[Symbol.for('__LYNX_EXTERNAL_GLOBAL__')]` before `loadScript`, under the
+  exact name the producer compiled against
 - `bundleName` is `response.url`, and the URL is absolute
 - Native: `code === 0` checked, `wait` timeout in seconds, CSS adopted for main-thread sections
 - Web: async only, no `.wait()`, CSS already applied

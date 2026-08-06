@@ -8,7 +8,7 @@ description: |
   - User asks to use @lynx-js/type-element-api, Element PAPI, vanilla Lynx, or APIs such as __CreatePage, __CreateView, __CreateText, __AppendElement, __SetAttribute, or __FlushElementTree
   - User needs a native Lynx artifact with main-thread, optional background-thread, and CSS assets
   - User asks how vanilla Lynx UI events should stay on the main thread or be forwarded to background logic
-  - User wants to package a library into a standalone `.lynx.bundle` or `.web.bundle` with rslib, `defineExternalBundleRslibConfig`, or `@lynx-js/react-umd`, or asks about external bundles, externals presets, or custom sections
+  - User wants to split any package out of an app into a standalone `.lynx.bundle` or `.web.bundle` with rslib and `defineExternalBundleRslibConfig`, or asks about external bundles, externals, or custom sections
   - User wants to load a bundle at runtime by hand with `lynx.fetchBundle` and `lynx.loadScript` instead of a bundler plugin, or is debugging section names, `bundleName`, `__LYNX_EXTERNAL_GLOBAL__`, or a bundle that throws on evaluation
 ---
 
