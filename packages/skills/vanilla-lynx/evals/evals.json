@@ -20,14 +20,14 @@
       "id": 2,
       "name": "main-thread-counter-tree",
       "prompt": "给我一个 vanilla Lynx main-thread 计数器骨架：主线程创建 page/view/text，监听 engine 生命周期，点击后把任务发给 background，收到 background patch 后更新文本并 flush。只要关键代码结构，不要 React 代码。",
-      "expected_output": "A main-thread entry that uses `lynx.getEngine()` for `__RenderPage`, `__UpdatePage`, and `__DestroyLifetime`, uses Element PAPI APIs on the main thread to create and mutate the tree, uses `lynx.getJSContext()` to dispatch events to the background thread, uses `lynx.getCoreContext()` to listen for background patches, flushes only after later updates, and removes runtime listeners during destroy.",
+      "expected_output": "A main-thread entry that uses `lynx.getEngine()` for `__RenderPage`, `__UpdatePage`, and `__DestroyLifetime`, uses Element PAPI APIs on the main thread to create and mutate the tree, stores `lynx.getJSContext()` as `backgroundThread` and reuses it to dispatch events to the background thread and add or remove background-patch listeners, flushes only after later updates, and removes runtime listeners during destroy.",
       "expectations": [
         "The code uses `lynx.getEngine()` and the engine-defined lifecycle event names `__RenderPage`, `__UpdatePage`, and `__DestroyLifetime` exactly.",
         "The code creates the UI tree on the main thread with Element PAPI APIs such as `__CreatePage`, `__GetElementUniqueID`, `__CreateView`, `__CreateText` or `__CreateRawText`, and `__AppendElement`.",
-        "The code uses `lynx.getJSContext()` to access the background-thread environment and dispatch a UI task or data event to it.",
-        "The main-thread code does not call `addEventListener` or `removeEventListener` through `lynx.getJSContext()`.",
-        "The code uses `lynx.getCoreContext()` to listen for a background patch, mutates existing text or child nodes on the main thread, and calls `__FlushElementTree()` after that later mutation.",
-        "The code does not call `__FlushElementTree()` during initial `renderPage`, and it removes engine or main-thread target listeners when `__DestroyLifetime` runs."
+        "The code explicitly uses `const backgroundThread = lynx.getJSContext()` to access the background-thread environment and dispatch a UI task or data event to it.",
+        "The main-thread code reuses the same context returned by `lynx.getJSContext()` to dispatch events and to add or remove the listener for background patches.",
+        "The code receives a background patch, mutates existing text or child nodes on the main thread, and calls `__FlushElementTree()` after that later mutation.",
+        "The code does not call `__FlushElementTree()` during initial `renderPage`, and it removes engine or background-bridge listeners when `__DestroyLifetime` runs."
       ],
       "files": []
     },
@@ -35,13 +35,13 @@
       "id": 3,
       "name": "double-thread-data-sync",
       "prompt": "vanilla Lynx 双线程数据同步里 main-thread.ts 和 background.ts 怎么分工？请按当前事件 API 说明 first-screen data、点击任务、异步/重计算、patch 回主线程、销毁清理。",
-      "expected_output": "An explanation that main thread owns Element PAPI tree creation, mutation, lifecycle rendering, and UI flushes; main uses `lynx.getJSContext()` to dispatch processed data, UI tasks, and destroy lifecycle, while background uses the same target to listen and clean up; background uses `lynx.getCoreContext()` to dispatch serializable patches, while main uses the same target to listen and clean up; main applies patches and all listeners are removed during destroy.",
+      "expected_output": "An explanation that main thread owns Element PAPI tree creation, mutation, lifecycle rendering, and UI flushes; main stores `lynx.getJSContext()` as `backgroundThread` and reuses it to dispatch processed data, UI tasks, and destroy lifecycle and to manage background-patch listeners; background stores `lynx.getCoreContext()` as `mainThread` and reuses it to manage main-thread-message listeners and dispatch serializable patches; main applies patches and all listeners are removed during destroy.",
       "expectations": [
         "The response says `main-thread.ts` owns Element PAPI tree creation, node mutation, UI flushes, and engine lifecycle handling for `__RenderPage`, `__UpdatePage`, and `__DestroyLifetime` through `lynx.getEngine()`.",
         "The response says `main-thread.ts` uses `lynx.getJSContext()` to dispatch processed first-screen or update data, UI tasks, and destroy lifecycle to the background-thread environment.",
-        "The response says `background.ts` uses `lynx.getJSContext()` to listen for main-thread messages and remove those listeners during cleanup.",
-        "The response says `background.ts` uses `lynx.getCoreContext()` to dispatch `PatchFromBackground` or equivalent serializable patches, while `main-thread.ts` uses `lynx.getCoreContext()` to listen for those patches and remove the listener during cleanup.",
-        "The response does not add or remove listeners across thread environments: main does not register through `lynx.getJSContext()`, and background does not register through `lynx.getCoreContext()`.",
+        "The response says `background.ts` uses `lynx.getCoreContext()` to listen for main-thread messages and remove those listeners during cleanup.",
+        "The response says `background.ts` uses `lynx.getCoreContext()` to dispatch `PatchFromBackground` or equivalent serializable patches, while `main-thread.ts` uses `lynx.getJSContext()` to listen for those patches and remove the listener during cleanup.",
+        "The response says each script reuses one context for `dispatchEvent`, `addEventListener`, and `removeEventListener`: main uses `lynx.getJSContext()`, while background uses `lynx.getCoreContext()`.",
         "The response says heavier async, timer, native, data-processing, or business logic belongs in `background.ts`, and background code must not call Element PAPI APIs or `__FlushElementTree()`.",
         "The response says main thread applies background patches to Element PAPI nodes, calls `__FlushElementTree()` after later UI mutations, and runtime listeners are removed during destroy."
       ],
@@ -60,6 +60,20 @@
         "The response says `@media` is unsupported and recommends `rem` with `vw`, viewport units, or JavaScript for responsive behavior.",
         "The response warns that structural pseudo-classes and `::before` or `::after` can parse without taking effect, and recommends explicit classes or real nodes.",
         "The response says fixed-position elements need explicit `left` and `top`, and `z-index` must be paired with `position`."
+      ],
+      "files": []
+    },
+    {
+      "id": 5,
+      "name": "thread-local-and-cross-thread-events",
+      "prompt": "vanilla Lynx 的 runtime context 怎么区分线程内事件闭环和双线程通信？请分别给出 main-thread.ts、background.ts 的本地事件，以及 main ↔ background 的 context 选择规则。",
+      "expected_output": "An explanation that a main-thread local event reuses `lynx.getCoreContext()` for dispatching and listener management, a background-thread local event reuses `lynx.getJSContext()`, and cross-thread communication pairs main-thread `lynx.getJSContext()` with background-thread `lynx.getCoreContext()`.",
+      "expectations": [
+        "The response says a main-thread local event uses the same context returned by `lynx.getCoreContext()` for `dispatchEvent`, `addEventListener`, and `removeEventListener`.",
+        "The response says a background-thread local event uses the same context returned by `lynx.getJSContext()` for `dispatchEvent`, `addEventListener`, and `removeEventListener`.",
+        "The response says main-thread `lynx.getCoreContext()` is a self-loop and does not deliver the event to background.",
+        "The response preserves the cross-thread pairing: main-thread `lynx.getJSContext()` dispatch is received by a listener managed through background-thread `lynx.getCoreContext()`, and the reverse direction uses the same two endpoints.",
+        "The response adds and removes each listener with the same context, event name, and handler reference, and includes cleanup for long-lived listeners."
       ],
       "files": []
     }
