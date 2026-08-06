@@ -179,55 +179,13 @@ export type SetGlobalSwitchResponse = CustomizedEvent<
   }
 >;
 
-export type XdbJsbRequest = CustomizedEvent<
-  'xdb_jsb',
-  {
-    client_id: number;
-    session_id: number;
-    message: { type: string };
-  }
->;
-
-export type XdbJsbResponse = CustomizedEvent<
-  'xdb_jsb',
-  {
-    client_id: number;
-    session_id: number;
-    /** JSON string */
-    message: string;
-  }
->;
-
-export type XdbGlobalPropsRequest = CustomizedEvent<
-  'xdb_globalprops',
-  {
-    client_id: number;
-    session_id: number;
-    message: { type: string; timestamp: string };
-  }
->;
-
-export type XdbGlobalPropsResponse = CustomizedEvent<
-  'xdb_globalprops',
-  {
-    client_id: number;
-    session_id: number;
-    /** JSON string */
-    message: string;
-  }
->;
-
 export type CustomizedResponseMap = {
   App: AppResponse;
   CDP: CDPResponse;
-  xdb_jsb: XdbJsbResponse;
-  xdb_globalprops: XdbGlobalPropsResponse;
 };
 export type CustomizedResponseMessageMap = {
   App: AppResponseMessage;
   CDP: CDPResponseMessage;
-  xdb_jsb: unknown;
-  xdb_globalprops: unknown;
 };
 
 export type Response =
@@ -237,8 +195,6 @@ export type Response =
   | CDPResponse
   | GetGlobalSwitchResponse
   | SetGlobalSwitchResponse
-  | XdbJsbResponse
-  | XdbGlobalPropsResponse
   | HeadlessPrepareResponse;
 
 export function isInitializeResponse(

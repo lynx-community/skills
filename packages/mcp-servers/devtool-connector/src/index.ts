@@ -289,7 +289,7 @@ export class Connector {
    * Unlike {@link sendMessage}, this method does not wait for the output
    * stream to produce a value. It connects, writes the message, and then
    * disposes of the connection. This is useful for fire-and-forget messages
-   * such as `xdb_proxy_config` where the device does not send a reply.
+   * that the device acknowledges without sending a reply.
    */
   async sendMessageNoReply<T>(clientId: string, message: T): Promise<void> {
     const { deviceId, port } = this.#resolveClientId(clientId);

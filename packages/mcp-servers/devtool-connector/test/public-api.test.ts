@@ -18,7 +18,7 @@ test('the package main entry re-exports createCorrelatedFilter', () => {
 
 test('Connector keeps the published no-reply API', () => {
   // `sendMessageNoReply` is part of the released public surface, so it must
-  // stay available for fire-and-forget messages such as `xdb_proxy_config`.
+  // stay available for fire-and-forget messages the device does not answer.
   assert.equal(typeof Connector.prototype.sendMessageNoReply, 'function');
 });
 
