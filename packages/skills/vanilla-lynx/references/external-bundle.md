@@ -34,7 +34,19 @@ subtly wrong, and there is no synchronous escape hatch on web.
 ```ts
 // rslib.config.ts
 import { defineExternalBundleRslibConfig } from '@lynx-js/lynx-bundle-rslib-config';
-import { pluginReactLynx } from '@lynx-js/react-rsbuild-plugin';
+
+// The config needs the two thread layer names, which a DSL plugin normally
+// exposes. A vanilla project has no DSL plugin, so declare them directly —
+// this is the whole dependency, and it pulls in no framework.
+const pluginLayers = () => ({
+  name: 'vanilla:layers',
+  setup(api) {
+    api.expose(Symbol.for('LAYERS'), {
+      BACKGROUND: 'lynx:background',
+      MAIN_THREAD: 'lynx:main-thread',
+    });
+  },
+});
 
 export default defineExternalBundleRslibConfig({
   id: 'utils-lib',
@@ -43,7 +55,7 @@ export default defineExternalBundleRslibConfig({
       utils: './src/index.ts',
     },
   },
-  plugins: [pluginReactLynx()],
+  plugins: [pluginLayers()],
   output: {
     distPath: { root: './dist-external-bundle' },
   },
@@ -52,9 +64,9 @@ export default defineExternalBundleRslibConfig({
 });
 ```
 
-`pluginReactLynx()` is required even for a plain TypeScript library with no JSX. The config reads the
-thread layer names the DSL plugin exposes, and throws `lynx-bundle-rslib-config requires exposed LAYERS`
-without one.
+Without an exposed `LAYERS` the config throws `lynx-bundle-rslib-config requires exposed LAYERS`. In a
+ReactLynx project `pluginReactLynx()` already provides it, so use that instead of the shim above — but
+it is not a requirement, and a vanilla bundle needs no React package installed at all.
 
 ### The naming contract
 
@@ -65,36 +77,48 @@ This is the part both halves must agree on, so read it as the interface:
 | Output file | `<id>.lynx.bundle`, or `<id>.web.bundle` for `target: 'web'` | `utils-lib.lynx.bundle` |
 | Background section | the entry key, verbatim | `utils` |
 | Main-thread section | the entry key plus `__main-thread` | `utils__main-thread` |
-| CSS section | the entry key plus `:CSS` | `utils:CSS` |
+| CSS section | a JS section name plus `:CSS` | `utils:CSS`, `utils__main-thread:CSS` |
 
 An entry with no `layer` is compiled twice, once per thread, which is why both sections appear. To emit
-only one, set the layer explicitly — and use the real layer strings, `'react:background'` and
-`'react:main-thread'`:
+only one, pin the layer to one of the strings your `LAYERS` plugin exposed — `'lynx:background'` for the
+shim above, `'react:background'` in a ReactLynx project:
 
 ```ts
 source: {
   entry: {
-    utils: { import: './src/index.ts', layer: 'react:background' },
+    utils: { import: './src/index.ts', layer: 'lynx:background' },
   },
 }
 ```
 
-An unrecognized layer value such as `'background'` is silently ignored and you get both sections back,
-so if a "background-only" bundle still ships a `__main-thread` section, check this string first. Note
-also that an entry pinned to `'react:main-thread'` keeps its own name — it does *not* gain the
-`__main-thread` suffix, since with an explicit layer you are naming the section yourself.
+The layer strings are not magic constants; they are whatever the exposing plugin declared, so a value
+copied from another project's config will not match. And a value that does not match is *silently
+ignored* — you get both sections back rather than an error. If a "background-only" bundle still ships a
+`__main-thread` section, check this string first.
+
+An entry pinned to the main-thread layer keeps its own name and does *not* gain the `__main-thread`
+suffix: with an explicit layer you are naming the section yourself.
 
 ### Verify what you actually produced
 
-Section names are the contract, so confirm them rather than assuming:
+Section names are the contract, and enough of the above is config-dependent that you should read them
+back rather than assume:
 
 ```bash
 DEBUG=rspeedy rslib build            # keeps the intermediate chunks and writes dist/tasm.json
 node -e "console.log(Object.keys(require('./dist-external-bundle/tasm.json').customSections))"
-# [ 'utils', 'utils__main-thread', 'utils:CSS' ]
+# [ 'utils', 'utils__main-thread', 'utils:CSS', 'utils__main-thread:CSS' ]
 ```
 
 Without `DEBUG`, the plugin deletes the per-chunk assets after encoding and only the `.bundle` remains.
+
+Whether you get one CSS section or one per thread depends on which threads pull the stylesheet in, which
+is why this is worth checking instead of assuming.
+
+For `target: 'web'` the emitted binary does not carry these as custom sections at all — the encoder
+routes the main-thread chunk into `LepusCode`, the background chunk into `Manifest` under a `/` prefix,
+and folds CSS into `StyleInfo`, leaving `CustomSections` empty. The names you pass to `lynx.loadScript`
+are still the entry-key-derived ones above; only the container inside the file differs.
 
 `NODE_ENV=development` builds unminified and skips bytecode compilation of main-thread chunks, which is
 what you want while debugging a bundle you are loading by hand.
@@ -167,6 +191,47 @@ function loadSection(url, sectionName) {
 const utils = await loadSection(`${CDN}/utils-lib.lynx.bundle`, 'utils');
 ```
 
+In a vanilla card, the main thread renders its first frame from Element PAPI and fills in the loaded
+part when it arrives:
+
+```js
+globalThis.renderPage = function renderPage() {
+  const page = __CreatePage('card', 0);
+  const root = __CreateView(0);
+  __AppendElement(page, root);
+
+  const target = __CreateText(0);
+  __SetID(target, 'target');
+  __AppendElement(root, target);
+
+  lynx.fetchBundle(BUNDLE_URL, {}).then(function(response) {
+    if (response.code !== 0) {
+      return;
+    }
+    let utils;
+    try {
+      utils = lynx.loadScript('utils__main-thread', { bundleName: response.url });
+    } catch (error) {
+      lynx.reportError(error);
+      return;
+    }
+    __AppendElement(target, __CreateRawText(utils.getBadge()));
+    // The tree changed after the first frame, so commit it again.
+    __FlushElementTree();
+  });
+};
+```
+
+Two things this shape encodes. Nothing from the bundle can be on the first frame, because `fetchBundle`
+is asynchronous on every platform — render without it, then fill in. And the second
+`__FlushElementTree()` inside the callback is not optional: skip it and the elements you appended never
+reach the screen, with no error to tell you.
+
+The threads do not share a fetch: each realm calls `fetchBundle` and `loadScript` for itself, the
+background thread loading `utils` while the main thread loads `utils__main-thread`. They are separate
+compilations of the same source, so a value needed on both sides is either computed twice or passed
+across with `lynx.getCoreContext()` / `lynx.getJSContext()`.
+
 Pass `response.url` as `bundleName`, not your original URL string. The runtime keys its decoded-bundle
 cache by the URL it actually resolved, and a redirect or a normalized path makes the two differ.
 
@@ -203,15 +268,19 @@ config exactly. The dependency does not have to come from another bundle — any
 can be assigned there — but keep exactly one instance per JS context. Two copies of a library that holds
 state means two independent sets of that state, and the resulting bugs do not point back here.
 
+### A wrong section name does not always say so
+
+Getting the section name wrong fails differently on each thread, and only one of them tells you the
+truth. From the main thread, `loadScript` throws a clear
+`section "..." not found in bundle <url>`. From the background thread on web it does not throw at all:
+the chunk loader treats an unknown section as a *relative URL* and fetches it, so a dev server's SPA
+fallback hands back an HTML page with a 200 and you get a `SyntaxError: Unexpected token '<'` from
+evaluating it.
+
+So wrap background `loadScript` in `try`/`catch`, and when the error mentions parsing rather than
+loading, suspect the section name before you suspect the bundle.
+
 ### Main-thread sections and CSS
-
-Main-thread code lives in its own section and must be loaded from the main thread, not the background
-thread:
-
-```js
-// main thread
-const mod = lynx.loadScript('utils__main-thread', { bundleName: response.url });
-```
 
 On native, the bundle's CSS is not applied for you. After loading a main-thread section, adopt its
 stylesheet — this needs LynxSDK 3.7+:
@@ -249,11 +318,15 @@ function fetchWithRetry(url, retries) {
 
 ## Checklist
 
-- Section name matches the rslib entry key, with `__main-thread` / `:CSS` derived from it
-- `pluginReactLynx()` present in the rslib config, even for a plain TS library
-- Layer strings are `'react:background'` / `'react:main-thread'`, not `'background'` / `'main-thread'`
+- Section name matches the rslib entry key, with `__main-thread` / `:CSS` derived from it — read it back
+  from `tasm.json` rather than assuming
+- A plugin exposing `LAYERS` is present in the rslib config; explicit `layer` values match the names it
+  declared, since a mismatch is silently ignored
 - Externals mounted on `lynx[Symbol.for('__LYNX_EXTERNAL_GLOBAL__')]` before `loadScript`, under the
   exact name the producer compiled against
 - `bundleName` is `response.url`, and the URL is absolute
+- Each thread does its own `fetchBundle` + `loadScript`; background `loadScript` is wrapped in
+  `try`/`catch`
+- Element tree flushed again after the async callback appends to it
 - Native: `code === 0` checked, `wait` timeout in seconds, CSS adopted for main-thread sections
 - Web: async only, no `.wait()`, CSS already applied
