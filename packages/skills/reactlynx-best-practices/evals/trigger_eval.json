@@ -36,6 +36,14 @@
     "should_trigger": true
   },
   {
+    "query": "ReactLynx main-thread:bindtap 的 'main thread' 函数里能直接 setState 吗，还是要 runOnBackground？",
+    "should_trigger": true
+  },
+  {
+    "query": "ReactLynx 列表里每个 item 都重复创建同一个静态占位 view，怎么减少 render 开销？",
+    "should_trigger": true
+  },
+  {
     "query": "帮我配置 Rspeedy 的 tsconfig，让 CSS Modules 有类型。",
     "should_trigger": false
   },
@@ -45,6 +53,14 @@
   },
   {
     "query": "不用 ReactLynx，直接用 vanilla Lynx Element PAPI 创建页面树怎么写？",
+    "should_trigger": false
+  },
+  {
+    "query": "我的 rspeedy 项目 .lynx.bundle 太大了，main-thread.js 里混了一堆请求和埋点 SDK，怎么减小包体积？",
+    "should_trigger": false
+  },
+  {
+    "query": "Lynx DevTool 里连上真机后，怎么把某个 ReactLynx 组件的 props 改一下看看效果？",
     "should_trigger": false
   },
   {

@@ -123,6 +123,34 @@
         "The response recommends validating the packed package in a small ReactLynx consumer."
       ],
       "files": []
+    },
+    {
+      "id": 9,
+      "name": "cross-thread-runonbackground-state-update",
+      "prompt": "ReactLynx 里我在 `main-thread:bindtap` 的 `'main thread'` 处理函数里直接调了 `setCount(c => c + 1)`，还想读一个 `NativeModules` 的值，结果报错。主线程函数里到底能不能更新 React state、调 background-only API？正确写法是什么？",
+      "expected_output": "Guidance that a `'main thread'` function cannot directly call background-thread work such as React `setState` or `NativeModules`; it must hop back with `runOnBackground()`, and conversely background code reaches the main thread with `runOnMainThread()`. The answer should show a corrected example wrapping the state update / native call in `runOnBackground(() => { ... })()`.",
+      "expectations": [
+        "The response explains that a `'main thread'` function runs on the main thread and cannot directly run background-thread work like React `setState` or `NativeModules`.",
+        "The response recommends wrapping the state update and native call in `runOnBackground(() => { ... })()` from `@lynx-js/react`.",
+        "The response notes that `runOnBackground` returns a promise that can be awaited from the main-thread handler.",
+        "The response mentions the symmetric direction: background code calls `runOnMainThread()` to run a `'main thread'` function.",
+        "The response references `main-thread-scripts-guide` or the cross-thread call rule."
+      ],
+      "files": []
+    },
+    {
+      "id": 10,
+      "name": "hoist-static-jsx-recreated-element",
+      "prompt": "帮我 review 这段 ReactLynx 代码，列表项很多时感觉 render 有点重：\n\n```tsx\nfunction Row() {\n  return <view className=\"h-20 bg-gray-200 animate-pulse\" />;\n}\n\nfunction List({ items, loading }) {\n  return (\n    <view>\n      {items.map((it) => <Item key={it.id} data={it} />)}\n      {loading && <Row />}\n    </view>\n  );\n}\n```\n\n有没有可以减少重复创建的地方？",
+      "expected_output": "A review pointing out that the static `<Row />` placeholder JSX is recreated on every render and can be hoisted to a module-level constant element, with a note that this matters most for large static subtrees (e.g. SVG) and is unnecessary when React Compiler is enabled.",
+      "expectations": [
+        "The response identifies that the static loading placeholder element is recreated on every render.",
+        "The response recommends hoisting the static JSX into a module-level constant element and referencing it instead of re-creating it.",
+        "The response references `hoist-static-jsx` or the static-JSX hoisting rule.",
+        "The response notes hoisting matters most for large/static subtrees such as SVG nodes.",
+        "The response notes manual hoisting is unnecessary when React Compiler is enabled."
+      ],
+      "files": []
     }
   ]
 }
