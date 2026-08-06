@@ -1,0 +1,42 @@
+[
+  {
+    "query": "把这个自然语言移动端界面转换成 OpenUI Lang v0.5 原始 DSL，直接传给 OpenUiRenderer 的 response，只返回程序。",
+    "should_trigger": true
+  },
+  {
+    "query": "Host 提供了 get_weather Query tool，请生成带 $city 状态、TextField 和刷新 Action 的 Lynx OpenUI program。",
+    "should_trigger": true
+  },
+  {
+    "query": "现有 OpenUI 页面启用了 mergeStatements；根节点没变，请只返回修改状态文案所需的最小 assignment patch。",
+    "should_trigger": true
+  },
+  {
+    "query": "根据我提供的自定义组件签名修订这段 Lynx OpenUI DSL，并确保所有组件都满足 catalog 的位置参数约束。",
+    "should_trigger": true
+  },
+  {
+    "query": "Generate a raw OpenUI Lang program with a supplied Mutation tool, an explicit confirmation Button, and visible success feedback for OpenUiRenderer.",
+    "should_trigger": true
+  },
+  {
+    "query": "把活动报名表生成成 A2UI v0.9 JSON message array，包含 createSurface、updateDataModel 和 updateComponents。",
+    "should_trigger": false
+  },
+  {
+    "query": "在 ReactLynx 项目里实现 OpenUiRenderer 组件并注册自定义 renderer catalog，给我完整 TypeScript 和 JSX 代码。",
+    "should_trigger": false
+  },
+  {
+    "query": "用 ReactLynx TSX 和 CSS 写一个带筛选、列表与保存按钮的任务管理页面。",
+    "should_trigger": false
+  },
+  {
+    "query": "Build this dashboard as semantic HTML, CSS Grid, and browser JavaScript rather than a renderer-specific DSL.",
+    "should_trigger": false
+  },
+  {
+    "query": "解释 OpenUI、A2UI 和普通 React 组件在架构与传输方式上的区别，不需要生成任何界面协议。",
+    "should_trigger": false
+  }
+]

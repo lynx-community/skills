@@ -1,0 +1,65 @@
+{
+  "skill_name": "lynx-openui",
+  "description": "End-to-end task evals for generating catalog-valid OpenUI Lang v0.5 programs for the Lynx OpenUI renderer, including tool-backed data, mutations, incremental edits, and unsupported-capability fallbacks.",
+  "evals": [
+    {
+      "id": 1,
+      "name": "query-backed-filtered-task-list",
+      "prompt": "Return only a complete OpenUI Lang v0.5 program for OpenUiRenderer. The host supplies a read tool named `list_tasks` with input `{ status: string }` and output `{ rows: Array<{ title: string, status: string }> }`; live requests whenever the filter changes are acceptable. Build a compact mobile task list with open and done filter buttons backed by `$status`, a header showing the result count, one card per task, and a refresh button. Use only the built-in Lynx OpenUI component catalog.",
+      "expected_output": "A raw OpenUI Lang program whose first statement assigns a Stack to `root`, updates `$status` from visible filter buttons, queries the supplied `list_tasks` tool with a shape-correct immediate default, renders `tasks.rows` with an inline `@Each` template, and refreshes the query from a visible button.",
+      "expectations": [
+        "The response contains only OpenUI Lang with one assignment per line: no Markdown fence, prose, JSON, HTML, CSS, JavaScript, TypeScript, or JSX; its first non-empty line is `root = Stack(...)`.",
+        "The program declares `$status` with a representative default such as `\"open\"`, declares `tasks` as an ordinary non-state identifier, and calls exactly `Query(\"list_tasks\", { status: $status }, ...)` without inventing another tool.",
+        "The Query includes an immediate default whose top-level shape is `{ rows: [...] }` and whose representative row objects contain both `title` and `status` fields matching the supplied result schema.",
+        "Visible open and done filter Buttons update `$status` with supported `Action([@Set(...)])` plans and do not invent an event-value variable or attach an unrelated mutation.",
+        "The repeated task UI uses `@Each(tasks.rows, \"task\", inlineTemplate)` inside a supported container such as List, keeps every `task` reference inside that inline template, and does not use `TemplateChildren` or an extracted loop-dependent declaration.",
+        "Visible UI shows the task count using `@Count(tasks.rows)` and includes a refresh Button whose action runs `tasks` with `Action([@Run(tasks)])`.",
+        "Every component comes from the built-in catalog, all component arguments are positional, every reference resolves, and every declaration is reachable from `root` or a reachable action."
+      ],
+      "files": []
+    },
+    {
+      "id": 2,
+      "name": "explicit-preference-mutation",
+      "prompt": "Return only a complete OpenUI Lang v0.5 program for OpenUiRenderer. The host supplies a write tool named `save_preference` with input `{ priority: string }`. Build a compact notification-priority UI with `$priority` defaulting to normal, controls for high/normal/low, an explicit Save button, and visible idle, loading, success, and error feedback. Use only the built-in Lynx OpenUI component catalog, and do not execute the write when a choice merely changes.",
+      "expected_output": "A raw root-first OpenUI Lang program that stores the selected priority in `$priority`, declares an ordinary `Mutation` for the supplied write tool, updates state from choice controls, runs the mutation only from an explicit Save button, and renders status-dependent feedback.",
+      "expectations": [
+        "The response contains only OpenUI Lang with one assignment per line and begins with a complete-program `root = Stack(...)` statement, without Markdown, prose, JSON, or application code.",
+        "The program declares `$priority = \"normal\"` and declares the write operation on an ordinary identifier with `Mutation(\"save_preference\", { priority: $priority })`; it does not invent another tool or declare the mutation as `$state`.",
+        "Changing high, normal, or low updates `$priority` with a supported action such as `@Set`, and none of those choice actions runs the mutation.",
+        "A visible explicit Save or confirmation Button triggers the write with `Action([@Run(mutationIdentifier)])`; the mutation is not attached to an input change action.",
+        "Reachable visible UI derives feedback from the mutation status and distinguishes idle, loading, success, and error states, using supported components such as Loading and TextContent.",
+        "Every component is in the built-in catalog, every argument is positional, every reference resolves, and all state, mutation, structural, and feedback declarations are reachable from `root` or a reachable action."
+      ],
+      "files": []
+    },
+    {
+      "id": 3,
+      "name": "merge-statements-leaf-patch",
+      "prompt": "The host enables edit mode and applies the response with `mergeStatements`. Its existing OpenUI program is:\n\nroot = Stack([title, body], \"column\", false, \"m\", \"stretch\", \"start\")\ntitle = Text(\"Trip status\", \"h2\")\nbody = TextContent(\"Draft\", \"default\")\n\nReturn only the smallest OpenUI Lang v0.5 patch that changes the visible status from Draft to Booked. The root graph and title are unchanged.",
+      "expected_output": "Exactly the changed leaf assignment, `body = TextContent(\"Booked\", \"default\")`, with no root or unchanged statements and no surrounding Markdown or prose.",
+      "expectations": [
+        "The response contains only OpenUI Lang and no Markdown fence, prose, JSON, or application code.",
+        "The patch assigns `body` to a supported TextContent expression whose visible value is `Booked`.",
+        "The response omits `root` because the root graph is unchanged in the stated edit mode.",
+        "The response does not repeat the unchanged `title` assignment or any other unchanged statement.",
+        "The patch is a single assignment and does not return a complete replacement program."
+      ],
+      "files": []
+    },
+    {
+      "id": 4,
+      "name": "unsupported-chart-fallback",
+      "prompt": "Return only a complete OpenUI Lang v0.5 program for OpenUiRenderer. The caller asks for an interactive sales BarChart and a sortable Table, but supplies no custom component signatures, no data tools, and no media URLs. Use the built-in Lynx OpenUI catalog and handle the unsupported request safely instead of inventing capabilities.",
+      "expected_output": "A raw root-first OpenUI Lang program using supported components to show a concise explanation that chart and table capabilities require a host-provided custom catalog, without emitting unsupported components, fabricated tools, or fabricated URLs.",
+      "expectations": [
+        "The response contains only OpenUI Lang with one assignment per line and starts with `root = Stack(...)`, with no Markdown, prose outside the rendered UI, JSON, HTML, CSS, JavaScript, TypeScript, or JSX.",
+        "The program does not emit `BarChart`, `Chart`, `Table`, `Form`, or any other component absent from the built-in catalog.",
+        "Supported visible UI such as Text, TextContent, Card, or CardHeader concisely explains that chart and table rendering needs caller-supplied custom component signatures or catalog support.",
+        "The program does not create a Query or Mutation because no tool schema was supplied and does not fabricate media or navigation URLs.",
+        "All emitted components use positional arguments, every reference resolves, and every declaration is reachable from `root`."
+      ],
+      "files": []
+    }
+  ]
+}
