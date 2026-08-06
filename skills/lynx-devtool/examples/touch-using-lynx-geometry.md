@@ -7,8 +7,8 @@ For clicking, prefer DOM CDP methods because they return the same logical coordi
 ## 1) Use Lynx geometry only for diagnostics
 
 ```bash
-node <path_to_the_skill>/scripts/index.mjs cdp -c <client_id> -s <session_id> -m Lynx.getRectToWindow '{"nodeId":<root_node_id>}'
-node <path_to_the_skill>/scripts/index.mjs cdp -c <client_id> -s <session_id> -m Lynx.getViewLocationOnScreen '{"nodeId":<root_node_id>}'
+agent-lynx cdp -c <client_id> -s <session_id> -m Lynx.getRectToWindow '{"nodeId":<root_node_id>}'
+agent-lynx cdp -c <client_id> -s <session_id> -m Lynx.getViewLocationOnScreen '{"nodeId":<root_node_id>}'
 ```
 
 These values can help explain host app placement when a page appears visually shifted.
@@ -16,7 +16,7 @@ These values can help explain host app placement when a page appears visually sh
 ## 2) Compute the click point from DOM
 
 ```bash
-node <path_to_the_skill>/scripts/index.mjs cdp -c <client_id> -s <session_id> -m DOM.getBoxModel '{"nodeId":<target_node_id>}'
+agent-lynx cdp -c <client_id> -s <session_id> -m DOM.getBoxModel '{"nodeId":<target_node_id>}'
 ```
 
 Compute the center from `result.model.content`:
@@ -32,9 +32,9 @@ const y = (Math.min(...ys) + Math.max(...ys)) / 2;
 ## 3) Validate and send touch
 
 ```bash
-node <path_to_the_skill>/scripts/index.mjs cdp -c <client_id> -s <session_id> -m DOM.getNodeForLocation '{"x":<center_x>,"y":<center_y>}'
-node <path_to_the_skill>/scripts/index.mjs cdp -c <client_id> -s <session_id> -m Input.emulateTouchFromMouseEvent '{"type":"mousePressed","x":<center_x>,"y":<center_y>,"timestamp":0,"button":"left","clickCount":1}'
-node <path_to_the_skill>/scripts/index.mjs cdp -c <client_id> -s <session_id> -m Input.emulateTouchFromMouseEvent '{"type":"mouseReleased","x":<center_x>,"y":<center_y>,"button":"left","clickCount":1}'
+agent-lynx cdp -c <client_id> -s <session_id> -m DOM.getNodeForLocation '{"x":<center_x>,"y":<center_y>}'
+agent-lynx cdp -c <client_id> -s <session_id> -m Input.emulateTouchFromMouseEvent '{"type":"mousePressed","x":<center_x>,"y":<center_y>,"timestamp":0,"button":"left","clickCount":1}'
+agent-lynx cdp -c <client_id> -s <session_id> -m Input.emulateTouchFromMouseEvent '{"type":"mouseReleased","x":<center_x>,"y":<center_y>,"button":"left","clickCount":1}'
 ```
 
 ## Practical tip

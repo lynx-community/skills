@@ -2,6 +2,5 @@
 
 - `DOM.scrollIntoViewIfNeeded` - Scroll into view
 - Input: `{nodeId: NodeId, rect?: Rect}`
-- Output: `{result: {}}`
+- Output: `{}`
 - Description: Scrolls the specified node into view if needed
-

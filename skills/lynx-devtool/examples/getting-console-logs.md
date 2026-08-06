@@ -2,10 +2,10 @@
 
 ```bash
 # Get only errors and warnings
-node <path_to_the_skill>/scripts/index.mjs get-console --level error,warning
+agent-lynx get-console --level error,warning
 
 # Get main-thread console logs only
-node <path_to_the_skill>/scripts/index.mjs get-console --thread main
+agent-lynx get-console --thread main
 ```
 
 ## Exploring Object Properties
@@ -17,7 +17,7 @@ When the console output includes runtime objects, they are displayed with their 
 First, capture the console logs to find the `objectId` of the object you want to inspect.
 
 ```bash
-node <path_to_the_skill>/scripts/index.mjs get-console -s <session_id>
+agent-lynx get-console -s <session_id>
 ```
 
 **Example Output:**
@@ -32,7 +32,7 @@ node <path_to_the_skill>/scripts/index.mjs get-console -s <session_id>
 Once you have the `objectId` (e.g., `13561514624`), use the `cdp` command to call `Runtime.getProperties`.
 
 ```bash
-node <path_to_the_skill>/scripts/index.mjs cdp -s <session_id> -m Runtime.getProperties '{"objectId": "13561514624", "ownProperties": true}'
+agent-lynx cdp -s <session_id> -m Runtime.getProperties '{"objectId": "13561514624", "ownProperties": true}'
 ```
 
 **Example Output:**

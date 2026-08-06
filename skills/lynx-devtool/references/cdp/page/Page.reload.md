@@ -2,7 +2,7 @@
 
 - `Page.reload` - Reload page
 - Input: `{ignoreCache?: boolean, url?: string}`
-- Output: `{result: {}}`
+- Output: `{}`
 - Description: Reloads the current page. Can ignore cache, or use specific template URL for reloading.
 
 ### URL Parameter Requirements
@@ -16,8 +16,8 @@
 
 ```json
 {
-    "url": "http://example.com/template.js",
-    "ignoreCache": true
+  "url": "http://example.com/template.js",
+  "ignoreCache": true
 }
 ```
 

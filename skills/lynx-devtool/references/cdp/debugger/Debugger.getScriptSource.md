@@ -10,10 +10,11 @@
 First, use `get-sources` command to find the script ID.
 
 ```bash
-node scripts/index.mjs get-sources
+agent-lynx get-sources
 ```
 
 Output:
+
 ```json
 [
   {
@@ -30,12 +31,18 @@ Output:
 Then, use the `cdp` command to get the source.
 
 ```bash
-node scripts/index.mjs cdp --method Debugger.getScriptSource '{"scriptId": "1"}'
+agent-lynx cdp --method Debugger.getScriptSource '{"scriptId": "1"}'
 ```
 
 Output:
+
 ```json
 {
   "scriptSource": "{globalThis.currentDebugAppId = \"5\"}"
 }
 ```
+
+## Notes
+
+- If the `scriptId` is unknown to the selected VM thread, Lynx can return `{ "scriptSource": "" }`.
+- Script ids are scoped to the target VM thread. A script id returned for the background thread may not be available when calling `Debugger.getScriptSource` with `--thread main`.

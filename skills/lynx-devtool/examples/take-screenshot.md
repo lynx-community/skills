@@ -3,7 +3,7 @@
 Take a screenshot of the current page.
 
 ```bash
-node <path_to_the_skill>/scripts/index.mjs take-screenshot [options]
+agent-lynx take-screenshot [options]
 ```
 
 - `-c, --client <clientId>`: (Optional) Client ID.
