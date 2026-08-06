@@ -2,33 +2,29 @@
 
 Use this reference to choose the correct vanilla Lynx event target and event names. Read [`main-thread.md`](main-thread.md) and [`background.md`](background.md) for complete implementations.
 
-## Choose an Context Target
+## Choose a Context
 
-| API surface             | Runtime side                | Use for                                          |
-| ----------------------- | --------------------------- | ------------------------------------------------ |
-| `lynx.getEngine()`      | main and background scripts | Get the Lynx engine environment                  |
-| `lynx.getCoreContext()` | main and background scripts | Get the main-thread environment                  |
-| `lynx.getJSContext()`   | main and background scripts | Get the background-thread JavaScript environment |
+The behavior of a context getter depends on the thread that calls it:
 
-Choose the API for the environment you want to target, not for the runtime side making the call. Both main-thread and background scripts can use all three APIs.
+| Runtime script   | Context getter             | Event behavior                                                     |
+| ---------------- | -------------------------- | ------------------------------------------------------------------ |
+| `main-thread.ts` | `lynx.getCoreContext()`    | Main-thread local event loop                                       |
+| `main-thread.ts` | `lynx.getJSContext()`      | Cross-thread endpoint connected to background                      |
+| `background.ts`  | `lynx.getJSContext()`      | Background-thread local event loop                                 |
+| `background.ts`  | `lynx.getCoreContext()`    | Cross-thread endpoint connected to main                            |
 
-## Recommended Cross-Thread Event Ownership
+Use `lynx.getEngine()` in either script for Engine lifecycle events. Every returned context exposes `dispatchEvent`, `addEventListener`, and `removeEventListener`.
 
-Each target exposes the same EventTarget-style methods. For one event flow, `dispatchEvent`, `addEventListener`, and `removeEventListener` must all address the same target environment. Each script obtains that environment with the same API, and it is recommended that listeners be registered and removed by the thread that owns the target:
+## Cross-Thread Events
 
-| Direction         | Sending thread     | Target thread                        | Event target            |
-| ----------------- | ------------------ | ------------------------------------ | ----------------------- |
-| Main → Background | Dispatch the event | Add, handle, and remove the listener | `lynx.getJSContext()`   |
-| Background → Main | Dispatch the event | Add, handle, and remove the listener | `lynx.getCoreContext()` |
+The context endpoints are paired across threads. An event dispatched through one endpoint is received through the other endpoint:
 
-Prefer not to add an event listener through another thread's environment:
+| Direction         | Dispatch from sender                        | Listen and clean up in receiver                         |
+| ----------------- | ------------------------------------------- | ------------------------------------------------------- |
+| Main → Background | `main-thread.ts`: `lynx.getJSContext()`    | `background.ts`: `lynx.getCoreContext()`                |
+| Background → Main | `background.ts`: `lynx.getCoreContext()`  | `main-thread.ts`: `lynx.getJSContext()`                 |
 
-- A main-thread script should avoid calling `addEventListener` or `removeEventListener` through `lynx.getJSContext()`.
-- A background script should avoid calling `addEventListener` or `removeEventListener` through `lynx.getCoreContext()`.
-
-Prefer keeping listener ownership in the thread that handles the event. In this pattern, the sending thread obtains the other thread's target to call `dispatchEvent`, while the receiving thread registers and removes the listener. An event dispatched on one target is not delivered to a listener registered on another target, even when the event names match.
-
-For a Main → Background event, split the implementation across the two entries while using `lynx.getJSContext()` on both sides:
+The same cross-thread context in each script can handle both event directions:
 
 ```javascript
 // main-thread.ts
@@ -36,32 +32,91 @@ const backgroundThread = lynx.getJSContext();
 
 function dispatchEventToBackground(data) {
   backgroundThread.dispatchEvent({
-    type: "EventName",
+    type: "EventToBackground",
     data,
   });
+}
+
+function handleBackgroundEvent(event) {
+  applyBackgroundPatch(event.data);
+}
+
+backgroundThread.addEventListener("EventToMain", handleBackgroundEvent);
+
+function cleanup() {
+  backgroundThread.removeEventListener("EventToMain", handleBackgroundEvent);
 }
 ```
 
 ```javascript
 // background.ts
-const backgroundThread = lynx.getJSContext();
+const mainThread = lynx.getCoreContext();
 
-function handleEvent(event) {
+function handleMainEvent(event) {
   runBackgroundTask(event.data);
 }
 
-backgroundThread.addEventListener("EventName", handleEvent);
+mainThread.addEventListener("EventToBackground", handleMainEvent);
+
+function dispatchEventToMain(data) {
+  mainThread.dispatchEvent({
+    type: "EventToMain",
+    data,
+  });
+}
 
 function cleanup() {
-  backgroundThread.removeEventListener("EventName", handleEvent);
+  mainThread.removeEventListener("EventToBackground", handleMainEvent);
 }
 ```
 
-- Use the same target environment for dispatching, adding the listener, and removing the listener.
-- Prefer dispatching in the sending thread and adding or removing the listener in the target thread.
+- Reuse the cross-thread context returned in each script for dispatching and listener management.
+- Pair `main-thread.ts`'s `lynx.getJSContext()` endpoint with `background.ts`'s `lynx.getCoreContext()` endpoint.
 - Add and remove a listener with the same event name and handler reference.
 - Remove every listener during `__DestroyLifetime`.
 - Keep dispatched payloads small and serializable; do not send functions or Element PAPI node handles.
+
+## Thread-Local Events
+
+Each thread can also close an event loop locally. Register, dispatch, and remove the listener on the same local context. These events stay in the current thread and must not be used for cross-thread communication.
+
+Main-thread local event:
+
+```javascript
+// main-thread.ts
+const localContext = lynx.getCoreContext();
+
+function handleLocalEvent(event) {
+  updateMainThreadState(event.data);
+}
+
+localContext.addEventListener("MainThreadLocalEvent", handleLocalEvent);
+localContext.dispatchEvent({
+  type: "MainThreadLocalEvent",
+  data: { value: 1 },
+});
+localContext.removeEventListener("MainThreadLocalEvent", handleLocalEvent);
+```
+
+Background-thread local event:
+
+```javascript
+// background.ts
+const localContext = lynx.getJSContext();
+
+function handleLocalEvent(event) {
+  updateBackgroundState(event.data);
+}
+
+localContext.addEventListener("BackgroundLocalEvent", handleLocalEvent);
+localContext.dispatchEvent({
+  type: "BackgroundLocalEvent",
+  data: { value: 1 },
+});
+localContext.removeEventListener("BackgroundLocalEvent", handleLocalEvent);
+```
+
+In particular, `lynx.getCoreContext()` in `main-thread.ts` is a self-loop and does not reach `background.ts`. Use the paired cross-thread contexts when the receiver is on the other thread.
 
 ## Lifecycle Event Names
 
