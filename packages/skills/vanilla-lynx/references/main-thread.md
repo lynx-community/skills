@@ -268,14 +268,13 @@ For complex tasks that need a background thread, read [`background.md`](backgrou
 
 The event names below mirror [`background.md`](background.md) for the example only. Real apps can choose their own shared event names.
 
-Use `lynx.getJSContext()` to dispatch events that background owns and handles. Use `lynx.getCoreContext()` to add and remove listeners that main thread owns and handles.
+In `main-thread.ts`, use `const backgroundThread = lynx.getJSContext()` so the cross-thread target is explicit, then reuse it for both directions: dispatch events to background and add or remove listeners for events sent back from background. The background counterpart similarly uses `const mainThread = lynx.getCoreContext()`.
 
 ```javascript
 const patchFromBackgroundEventName = "PatchFromBackground";
 const updateDataFromMainThreadEventName = "UpdateDataFromMainThread";
 const dispatchEventToBackgroundEventName = "DispatchEventToBackground";
 
-const mainThread = lynx.getCoreContext();
 const backgroundThread = lynx.getJSContext();
 
 function dispatchDataToBackground(data) {
@@ -319,14 +318,14 @@ function cleanupBackgroundBridge() {
     type: destroyLifetimeEventName,
     data: undefined,
   });
-  mainThread.removeEventListener(
+  backgroundThread.removeEventListener(
     patchFromBackgroundEventName,
     onBackgroundPatch,
   );
   engine.removeEventListener(destroyLifetimeEventName, cleanupBackgroundBridge);
 }
 
-mainThread.addEventListener(
+backgroundThread.addEventListener(
   patchFromBackgroundEventName,
   onBackgroundPatch,
 );

@@ -17,21 +17,21 @@ Simple UI updates do not need a background thread; keep them in `main-thread.ts`
 
 ## Listen for Messages dispatched from Main Thread
 
-Call `setupBackground()` once at module startup. Use the background-thread environment returned by `lynx.getJSContext()` to listen for messages which are dispatched from the main thread by `lynx.getJSContext().dispatchEvent`.
+Call `setupBackground()` once at module startup. Use `const mainThread = lynx.getCoreContext()` to name the cross-thread target explicitly, then reuse it to listen for messages dispatched from the main thread through `lynx.getJSContext().dispatchEvent`.
 
 ```javascript
-const backgroundThread = lynx.getJSContext();
+const mainThread = lynx.getCoreContext();
 const backgroundListeners = [];
 
 function addBackgroundListener(name, handler) {
-  backgroundThread.addEventListener(name, handler);
+  mainThread.addEventListener(name, handler);
   backgroundListeners.push({ name, handler });
 }
 
 function clearBackgroundListeners() {
   const currentListeners = backgroundListeners.splice(0);
   for (const { name, handler } of currentListeners) {
-    backgroundThread.removeEventListener(name, handler);
+    mainThread.removeEventListener(name, handler);
   }
 }
 
@@ -57,12 +57,11 @@ function setupBackground() {
 
 ## Dispatch Patches to the Main Thread
 
-Sync background changes to the main thread by calling `dispatchEvent()` on the main-thread environment returned by `lynx.getCoreContext()`. Prefer having the main thread own the corresponding `PatchFromBackground` listener instead of adding or removing that listener from the background thread.
+Reuse the same module-level `mainThread` returned by `lynx.getCoreContext()` to dispatch background changes to the main thread. The main thread listens for the corresponding `PatchFromBackground` event through `backgroundThread`, returned by `lynx.getJSContext()`.
 
 Keep background data private to the background runtime. When it changes, compare it with the last synchronized state and dispatch only changed keys in a `PatchFromBackground` event. The main thread receives the patch and owns the actual UI mutation.
 
 ```javascript
-const mainThread = lynx.getCoreContext();
 const data = {};
 let lastSyncedData = { ...data };
 let isFirstScreenDataFromMainThread = true;
