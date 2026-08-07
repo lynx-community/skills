@@ -34,5 +34,25 @@
   {
     "query": "tsconfig 里 jsxImportSource 应该怎么配置？",
     "should_trigger": false
+  },
+  {
+    "query": "我要把内部组件库用 rslib 打成一个独立的 lynx bundle，然后运行时自己 fetchBundle 加载，构建配置怎么写？",
+    "should_trigger": true
+  },
+  {
+    "query": "lynx.loadScript 一直报 section not found，我的 rslib entry 叫 comp，section 名到底应该传什么？",
+    "should_trigger": true
+  },
+  {
+    "query": "加载 external bundle 的时候报 Cannot read properties of undefined (reading 'ReactJSXRuntime')，是产物坏了吗？",
+    "should_trigger": true
+  },
+  {
+    "query": "ReactLynx 项目里怎么用 lazy bundle 做代码分割？",
+    "should_trigger": false
+  },
+  {
+    "query": "rspeedy build 出来的 template.js 太大了，帮我分析下体积构成。",
+    "should_trigger": false
   }
 ]

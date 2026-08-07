@@ -1,13 +1,15 @@
 ---
 name: vanilla-lynx
 description: |
-  Use this Skill when building Lynx applications directly with vanilla Lynx Element PAPI APIs from @lynx-js/type-element-api, without ReactLynx JSX. It covers Rspeedy project structure for native Lynx artifacts, main-thread Element PAPI rendering, UI event binding, main/background thread event communication, CSS authoring and Web-to-Lynx styling constraints, CSS packaging, and common Element API patterns.
+  Use this Skill when building Lynx applications directly with vanilla Lynx Element PAPI APIs from @lynx-js/type-element-api, without ReactLynx JSX, or when driving Lynx runtime APIs such as lynx.fetchBundle and lynx.loadScript by hand. It covers Rspeedy project structure for native Lynx artifacts, main-thread Element PAPI rendering, UI event binding, main/background thread event communication, CSS authoring and Web-to-Lynx styling constraints, CSS packaging, common Element API patterns, and building external Lynx bundles with rslib to load them at runtime.
 
   Trigger Scenarios:
   - User wants to build a Lynx app without ReactLynx, JSX, or a framework
   - User asks to use @lynx-js/type-element-api, Element PAPI, vanilla Lynx, or APIs such as __CreatePage, __CreateView, __CreateText, __AppendElement, __SetAttribute, or __FlushElementTree
   - User needs a native Lynx artifact with main-thread, optional background-thread, and CSS assets
   - User asks how vanilla Lynx UI events should stay on the main thread or be forwarded to background logic
+  - User wants to split any package out of an app into a standalone `.lynx.bundle` or `.web.bundle` with rslib and `defineExternalBundleRslibConfig`, or asks about external bundles, externals, or custom sections
+  - User wants to load a bundle at runtime by hand with `lynx.fetchBundle` and `lynx.loadScript` instead of a bundler plugin, or is debugging section names, `bundleName`, `__LYNX_EXTERNAL_GLOBAL__`, or a bundle that throws on evaluation
 ---
 
 # Build Vanilla Lynx Apps
@@ -27,6 +29,8 @@ Use this skill to build Lynx apps directly with Element PAPI and Lynx Runtime AP
 - Treat `__RenderPage`, `__UpdatePage`, and `__DestroyLifetime` as engine-defined lifecycle event names; do not customize them.
 - Remove every runtime event listener during destroy.
 - Read `references/style.md` before authoring Lynx CSS or migrating styles from the Web.
+- Treat building an external bundle and loading one as two separate workflows with separate references. They meet only at the section name, which the build decides and the loader must match.
+- Keep external bundles to background-thread code: pin the rslib entry to the background layer, and fetch and evaluate the bundle in `background.ts`.
 - Use the CSS entry for page and node styles.
 - Build the runnable native Lynx `.bundle` artifact with Rspeedy.
 
@@ -41,6 +45,8 @@ Read only the reference files needed for the current task:
 | Choose runtime event APIs or wire lifecycle events | `references/event.md` |
 | Add or maintain a `background.ts` entry for heavier work | `references/background.md` |
 | Author or review CSS, choose a layout, or migrate Web styles | `references/style.md` |
+| Build a package into an external `.lynx.bundle` / `.web.bundle` with rslib | `references/external-bundle-build.md` |
+| Load an external bundle at runtime with `lynx.fetchBundle` / `lynx.loadScript` | `references/external-bundle-runtime.md` |
 
 ## Upstream Example
 
