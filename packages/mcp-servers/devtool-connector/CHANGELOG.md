@@ -1,5 +1,18 @@
 # @lynx-js/devtool-connector
 
+## 0.13.2
+
+### Patch Changes
+
+- 51e5de9: Remove the internal `xdb` protocol types from the public type surface.
+
+  `XdbJsbRequest`, `XdbJsbResponse`, `XdbGlobalPropsRequest` and
+  `XdbGlobalPropsResponse`, along with their `CustomizedResponseMap` and
+  `Response` entries, described a ByteDance-internal DevTool protocol. The
+  commands that spoke it are not part of the public CLI, so the types had no
+  consumer here and only leaked internal protocol names into the published
+  `.d.ts`.
+
 ## 0.9.5
 
 ### Patch Changes
