@@ -1,5 +1,11 @@
 # @lynx-js/skill-reactlynx-best-practices
 
+## 0.1.3
+
+### Patch Changes
+
+- 03397fa: Sharpen the skill description with explicit use-when triggers and boundary carve-outs (vanilla-lynx, lynx-devtool, lynx-typescript) so SkillProbe admission passes.
+
 ## 0.1.2
 
 ### Patch Changes
