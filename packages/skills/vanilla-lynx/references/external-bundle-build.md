@@ -1,26 +1,20 @@
-# External Bundles, Part 1: Building One with rslib
+# Build an external bundle with rslib
 
-Use this reference to ship any package as a standalone Lynx bundle: a utility library, an SDK wrapper,
-business logic, config, a rarely-used feature. Nothing about it is specific to any one package.
+An external bundle is a package built into its own Lynx bundle file, separate from the card that uses
+it. Use it for background-thread code: a utility library, an SDK wrapper, business logic, config, a
+feature that most sessions never touch.
 
-External bundles carry background-thread code, and the entry is pinned to the background layer so that
-is all the bundle contains.
+Loading the bundle is a separate job. See [`external-bundle-runtime.md`](external-bundle-runtime.md).
+The two sides share exactly one thing: the section name. This side picks it.
 
-Loading the result at runtime is a separate workflow with its own failure modes — see
-[`external-bundle-runtime.md`](external-bundle-runtime.md). The two halves meet at one interface: the
-**section name**, which this side decides.
-
-## The config
+## Config
 
 ```ts
 // rslib.config.ts
 import { defineExternalBundleRslibConfig } from '@lynx-js/lynx-bundle-rslib-config';
 
-// The config needs the layer names, which a DSL plugin normally exposes. A
-// vanilla project has no DSL plugin, so declare them directly — this is the
-// whole dependency, and it pulls in no framework. Both names are required for
-// the config to resolve (dropping either one hangs the build); the entry below
-// pins the one this bundle is built for.
+// A DSL plugin normally supplies the layer names. Vanilla projects have no DSL
+// plugin, so declare them here. Both names must be present or the build hangs.
 const pluginLayers = () => ({
   name: 'vanilla:layers',
   setup(api) {
@@ -47,19 +41,22 @@ export default defineExternalBundleRslibConfig({
 });
 ```
 
-Without an exposed `LAYERS` the config throws `lynx-bundle-rslib-config requires exposed LAYERS`. In a
-ReactLynx project `pluginReactLynx()` already provides it, so use that instead of the shim above — but
-it is not a requirement, and a vanilla bundle needs no React package installed at all.
+Miss the `LAYERS` and the build fails with `lynx-bundle-rslib-config requires exposed LAYERS`. ReactLynx
+projects get it from `pluginReactLynx()` and can drop the shim. Vanilla projects need no React package
+at all.
 
-The `layer` on the entry is what keeps the bundle to one section. Leave it out and the entry is compiled
-for every layer the plugin declared, so the bundle ships extra sections nobody loads.
+Always pin `layer` on the entry. Without it, rslib compiles the entry once for every layer the plugin
+declared, and the bundle ships sections nobody loads.
 
-## One bundle per target
+## Build once per target
 
-`target: 'tasm'` emits `<id>.lynx.bundle` for the native engine; `target: 'web'` emits `<id>.web.bundle`
-for `@lynx-js/web-core`. These are **different encode formats, not the same bytes under two names**, so a
-project that runs on both platforms builds twice and serves the matching file. This holds even for a
-bundle carrying nothing but plain JS — the container format differs, not just the payload.
+`target: 'tasm'` produces `<id>.lynx.bundle` for the native engine. `target: 'web'` produces
+`<id>.web.bundle` for `@lynx-js/web-core`.
+
+The two files use different encode formats. They are not the same bytes under two names, so you cannot
+serve one file to both platforms. This holds even when the bundle contains nothing but plain JS.
+
+Build both, into separate directories:
 
 ```jsonc
 // package.json
@@ -69,51 +66,50 @@ bundle carrying nothing but plain JS — the container format differs, not just 
 }
 ```
 
-…with the config reading `process.env.EXTERNAL_BUNDLE_TARGET` to pick `target` and a per-target
-`distPath`, so one build never overwrites the other.
+Read `process.env.EXTERNAL_BUNDLE_TARGET` in the config to pick `target` and a matching `distPath`.
 
-## The naming contract
+## Section names
 
-This is what the runtime side has to match, so treat it as the published interface:
+The runtime side has to spell these exactly right:
 
 | Thing | Rule | Example |
 | --- | --- | --- |
-| Output file | `<id>.lynx.bundle`, or `<id>.web.bundle` for `target: 'web'` | `utils-lib.lynx.bundle` |
+| Output file | `<id>.lynx.bundle`, or `<id>.web.bundle` for the web target | `utils-lib.lynx.bundle` |
 | Section | the entry key, verbatim | `utils` |
 
-The layer strings are not magic constants — they are whatever the exposing plugin declared
-(`'lynx:background'` for the shim above, `'react:background'` in a ReactLynx project), so a value copied
-from another project's config will not match. And a value that does not match is *silently ignored*: you
-get the unpinned behavior back rather than an error. If a bundle ships more sections than you expect,
-check this string first.
+Layer strings are not fixed constants. They are whatever your plugin declared, so `'lynx:background'`
+here and `'react:background'` in a ReactLynx project. Copying a layer value from another project
+usually gets you a string that does not match.
 
-Keep styles out of an external bundle. A bundle that depends on shipping its own CSS behaves differently
-per platform; put the stylesheet in the card that renders instead.
+A `layer` that does not match is ignored silently. You get the unpinned behavior and no warning. When a
+bundle ships more sections than you expected, check this string first.
 
-## Verify what you actually produced
+Keep CSS out of the bundle. Style handling differs per platform, so a bundle that ships its own
+stylesheet behaves differently on native and web. Put the stylesheet in the card that renders.
 
-Section names are the contract, and enough of the above is config-dependent that you should read them
-back rather than assume:
+## Check the output
+
+Read the section names back instead of assuming them:
 
 ```bash
-DEBUG=rspeedy rslib build            # keeps the intermediate chunks and writes dist/tasm.json
+DEBUG=rspeedy rslib build
 node -e "console.log(Object.keys(require('./dist-external-bundle/tasm.json').customSections))"
 # [ 'utils' ]
 ```
 
-Without `DEBUG`, the plugin deletes the per-chunk assets after encoding and only the `.bundle` remains.
+`DEBUG=rspeedy` is what keeps the intermediate chunks and writes `tasm.json`. A normal build deletes
+them after encoding and leaves only the `.bundle`.
 
-For `target: 'web'` the emitted binary does not carry the section as a custom section at all — the
-encoder routes the chunk into `Manifest` under a `/` prefix, leaving `CustomSections` empty. The name you
-pass to `lynx.loadScript` is still the entry key; only the container inside the file differs.
+Web bundles look different inside. The encoder puts the chunk in `Manifest` under a `/` prefix and
+leaves `CustomSections` empty. The name you pass to `lynx.loadScript` is still the entry key. Only the
+container changed.
 
-`NODE_ENV=development` builds unminified, which is what you want while debugging a bundle you are loading
-by hand.
+`NODE_ENV=development` skips minification, which helps while you are debugging a bundle by hand.
 
-## Leaving dependencies out of the bundle
+## Keeping a dependency out
 
-By default everything the entry imports is inlined. To keep a dependency out — because the host already
-has it, or because two bundles must share one instance of it — declare it external:
+By default rslib inlines everything the entry imports. Declare a dependency external to leave it out,
+either because the host already has it or because two bundles need to share one instance:
 
 ```ts
 output: {
@@ -124,19 +120,18 @@ output: {
 }
 ```
 
-Each request is rewritten into a property read off `lynx[Symbol.for('__LYNX_EXTERNAL_GLOBAL__')]`, so
-`'shared-lib/utils'` above compiles to `lynx[Symbol.for('__LYNX_EXTERNAL_GLOBAL__')].SharedLib.Utils`.
-Set `output.globalObject: 'globalThis'` to mount on `globalThis` instead, which is what you want when the
-JS context is shared across cards.
+Each request becomes a property read on `lynx[Symbol.for('__LYNX_EXTERNAL_GLOBAL__')]`. The second line
+above compiles to `lynx[Symbol.for('__LYNX_EXTERNAL_GLOBAL__')].SharedLib.Utils`. Use
+`output.globalObject: 'globalThis'` to mount on `globalThis` instead, which is what you want when cards
+share a JS context.
 
-Whatever you externalize becomes the consumer's problem: it must be mounted under that exact name before
-the section is evaluated, or evaluation throws. That ordering rule lives in
-[`external-bundle-runtime.md`](external-bundle-runtime.md#mount-externals-before-you-evaluate).
+Anything you externalize becomes the loader's responsibility. It has to be mounted under that exact name
+before the section runs, or evaluation throws. See
+[mount externals first](external-bundle-runtime.md#mount-externals-first).
 
 ## Checklist
 
-- A plugin exposing `LAYERS` is present, and the entry pins `layer` to the background name it declared —
-  a mismatch is silently ignored rather than reported
-- Built once per platform you ship to; `.lynx.bundle` and `.web.bundle` are not interchangeable
-- Section name read back from `tasm.json` rather than assumed, and handed to whoever writes the loader
+- A plugin exposes `LAYERS`, and the entry pins `layer` to the background name it declared
+- Built once per platform you ship to
+- Section names read back from `tasm.json`, then handed to whoever writes the loader
 - No CSS in the bundle
