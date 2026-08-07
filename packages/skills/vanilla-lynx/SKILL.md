@@ -30,7 +30,7 @@ Use this skill to build Lynx apps directly with Element PAPI and Lynx Runtime AP
 - Remove every runtime event listener during destroy.
 - Read `references/style.md` before authoring Lynx CSS or migrating styles from the Web.
 - Treat building an external bundle and loading one as two separate workflows with separate references. They meet only at the section name, which the build decides and the loader must match.
-- Load external bundles from the background thread only. Main-thread loading is not part of the exposed surface yet, so do not design around it.
+- Keep external bundles to background-thread code: pin the rslib entry to the background layer, and fetch and evaluate the bundle in `background.ts`.
 - Use the CSS entry for page and node styles.
 - Build the runnable native Lynx `.bundle` artifact with Rspeedy.
 
