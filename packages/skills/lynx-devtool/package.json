@@ -1,6 +1,6 @@
 {
   "name": "@lynx-js/skill-lynx-devtool",
-  "version": "0.14.1",
+  "version": "0.14.2",
   "description": "Lynx DevTool Agent Skill and compatibility launcher for agent-lynx.",
   "repository": {
     "url": "https://github.com/lynx-community/skills"

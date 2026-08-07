@@ -1,5 +1,11 @@
 # @lynx-js/skill-vanilla-lynx
 
+## 0.1.0
+
+### Minor Changes
+
+- 634c3f4: Add external bundle guidance, split into a build reference (rslib) and a runtime reference (`lynx.fetchBundle` / `lynx.loadScript`), scoped to background-thread use.
+
 ## 0.0.4
 
 ### Patch Changes

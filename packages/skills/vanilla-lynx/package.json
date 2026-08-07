@@ -1,6 +1,6 @@
 {
   "name": "@lynx-js/skill-vanilla-lynx",
-  "version": "0.0.4",
+  "version": "0.1.0",
   "description": "Build Lynx apps directly with vanilla Lynx Element PAPI APIs from @lynx-js/type-element-api.",
   "repository": {
     "url": "https://github.com/lynx-community/skills"

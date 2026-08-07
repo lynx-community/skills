@@ -1,6 +1,6 @@
 {
   "name": "@lynx-js/devtool-mcp-server",
-  "version": "0.13.14",
+  "version": "0.13.15",
   "description": "A mcp server that lets coding agents to control, operate and preview Lynx pages.",
   "repository": {
     "url": "https://github.com/lynx-community/skills"

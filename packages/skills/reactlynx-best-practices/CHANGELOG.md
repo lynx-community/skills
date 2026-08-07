@@ -1,5 +1,11 @@
 # @lynx-js/skill-reactlynx-best-practices
 
+## 0.1.4
+
+### Patch Changes
+
+- c76b46e: Use third-person wording in the skill description so it passes SkillProbe admission.
+
 ## 0.1.3
 
 ### Patch Changes
