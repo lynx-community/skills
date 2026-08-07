@@ -1,5 +1,11 @@
 # @lynx-js/skill-vanilla-lynx
 
+## 0.0.4
+
+### Patch Changes
+
+- 97e4f20: Fix runtime event guidance for cross-thread context pairing, explicit target-thread naming, and main/background thread-local event loops.
+
 ## 0.0.3
 
 ### Patch Changes
