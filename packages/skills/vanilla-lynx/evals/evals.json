@@ -80,14 +80,14 @@
     {
       "id": 6,
       "name": "external-bundle-build-and-handwritten-load",
-      "prompt": "我想把一个组件库用 rslib 打成独立的 .lynx.bundle，然后在 app 里自己写 lynx.fetchBundle 去加载它，不用 external bundle 的 rsbuild 插件。构建配置和运行时加载代码分别怎么写？section 名字是怎么定的？",
-      "expected_output": "A `defineExternalBundleRslibConfig` rslib config plus runtime loading code that fetches the bundle by absolute URL, checks `response.code === 0`, and evaluates the section with `lynx.loadScript(section, { bundleName: response.url })`, together with the entry-key-derived section naming rule and the requirement to mount externals before evaluation.",
+      "prompt": "我想把一个工具库用 rslib 打成独立的 .lynx.bundle，然后在 app 里自己写 lynx.fetchBundle 去加载它，不用 external bundle 的 rsbuild 插件。构建配置和运行时加载代码分别怎么写？section 名字是怎么定的？",
+      "expected_output": "A `defineExternalBundleRslibConfig` rslib config plus background-thread runtime loading code that fetches the bundle by absolute URL, checks `response.code === 0`, and evaluates the section with `lynx.loadScript(section, { bundleName: response.url })`, together with the entry-key-derived section naming rule and the requirement to mount externals before evaluation.",
       "expectations": [
         "The rslib config uses `defineExternalBundleRslibConfig` from `@lynx-js/lynx-bundle-rslib-config`, and supplies the thread layer names through a plugin that exposes `LAYERS` (a small vanilla plugin, or `pluginReactLynx()` in a ReactLynx project).",
-        "The answer states the background section name is the rslib entry key and the main-thread section is that key plus `__main-thread`.",
-        "The answer states the emitted bundle file name comes from `id`, as `<id>.lynx.bundle` (or `<id>.web.bundle` for the web target).",
+        "The answer states the section name is the rslib entry key, and that the emitted bundle file name comes from `id` as `<id>.lynx.bundle` (or `<id>.web.bundle` for the web target).",
+        "The answer keeps loading on the background thread and does not instruct the user to load an external bundle from the main thread.",
         "The runtime code checks `response.code === 0` before calling `lynx.loadScript`, and passes `response.url` as `bundleName`.",
-        "The answer says a bundle built with `externalsPresets` must have its dependencies mounted on `lynx[Symbol.for('__LYNX_EXTERNAL_GLOBAL__')]` before `lynx.loadScript` evaluates the section.",
+        "The answer says a bundle built with externals must have its dependencies mounted on `lynx[Symbol.for('__LYNX_EXTERNAL_GLOBAL__')]` before `lynx.loadScript` evaluates the section.",
         "The answer notes that native `fetchBundle` returns a `ResponseHandler` with `wait(timeoutInSeconds)` and a single-callback `then`, not a chainable Promise, while web returns a real Promise with no synchronous path."
       ],
       "files": []
