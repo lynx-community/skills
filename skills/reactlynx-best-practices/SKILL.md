@@ -1,6 +1,6 @@
 ---
 name: reactlynx-best-practices
-description: Review, write, and refactor ReactLynx code and component libraries using dual-thread, lifecycle, main-thread script, package publishing, lynx.__globalProps, code-splitting, and profiling best practices.
+description: Review, write, and refactor ReactLynx code and component libraries for Lynx dual-thread best practices. Use when writing ReactLynx components, or handling background-only, useLayoutEffect, bindtap/catchtap, main-thread:*, runOnMainThread/runOnBackground, lazy/Suspense, globalPropsMode/__globalProps, component-library publishing (preserved JSX vs React.createElement), or render/diff/commit performance traces. Not for vanilla Lynx Element PAPI without ReactLynx JSX (use vanilla-lynx), running-app debugging via DevTool/CDP (use lynx-devtool), or Rspeedy/tsconfig config (use lynx-typescript).
 ---
 
 # ReactLynx Best Practices
