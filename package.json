@@ -11,7 +11,8 @@
   "files": [
     "plugins",
     "skills",
-    ".claude-plugin"
+    ".claude-plugin",
+    ".agents"
   ],
   "scripts": {
     "build": "build-marketplace && node ./export-skills.mjs",
