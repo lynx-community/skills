@@ -1,5 +1,11 @@
 # @lynx-js/skill-vanilla-lynx
 
+## 0.1.1
+
+### Patch Changes
+
+- e24a198: Streamline vanilla Lynx guidance and add focused references for building and loading background-thread external bundles.
+
 ## 0.1.0
 
 ### Minor Changes
