@@ -40,12 +40,12 @@
     "should_trigger": true
   },
   {
-    "query": "lynx.loadScript 一直报 section not found，我的 rslib entry 叫 comp，section 名到底应该传什么？",
+    "query": "lynx.loadScript 加载失败，我的 rslib entry 叫 comp，第一个参数应该传什么？",
     "should_trigger": true
   },
   {
     "query": "加载 external bundle 的时候报 Cannot read properties of undefined (reading 'ReactJSXRuntime')，是产物坏了吗？",
-    "should_trigger": true
+    "should_trigger": false
   },
   {
     "query": "ReactLynx 项目里怎么用 lazy bundle 做代码分割？",

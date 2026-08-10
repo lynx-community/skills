@@ -1,0 +1,83 @@
+name: Publish Package Preview
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "packages/**"
+      - ".github/workflows/pkg-pr-new.yml"
+
+permissions: {}
+
+concurrency:
+  group: pkg-pr-new-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Setup Pnpm
+        run: npm install -g corepack@latest && corepack enable
+
+      - name: Setup Node.js
+        uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - name: Install Dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Collect packages with changesets
+        id: changeset
+        env:
+          CHANGESET_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: |
+          pnpm changeset status --since "$CHANGESET_BASE_SHA" --output .changeset-status.json
+          PACKAGE_DIRS=$(node .github/scripts/list-changeset-packages.mjs .changeset-status.json | tr '\n' ' ')
+
+          if [ -z "$(echo "$PACKAGE_DIRS" | tr -d '[:space:]')" ]; then
+            echo "No publishable @lynx-js packages affected by changesets; skipping pkg.pr.new publish."
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          echo "Publishing the following package directories to pkg.pr.new:"
+          printf '  %s\n' $PACKAGE_DIRS
+          {
+            echo "skip=false"
+            echo "package-dirs<<EOF"
+            echo "$PACKAGE_DIRS"
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Publish to pkg.pr.new
+        if: steps.changeset.outputs.skip == 'false'
+        env:
+          PACKAGE_DIRS: ${{ steps.changeset.outputs.package-dirs }}
+        run: |
+          read -r -a package_dirs <<< "$PACKAGE_DIRS"
+          build_filters=()
+
+          for package_dir in "${package_dirs[@]}"; do
+            build_filters+=("--filter=${package_dir}...")
+          done
+
+          pnpm "${build_filters[@]}" --if-present build
+
+          pnpm exec pkg-pr-new publish \
+            --pnpm \
+            --previewVersion \
+            --commentWithSha \
+            --packageManager=pnpm \
+            --no-template \
+            "${package_dirs[@]}"
