@@ -1,10 +1,8 @@
-# Rspeedy Build Project Structure
+# Vanilla Lynx Project Structure
 
 Use this reference to define the project structure for the vanilla Lynx app that needs to be built with Rspeedy. This is the target app scaffold, not the structure of the skill package itself.
 
 The target app uses Rspeedy to build main-thread JavaScript, optional background JavaScript, and CSS into the final native Lynx artifact.
-
-For a complete reference example, see [lynx-family/lynx-examples/examples/vanilla](https://github.com/lynx-family/lynx-examples/tree/main/examples/vanilla).
 
 ## Minimal Project Structure
 
@@ -46,4 +44,4 @@ my-vanilla-lynx-app/
 
 ## Example Usage
 
-Start from the example repo above, then copy the same target project layout and replace the example page logic with your own main-thread tree, optional background event handling, and styles.
+For a complete published reference example, see [`@lynx-example/vanilla`](https://www.npmjs.com/package/@lynx-example/vanilla).

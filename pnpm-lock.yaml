@@ -103,6 +103,9 @@ importers:
       lint-staged:
         specifier: ^16.2.3
         version: 16.2.7
+      pkg-pr-new:
+        specifier: ^0.0.87
+        version: 0.0.87
       sort-package-json:
         specifier: ^3.4.0
         version: 3.6.1
@@ -2066,6 +2069,10 @@ packages:
   pkce-challenge@5.0.1:
     resolution: {integrity: sha512-wQ0b/W4Fr01qtpHlqSqspcj3EhBvimsdh0KlHhH8HRZnMsEa0ea2fTULOXOS9ccQr3om+GcGRk4e+isrZWV8qQ==}
     engines: {node: '>=16.20.0'}
+
+  pkg-pr-new@0.0.87:
+    resolution: {integrity: sha512-nm+30Py1csXWfyMH1ueQyTR11IZGHS5oW8Qok/MxMwjPx9g1jX3wMRrJf8TgEvNo0a0M4i14T0zQsEPWdZfAhg==}
+    hasBin: true
 
   plist@5.0.0:
     resolution: {integrity: sha512-20N+g1DvMm/DFRbsvER7tT4wDryq0WunK7VMkDaiJcKNapAnUMkTsAnacFYf8n420F4Hf6/hefgmJRkMb1M0fg==}
@@ -4322,6 +4329,8 @@ snapshots:
   pify@4.0.1: {}
 
   pkce-challenge@5.0.1: {}
+
+  pkg-pr-new@0.0.87: {}
 
   plist@5.0.0:
     dependencies:
