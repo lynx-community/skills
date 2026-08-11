@@ -1,13 +1,15 @@
 {
   "name": "@lynx-js/skill-vanilla-lynx",
   "version": "0.1.1",
-  "description": "Build Lynx apps directly with vanilla Lynx Element PAPI APIs from @lynx-js/type-element-api.",
+  "description": "Build Vanilla Lynx apps directly with Element PAPI and Runtime APIs.",
   "repository": {
     "url": "https://github.com/lynx-community/skills"
   },
   "type": "module",
   "files": [
     "SKILL.md",
+    "CHANGELOG.md",
+    "evals",
     "references"
   ],
   "scripts": {},
