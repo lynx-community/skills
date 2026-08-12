@@ -1,25 +1,25 @@
 {
   "skill_name": "vanilla-lynx",
-  "description": "End-to-end task evals for building Lynx apps directly with vanilla Lynx Element PAPI APIs, Rspeedy native artifacts, Lynx CSS constraints, and main/background runtime event communication.",
+  "description": "End-to-end task evals for building Lynx apps directly with Vanilla Lynx Element PAPI APIs, Rspeedy native artifacts, Lynx CSS constraints, and main/background runtime event communication.",
   "evals": [
     {
       "id": 1,
-      "name": "scaffold-native-lynx-artifact-layout",
-      "prompt": "我要做一个不用 ReactLynx/JSX 的 Lynx 卡片，直接用 vanilla Lynx Element PAPI。请按当前 skill 给出可被 Rspeedy 构建成原生 .bundle 的最小项目结构，并说明每个文件负责什么。",
-      "expected_output": "A Rspeedy vanilla Lynx project layout containing `package.json`, `lynx.config.js`, `plugin.js`, `src/card/main-thread.ts`, optional `src/card/background.ts`, `src/card/style.css`, and `src/rspeedy-env.d.ts`, with responsibilities for main-thread Element PAPI tree creation, lifecycle rendering, UI updates, optional background heavier work and patch dispatch, CSS styles, type declarations, entry/plugin configuration, and native `.bundle` artifact generation.",
+      "name": "scaffold-rspeedy-vanilla-lynx-project",
+      "prompt": "我要做一个不用 ReactLynx/JSX 的 Lynx 卡片，直接用 Element PAPI 构造 Vanilla Lynx 页面。请按当前 skill 给出可被 Rspeedy 构建成原生 .bundle 的最小项目结构，并说明每个文件负责什么。",
+      "expected_output": "A minimal Vanilla Lynx project containing `package.json`, `lynx.config.ts`, `src/main-thread.ts`, optional `src/background.ts`, `src/style.css`, and `src/rspeedy-env.d.ts`. The project uses Rspeedy with `@lynx-js/vanilla-rsbuild-plugin`; `pluginVanillaLynx()` receives the main-thread entry and discovers the sibling background and CSS sources.",
       "expectations": [
-        "The answer explicitly says not to use ReactLynx, JSX, virtual DOM, or browser DOM APIs for this scenario.",
-        "The layout includes `package.json` with Rspeedy build or dev scripts, plus `lynx.config.js` for the Rspeedy entry point and plugins.",
-        "The layout includes `src/card/main-thread.ts` or another `main-thread.ts` entry and says it owns page creation, lifecycle rendering, UI updates, and Element PAPI tree mutation.",
-        "The layout says `background.ts` is optional and should only be added for heavier business logic, async work, timers, native calls, or data processing, with patches sent back to main thread.",
-        "The layout includes a CSS entry, `src/rspeedy-env.d.ts`, and `plugin.js`, and says `plugin.js` splits main/background bundles and emits the native Lynx `.bundle` artifact."
+        "The proposed project uses Element PAPI directly without introducing ReactLynx, JSX, virtual DOM libraries, or browser DOM APIs.",
+        "The layout includes `package.json` with Rspeedy build or dev scripts and dependencies on `@lynx-js/rspeedy` and `@lynx-js/vanilla-rsbuild-plugin`.",
+        "The layout includes `lynx.config.ts`, imports `defineConfig` and `pluginVanillaLynx`, points `source.entry` at `main-thread.ts`, and registers `pluginVanillaLynx()`.",
+        "The layout includes `src/main-thread.ts`, optional sibling `src/background.ts`, `src/style.css`, and `src/rspeedy-env.d.ts`, and says the plugin discovers the sibling background and CSS sources automatically.",
+        "The answer says the main thread owns Element PAPI tree creation and UI updates, while the optional background thread owns heavier logic and returns serializable data for UI updates."
       ],
       "files": []
     },
     {
       "id": 2,
       "name": "main-thread-counter-tree",
-      "prompt": "给我一个 vanilla Lynx main-thread 计数器骨架：主线程创建 page/view/text，监听 engine 生命周期，点击后把任务发给 background，收到 background patch 后更新文本并 flush。只要关键代码结构，不要 React 代码。",
+      "prompt": "给我一个 Vanilla Lynx main-thread 计数器骨架：主线程创建 page/view/text，监听 engine 生命周期，点击后把任务发给 background，收到 background patch 后更新文本并 flush。只要关键代码结构，不要 React 代码。",
       "expected_output": "A main-thread entry that uses `lynx.getEngine()` for `__RenderPage`, `__UpdatePage`, and `__DestroyLifetime`, uses Element PAPI APIs on the main thread to create and mutate the tree, stores `lynx.getJSContext()` as `backgroundThread` and reuses it to dispatch events to the background thread and add or remove background-patch listeners, flushes only after later updates, and removes runtime listeners during destroy.",
       "expectations": [
         "The code uses `lynx.getEngine()` and the engine-defined lifecycle event names `__RenderPage`, `__UpdatePage`, and `__DestroyLifetime` exactly.",
@@ -33,61 +33,61 @@
     },
     {
       "id": 3,
-      "name": "double-thread-data-sync",
-      "prompt": "vanilla Lynx 双线程数据同步里 main-thread.ts 和 background.ts 怎么分工？请按当前事件 API 说明 first-screen data、点击任务、异步/重计算、patch 回主线程、销毁清理。",
-      "expected_output": "An explanation that main thread owns Element PAPI tree creation, mutation, lifecycle rendering, and UI flushes; main stores `lynx.getJSContext()` as `backgroundThread` and reuses it to dispatch processed data, UI tasks, and destroy lifecycle and to manage background-patch listeners; background stores `lynx.getCoreContext()` as `mainThread` and reuses it to manage main-thread-message listeners and dispatch serializable patches; main applies patches and all listeners are removed during destroy.",
+      "name": "background-thread-state-and-patches",
+      "prompt": "Vanilla Lynx 的后台线程应该怎样接收主线程消息、维护后台状态、执行异步或重计算任务、避免首屏数据被立即回写，再把 serializable patch 发给主线程？请同时说明清理和 UI 线程边界。",
+      "expected_output": "An explanation that the background thread reuses `lynx.getCoreContext()` to receive main-thread messages and dispatch serializable patches, owns background state and heavier work, suppresses an unnecessary first-screen echo, never calls Element PAPI or flush APIs, and removes listeners during destroy.",
       "expectations": [
-        "The response says `main-thread.ts` owns Element PAPI tree creation, node mutation, UI flushes, and engine lifecycle handling for `__RenderPage`, `__UpdatePage`, and `__DestroyLifetime` through `lynx.getEngine()`.",
-        "The response says `main-thread.ts` uses `lynx.getJSContext()` to dispatch processed first-screen or update data, UI tasks, and destroy lifecycle to the background-thread environment.",
-        "The response says `background.ts` uses `lynx.getCoreContext()` to listen for main-thread messages and remove those listeners during cleanup.",
-        "The response says `background.ts` uses `lynx.getCoreContext()` to dispatch `PatchFromBackground` or equivalent serializable patches, while `main-thread.ts` uses `lynx.getJSContext()` to listen for those patches and remove the listener during cleanup.",
-        "The response says each script reuses one context for `dispatchEvent`, `addEventListener`, and `removeEventListener`: main uses `lynx.getJSContext()`, while background uses `lynx.getCoreContext()`.",
-        "The response says heavier async, timer, native, data-processing, or business logic belongs in `background.ts`, and background code must not call Element PAPI APIs or `__FlushElementTree()`.",
-        "The response says main thread applies background patches to Element PAPI nodes, calls `__FlushElementTree()` after later UI mutations, and runtime listeners are removed during destroy."
+        "The response reuses one context returned by `lynx.getCoreContext()` in the background thread for `addEventListener`, `dispatchEvent`, and `removeEventListener`.",
+        "The response keeps background-owned state separate and avoids echoing the first-screen data back to the main thread unless a second update is intentionally required.",
+        "The response keeps heavier async, timer, native, data-processing, or business logic on the background thread.",
+        "The response sends only changed, small, serializable fields to the main thread in `PatchFromBackground` or an equivalent event.",
+        "The response says the background thread must not call Element PAPI APIs or `__FlushElementTree()` and that the main thread owns the resulting UI mutation.",
+        "The response removes background listeners when the destroy lifecycle arrives."
       ],
       "files": []
     },
     {
       "id": 4,
-      "name": "style-web-css-for-vanilla-lynx",
-      "prompt": "我要给 vanilla Lynx Element PAPI 页面写 style.css。请说明从 Web CSS 迁移时最容易踩坑的布局、盒模型、文本换行、响应式、选择器和定位差异，并说明主线程怎样把 class 应用到节点上。",
-      "expected_output": "Guidance based on the style reference that keeps reusable CSS in the style entry, applies classes with Element PAPI on the main thread, uses explicit Lynx layouts, and avoids unsupported or Web-incompatible CSS behavior.",
+      "name": "style-vanilla-lynx",
+      "prompt": "我要给 Vanilla Lynx 页面写样式。请说明 Lynx 在布局、盒模型、文本换行、响应式、选择器和定位方面需要遵守的规则，并说明主线程怎样在运行时把 class 应用到节点上。",
+      "expected_output": "Guidance based on the style reference that applies classes with Element PAPI at runtime, uses explicit Lynx layouts, and follows Lynx-specific runtime style constraints.",
       "expectations": [
-        "The response keeps reusable styles in `style.css` and applies classes from the main thread with `__SetClasses()` or `__AddClass()` rather than browser DOM APIs.",
-        "The response explains that Lynx defaults to column Linear layout, does not support inline, table, or float layout, and should use explicit Linear, Flex, or Grid layout as appropriate.",
-        "The response says Lynx defaults to `border-box`, does not collapse margins, and may require explicit minimum sizes or `flex-shrink: 0` to protect flex content.",
+        "The response applies classes from the main thread at runtime with `__SetClasses()` or `__AddClass()` and reserves `__SetInlineStyles()` for runtime-computed values.",
+        "The response explains that Lynx defaults to column Linear layout and should use explicit Linear, Flex, Grid, or Relative layout as appropriate.",
+        "The response says Lynx defaults to `box-sizing: auto`, which usually behaves like `border-box`, and does not collapse margins.",
         "The response says text must use text nodes, does not wrap by default, and should use `white-space: normal` when wrapping is required.",
-        "The response says `@media` is unsupported and recommends `rem` with `vw`, viewport units, or JavaScript for responsive behavior.",
+        "The response says `@media` is unsupported, explicitly recommends `rem` + `vw` by setting a viewport-based root font size and using `rem` for component dimensions, and mentions direct viewport units or JavaScript as alternatives.",
         "The response warns that structural pseudo-classes and `::before` or `::after` can parse without taking effect, and recommends explicit classes or real nodes.",
-        "The response says fixed-position elements need explicit `left` and `top`, and `z-index` must be paired with `position`."
+        "The response says `position` defaults to `relative`, `static` is unsupported, and `z-index` must be paired with `position`."
       ],
       "files": []
     },
     {
       "id": 5,
       "name": "thread-local-and-cross-thread-events",
-      "prompt": "vanilla Lynx 的 runtime context 怎么区分线程内事件闭环和双线程通信？请分别给出 main-thread.ts、background.ts 的本地事件，以及 main ↔ background 的 context 选择规则。",
-      "expected_output": "An explanation that a main-thread local event reuses `lynx.getCoreContext()` for dispatching and listener management, a background-thread local event reuses `lynx.getJSContext()`, and cross-thread communication pairs main-thread `lynx.getJSContext()` with background-thread `lynx.getCoreContext()`.",
+      "prompt": "Vanilla Lynx 的 runtime context 怎么区分线程内事件闭环和双线程通信？请分别给出 main-thread.ts、background.ts 的本地事件，以及 main ↔ background 的 context 选择规则。",
+      "expected_output": "An explanation that a main-thread local event reuses `lynx.getCoreContext()` for dispatching and listener management, a background-thread local event reuses `lynx.getJSContext()`, and cross-thread communication pairs main-thread `lynx.getJSContext()` with background-thread `lynx.getCoreContext()`. Long-lived cross-thread listeners retain stable handler references and are removed during cleanup.",
       "expectations": [
         "The response says a main-thread local event uses the same context returned by `lynx.getCoreContext()` for `dispatchEvent`, `addEventListener`, and `removeEventListener`.",
         "The response says a background-thread local event uses the same context returned by `lynx.getJSContext()` for `dispatchEvent`, `addEventListener`, and `removeEventListener`.",
         "The response says main-thread `lynx.getCoreContext()` is a self-loop and does not deliver the event to background.",
         "The response preserves the cross-thread pairing: main-thread `lynx.getJSContext()` dispatch is received by a listener managed through background-thread `lynx.getCoreContext()`, and the reverse direction uses the same two endpoints.",
-        "The response adds and removes each listener with the same context, event name, and handler reference, and includes cleanup for long-lived listeners."
+        "Cross-thread listeners use stable named handler references instead of inline callbacks and are removed during cleanup with the same context and event name used for registration."
       ],
       "files": []
     },
     {
       "id": 6,
       "name": "background-external-bundle-build-and-load",
-      "prompt": "我想把一个工具库用 rslib 打成独立的 .lynx.bundle，然后在 app 里自己写 lynx.fetchBundle 和 lynx.loadScript 加载它，不用 external bundle 的 rsbuild 插件。构建配置和运行时加载代码分别怎么写？",
-      "expected_output": "A background-only `defineExternalBundleRslibConfig` config plus `background.ts` loading code that fetches the `.lynx.bundle` by absolute URL, checks `response.code === 0`, and then calls `lynx.loadScript` with the rslib entry key and `response.url` as `bundleName`.",
+      "prompt": "我想在 Vanilla Lynx app 中把纯 TypeScript 工具库用 rslib 打成独立的 background-thread .lynx.bundle，再用 lynx.fetchBundle 和 lynx.loadScript 加载。如果调用结果会影响 UI，完整流程应该怎么写？",
+      "expected_output": "A background-only `defineExternalBundleRslibConfig` config plus background-thread loading code that fetches the `.lynx.bundle` by absolute URL, checks `response.code === 0`, calls `lynx.loadScript` with the rslib entry key and `response.url` as `bundleName`, uses the loaded exports asynchronously, and sends serializable results to the main thread for UI updates.",
       "expectations": [
         "The rslib config uses `defineExternalBundleRslibConfig`, exposes `LAYERS`, pins the entry to `LAYERS.BACKGROUND`, and does not add ReactLynx transforms for plain TypeScript or JavaScript.",
         "The answer states that the first `loadScript` argument is the rslib entry key and that `id` determines the emitted `<id>.lynx.bundle` filename.",
         "The answer keeps loading on the background thread and does not instruct the user to load an external bundle from the main thread.",
         "The runtime code uses an absolute URL, checks `response.code === 0`, calls `lynx.loadScript` inside the `fetchBundle` callback, passes `response.url` as `bundleName`, and wraps evaluation in `try`/`catch`.",
-        "The answer uses the loaded exports inside the asynchronous callback."
+        "The answer uses the loaded exports inside the asynchronous callback.",
+        "When the external method result affects UI, the answer sends a serializable result to the main thread and leaves Element PAPI mutation to the main thread."
       ],
       "files": []
     }

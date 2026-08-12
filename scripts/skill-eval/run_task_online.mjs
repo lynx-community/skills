@@ -4,15 +4,27 @@
 import { spawn } from 'node:child_process';
 import { randomUUID } from 'node:crypto';
 import { existsSync } from 'node:fs';
-import { mkdir, readFile, rm, writeFile } from 'node:fs/promises';
+import { cp, mkdir, readFile, rm, writeFile } from 'node:fs/promises';
 import { dirname, join, resolve } from 'node:path';
+import { pathToFileURL } from 'node:url';
 
 const OPENCODE_SKILLS_DIR = join(process.env.HOME ?? '', '.agents', 'skills');
+const SKILL_RESOURCE_DIRECTORIES = [
+  'references',
+  'scripts',
+  'examples',
+  'assets',
+];
 
-main().catch((error) => {
-  console.error(error instanceof Error ? error.message : String(error));
-  process.exitCode = 1;
-});
+if (
+  process.argv[1] &&
+  import.meta.url === pathToFileURL(resolve(process.argv[1])).href
+) {
+  main().catch((error) => {
+    console.error(error instanceof Error ? error.message : String(error));
+    process.exitCode = 1;
+  });
+}
 
 async function main() {
   const args = parseArgs(process.argv.slice(2));
@@ -69,7 +81,11 @@ async function main() {
   for (const evalItem of evals) {
     const evalDir = join(outputDir, `eval-${evalItem.id}-${evalItem.name}`);
     const files = (evalItem.files ?? []).map((file) => join(skillPath, file));
-    const tempSkillDir = await installTempSkill(skillContent, tempSkillName);
+    const tempSkillDir = await installTempSkill(
+      skillPath,
+      skillContent,
+      tempSkillName,
+    );
 
     let withResult;
     let withoutResult;
@@ -275,9 +291,22 @@ function stripQuotes(value) {
   return value.replace(/^['"]|['"]$/g, '');
 }
 
-async function installTempSkill(skillContent, tempSkillName) {
-  const tempSkillDir = join(OPENCODE_SKILLS_DIR, tempSkillName);
+async function installTempSkill(
+  skillPath,
+  skillContent,
+  tempSkillName,
+  skillsDir = OPENCODE_SKILLS_DIR,
+) {
+  const tempSkillDir = join(skillsDir, tempSkillName);
   await mkdir(tempSkillDir, { recursive: true });
+
+  for (const directory of SKILL_RESOURCE_DIRECTORIES) {
+    const source = join(skillPath, directory);
+    if (existsSync(source)) {
+      await cp(source, join(tempSkillDir, directory), { recursive: true });
+    }
+  }
+
   await writeFile(
     join(tempSkillDir, 'SKILL.md'),
     rewriteSkillName(skillContent, tempSkillName),
@@ -313,7 +342,9 @@ function buildExecutorPrompt(taskPrompt, skillName) {
     return [
       `Use the available skill named \`${skillName}\` before answering this task.`,
       'Do not mention the skill in the final answer. Do not ask follow-up questions.',
-      'This is a pure answering task: do not inspect the repository, do not run shell commands, and do not use extra tools after loading the skill unless the task explicitly requires them.',
+      'This is a pure answering task: do not inspect the repository or run shell commands.',
+      'After loading the skill, use file-reading tools only for files inside that skill directory that SKILL.md directs you to read. Do not read evals, grading artifacts, or other repository files.',
+      'When the task asks to follow official docs, examples, or another source of truth, identify the specific official source and the relevant local skill reference used to adapt it.',
       'If the user asks for file contents or commands/code, include exact paths and full code blocks.',
       'Return only the final answer for the user.',
       '',
@@ -330,6 +361,8 @@ function buildExecutorPrompt(taskPrompt, skillName) {
     `User task:\n${taskPrompt}`,
   ].join('\n');
 }
+
+export { buildExecutorPrompt, buildGraderPrompt, installTempSkill };
 
 function buildGraderPrompt(evalItem, withAnswer, withoutAnswer) {
   const expectations = evalItem.expectations
@@ -357,6 +390,8 @@ Grade every expectation for both answers.
 
 Rules:
 - Exact package names, module specifiers, hook names, API names, CLI subcommands, and command flags matter.
+- Grade each expectation only against its stated criterion, the task prompt, and the expected output. Do not introduce additional requirements.
+- Do not use unprovided external knowledge to claim that a package, API, link, or technical statement is incorrect. Treat it as a contradiction only when the task prompt, expected output, expectation, or candidate answer itself provides conflicting evidence.
 - If a required detail is missing, ambiguous, or contradicted, mark it false.
 - No partial credit.
 - Evidence must quote or paraphrase concrete text from the answer.
