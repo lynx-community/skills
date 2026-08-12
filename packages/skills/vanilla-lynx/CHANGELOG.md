@@ -1,5 +1,11 @@
 # @lynx-js/skill-vanilla-lynx
 
+## 0.1.2
+
+### Patch Changes
+
+- 284e178: Use the Vanilla Lynx Rsbuild plugin for Rspeedy project scaffolds and focus style guidance on Lynx runtime rules.
+
 ## 0.1.1
 
 ### Patch Changes
