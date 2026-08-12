@@ -1,0 +1,206 @@
+<!doctype lynx>
+<lynx engine-version="4.2">
+
+<style>
+.page {
+  width: 100%;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+.title {
+  font-size: 24px;
+  font-weight: 700;
+}
+
+.status {
+  margin-top: 12px;
+  color: #475569;
+  font-size: 16px;
+  text-align: center;
+}
+
+.button {
+  margin-top: 20px;
+  padding: 12px 20px;
+  border-radius: 10px;
+  background-color: #2563eb;
+}
+
+.button:active {
+  opacity: 0.8;
+}
+
+.button-text {
+  color: #ffffff;
+  font-size: 16px;
+  font-weight: 700;
+}
+</style>
+
+<script thread="main">
+const engine = lynx.getEngine();
+const backgroundThread = lynx.getJSContext();
+const page = __CreatePage("0", 0);
+const pageId = __GetElementUniqueID(page);
+const tapOptions = {};
+const loadBundleEventName = "LoadExampleBundle";
+const bundleResultEventName = "ExampleBundleResult";
+const renderPageEventName = "__RenderPage";
+const destroyLifetimeEventName = "__DestroyLifetime";
+
+const bundleUrl =
+  "https://lf3-static.bytednsdoc.com/obj/eden-cn/hkhkeh7nupqbo/rspeedy/example.template.js";
+
+let statusText;
+let button;
+let loading = false;
+let rendered = false;
+
+__SetClasses(page, "page");
+
+Object.assign(globalThis, {
+  processData(data) {
+    return data;
+  },
+});
+
+function setStatus(message) {
+  if (!statusText) return;
+  __ReplaceElements(
+    statusText,
+    [__CreateRawText(message)],
+    __GetChildren(statusText),
+  );
+  __FlushElementTree();
+}
+
+function loadBundle() {
+  if (loading) return;
+  loading = true;
+  setStatus("Loading example.template.js…");
+  backgroundThread.dispatchEvent({
+    type: loadBundleEventName,
+    data: { url: bundleUrl },
+  });
+}
+
+function onBundleResult(event) {
+  const message = event.data?.message;
+  if (typeof message !== "string") return;
+  loading = false;
+  setStatus(message);
+}
+
+function renderPage() {
+  if (rendered) return;
+  rendered = true;
+
+  const title = __CreateText(pageId);
+  __SetClasses(title, "title");
+  __AppendElement(title, __CreateRawText("External bundle"));
+  __AppendElement(page, title);
+
+  statusText = __CreateText(pageId);
+  __SetClasses(statusText, "status");
+  __AppendElement(statusText, __CreateRawText("Tap to load the index section"));
+  __AppendElement(page, statusText);
+
+  button = __CreateView(pageId);
+  __SetClasses(button, "button");
+  __SetAttribute(button, "aria-label", "Load external bundle");
+  const buttonText = __CreateText(pageId);
+  __SetClasses(buttonText, "button-text");
+  __AppendElement(buttonText, __CreateRawText("Load bundle"));
+  __AppendElement(button, buttonText);
+  __AddEventListener(button, "tap", loadBundle, tapOptions);
+  __AppendElement(page, button);
+}
+
+function cleanup() {
+  backgroundThread.dispatchEvent({
+    type: destroyLifetimeEventName,
+  });
+  backgroundThread.removeEventListener(bundleResultEventName, onBundleResult);
+  if (button) {
+    __RemoveEventListener(button, "tap", loadBundle, tapOptions);
+  }
+  engine.removeEventListener(renderPageEventName, renderPage);
+  engine.removeEventListener(destroyLifetimeEventName, cleanup);
+  statusText = undefined;
+  button = undefined;
+}
+
+backgroundThread.addEventListener(bundleResultEventName, onBundleResult);
+engine.addEventListener(renderPageEventName, renderPage);
+engine.addEventListener(destroyLifetimeEventName, cleanup);
+</script>
+
+<script thread="background">
+const mainThread = lynx.getCoreContext();
+const loadBundleEventName = "LoadExampleBundle";
+const bundleResultEventName = "ExampleBundleResult";
+const destroyLifetimeEventName = "__DestroyLifetime";
+
+let destroyed = false;
+
+function reportResult(message) {
+  if (destroyed) return;
+  mainThread.dispatchEvent({
+    type: bundleResultEventName,
+    data: { message },
+  });
+}
+
+function reportFailure(error) {
+  lynx.reportError(error);
+  reportResult(`Failed: ${error.message}`);
+}
+
+function onLoadBundle(event) {
+  lynx.fetchBundle(event.data?.url, {}).then(function(response) {
+    if (destroyed) return;
+    if (response.code !== 0) {
+      const detail = response.error_msg ?? response.errorMsg ?? "unknown error";
+      reportFailure(
+        new Error(`fetchBundle failed: code=${response.code} ${detail}`),
+      );
+      return;
+    }
+
+    try {
+      const bundleExports = lynx.loadScript("index", {
+        bundleName: response.url,
+      });
+      for (const exportName of ["example", "add", "minus"]) {
+        if (typeof bundleExports[exportName] !== "function") {
+          throw new Error(`index section does not export ${exportName}()`);
+        }
+      }
+
+      bundleExports.example();
+      const sum = bundleExports.add(7, 5);
+      const difference = bundleExports.minus(7, 5);
+      reportResult(
+        `example() ran; add(7, 5) = ${sum}; minus(7, 5) = ${difference}`,
+      );
+    } catch (error) {
+      reportFailure(error instanceof Error ? error : new Error(String(error)));
+    }
+  });
+}
+
+function cleanup() {
+  destroyed = true;
+  mainThread.removeEventListener(loadBundleEventName, onLoadBundle);
+  mainThread.removeEventListener(destroyLifetimeEventName, cleanup);
+}
+
+mainThread.addEventListener(loadBundleEventName, onLoadBundle);
+mainThread.addEventListener(destroyLifetimeEventName, cleanup);
+</script>
+</lynx>

@@ -4,7 +4,15 @@
     "should_trigger": true
   },
   {
-    "query": "请搭一个能由 Rspeedy 生成原生的 Vanilla Lynx 项目，包含 main-thread.ts、可选 background.ts 和 style.css。",
+    "query": "请搭一个能由 Rspeedy 构建的 Vanilla Lynx 项目，包含 main-thread.ts、可选 background.ts 和 style.css。",
+    "should_trigger": true
+  },
+  {
+    "query": "帮我写一个可以被 Lynx 直接加载的 .lynxml 页面，把样式和 main-thread Element PAPI 逻辑放在一个文件里，不经过 Rspeedy 构建。",
+    "should_trigger": true
+  },
+  {
+    "query": "我有 Vanilla Lynx 的 main thread、background thread 和 CSS 源码，想组合成 Lynx 原生支持的 .lynxml 产物，应该怎样组织 source blocks？",
     "should_trigger": true
   },
   {
@@ -60,7 +68,7 @@
     "should_trigger": false
   },
   {
-    "query": "我要使用 Element PAPI 的 JSON mode，生成不经过 Rspeedy bundle、可被 Lynx 直接消费的 JSON 页面描述，应该怎么配置？",
+    "query": "帮我写一个浏览器直接打开的 HTML 页面。",
     "should_trigger": false
   }
 ]

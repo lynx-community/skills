@@ -1,6 +1,6 @@
 # Vanilla Lynx Rspeedy Project
 
-Use this reference to define the project structure for a Vanilla Lynx app built with Rspeedy and `@lynx-js/vanilla-rsbuild-plugin`. This is the target app scaffold, not the structure of the skill package itself.
+Use this reference only when the user explicitly requests a build step, bundle or compiled artifact, or Rspeedy. Define the project structure with Rspeedy and `@lynx-js/vanilla-rsbuild-plugin`. This is the target app scaffold, not the structure of the skill package itself.
 
 The plugin builds the main-thread JavaScript, optional background JavaScript, and CSS into the final Lynx artifact.
 

@@ -1,6 +1,6 @@
 {
   "skill_name": "vanilla-lynx",
-  "description": "End-to-end task evals for building Lynx apps directly with Vanilla Lynx Element PAPI APIs, Rspeedy native artifacts, Lynx CSS constraints, and main/background runtime event communication.",
+  "description": "End-to-end task evals for building Lynx apps directly with Vanilla Lynx Element PAPI APIs, build-free Lynx XML (`.lynxml`) or Rspeedy artifacts, Lynx CSS constraints, and main/background runtime event communication.",
   "evals": [
     {
       "id": 1,
@@ -88,6 +88,20 @@
         "The runtime code uses an absolute URL, checks `response.code === 0`, calls `lynx.loadScript` inside the `fetchBundle` callback, passes `response.url` as `bundleName`, and wraps evaluation in `try`/`catch`.",
         "The answer uses the loaded exports inside the asynchronous callback.",
         "When the external method result affects UI, the answer sends a serializable result to the main thread and leaves Element PAPI mutation to the main thread."
+      ],
+      "files": []
+    },
+    {
+      "id": 7,
+      "name": "author-build-free-lynxml-artifact",
+      "prompt": "请把一个简单的 Vanilla Lynx 计数器写成 Lynx 可以直接消费的 .lynxml 文件：包含样式和 main-thread Element PAPI 逻辑，不经过 Rspeedy 或其他构建步骤。说明什么时候才需要增加 background source block。",
+      "expected_output": "A build-free `.lynxml` document with the Lynx doctype and root, a style source block, and a main-thread script source block that creates and updates the Element PAPI tree. It does not introduce Rspeedy project files and adds a background source block only for heavier runtime logic.",
+      "expectations": [
+        "The answer produces one `.lynxml` document beginning with `<!doctype lynx>` and containing exactly one lowercase `<lynx>` root with a non-empty `engine-version`.",
+        "The document places Lynx CSS in a direct-child `<style>` block and main-thread Element PAPI code in a direct-child `<script thread=\"main\">` block.",
+        "The main-thread code creates the UI with Element PAPI, keeps the initial render on the SDK flush path, and calls `__FlushElementTree()` after a later counter mutation.",
+        "The answer does not add `package.json`, `lynx.config.ts`, Rspeedy, `@lynx-js/vanilla-rsbuild-plugin`, an XML declaration, CDATA, or a `<config>` block.",
+        "The answer says `<script thread=\"background\">` is optional and should be added only for heavier business logic, async work, timers, native calls, or data processing; UI mutation remains in the main-thread block."
       ],
       "files": []
     }

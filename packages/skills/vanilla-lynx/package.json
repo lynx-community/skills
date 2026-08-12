@@ -1,7 +1,7 @@
 {
   "name": "@lynx-js/skill-vanilla-lynx",
   "version": "0.1.2",
-  "description": "Build Vanilla Lynx apps directly with Element PAPI and Runtime APIs.",
+  "description": "Build Vanilla Lynx apps as Lynx XML (.lynxml) or Rspeedy artifacts.",
   "repository": {
     "url": "https://github.com/lynx-community/skills"
   },
@@ -10,6 +10,7 @@
     "SKILL.md",
     "CHANGELOG.md",
     "evals",
+    "examples",
     "references"
   ],
   "scripts": {},

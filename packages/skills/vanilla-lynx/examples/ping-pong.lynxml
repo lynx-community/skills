@@ -1,0 +1,158 @@
+<!doctype lynx>
+<lynx engine-version="4.2">
+<style>
+.page {
+  width: 100%;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.status {
+  font-size: 24px;
+  font-weight: 700;
+}
+
+.button {
+  margin-top: 16px;
+  padding: 12px 20px;
+  border-radius: 10px;
+  background-color: #2563eb;
+}
+
+.button:active {
+  opacity: 0.8;
+}
+
+.button-text {
+  color: #ffffff;
+  font-size: 16px;
+  font-weight: 700;
+}
+</style>
+<script thread="main">
+const engine = lynx.getEngine();
+const backgroundThread = lynx.getJSContext();
+const page = __CreatePage("0", 0);
+const pageId = __GetElementUniqueID(page);
+const tapOptions = {};
+const pingBackgroundEventName = "PingBackground";
+const pongMainEventName = "PongMain";
+const renderPageEventName = "__RenderPage";
+const destroyLifetimeEventName = "__DestroyLifetime";
+
+let sequence = 0;
+let statusText;
+let button;
+let rendered = false;
+
+__SetClasses(page, "page");
+
+Object.assign(globalThis, {
+  processData(data) {
+    return data;
+  },
+});
+
+function sendPing() {
+  if (!statusText) return;
+  sequence += 1;
+  __ReplaceElements(
+    statusText,
+    [__CreateRawText(`Ping ${sequence}…`)],
+    __GetChildren(statusText),
+  );
+  __FlushElementTree();
+  backgroundThread.dispatchEvent({
+    type: pingBackgroundEventName,
+    data: { sequence },
+  });
+}
+
+function onPong(event) {
+  const pongSequence = event.data?.sequence;
+  if (typeof pongSequence !== "number" || !statusText) return;
+  __ReplaceElements(
+    statusText,
+    [__CreateRawText(`Pong ${pongSequence}`)],
+    __GetChildren(statusText),
+  );
+  __FlushElementTree();
+}
+
+function renderPage() {
+  if (rendered) return;
+  rendered = true;
+
+  statusText = __CreateText(pageId);
+  __SetClasses(statusText, "status");
+  __AppendElement(statusText, __CreateRawText("Tap to send ping"));
+  __AppendElement(page, statusText);
+
+  button = __CreateView(pageId);
+  __SetClasses(button, "button");
+  __SetAttribute(button, "aria-label", "Send ping");
+  const buttonText = __CreateText(pageId);
+  __SetClasses(buttonText, "button-text");
+  __AppendElement(buttonText, __CreateRawText("Send ping"));
+  __AppendElement(button, buttonText);
+  __AddEventListener(button, "tap", sendPing, tapOptions);
+  __AppendElement(page, button);
+}
+
+function cleanup() {
+  backgroundThread.dispatchEvent({
+    type: destroyLifetimeEventName,
+  });
+  backgroundThread.removeEventListener(pongMainEventName, onPong);
+  if (button) {
+    __RemoveEventListener(button, "tap", sendPing, tapOptions);
+  }
+  engine.removeEventListener(renderPageEventName, renderPage);
+  engine.removeEventListener(destroyLifetimeEventName, cleanup);
+  statusText = undefined;
+  button = undefined;
+}
+
+backgroundThread.addEventListener(pongMainEventName, onPong);
+engine.addEventListener(renderPageEventName, renderPage);
+engine.addEventListener(destroyLifetimeEventName, cleanup);
+</script>
+<script thread="background">
+const mainThread = lynx.getCoreContext();
+const pingBackgroundEventName = "PingBackground";
+const pongMainEventName = "PongMain";
+const destroyLifetimeEventName = "__DestroyLifetime";
+
+let pongTimer;
+
+function onPing(event) {
+  const sequence = event.data?.sequence;
+  if (typeof sequence !== "number") return;
+
+  if (pongTimer !== undefined) clearTimeout(pongTimer);
+  // The timer stands in for background-owned async or heavier work.
+  pongTimer = setTimeout(() => {
+    pongTimer = undefined;
+    mainThread.dispatchEvent({
+      type: pongMainEventName,
+      data: { sequence },
+    });
+  }, 100);
+}
+
+function cleanup() {
+  mainThread.removeEventListener(pingBackgroundEventName, onPing);
+  mainThread.removeEventListener(destroyLifetimeEventName, cleanup);
+  if (pongTimer !== undefined) {
+    clearTimeout(pongTimer);
+    pongTimer = undefined;
+  }
+}
+
+mainThread.addEventListener(pingBackgroundEventName, onPing);
+mainThread.addEventListener(destroyLifetimeEventName, cleanup);
+</script>
+</lynx>
