@@ -4,6 +4,14 @@ Add a `background.ts` entry when a Vanilla Lynx app needs to handle heavier work
 
 Read `event.md` for `lynx.getJSContext()`, `lynx.getCoreContext()`, and event environment APIs.
 
+## Table of Contents
+
+- [Role](#role)
+- [Listen for Messages dispatched from Main Thread](#listen-for-messages-dispatched-from-main-thread)
+- [Dispatch Patches to the Main Thread](#dispatch-patches-to-the-main-thread)
+- [Handle Background Tasks](#handle-background-tasks)
+- [Data Guardrails](#data-guardrails)
+
 ## Role
 
 - Listen for messages from the main thread.

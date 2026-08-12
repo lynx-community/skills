@@ -4,6 +4,14 @@ Use this reference when writing a `main-thread.ts` entry. The main-thread script
 
 Read `event.md` for `lynx.getEngine()` and event environment APIs. If the page needs a background thread, read [`background.md`](background.md).
 
+## Table of Contents
+
+- [Responsibilities](#responsibilities)
+- [Element PAPI Surface](#element-papi-surface)
+- [Build the Tree](#build-the-tree)
+- [Bind Element Events](#bind-element-events)
+- [Render and Update Drivers](#render-and-update-drivers)
+
 ## Responsibilities
 
 - Create the page root and child nodes with Element PAPI APIs.
