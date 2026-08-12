@@ -1,0 +1,66 @@
+[
+  {
+    "query": "我想用 Vanilla Lynx，不用 ReactLynx 或 JSX，直接用 Element PAPI 写一个原生 Lynx app。",
+    "should_trigger": true
+  },
+  {
+    "query": "请搭一个能由 Rspeedy 生成原生的 Vanilla Lynx 项目，包含 main-thread.ts、可选 background.ts 和 style.css。",
+    "should_trigger": true
+  },
+  {
+    "query": "Vanilla Lynx 里，__CreatePage、__CreateView、__CreateText 和 __AppendElement 应该怎样组织页面树，并在后续更新后 flush？",
+    "should_trigger": true
+  },
+  {
+    "query": "Vanilla Lynx 的 main-thread.ts 怎么监听 __RenderPage、__UpdatePage 和 __DestroyLifetime？",
+    "should_trigger": true
+  },
+  {
+    "query": "Vanilla Lynx 双线程数据同步里，后台线程怎么执行更新并把 patch 发回 main thread 更新 UI？",
+    "should_trigger": true
+  },
+  {
+    "query": "Vanilla Lynx 主线程里用 __CreateView 创建节点后，运行时应该怎样通过 Element PAPI 应用 class 和动态样式？",
+    "should_trigger": true
+  },
+  {
+    "query": "给 Vanilla Lynx 使用的纯 TypeScript 工具库，怎么用 rslib 构建成 background-only 的 external .lynx.bundle？",
+    "should_trigger": true
+  },
+  {
+    "query": "Vanilla Lynx 的后台线程怎么配套使用 lynx.fetchBundle 和 lynx.loadScript，并把 external 方法的结果发回主线程影响 UI？",
+    "should_trigger": true
+  },
+  {
+    "query": "ReactLynx 组件里 useLayoutEffect 为什么不适合做布局测量？",
+    "should_trigger": false
+  },
+  {
+    "query": "ReactLynx 项目里怎么使用 lazy bundle 和 Suspense 做代码分割？",
+    "should_trigger": false
+  },
+  {
+    "query": "Lynx 的 scroll-view 支持哪些属性，position: sticky 在各平台能用吗？",
+    "should_trigger": false
+  },
+  {
+    "query": "Lynx DevTool 怎么连接真机并查看 console 日志？",
+    "should_trigger": false
+  },
+  {
+    "query": "如何把 function_id 和 pc_index 根据 debug info JSON 映射回源码位置？",
+    "should_trigger": false
+  },
+  {
+    "query": "我只想诊断现有 Rspeedy production bundle：产物体积异常增大且变量没有被 mangle，请分析原因，不需要修改页面代码。",
+    "should_trigger": false
+  },
+  {
+    "query": "ReactLynx external bundle 加载时报 ReactJSXRuntime 是 undefined，应该怎样排查构建产物？",
+    "should_trigger": false
+  },
+  {
+    "query": "我要使用 Element PAPI 的 JSON mode，生成不经过 Rspeedy bundle、可被 Lynx 直接消费的 JSON 页面描述，应该怎么配置？",
+    "should_trigger": false
+  }
+]

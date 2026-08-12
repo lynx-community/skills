@@ -1,17 +1,17 @@
 # Runtime Communication API Reference
 
-Use this reference to choose the correct vanilla Lynx event target and event names. Read [`main-thread.md`](main-thread.md) and [`background.md`](background.md) for complete implementations.
+Use this reference to choose the correct Vanilla Lynx event target and event names. Read [`main-thread.md`](main-thread.md) and [`background.md`](background.md) for complete implementations.
 
 ## Choose a Context
 
 The behavior of a context getter depends on the thread that calls it:
 
-| Runtime script   | Context getter             | Event behavior                                                     |
-| ---------------- | -------------------------- | ------------------------------------------------------------------ |
-| `main-thread.ts` | `lynx.getCoreContext()`    | Main-thread local event loop                                       |
-| `main-thread.ts` | `lynx.getJSContext()`      | Cross-thread endpoint connected to background                      |
-| `background.ts`  | `lynx.getJSContext()`      | Background-thread local event loop                                 |
-| `background.ts`  | `lynx.getCoreContext()`    | Cross-thread endpoint connected to main                            |
+| Runtime script   | Context getter          | Event behavior                                |
+| ---------------- | ----------------------- | --------------------------------------------- |
+| `main-thread.ts` | `lynx.getCoreContext()` | Main-thread local event loop                  |
+| `main-thread.ts` | `lynx.getJSContext()`   | Cross-thread endpoint connected to background |
+| `background.ts`  | `lynx.getJSContext()`   | Background-thread local event loop            |
+| `background.ts`  | `lynx.getCoreContext()` | Cross-thread endpoint connected to main       |
 
 Use `lynx.getEngine()` in either script for Engine lifecycle events. Every returned context exposes `dispatchEvent`, `addEventListener`, and `removeEventListener`.
 
@@ -19,10 +19,10 @@ Use `lynx.getEngine()` in either script for Engine lifecycle events. Every retur
 
 The context endpoints are paired across threads. An event dispatched through one endpoint is received through the other endpoint:
 
-| Direction         | Dispatch from sender                        | Listen and clean up in receiver                         |
-| ----------------- | ------------------------------------------- | ------------------------------------------------------- |
-| Main → Background | `main-thread.ts`: `lynx.getJSContext()`    | `background.ts`: `lynx.getCoreContext()`                |
-| Background → Main | `background.ts`: `lynx.getCoreContext()`  | `main-thread.ts`: `lynx.getJSContext()`                 |
+| Direction         | Dispatch from sender                     | Listen and clean up in receiver          |
+| ----------------- | ---------------------------------------- | ---------------------------------------- |
+| Main → Background | `main-thread.ts`: `lynx.getJSContext()`  | `background.ts`: `lynx.getCoreContext()` |
+| Background → Main | `background.ts`: `lynx.getCoreContext()` | `main-thread.ts`: `lynx.getJSContext()`  |
 
 The same cross-thread context in each script can handle both event directions:
 
@@ -72,6 +72,7 @@ function cleanup() {
 
 - Reuse the cross-thread context returned in each script for dispatching and listener management.
 - Pair `main-thread.ts`'s `lynx.getJSContext()` endpoint with `background.ts`'s `lynx.getCoreContext()` endpoint.
+- Never register a long-lived or cross-thread listener with an inline callback; it cannot be removed with the same handler reference.
 - Add and remove a listener with the same event name and handler reference.
 - Remove every listener during `__DestroyLifetime`.
 - Keep dispatched payloads small and serializable; do not send functions or Element PAPI node handles.

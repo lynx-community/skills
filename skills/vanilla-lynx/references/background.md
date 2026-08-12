@@ -1,6 +1,6 @@
 # Background Thread Reference
 
-Add a `background.ts` entry when a vanilla Lynx app needs to handle heavier work. The background thread responds to messages from the main thread, owns background state, and runs tasks such as async requests, timers, native calls, data processing, or other business logic.
+Add a `background.ts` entry when a Vanilla Lynx app needs to handle heavier work. The background thread responds to messages from the main thread, owns background state, and runs tasks such as async requests, timers, native calls, data processing, or other business logic.
 
 Read `event.md` for `lynx.getJSContext()`, `lynx.getCoreContext()`, and event environment APIs.
 
@@ -10,7 +10,8 @@ Read `event.md` for `lynx.getJSContext()`, `lynx.getCoreContext()`, and event en
 - Merge main-thread data into background-owned state.
 - Run heavier tasks requested by the main thread.
 - Keep background-owned app state.
-- Dispatch serializable patches back to the main thread so `main-thread.ts` can update the UI.
+- Dispatch serializable patches back to the main thread so `main-thread.ts` can update and flush the UI.
+- Never call Element PAPI APIs or `__FlushElementTree()` from the background thread.
 - Clean up listeners when the destroy lifecycle arrives.
 
 Simple UI updates do not need a background thread; keep them in `main-thread.ts`.
@@ -59,7 +60,7 @@ function setupBackground() {
 
 Reuse the same module-level `mainThread` returned by `lynx.getCoreContext()` to dispatch background changes to the main thread. The main thread listens for the corresponding `PatchFromBackground` event through `backgroundThread`, returned by `lynx.getJSContext()`.
 
-Keep background data private to the background runtime. When it changes, compare it with the last synchronized state and dispatch only changed keys in a `PatchFromBackground` event. The main thread receives the patch and owns the actual UI mutation.
+Keep background data private to the background runtime. When it changes, compare it with the last synchronized state and dispatch only changed keys in a `PatchFromBackground` event. The background thread must not call Element PAPI APIs or `__FlushElementTree()`; the main thread receives the patch, owns the actual UI mutation, and flushes the update.
 
 ```javascript
 const data = {};
