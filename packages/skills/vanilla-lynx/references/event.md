@@ -2,6 +2,15 @@
 
 Use this reference to choose the correct Vanilla Lynx event target and event names. Read [`main-thread.md`](main-thread.md) and [`background.md`](background.md) for complete implementations.
 
+## Table of Contents
+
+- [Choose a Context](#choose-a-context)
+- [Cross-Thread Events](#cross-thread-events)
+- [Thread-Local Events](#thread-local-events)
+- [Lifecycle Event Names](#lifecycle-event-names)
+- [App Event Names](#app-event-names)
+- [Implementation Routing](#implementation-routing)
+
 ## Choose a Context
 
 The behavior of a context getter depends on the thread that calls it:
