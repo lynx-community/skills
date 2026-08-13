@@ -1,5 +1,11 @@
 # @lynx-js/skill-vanilla-lynx
 
+## 0.1.3
+
+### Patch Changes
+
+- 6f91792: Add reference tables of contents
+
 ## 0.1.2
 
 ### Patch Changes
