@@ -1,5 +1,11 @@
 # @lynx-js/skill-vanilla-lynx
 
+## 0.1.4
+
+### Patch Changes
+
+- ac896a0: Not use ReactLynx/JSX in external bundle for VanillaLynx
+
 ## 0.1.3
 
 ### Patch Changes
