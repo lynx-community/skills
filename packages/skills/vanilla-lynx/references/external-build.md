@@ -1,13 +1,15 @@
 # Build a background-thread external bundle
 
 Use rslib to package plain TypeScript or JavaScript logic into a standalone `.lynx.bundle` for the
-background thread.
+background thread. Never use ReactLynx or JSX in an external module.
 
 Keep Element PAPI, UI code, and CSS out of this bundle. Load the result from `background.ts` with the
 paired `fetchBundle` and `loadScript` flow in
 [`external-runtime.md`](external-runtime.md).
 
 ## Rslib config
+
+Use this configuration without `pluginReactLynx()` or any ReactLynx transform.
 
 ```js
 // utils.rslib.config.js
@@ -44,9 +46,10 @@ export default defineExternalBundleRslibConfig({
 });
 ```
 
-The explicit background layer prevents the producer from generating main-thread code. Expose both
-layer names for `defineExternalBundleRslibConfig`, but do not add `pluginReactLynx()` when the source
-is plain TypeScript or JavaScript without ReactLynx transforms.
+`api.expose(Symbol.for('LAYERS'), LAYERS)` exposes both layer names to
+`defineExternalBundleRslibConfig`. Setting the entry layer to `LAYERS.BACKGROUND` prevents the
+producer from generating main-thread code. Explicitly preserve both constraints when presenting or
+reviewing this configuration.
 
 `id: 'utils'` produces `dist-external-bundle/utils.lynx.bundle`. The `utils` entry key is also the
 first argument passed to `loadScript` at runtime.
