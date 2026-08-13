@@ -16,6 +16,7 @@ import { test } from 'node:test';
 import {
   buildExecutorPrompt,
   buildGraderPrompt,
+  buildGraderRepairPrompt,
   installTempSkill,
 } from './run_task_online.mjs';
 
@@ -74,6 +75,8 @@ test('with-skill prompt allows only directed skill resource reads', () => {
   assert.match(prompt, /do not inspect the repository or run shell commands/u);
   assert.match(prompt, /identify the specific official source/u);
   assert.match(prompt, /relevant local skill reference/u);
+  assert.match(prompt, /Do not return a plan/u);
+  assert.match(prompt, /Write the completed answer now/u);
   assert.doesNotMatch(
     prompt,
     /do not use extra tools after loading the skill/u,
@@ -85,6 +88,7 @@ test('without-skill prompt still prohibits tools and local docs', () => {
 
   assert.match(prompt, /Do not read local skill files or docs/u);
   assert.match(prompt, /do not use tools/u);
+  assert.match(prompt, /Do not return a plan/u);
 });
 
 test('grader prompt prohibits unstated requirements and external facts', () => {
@@ -104,4 +108,25 @@ test('grader prompt prohibits unstated requirements and external facts', () => {
     prompt,
     /candidate answer itself provides conflicting evidence/u,
   );
+  assert.match(prompt, /escape embedded double quotes/u);
+});
+
+test('grader repair prompt preserves judgments and fixes JSON syntax', () => {
+  const malformed = `{
+    "with_skill": {
+      "expectations": [
+        {"text": "Uses config", "passed": true, "evidence": "Calls "plugin()""}
+      ]
+    }
+  }`;
+  const prompt = buildGraderRepairPrompt(
+    malformed,
+    new SyntaxError("Expected ',' or '}'"),
+  );
+
+  assert.match(prompt, /Calls "plugin\(\)"/u);
+  assert.match(prompt, /Preserve every expectation, passed value, evidence/u);
+  assert.match(prompt, /Fix JSON syntax only/u);
+  assert.match(prompt, /Escape all double quotes/u);
+  assert.ok(prompt.includes("Expected ',' or '}'"));
 });

@@ -18,7 +18,8 @@ Read `event.md` for `lynx.getEngine()` and event environment APIs. If the page n
 - Apply classes, attributes, inline styles, datasets, and child relationships.
 - Bind lightweight node events on the main thread and remove those listeners during cleanup.
 - Render initial data from `__RenderPage`.
-- Apply later engine data to the UI tree.
+- Apply later engine data from `__UpdatePage` to the UI tree.
+- Register `__DestroyLifetime` to remove runtime and node listeners.
 - Rely on the SDK default flush for initial `renderPage`; call `__FlushElementTree()` after later UI mutations.
 - For background-thread workflows, heavy business logic, timers, async requests, or native calls, read [`background.md`](background.md).
 
@@ -43,7 +44,7 @@ Recommended APIs:
 - `__AppendElement`: attach a child node.
 - `__ReplaceElements`: replace child ranges during updates.
 - `__GetChildren`: inspect current child nodes before replacement or cleanup.
-- `__AddEventListener`: bind UI events to Element PAPI nodes on the main thread.
+- `__AddEventListener`: bind UI events to Element PAPI nodes on the main thread; all four arguments are required.
 - `__RemoveEventListener`: remove node event listeners during cleanup.
 - `__ElementIsEqual`: compare Element PAPI node references when cleaning listener registries.
 
@@ -59,7 +60,7 @@ Do not use these APIs in main-thread examples or apps:
 - `__UpdateStyleObject`
 - `__AddEvent`
 
-Do not use `__AddEvent` to bind UI events. Use `__AddEventListener` and remove the listener with the matching `__RemoveEventListener` call.
+Do not use `__AddEvent` to bind UI events. Always call `__AddEventListener(element, eventName, handler, options)` with all four arguments, passing `{}` when no listener options are needed. Remove the listener with the matching `__RemoveEventListener` call.
 
 ## Build the Tree
 
@@ -118,12 +119,12 @@ __AppendElement(scrollView, scrollContent);
 
 Bind Element PAPI node events directly on the main thread. Keep the handler lightweight when the event only mutates UI state. If the event needs heavier business logic, async work, timers, or native calls, bind the UI event on the main thread and dispatch a serializable task to the background thread.
 
-Track every listener you add so node replacement and `__DestroyLifetime` cleanup can remove the listener with the same node, event name, handler, and options object. The `bindBackgroundEvent` helper uses the `dispatchEventToBackground` function shown in [Background-Driven Update](#background-driven-update).
+All four `__AddEventListener(element, eventName, handler, options)` arguments are mandatory. Never omit the fourth argument; use `{}` when no listener options are needed. Track every listener you add so node replacement and `__DestroyLifetime` cleanup can remove the listener with the same node, event name, handler, and options object. The `bindBackgroundEvent` helper uses the `dispatchEventToBackground` function shown in [Background-Driven Update](#background-driven-update).
 
 ```javascript
 const elementEventListeners = [];
 
-function bindMainThreadEvent(node, name, handler, eventOptions = {}) {
+function bindMainThreadEvent(node, name, handler, eventOptions) {
   __AddEventListener(node, name, handler, eventOptions);
   elementEventListeners.push({ node, name, handler, eventOptions });
 }
@@ -131,7 +132,7 @@ function bindMainThreadEvent(node, name, handler, eventOptions = {}) {
 function bindBackgroundEvent(node, name, handlerName, data) {
   bindMainThreadEvent(node, name, () => {
     dispatchEventToBackground(handlerName, data);
-  });
+  }, {});
 }
 
 function clearNodeEvents(element) {
@@ -172,7 +173,7 @@ Use the helpers when creating tappable or interactive nodes:
 ```javascript
 bindMainThreadEvent(actionArea, "tap", () => {
   updatePage({ value: "Submitted" });
-});
+}, {});
 
 bindBackgroundEvent(actionArea, "longpress", "computeSummary", [
   { value: 3 },
@@ -187,6 +188,10 @@ Main-thread UI updates are driven by Engine lifecycle events. Initial `renderPag
 ### Engine-Driven Render and Update
 
 Use the engine environment returned from `lynx.getEngine()` for Engine-driven rendering and updates. The engine dispatches `__RenderPage` with the first render payload, dispatches `__UpdatePage` with later update payloads, and dispatches `__DestroyLifetime` for cleanup. The main-thread script listens to both `__RenderPage` and `__UpdatePage`: `__RenderPage` creates the initial tree, and `__UpdatePage` applies later main-thread updates.
+
+Register the engine lifecycle events relevant to the implementation. A handler may ignore its event
+payload, and `__UpdatePage` may remain a placeholder when the page does not consume engine-driven
+updates.
 
 Currently, Lynx SDK requires an `processData` implementation on `globalThis` which could be replaced by `normalizeData` in the main-thread script to process native init data.
 
