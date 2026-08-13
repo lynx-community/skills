@@ -66,13 +66,18 @@
       "id": 5,
       "name": "thread-local-and-cross-thread-events",
       "prompt": "Vanilla Lynx 的 runtime context 怎么区分线程内事件闭环和双线程通信？请分别给出 main-thread.ts、background.ts 的本地事件，以及 main ↔ background 的 context 选择规则。",
-      "expected_output": "An explanation that a main-thread local event reuses `lynx.getCoreContext()` for dispatching and listener management, a background-thread local event reuses `lynx.getJSContext()`, and cross-thread communication pairs main-thread `lynx.getJSContext()` with background-thread `lynx.getCoreContext()`. Long-lived cross-thread listeners retain stable handler references and are removed during cleanup.",
+      "expected_output": "A complete event-context matrix with runnable local-event examples for both runtime threads and both directions of cross-thread communication. Each example stores and reuses the correct context for dispatch, registration, and removal; reserves `lynx.getEngine()` for lifecycle events; uses stable listener references and symmetric cleanup; and keeps cross-thread payloads serializable.",
       "expectations": [
-        "The response says a main-thread local event uses the same context returned by `lynx.getCoreContext()` for `dispatchEvent`, `addEventListener`, and `removeEventListener`.",
-        "The response says a background-thread local event uses the same context returned by `lynx.getJSContext()` for `dispatchEvent`, `addEventListener`, and `removeEventListener`.",
-        "The response says main-thread `lynx.getCoreContext()` is a self-loop and does not deliver the event to background.",
-        "The response preserves the cross-thread pairing: main-thread `lynx.getJSContext()` dispatch is received by a listener managed through background-thread `lynx.getCoreContext()`, and the reverse direction uses the same two endpoints.",
-        "Cross-thread listeners use stable named handler references instead of inline callbacks and are removed during cleanup with the same context and event name used for registration."
+        "The main-thread local-event example stores one context returned by `lynx.getCoreContext()` and uses that same object for `dispatchEvent`, `addEventListener`, and `removeEventListener`.",
+        "The background-thread local-event example stores one context returned by `lynx.getJSContext()` and uses that same object for `dispatchEvent`, `addEventListener`, and `removeEventListener`.",
+        "The response says thread-local events stay in their current thread: main-thread `lynx.getCoreContext()` is a self-loop, and background-thread `lynx.getJSContext()` is a self-loop. Neither local context is presented as a cross-thread endpoint.",
+        "For main-to-background communication, the response dispatches through main-thread `lynx.getJSContext()` and receives or removes the listener through background-thread `lynx.getCoreContext()`.",
+        "For background-to-main communication, the response dispatches through background-thread `lynx.getCoreContext()` and receives or removes the listener through main-thread `lynx.getJSContext()`.",
+        "The response stores and reuses each cross-thread context for dispatching and listener management instead of repeatedly selecting different contexts for the same endpoint.",
+        "The response explicitly says `lynx.getEngine()` is only for engine-defined lifecycle events and must not be used for app-defined thread-local or cross-thread events.",
+        "Long-lived and cross-thread listeners use stable named handler references rather than inline callbacks, and cleanup calls `removeEventListener` with the same context, event name, and handler reference used for registration.",
+        "The response removes long-lived runtime listeners during `__DestroyLifetime` or an explicitly equivalent teardown path.",
+        "The response keeps cross-thread payloads serializable and does not send functions or Element PAPI node handles between threads."
       ],
       "files": []
     },
@@ -82,7 +87,7 @@
       "prompt": "我想在 Vanilla Lynx app 中把纯 TypeScript 工具库用 rslib 打成独立的 background-thread .lynx.bundle，再用 lynx.fetchBundle 和 lynx.loadScript 加载。如果调用结果会影响 UI，完整流程应该怎么写？",
       "expected_output": "A background-only `defineExternalBundleRslibConfig` config plus background-thread loading code that fetches the `.lynx.bundle` by absolute URL, checks `response.code === 0`, calls `lynx.loadScript` with the rslib entry key and `response.url` as `bundleName`, uses the loaded exports asynchronously, and sends serializable results to the main thread for UI updates.",
       "expectations": [
-        "The rslib config uses `defineExternalBundleRslibConfig`, exposes `LAYERS`, pins the entry to `LAYERS.BACKGROUND`, and does not add ReactLynx transforms for plain TypeScript or JavaScript.",
+        "The answer explicitly says external modules must use plain TypeScript or JavaScript and must not use ReactLynx or JSX. The rslib config uses `defineExternalBundleRslibConfig`, calls `api.expose(Symbol.for('LAYERS'), LAYERS)`, pins the entry to `LAYERS.BACKGROUND`, and does not add `pluginReactLynx()` or any ReactLynx transform.",
         "The answer states that the first `loadScript` argument is the rslib entry key and that `id` determines the emitted `<id>.lynx.bundle` filename.",
         "The answer keeps loading on the background thread and does not instruct the user to load an external bundle from the main thread.",
         "The runtime code uses an absolute URL, checks `response.code === 0`, calls `lynx.loadScript` inside the `fetchBundle` callback, passes `response.url` as `bundleName`, and wraps evaluation in `try`/`catch`.",

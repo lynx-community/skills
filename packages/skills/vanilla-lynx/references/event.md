@@ -22,7 +22,9 @@ The behavior of a context getter depends on the thread that calls it:
 | `background.ts`  | `lynx.getJSContext()`   | Background-thread local event loop            |
 | `background.ts`  | `lynx.getCoreContext()` | Cross-thread endpoint connected to main       |
 
-Use `lynx.getEngine()` in either script for Engine lifecycle events. Every returned context exposes `dispatchEvent`, `addEventListener`, and `removeEventListener`.
+Use `lynx.getEngine()` only for engine-defined lifecycle events. Never use it for app-defined
+thread-local or cross-thread events. For those events, store the appropriate context from the table
+and reuse that same object for `dispatchEvent`, `addEventListener`, and `removeEventListener`.
 
 ## Cross-Thread Events
 
@@ -90,6 +92,9 @@ function cleanup() {
 
 Each thread can also close an event loop locally. Register, dispatch, and remove the listener on the same local context. These events stay in the current thread and must not be used for cross-thread communication.
 
+Do not use `lynx.getEngine()` for either local event loop. On the main thread, reuse one
+`lynx.getCoreContext()` result for all three event operations:
+
 Main-thread local event:
 
 ```javascript
@@ -109,6 +114,8 @@ localContext.removeEventListener("MainThreadLocalEvent", handleLocalEvent);
 ```
 
 Background-thread local event:
+
+On the background thread, reuse one `lynx.getJSContext()` result for all three event operations:
 
 ```javascript
 // background.ts
