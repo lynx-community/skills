@@ -133,6 +133,8 @@ async function main() {
     );
 
     let grading;
+    let graderResponse = '';
+    let graderRepairResponse = '';
     try {
       const graderResult = await runOpencode({
         model: graderModel,
@@ -144,7 +146,23 @@ async function main() {
         repoRoot,
         timeout,
       });
-      grading = normalizeGrading(extractJsonObject(graderResult.text));
+      graderResponse = graderResult.text;
+      try {
+        grading = normalizeGrading(extractJsonObject(graderResponse));
+      } catch (error) {
+        const repairResult = await runOpencode({
+          model: graderModel,
+          prompt: buildGraderRepairPrompt(graderResponse, error),
+          repoRoot,
+          timeout,
+        });
+        graderRepairResponse = repairResult.text;
+        grading = normalizeGrading(extractJsonObject(graderRepairResponse));
+        grading.notes = [
+          ...(grading.notes ?? []),
+          'grader response required one JSON repair retry',
+        ];
+      }
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
       grading = {
@@ -152,6 +170,19 @@ async function main() {
         with_skill: failedSection(evalItem.expectations, message),
         without_skill: failedSection(evalItem.expectations, message),
       };
+    }
+
+    if (graderResponse) {
+      await writeText(
+        join(evalDir, 'grader-response.txt'),
+        `${graderResponse}\n`,
+      );
+    }
+    if (graderRepairResponse) {
+      await writeText(
+        join(evalDir, 'grader-repair-response.txt'),
+        `${graderRepairResponse}\n`,
+      );
     }
 
     if (withError || withoutError) {
@@ -346,6 +377,7 @@ function buildExecutorPrompt(taskPrompt, skillName) {
       'After loading the skill, use file-reading tools only for files inside that skill directory that SKILL.md directs you to read. Do not read evals, grading artifacts, or other repository files.',
       'When the task asks to follow official docs, examples, or another source of truth, identify the specific official source and the relevant local skill reference used to adapt it.',
       'If the user asks for file contents or commands/code, include exact paths and full code blocks.',
+      'Do not return a plan, checklist of intended content, or notes about what the answer should contain. Write the completed answer now.',
       'Return only the final answer for the user.',
       '',
       `User task:\n${taskPrompt}`,
@@ -356,13 +388,19 @@ function buildExecutorPrompt(taskPrompt, skillName) {
     'Answer this task directly from your own knowledge. Do not read local skill files or docs.',
     'Do not inspect the repository, do not run shell commands, and do not use tools.',
     'Do not ask follow-up questions. If the user asks for file contents or commands/code, include exact paths and full code blocks.',
+    'Do not return a plan, checklist of intended content, or notes about what the answer should contain. Write the completed answer now.',
     'Return only the final answer for the user.',
     '',
     `User task:\n${taskPrompt}`,
   ].join('\n');
 }
 
-export { buildExecutorPrompt, buildGraderPrompt, installTempSkill };
+export {
+  buildExecutorPrompt,
+  buildGraderPrompt,
+  buildGraderRepairPrompt,
+  installTempSkill,
+};
 
 function buildGraderPrompt(evalItem, withAnswer, withoutAnswer) {
   const expectations = evalItem.expectations
@@ -396,6 +434,7 @@ Rules:
 - No partial credit.
 - Evidence must quote or paraphrase concrete text from the answer.
 - Return JSON only. No markdown fences.
+- Every JSON string must be valid: escape embedded double quotes, backslashes, and control characters. Prefer paraphrasing evidence when quoting code would make escaping error-prone.
 - Do not use tools. Grade from the prompt and the two answers only.
 
 Use exactly this schema:
@@ -414,6 +453,21 @@ Use exactly this schema:
   },
   "notes": ["optional short notes"]
 }
+`.trim();
+}
+
+function buildGraderRepairPrompt(graderResponse, parseError) {
+  const message =
+    parseError instanceof Error ? parseError.message : String(parseError);
+  return `
+The grader output below could not be parsed as JSON:
+
+${graderResponse}
+
+Parse error:
+${message}
+
+Return the same grading result as one valid JSON object only. Preserve every expectation, passed value, evidence, summary, and note. Fix JSON syntax only. Escape all double quotes, backslashes, newlines, and other control characters inside strings. Do not add markdown fences, commentary, or new grading judgments. Do not use tools.
 `.trim();
 }
 
