@@ -48,6 +48,10 @@
     "should_trigger": false
   },
   {
+    "query": "我已经有可访问的 Vanilla Lynx .bundle URL，想用 agent-lynx 在真机打开、截图并查看 console 日志验证产物。",
+    "should_trigger": false
+  },
+  {
     "query": "如何把 function_id 和 pc_index 根据 debug info JSON 映射回源码位置？",
     "should_trigger": false
   },
