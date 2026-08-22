@@ -1,7 +1,7 @@
 ---
 name: vanilla-lynx
 description: |
-  Build Rspeedy Vanilla Lynx apps with Element PAPI and Lynx Runtime APIs, never ReactLynx or JSX. Use for project scaffolding, main-thread UI, lifecycle/events, background communication, styling, or external bundles. Do not use for device-side runtime validation or debugging of an already built artifact; use lynx-devtool instead. For general APIs use lynx-api-docs; for ReactLynx use reactlynx-best-practices; for bundle quality use rspeedy-bundle-quality. Excludes Element PAPI JSON mode and output formats outside the Rspeedy Vanilla Lynx workflow.
+  Build Rspeedy Vanilla Lynx apps with Element PAPI and Lynx Runtime APIs, never ReactLynx or JSX. Use for project scaffolding, main-thread UI, lifecycle/events, background communication, styling, or external bundles. Do not use for device-side runtime validation or debugging of an already built artifact; use lynx-devtool instead. For general APIs use lynx-api-docs; for ReactLynx use reactlynx-best-practices; for bundle quality use rspeedy-bundle-size. Excludes Element PAPI JSON mode and output formats outside the Rspeedy Vanilla Lynx workflow.
 ---
 
 # Build Vanilla Lynx Apps
