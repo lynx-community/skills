@@ -10,7 +10,11 @@ Read `event.md` for `lynx.getEngine()` and event environment APIs. If the page n
 - [Element PAPI Surface](#element-papi-surface)
 - [Build the Tree](#build-the-tree)
 - [Bind Element Events](#bind-element-events)
-- [Render and Update Drivers](#render-and-update-drivers)
+- [Render](#render)
+- [Update](#update)
+  - [Engine-Driven Update](#engine-driven-update)
+  - [Background-Driven Update](#background-driven-update)
+- [Lifecycle Cleanup](#lifecycle-cleanup)
 
 ## Responsibilities
 
@@ -27,26 +31,79 @@ Read `event.md` for `lynx.getEngine()` and event environment APIs. If the page n
 
 All Element PAPI APIs available on the main thread can be found in [`@lynx-js/type-element-api`](https://www.npmjs.com/package/@lynx-js/type-element-api).
 
-Recommended APIs:
+Treat `ElementRef` as an opaque main-thread handle. Never read or write its properties, enumerate it, clone or spread it, serialize it, or attach application state to it. Use Element PAPI APIs to inspect or mutate element state, and use `__ElementIsEqual` to compare node references.
 
-- `__CreatePage`: create the page root.
-- `__GetElementUniqueID`: get the root element id for child creation.
-- `__CreateView`: create a container node.
-- `__CreateScrollView`: create a scrollable container node.
-- `__CreateText`: create a text node.
-- `__CreateRawText`: create text content for a text node.
-- `__CreateImage`: create an image node.
-- `__SetClasses` and `__AddClass`: apply styling classes.
-- `__SetID`: set a stable element id.
-- `__SetInlineStyles`: set inline styles on a node.
-- `__SetAttribute`: set node attributes.
-- `__SetDataset` and `__AddDataset`: store metadata for events or lookup.
-- `__AppendElement`: attach a child node.
-- `__ReplaceElements`: replace child ranges during updates.
-- `__GetChildren`: inspect current child nodes before replacement or cleanup.
-- `__AddEventListener`: bind UI events to Element PAPI nodes on the main thread; all four arguments are required.
-- `__RemoveEventListener`: remove node event listeners during cleanup.
-- `__ElementIsEqual`: compare Element PAPI node references when cleaning listener registries.
+### Create APIs
+
+Create the page root with the fixed call `__CreatePage("0", 0)`. Then obtain `pageId` from `__GetElementUniqueID(page)` and pass it as the first argument to `__CreateView`, `__CreateScrollView`, `__CreateText`, and `__CreateImage`. `__CreateRawText` takes visible text instead.
+
+| API                                                | Parameters                                                                     | Use                                                       |
+| -------------------------------------------------- | ------------------------------------------------------------------------------ | --------------------------------------------------------- |
+| `__CreatePage("0", 0)`                            | Always pass the literal values `"0"` and `0`.                                 | Create the page root.                                     |
+| `__CreateScrollView(pageId: number)`               | `pageId` is the page root's unique id.                                         | Create a scrollable container node.                       |
+| `__CreateView(pageId: number)`                     | `pageId` is the page root's unique id.                                         | Create a container node.                                  |
+| `__CreateImage(pageId: number)`                    | `pageId` is the page root's unique id.                                         | Create an image node.                                     |
+| `__CreateText(pageId: number)`                     | `pageId` is the page root's unique id.                                         | Create a text element that can contain raw-text children. |
+| `__CreateRawText(text: string)`                    | `text` is the visible string.                                                  | Create text content to append under a text element.       |
+
+### Tree APIs
+
+| API                                                                                                                                          | Parameters                                                                                        | Use                                                |
+| -------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------- | -------------------------------------------------- |
+| `__AppendElement(parent: ElementRef, child: ElementRef)`                                                                                     | `parent` receives the node; `child` is the node to append.                                        | Attach a child node.                               |
+| `__ReplaceElements(parent: ElementRef, inserted: ElementRef \| ElementRef[] \| undefined, removed: ElementRef \| ElementRef[] \| undefined)` | `parent` owns the range; `inserted` and `removed` each accept one node, an array, or `undefined`. | Replace child nodes during updates.                |
+| `__GetChildren(parent: ElementRef)`                                                                                                          | `parent` is the node whose direct children are requested.                                         | Inspect child nodes before replacement or cleanup. |
+
+### Element ID APIs
+
+| API                                             | Parameters                                                         | Use                                      |
+| ----------------------------------------------- | ------------------------------------------------------------------ | ---------------------------------------- |
+| `__SetID(node: ElementRef, id: string \| null)` | `node` is the target; `id` accepts an element-id string or `null`. | Set a stable element id.                 |
+| `__GetID(node: ElementRef)`                     | `node` is the target.                                              | Get the element's stable id as a string. |
+
+### Class APIs
+
+| API                                                            | Parameters                                                                                                 | Use                                                     |
+| -------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------- | ------------------------------------------------------- |
+| `__SetClasses(node: ElementRef, classes: string \| undefined)` | `node` is the target; `classes` is the complete class string, or `undefined` when there is no class value. | Replace the node's applied classes.                     |
+| `__GetClasses(node: ElementRef)`                               | `node` is the target.                                                                                      | Get the applied class names as a string array.          |
+| `__AddClass(node: ElementRef, className: string)`              | `node` is the target; `className` is the class name to add.                                                | Add a styling class without replacing existing classes. |
+
+### Inline Style APIs
+
+| API                                                    | Parameters                                                                                                                 | Use                                       |
+| ------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------- |
+| `__SetInlineStyles(node: ElementRef, styles: unknown)` | `node` is the target; `styles` is the runtime style payload. The type package intentionally leaves its shape as `unknown`. | Apply runtime-computed inline styles.     |
+| `__GetInlineStyles(node: ElementRef)`                  | `node` is the target.                                                                                                      | Get the node's inline styles as a string. |
+
+### Attribute APIs
+
+| API                                                          | Parameters                                                                   | Use                            |
+| ------------------------------------------------------------ | ---------------------------------------------------------------------------- | ------------------------------ |
+| `__SetAttribute(node: ElementRef, name: string, value: any)` | `node` is the target; `name` identifies the attribute; `value` is its value. | Set a node attribute.          |
+| `__GetAttributeByName(node: ElementRef, name: string)`       | `node` is the target; `name` identifies the attribute.                       | Get the named attribute value. |
+
+### Dataset APIs
+
+| API                                                                             | Parameters                                                                          | Use                                            |
+| ------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------- | ---------------------------------------------- |
+| `__SetDataset(node: ElementRef, dataset: Record<string, unknown> \| undefined)` | `node` is the target; `dataset` accepts a complete dataset record or `undefined`.   | Set dataset metadata used by events or lookup. |
+| `__GetDataset(node: ElementRef)`                                                | `node` is the target.                                                               | Get the complete dataset record.               |
+| `__AddDataset(node: ElementRef, key: string, value: unknown)`                   | `node` is the target; `key` names one dataset entry; `value` is that entry's value. | Add one dataset entry.                         |
+
+### Event Listener APIs
+
+| API                                                                                                                                         | Parameters                                                                                                                                                                                                                                                                                                 | Use                                          |
+| ------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------- |
+| `__AddEventListener(node: ElementRef, eventName: string, handler: ElementEventCallback \| string, options: ElementEventListenerOptions)`    | `node` is the event target; `eventName` identifies the event; `handler` is an `(event: ElementEvent) => void` function or string value; `options` is required even though its `capture`, `once`, `passive`, `signal`, `closure_type`, and `bind_type` fields are optional. Pass `{}` when none are needed. | Bind a UI event on the main thread.          |
+| `__RemoveEventListener(node: ElementRef, eventName: string, handler: ElementEventCallback \| string, options: ElementEventListenerOptions)` | Pass the corresponding target, event name, handler, and options used when adding the listener. All four parameters are required.                                                                                                                                                                           | Remove a node event listener during cleanup. |
+
+### Runtime Utility APIs
+
+| API                                                     | Parameters                                                         | Use                                               |
+| ------------------------------------------------------- | ------------------------------------------------------------------ | ------------------------------------------------- |
+| `__GetElementUniqueID(node: ElementRef)`                | `node` is the Element PAPI node whose numeric unique id is needed. | Get the `pageId` passed to element-creation APIs. |
+| `__ElementIsEqual(left: ElementRef, right: ElementRef)` | `left` and `right` are the two node references to compare.         | Compare Element PAPI node references.             |
 
 Do not use these APIs in main-thread examples or apps:
 
@@ -60,23 +117,30 @@ Do not use these APIs in main-thread examples or apps:
 - `__UpdateStyleObject`
 - `__AddEvent`
 
-Do not use `__AddEvent` to bind UI events. Always call `__AddEventListener(element, eventName, handler, options)` with all four arguments, passing `{}` when no listener options are needed. Remove the listener with the matching `__RemoveEventListener` call.
+Do not use `__AddEvent` to bind UI events. Use `__AddEventListener` and pair it with matching `__RemoveEventListener` cleanup.
 
 ## Build the Tree
 
 Create the page root once, then create and append child nodes. Keep node
 references that need later updates in module scope.
 
-### Non-Scrollable Container
+### Vertically Scrollable Container
+
+Prefer a vertically scrollable container for page-level content because the page root does not scroll by itself. Ensure the scroll view resolves to a viewport-bounded height: it may inherit the viewport height through its layout chain or declare a height when the surrounding layout does not provide one. Then append a regular view as its content container. Use a non-scrollable root container only when the content is known to fit within the viewport.
 
 ```javascript
 const page = __CreatePage("0", 0);
 const pageId = __GetElementUniqueID(page);
 __SetClasses(page, "page");
 
+const scrollView = __CreateScrollView(pageId);
+__SetClasses(scrollView, "page-scroll");
+__SetAttribute(scrollView, "scroll-orientation", "vertical");
+__AppendElement(page, scrollView);
+
 const container = __CreateView(pageId);
 __SetClasses(container, "container");
-__AppendElement(page, container);
+__AppendElement(scrollView, container);
 
 const title = __CreateText(pageId);
 __SetClasses(title, "title");
@@ -97,29 +161,13 @@ __SetAttribute(image, "src", "https://example.com/image.png");
 __AppendElement(container, image);
 ```
 
-### Scrollable Container
-
-Use `__CreateScrollView` for a scrollable container and give it a fixed height.
-
-```javascript
-const page = __CreatePage("0", 0);
-const pageId = __GetElementUniqueID(page);
-__SetClasses(page, "page");
-
-const scrollView = __CreateScrollView(pageId);
-__SetAttribute(scrollView, "scroll-orientation", "vertical");
-__SetInlineStyles(scrollView, "height: 500px;");
-__AppendElement(page, scrollView);
-
-const scrollContent = __CreateView(pageId);
-__AppendElement(scrollView, scrollContent);
-```
-
 ## Bind Element Events
 
-Bind Element PAPI node events directly on the main thread. Keep the handler lightweight when the event only mutates UI state. If the event needs heavier business logic, async work, timers, or native calls, bind the UI event on the main thread and dispatch a serializable task to the background thread.
+Element PAPI node events must always be bound and removed on the main thread. `background.ts` never receives an `ElementRef` and never calls `__AddEventListener` or `__RemoveEventListener`.
 
-All four `__AddEventListener(element, eventName, handler, options)` arguments are mandatory. Never omit the fourth argument; use `{}` when no listener options are needed. Track every listener you add so node replacement and `__DestroyLifetime` cleanup can remove the listener with the same node, event name, handler, and options object. The `bindBackgroundEvent` helper uses the `dispatchEventToBackground` function shown in [Background-Driven Update](#background-driven-update).
+### Main-Thread Node Events
+
+Keep the handler on the main thread when an event only mutates UI state. Track every listener so node replacement and `__DestroyLifetime` cleanup can remove it with the corresponding node, event name, handler, and options.
 
 ```javascript
 const elementEventListeners = [];
@@ -127,12 +175,6 @@ const elementEventListeners = [];
 function bindMainThreadEvent(node, name, handler, eventOptions) {
   __AddEventListener(node, name, handler, eventOptions);
   elementEventListeners.push({ node, name, handler, eventOptions });
-}
-
-function bindBackgroundEvent(node, name, handlerName, data) {
-  bindMainThreadEvent(node, name, () => {
-    dispatchEventToBackground(handlerName, data);
-  }, {});
 }
 
 function clearNodeEvents(element) {
@@ -168,38 +210,50 @@ function clearAllEvents() {
 }
 ```
 
-Use the helpers when creating tappable or interactive nodes:
+Bind a lightweight main-thread handler for direct UI updates:
 
 ```javascript
-bindMainThreadEvent(actionArea, "tap", () => {
-  updatePage({ value: "Submitted" });
-}, {});
+bindMainThreadEvent(
+  actionArea,
+  "tap",
+  () => {
+    updatePage({ value: "Submitted" });
+  },
+  {},
+);
+```
 
+### Background-Thread Event Dispatch
+
+When a node event needs heavier business logic, async work, timers, or native calls, keep the Element PAPI listener on the main thread and dispatch a small, serializable task through the cross-thread bridge. Never send a function or `ElementRef`. The helper below uses `dispatchEventToBackground` from [Background-Driven Update](#background-driven-update); `background.ts` receives the task as described in [`background.md`](background.md).
+
+```javascript
+function bindBackgroundEvent(node, name, handlerName, data) {
+  bindMainThreadEvent(
+    node,
+    name,
+    () => {
+      dispatchEventToBackground(handlerName, data);
+    },
+    {},
+  );
+}
+```
+
+Bind the main-thread node event to a background task name and serializable payload:
+
+```javascript
 bindBackgroundEvent(actionArea, "longpress", "computeSummary", [
   { value: 3 },
   { value: 4 },
 ]);
 ```
 
-## Render and Update Drivers
+## Render
 
-Main-thread UI updates are driven by Engine lifecycle events. Initial `renderPage` can rely on the SDK default flush. Later update routes mutate Element PAPI nodes on the main thread and call `__FlushElementTree()`.
+Use the engine environment returned from `lynx.getEngine()` for the initial `__RenderPage` lifecycle event. `renderPage` can rely on the SDK default flush.
 
-### Engine-Driven Render and Update
-
-Use the engine environment returned from `lynx.getEngine()` for Engine-driven rendering and updates. The engine dispatches `__RenderPage` with the first render payload, dispatches `__UpdatePage` with later update payloads, and dispatches `__DestroyLifetime` for cleanup. The main-thread script listens to both `__RenderPage` and `__UpdatePage`: `__RenderPage` creates the initial tree, and `__UpdatePage` applies later main-thread updates.
-
-Register the engine lifecycle events relevant to the implementation. A handler may ignore its event
-payload, and `__UpdatePage` may remain a placeholder when the page does not consume engine-driven
-updates.
-
-Currently, Lynx SDK requires an `processData` implementation on `globalThis` which could be replaced by `normalizeData` in the main-thread script to process native init data.
-
-Basic Engine-driven render/update shape:
-
-- `__RenderPage`: process Engine input and create the initial Element PAPI tree.
-- `__UpdatePage`: process Engine input, apply the later UI update, then flush.
-- `__DestroyLifetime`: remove Engine listeners and release local references.
+The render and update examples below share this module-scope setup:
 
 ```javascript
 const renderPageEventName = "__RenderPage";
@@ -222,7 +276,13 @@ function normalizeData(data) {
     value: data?.value ?? "Hello Lynx!",
   };
 }
+```
 
+Currently, Lynx SDK requires a `processData` implementation on `globalThis`. The main-thread script can instead assign its own data-processing function when native initialization data needs normalization.
+
+The engine dispatches `__RenderPage` with the initial payload. Process that payload and create the initial Element PAPI tree in `renderPage`. The handler may ignore its payload when the implementation does not need engine-provided data. Do not call `__FlushElementTree()` solely for this initial render; rely on the SDK default flush.
+
+```javascript
 function renderPage(data) {
   currentState = data;
 
@@ -235,6 +295,23 @@ function renderPage(data) {
   __AppendElement(page, view);
 }
 
+function onRenderPage(event) {
+  const [data] = event.data;
+  renderPage(normalizeData(data));
+}
+
+engine.addEventListener(renderPageEventName, onRenderPage);
+```
+
+## Update
+
+Every update after the initial render mutates the existing tree on the main thread and calls `__FlushElementTree()`. Choose the update driver based on where the new data originates.
+
+### Engine-Driven Update
+
+The engine dispatches `__UpdatePage` with later update payloads. Process the payload, apply the UI mutation, and call `__FlushElementTree()`. The handler may remain a placeholder when the page intentionally does not consume engine-driven updates.
+
+```javascript
 function updatePage(patch) {
   currentState = {
     ...currentState,
@@ -252,27 +329,12 @@ function updatePage(patch) {
   __FlushElementTree();
 }
 
-function onRenderPage(event) {
-  const [data] = event.data;
-  renderPage(normalizeData(data));
-}
-
 function onUpdatePage(event) {
   const [data] = event.data;
   updatePage(normalizeData(data));
 }
 
-function cleanup() {
-  engine.removeEventListener(renderPageEventName, onRenderPage);
-  engine.removeEventListener(updatePageEventName, onUpdatePage);
-  engine.removeEventListener(destroyLifetimeEventName, cleanup);
-  clearAllEvents();
-  valueText = undefined;
-}
-
-engine.addEventListener(renderPageEventName, onRenderPage);
 engine.addEventListener(updatePageEventName, onUpdatePage);
-engine.addEventListener(destroyLifetimeEventName, cleanup);
 ```
 
 ### Background-Driven Update
@@ -348,3 +410,22 @@ dispatchEventToBackground("computeSummary", [{ value: 3 }, { value: 4 }]);
 ```
 
 Call `dispatchDataToBackground(processedData)` after processing Engine render or update data. Forward `__DestroyLifetime` before removing the bridge so `background.ts` can release its listeners.
+
+## Lifecycle Cleanup
+
+The engine dispatches `__DestroyLifetime` when the LynxView is torn down. Remove the render and update listeners, remove Element PAPI node listeners, and release retained node references. Background-thread workflows also keep the bridge cleanup shown in [Background-Driven Update](#background-driven-update), which forwards the destroy event before removing its listener.
+
+```javascript
+function cleanupEngineLifecycle() {
+  engine.removeEventListener(renderPageEventName, onRenderPage);
+  engine.removeEventListener(updatePageEventName, onUpdatePage);
+  engine.removeEventListener(
+    destroyLifetimeEventName,
+    cleanupEngineLifecycle,
+  );
+  clearAllEvents();
+  valueText = undefined;
+}
+
+engine.addEventListener(destroyLifetimeEventName, cleanupEngineLifecycle);
+```

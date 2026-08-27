@@ -209,9 +209,11 @@ The main thread owns every Element PAPI mutation and UI flush. The background th
 
 ## Implementation Routing
 
-| Task                                                                   | Read                                                                                               |
-| ---------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------- |
-| Bind Element PAPI node events                                          | [`main-thread.md#bind-element-events`](main-thread.md#bind-element-events)                         |
-| Handle Engine render, update, and destroy                              | [`main-thread.md#engine-driven-render-and-update`](main-thread.md#engine-driven-render-and-update) |
-| Dispatch background tasks, data, and destroy or apply returned patches | [`main-thread.md#background-driven-update`](main-thread.md#background-driven-update)               |
-| Receive main-thread messages, run heavier work, and return patches     | [`background.md`](background.md)                                                                   |
+| Task                                                                   | Read                                                                                 |
+| ---------------------------------------------------------------------- | ------------------------------------------------------------------------------------ |
+| Bind Element PAPI node events                                          | [`main-thread.md#bind-element-events`](main-thread.md#bind-element-events)           |
+| Handle the initial Engine render                                       | [`main-thread.md#render`](main-thread.md#render)                                     |
+| Handle later Engine updates                                            | [`main-thread.md#engine-driven-update`](main-thread.md#engine-driven-update)         |
+| Handle Engine lifetime cleanup                                         | [`main-thread.md#lifecycle-cleanup`](main-thread.md#lifecycle-cleanup)               |
+| Dispatch background tasks, data, and destroy or apply returned patches | [`main-thread.md#background-driven-update`](main-thread.md#background-driven-update) |
+| Receive main-thread messages, run heavier work, and return patches     | [`background.md`](background.md)                                                     |
