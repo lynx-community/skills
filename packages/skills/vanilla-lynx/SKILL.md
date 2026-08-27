@@ -11,7 +11,6 @@ Use this skill to build Lynx apps directly with Element PAPI and Lynx Runtime AP
 ## Core Rules
 
 - Do not use ReactLynx, JSX, virtual DOM, or browser DOM APIs unless explicitly requested.
-- Always pass all four required arguments to `__AddEventListener(element, eventName, handler, options)`; pass `{}` when no listener options are needed.
 - Keep Element PAPI tree creation, mutation, lifecycle rendering, and UI updates in `main-thread.ts`. Never call Element PAPI APIs or `__FlushElementTree()` from `background.ts`; the background thread only sends serializable patches for the main thread to apply and flush.
 - Rely on the SDK flush for initial render; call `__FlushElementTree()` after later UI mutations.
 - Add `background.ts` only for heavier business logic, async work, timers, native calls, or data processing. Keep cross-thread payloads serializable.
