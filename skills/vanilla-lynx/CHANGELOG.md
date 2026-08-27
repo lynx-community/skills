@@ -1,5 +1,13 @@
 # @lynx-js/skill-vanilla-lynx
 
+## 0.1.6
+
+### Patch Changes
+
+- dc1f97c: Document parameter contracts for recommended Element PAPI calls and centralize event-listener options guidance.
+- 5ce32f6: Constrain Vanilla Lynx styling to a supported CSS allowlist, highlight Web margin-collapse migration fixes, and tighten routing around source-authoring tasks.
+- 0427be9: Route bundle-size work in the skill description to `rspeedy-bundle-size`, the skill that exists, instead of the nonexistent `rspeedy-bundle-quality`.
+
 ## 0.1.5
 
 ### Patch Changes
