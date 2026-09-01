@@ -83,9 +83,114 @@
         "The external module is plain TypeScript or JavaScript and does not depend on ReactLynx, JSX, or ReactLynx transforms.",
         "The Rslib setup uses `defineExternalBundleRslibConfig` or an equivalent supported configuration and targets the background layer, including the required layer exposure where applicable.",
         "The source entry key and the first `lynx.loadScript` argument refer to the same exported entry. Examples and exact wording are optional.",
-        "Fetching and loading happen on the background thread with a valid bundle URL, success/error handling, and the fetched bundle URL supplied to `loadScript` as needed.",
+        "Fetching and loading happen on the background thread with an absolute bundle URL that the target device can reach and that returns bundle bytes; placeholder domains are not presented as runnable defaults. Success/error handling is present, and the fetched bundle URL is supplied to `loadScript` as needed.",
         "Loaded exports are used after asynchronous loading completes rather than before they are available.",
         "Results that affect UI are sent as serializable data to the main thread, which performs Element PAPI mutation and flushing."
+      ],
+      "files": []
+    },
+    {
+      "id": 7,
+      "name": "main-thread-interaction-and-image-updates",
+      "prompt": "请用 Rspeedy Vanilla Lynx 的 main-thread.ts 写一个图片选项卡：点击 Element PAPI 按钮时切换现有 Image 的 src，Image 上方有不应拦截点击的装饰层。只给关键主线程代码和必要样式约束，不要 JSX。",
+      "expected_output": "A main-thread Element PAPI interaction that uses the runtime tap event, keeps the passive overlay out of hit testing, avoids image flicker while changing sources, flushes later mutations, and cleans up the listener.",
+      "expectations": [
+        "The button listener uses the runtime event name `tap`, not the template or JSX attributes `bindtap` or `catchtap`, and supplies all four Element PAPI listener arguments.",
+        "Listener cleanup reuses the corresponding node, event name, handler, and options.",
+        "The Image receives `defer-src-invalidation` before its initial `src`, and later logic avoids assigning the same source redundantly.",
+        "The passive overlay uses the `user-interaction-enabled` element attribute rather than a CSS `user-interaction-enabled` or browser `pointer-events` declaration.",
+        "The later image-source mutation stays on the main thread and is followed by `__FlushElementTree()`."
+      ],
+      "files": []
+    },
+    {
+      "id": 8,
+      "name": "author-build-free-lynxml-counter",
+      "prompt": "请把一个简单的 Vanilla Lynx 计数器写成 Lynx 可以直接消费的完整 .lynxml 文件：包含样式和 main-thread Element PAPI 逻辑，不经过 Rspeedy 或其他构建步骤，并说明什么时候才需要 background source block。",
+      "expected_output": "A complete build-free `.lynxml` document with the Lynx envelope, style and main-thread source blocks, a local Element PAPI counter interaction, correct lifecycle cleanup, and no app build configuration. The background block remains optional and is reserved for heavier work.",
+      "expectations": [
+        "The answer produces one complete `.lynxml` document beginning with `<!doctype lynx>` and containing one lowercase `lynx` root with a non-empty quoted `engine-version`.",
+        "The document places CSS in a direct-child `style` block and Element PAPI code in a direct-child `<script thread=\"main\">` block, with all source blocks and the root closed.",
+        "The main script creates Page, View, Text, and RawText nodes with Element PAPI; each RawText is a direct child of Text and later text updates retain the Text parent.",
+        "The local counter interaction uses the runtime event name `tap`, supplies all four listener arguments, and removes the same listener tuple during cleanup.",
+        "The initial render relies on the SDK flush path, while the later counter mutation calls `__FlushElementTree()` after its final UI change.",
+        "The answer does not introduce ReactLynx, JSX, an XML declaration, CDATA, a `config` block, `package.json`, `lynx.config.ts`, Rspeedy, or `@lynx-js/vanilla-rsbuild-plugin`.",
+        "The answer treats `<script thread=\"background\">` as optional and adds it only for heavier business logic, async work, timers, native calls, or data processing; background code never mutates Element PAPI UI."
+      ],
+      "files": []
+    },
+    {
+      "id": 9,
+      "name": "lynxml-main-background-patch",
+      "prompt": "请写一个完整 .lynxml：main script 创建 page/view/text，按钮点击后把一个明确的重计算任务发给 background script，收到 serializable patch 后更新文本并 flush。不要 React 或 Rspeedy。",
+      "expected_output": "A complete `.lynxml` artifact whose main script creates and updates an Element PAPI tree, delegates genuinely heavier work to an optional background script, exchanges serializable messages through the correct contexts, flushes later UI mutations, and cleans up both sides.",
+      "expectations": [
+        "Engine-defined lifecycle events are registered through `lynx.getEngine()`. Handlers may accept or ignore event payloads, and an update hook may be a placeholder when engine-driven updates are unused.",
+        "The initial UI tree and later UI mutations use appropriate Element PAPI APIs on the main thread.",
+        "Every `__AddEventListener` call supplies its four required arguments, including an options object such as `{}` when no options are needed.",
+        "Main-to-background tasks and background-to-main patches use the appropriate runtime bridge. Variable names and helper structure are not prescribed.",
+        "Every app-defined Runtime Context dispatch uses an object containing both `type` and `data`, including the app-defined background teardown message.",
+        "The initial tree is created with Element PAPI on the main thread. Omitting `__FlushElementTree()` from the initial render path is sufficient evidence of SDK-managed initial flushing and does not require an accompanying explanation. Later UI mutations are followed by `__FlushElementTree()`.",
+        "Long-lived runtime or node listeners are cleaned up during teardown."
+      ],
+      "files": []
+    },
+    {
+      "id": 10,
+      "name": "lynxml-dynamic-transform-geometry",
+      "prompt": "请写一个 build-free .lynxml 交互骨架：一个可见目标在首次渲染后通过 transform 移动，点击位置需要与目标保持一致，并适配不同屏幕尺寸。说明布局盒、初始 transform、更新 flush 和坐标计算约束。",
+      "expected_output": "A complete `.lynxml` interaction whose moving target has valid initial geometry, updates transform on the main thread, flushes the later mutation, and keeps hit testing in the same responsive coordinate space as the rendered target.",
+      "expectations": [
+        "The answer is a complete `.lynxml` with a direct-child style block, a required main script, and all source blocks and the lowercase `lynx` root closed.",
+        "The transformed visible target, or the stage that owns it, has a non-zero layout box before the first render.",
+        "The target has an initial transform before the first flush rather than acquiring transform state only during the first interaction.",
+        "Later transform mutation stays on the main thread and is followed by `__FlushElementTree()`.",
+        "Responsive interaction geometry uses the same coordinate space as the rendered target and does not assume one hard-coded device center."
+      ],
+      "files": []
+    },
+    {
+      "id": 11,
+      "name": "build-free-interactive-image-card",
+      "prompt": "请写一个完整 build-free .lynxml 图片选项卡：点击 Element PAPI 按钮时切换现有 Image 的 src，用 dataset 标识当前选项，Image 上方有不应拦截点击的装饰层。不要 ReactLynx、JSX 或构建配置。",
+      "expected_output": "A complete `.lynxml` interaction that uses the runtime tap event, valid dataset calls, a passive overlay, flicker-free image source changes, later main-thread flushing, and matching cleanup.",
+      "expectations": [
+        "The answer is one complete `.lynxml` document with the canonical root and closed style, main-script, and root blocks; every referenced lifecycle or node-event handler is declared.",
+        "The button listener uses the runtime event name `tap`, not markup binding names such as `bindtap` or `catchtap`, and supplies all four Element PAPI listener arguments.",
+        "Listener cleanup reuses the corresponding node, event name, handler, and options.",
+        "Dataset writes use `__SetDataset(element, datasetObject)` or `__AddDataset(element, key, value)` rather than a key/value form of `__SetDataset`.",
+        "The Image receives `defer-src-invalidation` before its initial `src`, and later logic avoids assigning the same source redundantly.",
+        "The passive overlay does not intercept the button. Lynx CSS `pointer-events: none` is the expected current solution; an equivalent hit-testing mechanism supported by the explicitly targeted Lynx version is acceptable. `user-interaction-enabled` is not emitted as a CSS property.",
+        "The later image-source mutation stays on the main thread and is followed by `__FlushElementTree()`."
+      ],
+      "files": []
+    },
+    {
+      "id": 12,
+      "name": "lynxml-background-external-bundle-build-and-load",
+      "prompt": "我想给 build-free .lynxml 配一个独立的纯 TypeScript background-thread .lynx.bundle：用 rslib 构建，再从 background script 通过 lynx.fetchBundle 和 lynx.loadScript 加载。如果结果会影响 UI，完整流程应该怎么写？",
+      "expected_output": "A correct background-only external-bundle build and loading flow for plain TypeScript or JavaScript, including the Rslib layer configuration, fetch/load relationship, asynchronous export use, and main-thread UI handoff. Equivalent code organization is acceptable.",
+      "expectations": [
+        "The external module is plain TypeScript or JavaScript and does not depend on ReactLynx, JSX, or ReactLynx transforms.",
+        "The Rslib setup uses `defineExternalBundleRslibConfig` or an equivalent supported configuration and targets the background layer, including the required layer exposure where applicable.",
+        "The source entry key and the first `lynx.loadScript` argument refer to the same exported entry. Examples and exact wording are optional.",
+        "Fetching and loading happen on the background thread with an absolute bundle URL that the target device can reach and that returns bundle bytes; placeholder domains are not presented as runnable defaults. Success/error handling is present, and the fetched bundle URL is supplied to `loadScript` as needed.",
+        "Loaded exports are used after asynchronous loading completes rather than before they are available.",
+        "Results that affect UI are sent as serializable data to the main thread, which performs Element PAPI mutation and flushing."
+      ],
+      "files": []
+    },
+    {
+      "id": 13,
+      "name": "choose-vanilla-lynx-output-format",
+      "prompt": "请用 Vanilla Lynx 和 Element PAPI 写一个完整可运行的待办页面，直接给我成品，不要 ReactLynx 或 JSX。",
+      "expected_output": "A concise clarification that presents build-free single-file `.lynxml` and an Rspeedy project or build output as peer choices, because the complete authoring request does not contain enough delivery or build information to select one without guessing.",
+      "expectations": [
+        "The response does not silently choose `.lynxml` or Rspeedy from generic words such as page, app, card, or project.",
+        "The response asks one concise clarification between a build-free, directly loadable single-file `.lynxml` artifact and an Rspeedy project or build workflow.",
+        "The distinction is tied to delivery or build needs rather than presenting one format as the default or fallback.",
+        "The response does not generate either complete deliverable or both complete deliverables before the user chooses a format.",
+        "The response does not introduce ReactLynx, JSX, Canvas, or WebGL."
       ],
       "files": []
     }

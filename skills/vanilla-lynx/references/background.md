@@ -1,6 +1,6 @@
 # Background Thread Reference
 
-Add a `background.ts` entry when a Vanilla Lynx app needs to handle heavier work. The background thread responds to messages from the main thread, owns background state, and runs tasks such as async requests, timers, native calls, data processing, or other business logic.
+Add background-thread source when a Vanilla Lynx app needs to handle heavier work: `<script thread="background">` for `.lynxml` or `background.ts` for Rspeedy. The background thread responds to messages from the main thread, owns background state, and runs tasks such as async requests, timers, native calls, data processing, or other business logic.
 
 Read `event.md` for `lynx.getJSContext()`, `lynx.getCoreContext()`, and event environment APIs.
 
@@ -18,11 +18,11 @@ Read `event.md` for `lynx.getJSContext()`, `lynx.getCoreContext()`, and event en
 - Merge main-thread data into background-owned state.
 - Run heavier tasks requested by the main thread.
 - Keep background-owned app state.
-- Dispatch serializable patches back to the main thread so `main-thread.ts` can update and flush the UI.
+- Dispatch serializable patches back to the main-thread script so it can update and flush the UI.
 - Never call Element PAPI APIs or `__FlushElementTree()` from the background thread.
 - Clean up listeners when the destroy lifecycle arrives.
 
-Simple UI updates do not need a background thread; keep them in `main-thread.ts`.
+Simple UI updates do not need a background thread; keep them in the main-thread source.
 
 ## Listen for Messages dispatched from Main Thread
 
@@ -30,6 +30,7 @@ Call `setupBackground()` once at module startup. Use `const mainThread = lynx.ge
 
 ```javascript
 const mainThread = lynx.getCoreContext();
+const backgroundDestroyEventName = "BackgroundDestroy";
 const backgroundListeners = [];
 
 function addBackgroundListener(name, handler) {
@@ -58,7 +59,7 @@ function setupBackground() {
     handleBackgroundTask(payload.handlerName, payload.data);
   });
 
-  addBackgroundListener("__DestroyLifetime", () => {
+  addBackgroundListener(backgroundDestroyEventName, () => {
     clearBackgroundListeners();
   });
 }
@@ -112,7 +113,7 @@ function updateDataFromMainThread(nextData) {
 
 ## Handle Background Tasks
 
-Handle task requests by `handlerName`. Unknown task names should return without mutating state. Keep async requests, timers, native calls, data processing, and other heavier business logic here instead of in `main-thread.ts`.
+Handle task requests by `handlerName`. Unknown task names should return without mutating state. Keep async requests, timers, native calls, data processing, and other heavier business logic here instead of in the main-thread script.
 
 ```javascript
 function handleBackgroundTask(handlerName, taskData) {

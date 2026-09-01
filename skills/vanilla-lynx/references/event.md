@@ -15,12 +15,12 @@ Use this reference to choose the correct Vanilla Lynx event target and event nam
 
 The behavior of a context getter depends on the thread that calls it:
 
-| Runtime script   | Context getter          | Event behavior                                |
-| ---------------- | ----------------------- | --------------------------------------------- |
-| `main-thread.ts` | `lynx.getCoreContext()` | Main-thread local event loop                  |
-| `main-thread.ts` | `lynx.getJSContext()`   | Cross-thread endpoint connected to background |
-| `background.ts`  | `lynx.getJSContext()`   | Background-thread local event loop            |
-| `background.ts`  | `lynx.getCoreContext()` | Cross-thread endpoint connected to main       |
+| Runtime script | Context getter          | Event behavior                                |
+| -------------- | ----------------------- | --------------------------------------------- |
+| main           | `lynx.getCoreContext()` | Main-thread local event loop                  |
+| main           | `lynx.getJSContext()`   | Cross-thread endpoint connected to background |
+| background     | `lynx.getJSContext()`   | Background-thread local event loop            |
+| background     | `lynx.getCoreContext()` | Cross-thread endpoint connected to main       |
 
 Always identify a context by both its runtime script and getter. The getter name alone does not
 determine whether the context is local or cross-thread: main-thread `getCoreContext()` and
@@ -31,22 +31,25 @@ Use `lynx.getEngine()` only for engine-defined lifecycle events. Never use it fo
 thread-local or cross-thread events. For those events, store the appropriate context from the table
 and reuse that same object for `dispatchEvent`, `addEventListener`, and `removeEventListener`.
 
+Dispatch app-defined events with the exact object shape `{ type, data }`, and read the payload from `event.data`. The `data` property is required even when there is no payload; use an empty object so the message remains JSON-compatible.
+
 ## Cross-Thread Events
 
 The context endpoints are paired across threads. An event dispatched through one endpoint is received through the other endpoint:
 
-| Direction         | Dispatch from sender                     | Listen and clean up in receiver          |
-| ----------------- | ---------------------------------------- | ---------------------------------------- |
-| Main → Background | `main-thread.ts`: `lynx.getJSContext()`  | `background.ts`: `lynx.getCoreContext()` |
-| Background → Main | `background.ts`: `lynx.getCoreContext()` | `main-thread.ts`: `lynx.getJSContext()`  |
+| Direction         | Dispatch from sender                | Listen and clean up in receiver     |
+| ----------------- | ----------------------------------- | ----------------------------------- |
+| Main → Background | main: `lynx.getJSContext()`         | background: `lynx.getCoreContext()` |
+| Background → Main | background: `lynx.getCoreContext()` | main: `lynx.getJSContext()`         |
 
 The same stored cross-thread bridge in each script handles both directions. When answering, show
 both runnable dispatch paths and both matching listener paths; a direction table or commented-out
 dispatch is not sufficient.
 
 ```javascript
-// main-thread.ts
+// Main-thread source
 const destroyLifetimeEventName = "__DestroyLifetime";
+const backgroundDestroyEventName = "BackgroundDestroy";
 const eventToBackgroundName = "EventToBackground";
 const eventToMainName = "EventToMain";
 
@@ -65,7 +68,10 @@ function handleEventFromBackground(event) {
 }
 
 function handleDestroyLifetime() {
-  backgroundThreadBridge.dispatchEvent({ type: destroyLifetimeEventName });
+  backgroundThreadBridge.dispatchEvent({
+    type: backgroundDestroyEventName,
+    data: {},
+  });
   backgroundThreadBridge.removeEventListener(
     eventToMainName,
     handleEventFromBackground,
@@ -83,8 +89,8 @@ dispatchEventToBackground({ task: "computeSummary", values: [1, 2, 3] });
 ```
 
 ```javascript
-// background.ts
-const destroyLifetimeEventName = "__DestroyLifetime";
+// Background-thread source
+const backgroundDestroyEventName = "BackgroundDestroy";
 const eventToBackgroundName = "EventToBackground";
 const eventToMainName = "EventToMain";
 
@@ -108,14 +114,14 @@ function handleDestroyLifetime() {
     handleEventFromMain,
   );
   mainThreadBridge.removeEventListener(
-    destroyLifetimeEventName,
+    backgroundDestroyEventName,
     handleDestroyLifetime,
   );
 }
 
 mainThreadBridge.addEventListener(eventToBackgroundName, handleEventFromMain);
 mainThreadBridge.addEventListener(
-  destroyLifetimeEventName,
+  backgroundDestroyEventName,
   handleDestroyLifetime,
 );
 ```
@@ -123,13 +129,10 @@ mainThreadBridge.addEventListener(
 - Store one cross-thread bridge per script and reuse it for both dispatching and listener
   management: main-thread `backgroundThreadBridge` comes from `lynx.getJSContext()`, while
   background-thread `mainThreadBridge` comes from `lynx.getCoreContext()`.
-- Pair `main-thread.ts`'s `lynx.getJSContext()` endpoint with `background.ts`'s `lynx.getCoreContext()` endpoint.
+- Pair the main script's `lynx.getJSContext()` endpoint with the background script's `lynx.getCoreContext()` endpoint.
 - Never register a long-lived or cross-thread listener with an inline callback; it cannot be removed with the same handler reference.
 - Add and remove a listener with the same event name and handler reference.
-- Bind cleanup to `__DestroyLifetime`: the main thread listens through `lynx.getEngine()`, forwards
-  destroy to the background endpoint, and removes its listeners; the background removes its
-  listeners when that forwarded event arrives. Do not present an unregistered `cleanup()` function
-  as completed teardown.
+- Bind cleanup to `__DestroyLifetime` on `lynx.getEngine()`. The main thread dispatches a separate app-defined destroy event such as `BackgroundDestroy` to the background endpoint, then removes its listeners; the background removes its listeners when that app event arrives. Do not reuse an Engine lifecycle name as the cross-thread protocol or present an unregistered `cleanup()` function as completed teardown.
 - Explicitly state that every cross-thread payload must be small and serializable. Use
   JSON-compatible primitives, arrays, and plain objects; never send functions or Element PAPI node
   handles.
@@ -144,7 +147,7 @@ Do not use `lynx.getEngine()` for either local event loop. On the main thread, r
 Main-thread local event:
 
 ```javascript
-// main-thread.ts
+// Main-thread source
 const localContext = lynx.getCoreContext();
 
 function handleLocalEvent(event) {
@@ -164,7 +167,7 @@ Background-thread local event:
 On the background thread, reuse one `lynx.getJSContext()` result for all three event operations:
 
 ```javascript
-// background.ts
+// Background-thread source
 const localContext = lynx.getJSContext();
 
 function handleLocalEvent(event) {
@@ -179,7 +182,7 @@ localContext.dispatchEvent({
 localContext.removeEventListener("BackgroundLocalEvent", handleLocalEvent);
 ```
 
-In particular, `lynx.getCoreContext()` in `main-thread.ts` is a self-loop and does not reach `background.ts`. Use the paired cross-thread contexts when the receiver is on the other thread.
+In particular, `lynx.getCoreContext()` in the main script is a self-loop and does not reach the background script. Use the paired cross-thread contexts when the receiver is on the other thread.
 
 ## Lifecycle Event Names
 
@@ -189,7 +192,7 @@ The following names are engine-defined and must not be customized:
 | ------------------- | ---------------------- | ------------------------------------------------------------------- |
 | `__RenderPage`      | Initial render payload | Process the payload and create the Element PAPI tree                |
 | `__UpdatePage`      | Later update payload   | Apply the update and call `__FlushElementTree()`                    |
-| `__DestroyLifetime` | LynxView teardown      | Remove listeners and forward destroy to the background when present |
+| `__DestroyLifetime` | LynxView teardown      | Remove listeners and dispatch an app-defined destroy event to the background when present |
 
 Lifecycle handlers may use the event payload when the page depends on engine-provided data, but
 they may ignore it when the implementation does not need that data. An empty `__UpdatePage`
@@ -204,6 +207,7 @@ The examples use these app-defined names. An app may rename them, but both runti
 | `UpdateDataFromMainThread`  | Main → background | Forward processed Engine render or update data                |
 | `DispatchEventToBackground` | Main → background | Request heavier app-level work from a UI event                |
 | `PatchFromBackground`       | Background → main | Return a serializable state patch for a main-thread UI update |
+| `BackgroundDestroy`         | Main → background | Ask the background script to release its listeners and state  |
 
 The main thread owns every Element PAPI mutation and UI flush. The background thread owns heavier work and sends patches instead of mutating UI.
 
