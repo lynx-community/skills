@@ -119,6 +119,10 @@ Do not use these APIs in main-thread examples or apps:
 
 Do not use `__AddEvent` to bind UI events. Use `__AddEventListener` and pair it with matching `__RemoveEventListener` cleanup.
 
+Element PAPI listeners use runtime event names such as `"tap"`. `bindtap` and
+`catchtap` are template or JSX attribute names, not values to pass to
+`__AddEventListener`.
+
 ## Build the Tree
 
 Create the page root once, then create and append child nodes. Keep node
@@ -159,6 +163,17 @@ const image = __CreateImage(pageId);
 __SetClasses(image, "hero-image");
 __SetAttribute(image, "src", "https://example.com/image.png");
 __AppendElement(container, image);
+```
+
+When an existing image will switch sources, set
+`defer-src-invalidation` before its initial `src`. This keeps the current
+resource visible until the replacement loads. Skip a later `src` assignment
+when the value is unchanged; static images do not need this attribute.
+
+```javascript
+const changingImage = __CreateImage(pageId);
+__SetAttribute(changingImage, "defer-src-invalidation", true);
+__SetAttribute(changingImage, "src", initialSource);
 ```
 
 ## Bind Element Events

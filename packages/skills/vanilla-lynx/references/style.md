@@ -6,6 +6,7 @@ Use this reference when writing or reviewing styles for a Vanilla Lynx app. Trea
 
 - Apply classes with `__SetClasses()` or `__AddClass()`. Reserve `__SetInlineStyles()` for runtime-computed values; browser DOM and CSSOM style APIs are unavailable.
 - Encode state, hierarchy, and item position in explicit class names so styles never depend on structural selectors.
+- Treat `user-interaction-enabled` as an element attribute, not a CSS property. For a passive overlay, call `__SetAttribute(node, "user-interaction-enabled", "false")`; do not emit `user-interaction-enabled` or browser `pointer-events` through CSS or `__SetInlineStyles()`.
 
 ## Strict Authoring Rules
 

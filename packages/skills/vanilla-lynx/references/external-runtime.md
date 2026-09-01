@@ -29,9 +29,10 @@ function loadUtils(onLoaded) {
 }
 ```
 
-Use an absolute URL. Pass `response.url` as `bundleName` because it is the URL registered by the
-runtime after download and decoding. Use the loaded exports inside the callback because `fetchBundle`
-is asynchronous.
+The `example.com` URL is a placeholder, not a runnable default. Replace it with an absolute URL that
+the target device can reach and that returns bundle bytes. Pass `response.url` as `bundleName`
+because it is the URL registered by the runtime after download and decoding. Use the loaded exports
+inside the callback because `fetchBundle` is asynchronous.
 
 The background thread can load the exports, call them only after loading completes, and send a
 serializable result to the main thread:

@@ -83,9 +83,23 @@
         "The external module is plain TypeScript or JavaScript and does not depend on ReactLynx, JSX, or ReactLynx transforms.",
         "The Rslib setup uses `defineExternalBundleRslibConfig` or an equivalent supported configuration and targets the background layer, including the required layer exposure where applicable.",
         "The source entry key and the first `lynx.loadScript` argument refer to the same exported entry. Examples and exact wording are optional.",
-        "Fetching and loading happen on the background thread with a valid bundle URL, success/error handling, and the fetched bundle URL supplied to `loadScript` as needed.",
+        "Fetching and loading happen on the background thread with an absolute bundle URL that the target device can reach and that returns bundle bytes; placeholder domains are not presented as runnable defaults. Success/error handling is present, and the fetched bundle URL is supplied to `loadScript` as needed.",
         "Loaded exports are used after asynchronous loading completes rather than before they are available.",
         "Results that affect UI are sent as serializable data to the main thread, which performs Element PAPI mutation and flushing."
+      ],
+      "files": []
+    },
+    {
+      "id": 7,
+      "name": "main-thread-interaction-and-image-updates",
+      "prompt": "请用 Rspeedy Vanilla Lynx 的 main-thread.ts 写一个图片选项卡：点击 Element PAPI 按钮时切换现有 Image 的 src，Image 上方有不应拦截点击的装饰层。只给关键主线程代码和必要样式约束，不要 JSX。",
+      "expected_output": "A main-thread Element PAPI interaction that uses the runtime tap event, keeps the passive overlay out of hit testing, avoids image flicker while changing sources, flushes later mutations, and cleans up the listener.",
+      "expectations": [
+        "The button listener uses the runtime event name `tap`, not the template or JSX attributes `bindtap` or `catchtap`, and supplies all four Element PAPI listener arguments.",
+        "Listener cleanup reuses the corresponding node, event name, handler, and options.",
+        "The Image receives `defer-src-invalidation` before its initial `src`, and later logic avoids assigning the same source redundantly.",
+        "The passive overlay uses the `user-interaction-enabled` element attribute rather than a CSS `user-interaction-enabled` or browser `pointer-events` declaration.",
+        "The later image-source mutation stays on the main thread and is followed by `__FlushElementTree()`."
       ],
       "files": []
     }
