@@ -1,6 +1,6 @@
 # Vanilla Lynx Rspeedy Project
 
-Use this reference only when the user explicitly requests Rspeedy, a build step, or a compiled app bundle. Define the project structure with Rspeedy and `@lynx-js/vanilla-rsbuild-plugin`; do not select this path for an ordinary Vanilla Lynx authoring request.
+Use this reference after Rspeedy is selected as the output format. It owns the project scaffold and build workflow using Rspeedy and `@lynx-js/vanilla-rsbuild-plugin`.
 
 The plugin builds the main-thread JavaScript, optional background JavaScript, and CSS into the final Lynx artifact.
 

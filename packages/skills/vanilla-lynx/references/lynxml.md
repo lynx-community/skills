@@ -1,6 +1,6 @@
 # Lynx XML Artifact
 
-Use this reference to author or review the single-file `.lynxml` envelope. Runtime behavior remains owned by the focused references linked below; do not duplicate their Element PAPI, event, styling, or external-bundle rules here.
+Use this reference after build-free `.lynxml` is selected as the output format. It owns the single-file document envelope and source-block assembly. Runtime behavior remains owned by the focused references linked below; do not duplicate their Element PAPI, event, styling, or external-bundle rules here.
 
 ## Minimal Document
 

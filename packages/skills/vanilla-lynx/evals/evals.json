@@ -179,6 +179,20 @@
         "Results that affect UI are sent as serializable data to the main thread, which performs Element PAPI mutation and flushing."
       ],
       "files": []
+    },
+    {
+      "id": 13,
+      "name": "choose-vanilla-lynx-output-format",
+      "prompt": "请用 Vanilla Lynx 和 Element PAPI 写一个完整可运行的待办页面，直接给我成品，不要 ReactLynx 或 JSX。",
+      "expected_output": "A concise clarification that presents build-free single-file `.lynxml` and an Rspeedy project or build output as peer choices, because the complete authoring request does not contain enough delivery or build information to select one without guessing.",
+      "expectations": [
+        "The response does not silently choose `.lynxml` or Rspeedy from generic words such as page, app, card, or project.",
+        "The response asks one concise clarification between a build-free, directly loadable single-file `.lynxml` artifact and an Rspeedy project or build workflow.",
+        "The distinction is tied to delivery or build needs rather than presenting one format as the default or fallback.",
+        "The response does not generate either complete deliverable or both complete deliverables before the user chooses a format.",
+        "The response does not introduce ReactLynx, JSX, Canvas, or WebGL."
+      ],
+      "files": []
     }
   ]
 }

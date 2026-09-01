@@ -1,17 +1,24 @@
 ---
 name: vanilla-lynx
 description: |
-  Use when the requested outcome is Vanilla Lynx source authoring or source-level guidance that calls Element PAPI directly rather than ReactLynx or JSX. Default complete authoring requests to a build-free `.lynxml` artifact when no format or build system is specified; support an Rspeedy project or app bundle only when the user explicitly requests Rspeedy or a build step. Covers the XML envelope, Rspeedy scaffold, main-thread UI and lifecycle code, optional background communication, styling, locally serving generated XML, and plain TypeScript background external bundles. Do not trigger merely because a query mentions Lynx, Vanilla Lynx, Element PAPI, XML, Rspeedy, or a `.lynx.bundle`. Excludes Canvas or WebGL, general element or CSS API questions without a Vanilla source-authoring outcome, operating or debugging an already reachable artifact or URL on a device, production bundle diagnosis, ReactLynx, Element PAPI JSON mode, HTML, and unrelated XML.
+  Use when the requested outcome is Vanilla Lynx source authoring or source-level guidance that calls Element PAPI directly rather than ReactLynx or JSX. Supports two peer output formats: a build-free single-file `.lynxml` artifact and an Rspeedy project or app bundle. Choose from the user's delivery and build requirements; ask which format they want when a complete authoring request does not distinguish them. Covers the XML envelope, Rspeedy scaffold, main-thread UI and lifecycle code, optional background communication, styling, locally serving generated XML, and plain TypeScript background external bundles. Do not trigger merely because a query mentions Lynx, Vanilla Lynx, Element PAPI, XML, Rspeedy, or a `.lynx.bundle`. Excludes Canvas or WebGL, general element or CSS API questions without a Vanilla source-authoring outcome, operating or debugging an already reachable artifact or URL on a device, production bundle diagnosis, ReactLynx, Element PAPI JSON mode, HTML, and unrelated XML.
 ---
 
 # Author Vanilla Lynx with Element PAPI
 
-Use this skill to author Vanilla Lynx directly with Element PAPI and Lynx Runtime APIs, without ReactLynx or JSX. Prefer a complete single-file `.lynxml`; use Rspeedy only when the request explicitly requires it.
+Use this skill to author Vanilla Lynx directly with Element PAPI and Lynx Runtime APIs, without ReactLynx or JSX. Treat build-free `.lynxml` and Rspeedy as peer output formats.
+
+## Choose the Output Format
+
+- Choose `.lynxml` when the user asks for a single file, build-free or directly loadable output, or explicitly says not to add a build step.
+- Choose Rspeedy when the user asks for Rspeedy, a project scaffold or build configuration, or an app bundle produced by a build.
+- Generic words such as app, page, card, or project do not select a format by themselves. If a complete authoring request lacks a distinguishing delivery or build requirement, or gives conflicting format signals, ask one concise clarification before generating the deliverable. Do not generate both complete formats unless the user requests both.
+- For a focused source-level question or snippet request, answer the requested scope without forcing an output-format decision.
 
 ## Core Rules
 
 - Do not use ReactLynx, JSX, virtual DOM, or browser DOM APIs.
-- For a complete authoring request that does not specify a format or build system, deliver the complete `.lynxml` document. For a focused source-level question or snippet request, answer the requested scope. Never return only an example asset or reference path.
+- For a complete authoring request, deliver a complete artifact in the selected format. Never return only an example asset or reference path.
 - Keep Element PAPI tree creation, mutation, lifecycle rendering, and UI updates in the main-thread source: `<script thread="main">` for `.lynxml` or `main-thread.ts` for Rspeedy. Never call Element PAPI APIs or `__FlushElementTree()` from the background-thread source; it only sends serializable patches for the main thread to apply and flush.
 - Rely on the SDK flush for initial render; call `__FlushElementTree()` after later UI mutations.
 - Add background-thread source only for heavier business logic, async work, timers, native calls, or data processing. Keep cross-thread payloads serializable.
@@ -26,7 +33,7 @@ than replacing them with generic guidance.
 | Task                                                              | Read                              |
 | ----------------------------------------------------------------- | --------------------------------- |
 | Author, assemble, or review a complete `.lynxml` document         | `references/lynxml.md`            |
-| Create a Vanilla Lynx project explicitly built with Rspeedy       | `references/rspeedy-project.md`   |
+| Author or review a complete Rspeedy project or build workflow     | `references/rspeedy-project.md`   |
 | Build the main-thread Element PAPI tree or update UI              | `references/main-thread.md`       |
 | Choose runtime event APIs or wire lifecycle events                | `references/event.md`             |
 | Implement heavier logic in the background script                 | `references/background.md`        |

@@ -2,7 +2,8 @@
 "@lynx-js/skill-vanilla-lynx": minor
 ---
 
-Make a build-free, single-file `.lynxml` document the default Vanilla Lynx
-authoring target while retaining Rspeedy for explicit build requests. Add
-complete non-Canvas XML examples and clarify runtime event, image-update,
-styling, and external-bundle contracts.
+Add build-free, single-file `.lynxml` as a peer Vanilla Lynx output format
+alongside Rspeedy projects and build output. Select between them from delivery
+and build requirements instead of silently defaulting. Add complete non-Canvas
+XML examples and clarify runtime event, image-update, styling, and
+external-bundle contracts.

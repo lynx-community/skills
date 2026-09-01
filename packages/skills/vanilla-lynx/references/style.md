@@ -7,7 +7,7 @@ Use this reference when writing or reviewing Vanilla Lynx styles, either a `.lyn
 - Apply classes with `__SetClasses()` or `__AddClass()`. Reserve `__SetInlineStyles()` for runtime-computed values; browser DOM and CSSOM style APIs are unavailable.
 - Encode state, hierarchy, and item position in explicit class names so styles never depend on structural selectors.
 - For a build-free `.lynxml` targeting Lynx 3.5 or newer, use `pointer-events: none` for a passive overlay and `pointer-events: auto` to restore hit testing.
-- For the explicit Rspeedy compatibility path, set `__SetAttribute(node, "user-interaction-enabled", false)` in the main-thread source instead. `user-interaction-enabled` is an Element attribute with a boolean value, never a CSS property.
+- For the Rspeedy output format, set `__SetAttribute(node, "user-interaction-enabled", false)` in the main-thread source instead. `user-interaction-enabled` is an Element attribute with a boolean value, never a CSS property.
 
 ## Strict Authoring Rules
 
