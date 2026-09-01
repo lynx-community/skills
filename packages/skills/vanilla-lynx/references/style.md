@@ -1,12 +1,12 @@
 # Vanilla Lynx Style Reference
 
-Use this reference when writing or reviewing styles for a Vanilla Lynx app. Treat the rules below as a strict authoring surface, not as a catalog of everything the Lynx parser may accept.
+Use this reference when writing or reviewing the `<style>` block of a `.lynxml` artifact. Treat the rules below as a strict authoring surface, not as a catalog of everything the Lynx parser may accept: an unknown property can make `.lynxml` decoding fail rather than merely dropping the declaration.
 
 ## Runtime Style Application
 
 - Apply classes with `__SetClasses()` or `__AddClass()`. Reserve `__SetInlineStyles()` for runtime-computed values; browser DOM and CSSOM style APIs are unavailable.
 - Encode state, hierarchy, and item position in explicit class names so styles never depend on structural selectors.
-- Treat `user-interaction-enabled` as an element attribute, not a CSS property. For a passive overlay, call `__SetAttribute(node, "user-interaction-enabled", "false")`; do not emit `user-interaction-enabled` or browser `pointer-events` through CSS or `__SetInlineStyles()`.
+- Use `pointer-events: none` for passive overlays that must not receive touch events. Use `pointer-events: auto` to restore hit testing. Do not invent a `user-interaction-enabled` CSS property.
 
 ## Strict Authoring Rules
 
@@ -27,7 +27,11 @@ Use this reference when writing or reviewing styles for a Vanilla Lynx app. Trea
 
 Web can collapse adjacent vertical margins instead of adding them. Lynx never collapses margins, so copied Web margins can add together and cause offset errors.
 
-When migrating, prefer `position: relative` with `left` and `top` for visual offsets, or `padding` for spacing that should affect normal layout. Relative offsets do not reserve extra layout space, so check for overlap.
+For normal-flow spacing, prefer a container `gap`, margin on only one side of adjacent siblings, or parent padding. Use `position: relative` with `left` or `top` only for an intentional visual offset: it does not reserve space at the rendered position and can overlap nearby content.
+
+## Runtime Transform Geometry
+
+A node whose `transform` changes after the initial render must already have a non-zero layout box and an initial transform before the first flush. Animate the visible box or a non-zero stage rather than a zero-size positioning wrapper. Keep gesture calculations in the same responsive coordinate space as the rendered target; do not combine a percentage-positioned visual center with coordinates hard-coded for one device size.
 
 ## CSS Property Allowlist
 
@@ -36,7 +40,7 @@ Emit only the properties below. This allowlist is an upper bound: a listed prope
 ```text
 display, position, top, right, bottom, left,
 width, height, min-width, min-height, max-width, max-height,
-box-sizing, overflow, visibility, opacity,
+box-sizing, overflow, visibility, opacity, pointer-events,
 flex, flex-grow, flex-shrink, flex-basis, flex-direction, flex-wrap,
 align-items, align-self, align-content, justify-content, gap,
 margin, margin-top, margin-right, margin-bottom, margin-left,

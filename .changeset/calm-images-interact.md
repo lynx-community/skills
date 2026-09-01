@@ -1,6 +1,8 @@
 ---
-"@lynx-js/skill-vanilla-lynx": patch
+"@lynx-js/skill-vanilla-lynx": minor
 ---
 
-Document runtime event names, passive interaction attributes, flicker-free
-image source changes, and device-reachable external bundle URLs.
+Make a build-free, single-file `.lynxml` document the Vanilla Lynx authoring
+target instead of an Rspeedy app scaffold. Add complete non-Canvas XML
+examples and clarify runtime event, image-update, styling, and external-bundle
+contracts.

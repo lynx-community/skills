@@ -1,6 +1,6 @@
 # Load a background-thread external bundle
 
-Load a bundle built by [`external-build.md`](external-build.md) from `background.ts`. Keep
+Load a bundle built by [`external-build.md`](external-build.md) from `<script thread="background">`. Keep
 `fetchBundle`, `loadScript`, and the loaded exports on the background thread.
 
 ## Background loader
@@ -38,7 +38,7 @@ The background thread can load the exports, call them only after loading complet
 serializable result to the main thread:
 
 ```js
-// background.ts
+// <script thread="background">
 const mainThread = lynx.getCoreContext();
 
 loadUtils(function(utils) {
@@ -54,7 +54,7 @@ Receive that result through the paired main-thread bridge. Keep Element PAPI mut
 on the main thread:
 
 ```js
-// main-thread.ts
+// <script thread="main">
 const engine = lynx.getEngine();
 const backgroundThread = lynx.getJSContext();
 
