@@ -1,19 +1,27 @@
 ---
 name: vanilla-lynx
 description: |
-  Use only when the requested outcome is source code or source-level guidance for an Rspeedy-built Vanilla Lynx app that calls Element PAPI directly, never ReactLynx or JSX. Covers project scaffolding, main-thread UI and lifecycle code, background communication, styling, and plain TypeScript background external bundles loaded by that app. Do not trigger merely because a query mentions Lynx, Vanilla Lynx, Element PAPI, Rspeedy, or a `.lynx.bundle`. Excludes general element or CSS API questions that do not require Vanilla source authoring, operating or debugging an already built bundle or URL on a device, production bundle size or mangling diagnosis, ReactLynx, Element PAPI JSON mode, and any output not built by Rspeedy.
+  Use when the requested outcome is Vanilla Lynx source authoring or source-level guidance that calls Element PAPI directly rather than ReactLynx or JSX. Supports two peer output formats: a build-free single-file `.lynxml` artifact and an Rspeedy project or app bundle. Choose from the user's delivery and build requirements; ask which format they want when a complete authoring request does not distinguish them. Covers the XML envelope, Rspeedy scaffold, main-thread UI and lifecycle code, optional background communication, styling, locally serving generated XML, and plain TypeScript background external bundles. Do not trigger merely because a query mentions Lynx, Vanilla Lynx, Element PAPI, XML, Rspeedy, or a `.lynx.bundle`. Excludes Canvas or WebGL, general element or CSS API questions without a Vanilla source-authoring outcome, operating or debugging an already reachable artifact or URL on a device, production bundle diagnosis, ReactLynx, Element PAPI JSON mode, HTML, and unrelated XML.
 ---
 
-# Build Vanilla Lynx Apps
+# Author Vanilla Lynx with Element PAPI
 
-Use this skill to build Lynx apps directly with Element PAPI and Lynx Runtime APIs, without ReactLynx or JSX.
+Use this skill to author Vanilla Lynx directly with Element PAPI and Lynx Runtime APIs, without ReactLynx or JSX. Treat build-free `.lynxml` and Rspeedy as peer output formats.
+
+## Choose the Output Format
+
+- Choose `.lynxml` when the user asks for a single file, build-free or directly loadable output, or explicitly says not to add a build step.
+- Choose Rspeedy when the user asks for Rspeedy, a project scaffold or build configuration, or an app bundle produced by a build.
+- Generic words such as app, page, card, or project do not select a format by themselves. If a complete authoring request lacks a distinguishing delivery or build requirement, or gives conflicting format signals, ask one concise clarification before generating the deliverable. Do not generate both complete formats unless the user requests both.
+- For a focused source-level question or snippet request, answer the requested scope without forcing an output-format decision.
 
 ## Core Rules
 
-- Do not use ReactLynx, JSX, virtual DOM, or browser DOM APIs unless explicitly requested.
-- Keep Element PAPI tree creation, mutation, lifecycle rendering, and UI updates in `main-thread.ts`. Never call Element PAPI APIs or `__FlushElementTree()` from `background.ts`; the background thread only sends serializable patches for the main thread to apply and flush.
+- Do not use ReactLynx, JSX, virtual DOM, or browser DOM APIs.
+- For a complete authoring request, deliver a complete artifact in the selected format. Never return only an example asset or reference path.
+- Keep Element PAPI tree creation, mutation, lifecycle rendering, and UI updates in the main-thread source: `<script thread="main">` for `.lynxml` or `main-thread.ts` for Rspeedy. Never call Element PAPI APIs or `__FlushElementTree()` from the background-thread source; it only sends serializable patches for the main thread to apply and flush.
 - Rely on the SDK flush for initial render; call `__FlushElementTree()` after later UI mutations.
-- Add `background.ts` only for heavier business logic, async work, timers, native calls, or data processing. Keep cross-thread payloads serializable.
+- Add background-thread source only for heavier business logic, async work, timers, native calls, or data processing. Keep cross-thread payloads serializable.
 - Use `lynx.getEngine()` only for engine-defined lifecycle events such as `__RenderPage`, `__UpdatePage`, and `__DestroyLifetime`; never use it for app-defined thread-local or cross-thread events. Lifecycle handlers may ignore their event payload when the implementation does not need it. Keep stable handler references for long-lived and cross-thread listeners; remove them with the same context and event name during destroy instead of registering inline callbacks.
 - Keep external bundle building and loading separate and background-only. External modules must be plain TypeScript or JavaScript; never use ReactLynx, JSX, or ReactLynx transforms in them. Match the rslib entry key to the first `loadScript` argument.
 
@@ -22,19 +30,17 @@ Use this skill to build Lynx apps directly with Element PAPI and Lynx Runtime AP
 Read only the reference files needed for the current task. Preserve their explicit constraints rather
 than replacing them with generic guidance.
 
-| Task                                                             | Read                             |
-| ---------------------------------------------------------------- | -------------------------------- |
-| Create a Vanilla Lynx project built with Rspeedy                 | `references/rspeedy-project.md`  |
-| Build the main-thread Element PAPI tree or update UI             | `references/main-thread.md`      |
-| Choose runtime event APIs or wire lifecycle events               | `references/event.md`            |
-| Implement heavier logic on the background thread                 | `references/background.md`       |
-| Author or review CSS using Lynx styling and layout rules         | `references/style.md`            |
-| Build background-thread code into an external bundle with rslib  | `references/external-build.md`   |
-| Load or call a background-thread external bundle in Vanilla Lynx | `references/external-runtime.md` |
+| Task                                                              | Read                              |
+| ----------------------------------------------------------------- | --------------------------------- |
+| Author, assemble, or review a complete `.lynxml` document         | `references/lynxml.md`            |
+| Author or review a complete Rspeedy project or build workflow     | `references/rspeedy-project.md`   |
+| Build the main-thread Element PAPI tree or update UI              | `references/main-thread.md`       |
+| Choose runtime event APIs or wire lifecycle events                | `references/event.md`             |
+| Implement heavier logic in the background script                 | `references/background.md`        |
+| Author or review CSS using Lynx styling and layout rules          | `references/style.md`             |
+| Build background-thread code into an external bundle with rslib   | `references/external-build.md`    |
+| Load or call a background-thread external bundle at runtime       | `references/external-runtime.md`  |
 
 ## Runtime Validation
 
-When the user asks to run, inspect, debug, or validate a built artifact on a device, use the
-`lynx-devtool` skill. It owns client discovery, opening an already reachable artifact URL, runtime
-inspection, console logs, screenshots, and interactions. Do not duplicate that workflow here or
-present `agent-lynx` as an artifact builder or server.
+For a generated `.lynxml`, run `npx http-server .` from the directory containing the unchanged artifact and use an address printed by that server that the target device can reach. For an Rspeedy project, use its configured build and development-server workflow rather than a generic static server. Then use the `lynx-devtool` skill for client discovery, opening the reachable URL, runtime inspection, console logs, screenshots, and interactions. Do not duplicate device-debugging workflow here or present `agent-lynx` as an artifact builder or server.

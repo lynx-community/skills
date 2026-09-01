@@ -1,6 +1,6 @@
 # Main Thread Rendering Reference
 
-Use this reference when writing a `main-thread.ts` entry. The main-thread script owns Element PAPI tree creation, node mutation, lifecycle rendering, and UI flushes.
+Use this reference when writing main-thread source: `<script thread="main">` for `.lynxml` or `main-thread.ts` for Rspeedy. The main-thread source owns Element PAPI tree creation, node mutation, lifecycle rendering, and UI flushes.
 
 Read `event.md` for `lynx.getEngine()` and event environment APIs. If the page needs a background thread, read [`background.md`](background.md).
 
@@ -35,7 +35,7 @@ Treat `ElementRef` as an opaque main-thread handle. Never read or write its prop
 
 ### Create APIs
 
-Create the page root with the fixed call `__CreatePage("0", 0)`. Then obtain `pageId` from `__GetElementUniqueID(page)` and pass it as the first argument to `__CreateView`, `__CreateScrollView`, `__CreateText`, and `__CreateImage`. `__CreateRawText` takes visible text instead.
+Create the page root with the fixed call `__CreatePage("0", 0)`. Then obtain `pageId` from `__GetElementUniqueID(page)` and pass it as the first argument to `__CreateView`, `__CreateScrollView`, `__CreateText`, and `__CreateImage`. Do not inline `__CreatePage` inside `__GetElementUniqueID`; retain the Page so it can own every top-level UI node. `__CreateRawText` takes visible text instead.
 
 | API                                                | Parameters                                                                     | Use                                                       |
 | -------------------------------------------------- | ------------------------------------------------------------------------------ | --------------------------------------------------------- |
@@ -53,6 +53,14 @@ Create the page root with the fixed call `__CreatePage("0", 0)`. Then obtain `pa
 | `__AppendElement(parent: ElementRef, child: ElementRef)`                                                                                     | `parent` receives the node; `child` is the node to append.                                        | Attach a child node.                               |
 | `__ReplaceElements(parent: ElementRef, inserted: ElementRef \| ElementRef[] \| undefined, removed: ElementRef \| ElementRef[] \| undefined)` | `parent` owns the range; `inserted` and `removed` each accept one node, an array, or `undefined`. | Replace child nodes during updates.                |
 | `__GetChildren(parent: ElementRef)`                                                                                                          | `parent` is the node whose direct children are requested.                                         | Inspect child nodes before replacement or cleanup. |
+
+For portable subtree replacement, pass node arrays and read the current children from the parent:
+
+```javascript
+__ReplaceElements(parent, [nextChild], __GetChildren(parent));
+```
+
+Use `__AppendElement` for the first child when the parent is still empty.
 
 ### Element ID APIs
 
@@ -121,8 +129,7 @@ Do not use `__AddEvent` to bind UI events. Use `__AddEventListener` and pair it 
 
 ## Build the Tree
 
-Create the page root once, then create and append child nodes. Keep node
-references that need later updates in module scope.
+Create the page root once, then create and append child nodes. Append every top-level UI node to that retained Page, and keep node references that need later updates in module scope.
 
 ### Vertically Scrollable Container
 
@@ -161,9 +168,25 @@ __SetAttribute(image, "src", "https://example.com/image.png");
 __AppendElement(container, image);
 ```
 
+Raw-text nodes are immutable content leaves. Create them only as direct children of a Text node; retain the Text parent and replace its children for later text updates.
+
+When an existing image will switch sources, set
+`defer-src-invalidation` before its initial `src`. This keeps the current
+resource visible until the replacement loads. Skip a later `src` assignment
+when the value is unchanged; static images do not need this attribute.
+
+```javascript
+const changingImage = __CreateImage(pageId);
+__SetAttribute(changingImage, "defer-src-invalidation", true);
+__SetAttribute(changingImage, "src", initialSource);
+```
+
 ## Bind Element Events
 
-Element PAPI node events must always be bound and removed on the main thread. `background.ts` never receives an `ElementRef` and never calls `__AddEventListener` or `__RemoveEventListener`.
+Element PAPI node events must always be bound and removed on the main thread. Background-thread source never receives an `ElementRef` and never calls `__AddEventListener` or `__RemoveEventListener`.
+
+Pass runtime event names such as `"tap"` to `__AddEventListener`. Markup binding
+names such as `bindtap` and `catchtap` are not Element PAPI event names.
 
 ### Main-Thread Node Events
 
@@ -225,7 +248,7 @@ bindMainThreadEvent(
 
 ### Background-Thread Event Dispatch
 
-When a node event needs heavier business logic, async work, timers, or native calls, keep the Element PAPI listener on the main thread and dispatch a small, serializable task through the cross-thread bridge. Never send a function or `ElementRef`. The helper below uses `dispatchEventToBackground` from [Background-Driven Update](#background-driven-update); `background.ts` receives the task as described in [`background.md`](background.md).
+When a node event needs heavier business logic, async work, timers, or native calls, keep the Element PAPI listener on the main thread and dispatch a small, serializable task through the cross-thread bridge. Never send a function or `ElementRef`. The helper below uses `dispatchEventToBackground` from [Background-Driven Update](#background-driven-update); the background script receives the task as described in [`background.md`](background.md).
 
 ```javascript
 function bindBackgroundEvent(node, name, handlerName, data) {
@@ -261,13 +284,16 @@ const updatePageEventName = "__UpdatePage";
 const destroyLifetimeEventName = "__DestroyLifetime";
 
 Object.assign(globalThis, {
-  processData: () => {},
+  processData(data) {
+    return data;
+  },
 });
 
 const engine = lynx.getEngine();
 
 let currentState = {};
 let valueText;
+let rendered = false;
 
 function normalizeData(data) {
   return {
@@ -296,6 +322,8 @@ function renderPage(data) {
 }
 
 function onRenderPage(event) {
+  if (rendered) return;
+  rendered = true;
   const [data] = event.data;
   renderPage(normalizeData(data));
 }
@@ -343,12 +371,13 @@ For complex tasks that need a background thread, read [`background.md`](backgrou
 
 The event names below mirror [`background.md`](background.md) for the example only. Real apps can choose their own shared event names.
 
-In `main-thread.ts`, use `const backgroundThread = lynx.getJSContext()` so the cross-thread target is explicit, then reuse it for both directions: dispatch events to background and add or remove listeners for events sent back from background. The background counterpart similarly uses `const mainThread = lynx.getCoreContext()`.
+In the main-thread script, use `const backgroundThread = lynx.getJSContext()` so the cross-thread target is explicit, then reuse it for both directions: dispatch events to background and add or remove listeners for events sent back from background. The background counterpart similarly uses `const mainThread = lynx.getCoreContext()`.
 
 ```javascript
 const patchFromBackgroundEventName = "PatchFromBackground";
 const updateDataFromMainThreadEventName = "UpdateDataFromMainThread";
 const dispatchEventToBackgroundEventName = "DispatchEventToBackground";
+const backgroundDestroyEventName = "BackgroundDestroy";
 
 const backgroundThread = lynx.getJSContext();
 
@@ -390,8 +419,8 @@ function onBackgroundPatch(event) {
 
 function cleanupBackgroundBridge() {
   backgroundThread.dispatchEvent({
-    type: destroyLifetimeEventName,
-    data: undefined,
+    type: backgroundDestroyEventName,
+    data: {},
   });
   backgroundThread.removeEventListener(
     patchFromBackgroundEventName,
@@ -409,7 +438,7 @@ engine.addEventListener(destroyLifetimeEventName, cleanupBackgroundBridge);
 dispatchEventToBackground("computeSummary", [{ value: 3 }, { value: 4 }]);
 ```
 
-Call `dispatchDataToBackground(processedData)` after processing Engine render or update data. Forward `__DestroyLifetime` before removing the bridge so `background.ts` can release its listeners.
+Call `dispatchDataToBackground(processedData)` after processing Engine render or update data. Dispatch the app-defined `BackgroundDestroy` event before removing the bridge so the background script can release its listeners; keep `__DestroyLifetime` reserved for the Engine lifecycle.
 
 ## Lifecycle Cleanup
 

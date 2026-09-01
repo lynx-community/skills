@@ -66,5 +66,29 @@
   {
     "query": "我要使用 Element PAPI 的 JSON mode，生成不经过 Rspeedy bundle、可被 Lynx 直接消费的 JSON 页面描述，应该怎么配置？",
     "should_trigger": false
+  },
+  {
+    "query": "请写一个 Lynx 可以直接加载的单文件 .lynxml 页面，不用 ReactLynx、JSX 或构建步骤，UI 由 Element PAPI 创建。",
+    "should_trigger": true
+  },
+  {
+    "query": "我有 Vanilla Lynx 的 main thread、background thread 和 CSS 源码，想组合成一个完整 .lynxml，source blocks 应该怎样组织？",
+    "should_trigger": true
+  },
+  {
+    "query": "怎么在本地启动静态服务，让 Lynx Host 或真机通过 URL 访问我刚生成的 .lynxml 文件？",
+    "should_trigger": true
+  },
+  {
+    "query": "Vanilla Lynx 里怎样用 lynx.createCanvasNG 和 attachToCanvasView 实现 Canvas 2D 绘制？",
+    "should_trigger": false
+  },
+  {
+    "query": "帮我写一个浏览器直接打开的 HTML 页面。",
+    "should_trigger": false
+  },
+  {
+    "query": "普通业务 XML 的 schema、namespace 和 XPath 应该怎么设计？",
+    "should_trigger": false
   }
 ]
