@@ -5,7 +5,7 @@ background thread. When answering, state both constraints explicitly: external m
 plain TypeScript or JavaScript, and they must not use ReactLynx or JSX. Do not rely on “plain TS/JS”
 to imply the ReactLynx and JSX prohibition.
 
-Keep Element PAPI, UI code, and CSS out of this bundle. Load the result from `<script thread="background">` with the
+Keep Element PAPI, UI code, and CSS out of this bundle. Load the result from background-thread source with the
 paired `fetchBundle` and `loadScript` flow in
 [`external-runtime.md`](external-runtime.md).
 

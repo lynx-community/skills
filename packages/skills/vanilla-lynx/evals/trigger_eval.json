@@ -1,51 +1,35 @@
 [
   {
-    "query": "不用 ReactLynx，直接用 Element PAPI 写一个 Vanilla Lynx 计数器，点击按钮后数字加一。",
+    "query": "我想用 Vanilla Lynx，不用 ReactLynx 或 JSX，直接用 Element PAPI 写一个原生 Lynx app。",
     "should_trigger": true
   },
   {
-    "query": "请写一个 Lynx 可以直接加载的单文件 .lynxml 页面，不用 ReactLynx、JSX 或构建步骤，UI 由 Element PAPI 创建。",
+    "query": "请搭一个能由 Rspeedy 生成原生的 Vanilla Lynx 项目，包含 main-thread.ts、可选 background.ts 和 style.css。",
     "should_trigger": true
   },
   {
-    "query": "我有 Vanilla Lynx 的 main thread、background thread 和 CSS 源码，想组合成一个完整 .lynxml，source blocks 应该怎样组织？",
+    "query": "Vanilla Lynx 里，__CreatePage、__CreateView、__CreateText 和 __AppendElement 应该怎样组织页面树，并在后续更新后 flush？",
     "should_trigger": true
   },
   {
-    "query": "在 .lynxml 的 main script 中，__CreatePage、__CreateView、__CreateText 和 __AppendElement 应该怎样组织页面树，并在后续更新后 flush？",
+    "query": "Vanilla Lynx 的 main-thread.ts 怎么监听 __RenderPage、__UpdatePage 和 __DestroyLifetime？",
     "should_trigger": true
   },
   {
-    "query": "build-free .lynxml 的 main script 怎么监听 __RenderPage、__UpdatePage 和 __DestroyLifetime？",
+    "query": "Vanilla Lynx 双线程数据同步里，后台线程怎么执行更新并把 patch 发回 main thread 更新 UI？",
     "should_trigger": true
   },
   {
-    "query": "单文件 .lynxml 的双线程数据同步中，background script 怎么执行重计算并把 patch 发回 main script 更新 UI？",
+    "query": "Vanilla Lynx 主线程里用 __CreateView 创建节点后，运行时应该怎样通过 Element PAPI 应用 class 和动态样式？",
     "should_trigger": true
   },
   {
-    "query": "给 .lynxml 的 style block 写布局时有哪些 Lynx CSS 规则，main script 又怎样通过 Element PAPI 应用 class？",
+    "query": "给 Vanilla Lynx 使用的纯 TypeScript 工具库，怎么用 rslib 构建成 background-only 的 external .lynx.bundle？",
     "should_trigger": true
   },
   {
-    "query": "给 build-free .lynxml 使用的纯 TypeScript 工具库，怎么用 rslib 构建成 background-only external .lynx.bundle？",
+    "query": "Vanilla Lynx 的后台线程怎么配套使用 lynx.fetchBundle 和 lynx.loadScript，并把 external 方法的结果发回主线程影响 UI？",
     "should_trigger": true
-  },
-  {
-    "query": "build-free .lynxml 的 background script 怎么使用 lynx.fetchBundle 和 lynx.loadScript，并把 external 方法结果发回 main script？",
-    "should_trigger": true
-  },
-  {
-    "query": "怎么在本地启动静态服务，让 Lynx Host 或真机通过 URL 访问我刚生成的 .lynxml 文件？",
-    "should_trigger": true
-  },
-  {
-    "query": "请搭一个使用 @lynx-js/vanilla-rsbuild-plugin 的 Rspeedy Vanilla Lynx 项目，包含 main-thread.ts、background.ts 和 style.css。",
-    "should_trigger": false
-  },
-  {
-    "query": "Vanilla Lynx 里怎样用 lynx.createCanvasNG 和 attachToCanvasView 实现 Canvas 2D 绘制？",
-    "should_trigger": false
   },
   {
     "query": "ReactLynx 组件里 useLayoutEffect 为什么不适合做布局测量？",
@@ -60,7 +44,11 @@
     "should_trigger": false
   },
   {
-    "query": "我已经有可访问的 Vanilla Lynx URL，想用 agent-lynx 在真机打开、截图并查看 console 日志。",
+    "query": "Lynx DevTool 怎么连接真机并查看 console 日志？",
+    "should_trigger": false
+  },
+  {
+    "query": "我已经有可访问的 Vanilla Lynx .bundle URL，想用 agent-lynx 在真机打开、截图并查看 console 日志验证产物。",
     "should_trigger": false
   },
   {
@@ -68,15 +56,31 @@
     "should_trigger": false
   },
   {
-    "query": "我只想诊断现有 Rspeedy production bundle：产物体积异常增大且变量没有被 mangle。",
+    "query": "我只想诊断现有 Rspeedy production bundle：产物体积异常增大且变量没有被 mangle，请分析原因，不需要修改页面代码。",
     "should_trigger": false
   },
   {
-    "query": "ReactLynx external bundle 加载时报 ReactJSXRuntime is undefined，应该怎样排查构建产物？",
+    "query": "ReactLynx external bundle 加载时报 ReactJSXRuntime 是 undefined，应该怎样排查构建产物？",
     "should_trigger": false
   },
   {
-    "query": "我要使用 Element PAPI JSON mode，生成可被 Lynx 直接消费的 JSON 页面描述，应该怎么配置？",
+    "query": "我要使用 Element PAPI 的 JSON mode，生成不经过 Rspeedy bundle、可被 Lynx 直接消费的 JSON 页面描述，应该怎么配置？",
+    "should_trigger": false
+  },
+  {
+    "query": "请写一个 Lynx 可以直接加载的单文件 .lynxml 页面，不用 ReactLynx、JSX 或构建步骤，UI 由 Element PAPI 创建。",
+    "should_trigger": true
+  },
+  {
+    "query": "我有 Vanilla Lynx 的 main thread、background thread 和 CSS 源码，想组合成一个完整 .lynxml，source blocks 应该怎样组织？",
+    "should_trigger": true
+  },
+  {
+    "query": "怎么在本地启动静态服务，让 Lynx Host 或真机通过 URL 访问我刚生成的 .lynxml 文件？",
+    "should_trigger": true
+  },
+  {
+    "query": "Vanilla Lynx 里怎样用 lynx.createCanvasNG 和 attachToCanvasView 实现 Canvas 2D 绘制？",
     "should_trigger": false
   },
   {

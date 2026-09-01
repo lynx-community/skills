@@ -31,7 +31,7 @@ Use `lynx.getEngine()` only for engine-defined lifecycle events. Never use it fo
 thread-local or cross-thread events. For those events, store the appropriate context from the table
 and reuse that same object for `dispatchEvent`, `addEventListener`, and `removeEventListener`.
 
-Dispatch app-defined events with the exact object shape `{ type, data }`, and read the payload from `event.data`. The `data` property is required even when there is no payload; use `data: undefined` or an empty object.
+Dispatch app-defined events with the exact object shape `{ type, data }`, and read the payload from `event.data`. The `data` property is required even when there is no payload; use an empty object so the message remains JSON-compatible.
 
 ## Cross-Thread Events
 
@@ -47,7 +47,7 @@ both runnable dispatch paths and both matching listener paths; a direction table
 dispatch is not sufficient.
 
 ```javascript
-// <script thread="main">
+// Main-thread source
 const destroyLifetimeEventName = "__DestroyLifetime";
 const backgroundDestroyEventName = "BackgroundDestroy";
 const eventToBackgroundName = "EventToBackground";
@@ -70,7 +70,7 @@ function handleEventFromBackground(event) {
 function handleDestroyLifetime() {
   backgroundThreadBridge.dispatchEvent({
     type: backgroundDestroyEventName,
-    data: undefined,
+    data: {},
   });
   backgroundThreadBridge.removeEventListener(
     eventToMainName,
@@ -89,7 +89,7 @@ dispatchEventToBackground({ task: "computeSummary", values: [1, 2, 3] });
 ```
 
 ```javascript
-// <script thread="background">
+// Background-thread source
 const backgroundDestroyEventName = "BackgroundDestroy";
 const eventToBackgroundName = "EventToBackground";
 const eventToMainName = "EventToMain";
@@ -147,7 +147,7 @@ Do not use `lynx.getEngine()` for either local event loop. On the main thread, r
 Main-thread local event:
 
 ```javascript
-// <script thread="main">
+// Main-thread source
 const localContext = lynx.getCoreContext();
 
 function handleLocalEvent(event) {
@@ -167,7 +167,7 @@ Background-thread local event:
 On the background thread, reuse one `lynx.getJSContext()` result for all three event operations:
 
 ```javascript
-// <script thread="background">
+// Background-thread source
 const localContext = lynx.getJSContext();
 
 function handleLocalEvent(event) {

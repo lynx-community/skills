@@ -1,6 +1,6 @@
 # Main Thread Rendering Reference
 
-Use this reference when writing the contents of `<script thread="main">`. The main-thread script owns Element PAPI tree creation, node mutation, lifecycle rendering, and UI flushes.
+Use this reference when writing main-thread source: `<script thread="main">` for `.lynxml` or `main-thread.ts` for Rspeedy. The main-thread source owns Element PAPI tree creation, node mutation, lifecycle rendering, and UI flushes.
 
 Read `event.md` for `lynx.getEngine()` and event environment APIs. If the page needs a background thread, read [`background.md`](background.md).
 
@@ -183,7 +183,7 @@ __SetAttribute(changingImage, "src", initialSource);
 
 ## Bind Element Events
 
-Element PAPI node events must always be bound and removed on the main thread. `<script thread="background">` never receives an `ElementRef` and never calls `__AddEventListener` or `__RemoveEventListener`.
+Element PAPI node events must always be bound and removed on the main thread. Background-thread source never receives an `ElementRef` and never calls `__AddEventListener` or `__RemoveEventListener`.
 
 Pass runtime event names such as `"tap"` to `__AddEventListener`. Markup binding
 names such as `bindtap` and `catchtap` are not Element PAPI event names.
@@ -420,7 +420,7 @@ function onBackgroundPatch(event) {
 function cleanupBackgroundBridge() {
   backgroundThread.dispatchEvent({
     type: backgroundDestroyEventName,
-    data: undefined,
+    data: {},
   });
   backgroundThread.removeEventListener(
     patchFromBackgroundEventName,

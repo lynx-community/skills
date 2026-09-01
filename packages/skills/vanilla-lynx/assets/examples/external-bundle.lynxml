@@ -121,7 +121,7 @@ function renderPage() {
 function cleanup() {
   backgroundThread.dispatchEvent({
     type: backgroundDestroyEventName,
-    data: undefined,
+    data: {},
   });
   backgroundThread.removeEventListener(bundleResultEventName, onBundleResult);
   if (button) {

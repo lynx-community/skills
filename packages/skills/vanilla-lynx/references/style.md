@@ -1,12 +1,13 @@
 # Vanilla Lynx Style Reference
 
-Use this reference when writing or reviewing the `<style>` block of a `.lynxml` artifact. Treat the rules below as a strict authoring surface, not as a catalog of everything the Lynx parser may accept: an unknown property can make `.lynxml` decoding fail rather than merely dropping the declaration.
+Use this reference when writing or reviewing Vanilla Lynx styles, either a `.lynxml` `<style>` block or an Rspeedy `style.css`. Treat the rules below as a strict authoring surface, not as a catalog of everything the Lynx parser may accept: in `.lynxml`, an unknown property can make decoding fail rather than merely dropping the declaration.
 
 ## Runtime Style Application
 
 - Apply classes with `__SetClasses()` or `__AddClass()`. Reserve `__SetInlineStyles()` for runtime-computed values; browser DOM and CSSOM style APIs are unavailable.
 - Encode state, hierarchy, and item position in explicit class names so styles never depend on structural selectors.
-- Use `pointer-events: none` for passive overlays that must not receive touch events. Use `pointer-events: auto` to restore hit testing. Do not invent a `user-interaction-enabled` CSS property.
+- For a build-free `.lynxml` targeting Lynx 3.5 or newer, use `pointer-events: none` for a passive overlay and `pointer-events: auto` to restore hit testing.
+- For the explicit Rspeedy compatibility path, set `__SetAttribute(node, "user-interaction-enabled", false)` in the main-thread source instead. `user-interaction-enabled` is an Element attribute with a boolean value, never a CSS property.
 
 ## Strict Authoring Rules
 

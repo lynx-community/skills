@@ -1,6 +1,6 @@
 # Background Thread Reference
 
-Add `<script thread="background">` when a `.lynxml` artifact needs to handle heavier work. The background thread responds to messages from the main thread, owns background state, and runs tasks such as async requests, timers, native calls, data processing, or other business logic.
+Add background-thread source when a Vanilla Lynx app needs to handle heavier work: `<script thread="background">` for `.lynxml` or `background.ts` for Rspeedy. The background thread responds to messages from the main thread, owns background state, and runs tasks such as async requests, timers, native calls, data processing, or other business logic.
 
 Read `event.md` for `lynx.getJSContext()`, `lynx.getCoreContext()`, and event environment APIs.
 
@@ -22,7 +22,7 @@ Read `event.md` for `lynx.getJSContext()`, `lynx.getCoreContext()`, and event en
 - Never call Element PAPI APIs or `__FlushElementTree()` from the background thread.
 - Clean up listeners when the destroy lifecycle arrives.
 
-Simple UI updates do not need a background thread; keep them in `<script thread="main">`.
+Simple UI updates do not need a background thread; keep them in the main-thread source.
 
 ## Listen for Messages dispatched from Main Thread
 
