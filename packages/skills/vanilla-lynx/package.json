@@ -1,6 +1,6 @@
 {
   "name": "@lynx-js/skill-vanilla-lynx",
-  "version": "0.1.6",
+  "version": "0.2.0",
   "description": "Author Vanilla Lynx as build-free XML or Rspeedy projects with Element PAPI.",
   "repository": {
     "url": "https://github.com/lynx-community/skills"
