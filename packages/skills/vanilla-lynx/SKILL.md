@@ -1,7 +1,7 @@
 ---
 name: vanilla-lynx
 description: |
-  Author, review, or explain Vanilla Lynx source that uses Element PAPI directly. Applies to build-free `.lynxml` artifacts and Rspeedy projects or bundles, with related build and serving workflows. Excludes ReactLynx/JSX, Canvas/WebGL, standalone Lynx API/CSS support lookups, debugging already reachable artifacts on a device, production bundle analysis, and Element PAPI JSON mode.
+  Author, review, or explain Vanilla Lynx source that directly uses Element PAPI, delivered as a build-free `.lynxml` artifact or an Rspeedy project, including related build and serving workflows. Excludes ReactLynx, Canvas/WebGL, standalone API/CSS lookups, device-side runtime debugging, and bundle analysis.
 ---
 
 # Author Vanilla Lynx with Element PAPI
