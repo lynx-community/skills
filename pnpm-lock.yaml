@@ -27,6 +27,9 @@ importers:
 
   .:
     dependencies:
+      '@lynx-js/ai-plugin-lynx':
+        specifier: workspace:*
+        version: link:packages/plugins/lynx
       '@lynx-js/ai-plugin-lynx-debug':
         specifier: workspace:*
         version: link:packages/plugins/lynx-debug
@@ -262,6 +265,49 @@ importers:
         specifier: ^3.25.76
         version: 3.25.76
 
+  packages/plugins/lynx:
+    dependencies:
+      '@lynx-js/skill-lynx-api-docs':
+        specifier: workspace:*
+        version: link:../../skills/lynx-api-docs
+      '@lynx-js/skill-lynx-debug-info-remapping':
+        specifier: workspace:*
+        version: link:../../skills/lynx-debug-info-remapping
+      '@lynx-js/skill-lynx-devtool':
+        specifier: workspace:*
+        version: link:../../skills/lynx-devtool
+      '@lynx-js/skill-lynx-trace-analysis':
+        specifier: 0.0.6
+        version: 0.0.6
+      '@lynx-js/skill-lynx-trace-record':
+        specifier: 0.0.3
+        version: 0.0.3
+      '@lynx-js/skill-lynx-typescript':
+        specifier: workspace:*
+        version: link:../../skills/lynx-typescript
+      '@lynx-js/skill-lynx-ui':
+        specifier: 3.133.4
+        version: 3.133.4
+      '@lynx-js/skill-reactlynx-best-practices':
+        specifier: workspace:*
+        version: link:../../skills/reactlynx-best-practices
+      '@lynx-js/skill-rspeedy-bundle-size':
+        specifier: workspace:*
+        version: link:../../skills/rspeedy-bundle-size
+    devDependencies:
+      '@rslib/core':
+        specifier: catalog:rstack
+        version: 0.23.0(@microsoft/api-extractor@7.56.2(@types/node@24.13.2))(core-js@3.49.0)(typescript@5.9.3)
+      '@types/node':
+        specifier: '24'
+        version: 24.13.2
+      build-plugin:
+        specifier: workspace:*
+        version: link:../../cmd/build-plugin
+      commander:
+        specifier: '14'
+        version: 14.0.3
+
   packages/plugins/lynx-debug:
     dependencies:
       '@lynx-js/skill-lynx-debug-info-remapping':
@@ -271,6 +317,18 @@ importers:
       build-plugin:
         specifier: workspace:*
         version: link:../../cmd/build-plugin
+
+  packages/plugins/opencode-lynx:
+    dependencies:
+      '@lynx-js/ai-plugin-lynx':
+        specifier: workspace:*
+        version: link:../lynx
+
+  packages/plugins/pi-lynx:
+    dependencies:
+      '@lynx-js/ai-plugin-lynx':
+        specifier: workspace:*
+        version: link:../lynx
 
   packages/plugins/reactlynx:
     dependencies:

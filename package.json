@@ -36,6 +36,7 @@
     "package.json": "sort-package-json"
   },
   "dependencies": {
+    "@lynx-js/ai-plugin-lynx": "workspace:*",
     "@lynx-js/ai-plugin-lynx-debug": "workspace:*",
     "@lynx-js/ai-plugin-reactlynx": "workspace:*",
     "@lynx-js/skill-habitat-usage": "workspace:*",
