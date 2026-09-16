@@ -1,0 +1,17 @@
+{
+  "$schema": "https://turborepo.dev/schema.json",
+  "extends": ["//"],
+  "tasks": {
+    "build": {
+      "dependsOn": [],
+      "env": [],
+      "inputs": [
+        "main.ts",
+        "package.json",
+        "tsconfig.json",
+        "$TURBO_ROOT$/tsconfig.json"
+      ],
+      "outputs": ["dist/**"]
+    }
+  }
+}

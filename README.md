@@ -14,6 +14,10 @@ A collection of [Agent skills](https://agentskills.io/) for [Lynx](https://lynxj
 - [lynx-typescript](./packages/skills/lynx-typescript): Configure and fix common Lynx TypeScript issues around environment setup, events, components, and ReactLynx.
 - [lynx-ui](https://www.npmjs.com/package/@lynx-js/skill-lynx-ui): Use lynx-ui component references for component selection, props, examples, and usage troubleshooting.
 
+## MCP Servers
+
+- [docs-mcp-server](https://github.com/lynx-community/skills/tree/main/packages/mcp-servers/docs-mcp-server): Provide Lynx documentation resources to coding agents. Run with `npx -y @lynx-js/docs-mcp-server@latest`.
+
 ## Installation
 
 ```bash
