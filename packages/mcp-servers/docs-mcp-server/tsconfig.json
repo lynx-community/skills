@@ -1,0 +1,14 @@
+{
+  "extends": "../../../tsconfig.json",
+  "compilerOptions": {
+    "module": "Node16",
+    "moduleResolution": "Node16",
+    "target": "ES2022",
+    "allowImportingTsExtensions": false,
+    "isolatedDeclarations": false,
+    "emitDeclarationOnly": false,
+    "types": ["node"],
+    "outDir": "dist"
+  },
+  "include": ["main.ts"]
+}
