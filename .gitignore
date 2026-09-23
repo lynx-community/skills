@@ -155,8 +155,10 @@ packages/skills/*/public
 packages/plugins/*/skills
 packages/plugins/*/scripts
 packages/plugins/*/.claude-plugin
+packages/plugins/*/.codex-plugin
 
 /.claude-plugin
+/.agents/plugins/
 
 /plugins/
 /skills/
