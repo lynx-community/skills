@@ -69,5 +69,5 @@
     "typescript-eslint": "^8.55.0",
     "yaml": "^2.8.2"
   },
-  "packageManager": "pnpm@10.18.2"
+  "packageManager": "pnpm@10.34.5"
 }
