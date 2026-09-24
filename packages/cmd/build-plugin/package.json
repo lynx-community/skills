@@ -24,7 +24,7 @@
   "devDependencies": {
     "@types/node": "24",
     "@rslib/core": "catalog:rstack",
-    "commander": "14"
+    "commander": "14.0.3"
   },
   "engines": {
     "node": ">=18"

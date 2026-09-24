@@ -17,7 +17,7 @@
     "@types/node": "24",
     "@rslib/core": "catalog:rstack",
     "build-plugin": "workspace:*",
-    "commander": "14",
+    "commander": "14.0.3",
     "zx": "8.8.5"
   },
   "engines": {
