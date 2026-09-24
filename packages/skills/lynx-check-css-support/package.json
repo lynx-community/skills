@@ -17,7 +17,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@lynx-js/css-defines": "0.0.16"
+    "@lynx-js/css-defines": "0.0.18"
   },
   "devDependencies": {
     "@rslib/core": "catalog:rstack",
