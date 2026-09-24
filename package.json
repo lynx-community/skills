@@ -55,7 +55,7 @@
   },
   "devDependencies": {
     "@biomejs/biome": "2.3.8",
-    "@changesets/cli": "^2.29.8",
+    "@changesets/cli": "^2.31.1",
     "build-marketplace": "workspace:*",
     "build-plugin": "workspace:*",
     "eslint": "^9.39.2",
