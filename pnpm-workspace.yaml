@@ -14,7 +14,7 @@ catalogs:
     '@rspack/core': 2.1.0
     '@rstest/core': 0.10.6
   adb:
-    '@yume-chan/adb': ^2.6.0
+    '@yume-chan/adb': ^2.6.4
     '@yume-chan/adb-server-node-tcp': ^2.5.2
     '@yume-chan/stream-extra': ^2.6.1
 
