@@ -54,7 +54,7 @@
     "@lynx-js/skill-vanilla-lynx": "workspace:*"
   },
   "devDependencies": {
-    "@biomejs/biome": "2.3.8",
+    "@biomejs/biome": "2.5.14",
     "@changesets/cli": "^2.29.8",
     "build-marketplace": "workspace:*",
     "build-plugin": "workspace:*",
