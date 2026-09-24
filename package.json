@@ -64,7 +64,7 @@
     "husky": "^9.1.7",
     "lint-staged": "^16.2.3",
     "pkg-pr-new": "^0.0.87",
-    "sort-package-json": "^3.4.0",
+    "sort-package-json": "^3.7.1",
     "turbo": "^2.7.5",
     "typescript-eslint": "^8.55.0",
     "yaml": "^2.8.2"
