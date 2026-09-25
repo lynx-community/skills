@@ -21,7 +21,7 @@
     "test": "rstest"
   },
   "devDependencies": {
-    "@microsoft/api-extractor": "^7.56.2",
+    "@microsoft/api-extractor": "^7.59.2",
     "@rslib/core": "catalog:rstack",
     "@rstest/adapter-rslib": "^0.10.6",
     "@rstest/core": "catalog:rstack",
