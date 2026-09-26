@@ -35,7 +35,7 @@
     "@lynx-js/devtool-connector": "workspace:*"
   },
   "devDependencies": {
-    "@modelcontextprotocol/sdk": "^1.25.2",
+    "@modelcontextprotocol/sdk": "^1.30.1",
     "@rslib/core": "catalog:rstack",
     "core-js": "^3.49.0",
     "obug": "^2.1.3",
