@@ -11,7 +11,7 @@ catalogs:
   rstack:
     '@rslib/core': 0.23.0
     '@rsbuild/core': 2.1.0
-    '@rspack/core': 2.1.0
+    '@rspack/core': 2.2.7
     '@rstest/core': 0.10.6
   adb:
     '@yume-chan/adb': ^2.6.0
