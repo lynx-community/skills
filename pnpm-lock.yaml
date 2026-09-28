@@ -51,6 +51,9 @@ importers:
       '@lynx-js/skill-lynx-devtool':
         specifier: workspace:*
         version: link:packages/skills/lynx-devtool
+      '@lynx-js/skill-lynx-tasm-codec':
+        specifier: workspace:*
+        version: link:packages/skills/lynx-tasm-codec
       '@lynx-js/skill-lynx-openui':
         specifier: 0.0.1
         version: 0.0.1
@@ -377,6 +380,8 @@ importers:
         version: 5.9.3
 
   packages/skills/lynx-devtool: {}
+
+  packages/skills/lynx-tasm-codec: {}
 
   packages/skills/lynx-typescript: {}
 
