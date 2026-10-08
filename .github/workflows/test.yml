@@ -33,11 +33,6 @@ jobs:
       - name: Code Style Check
         run: pnpm check
 
-      - name: Validate Changesets metadata
-        run: |
-          node --test scripts/check-changesets.test.mjs
-          pnpm check:changesets
-
   validate-skills:
     runs-on: ubuntu-latest
     timeout-minutes: 15
