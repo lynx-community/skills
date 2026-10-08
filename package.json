@@ -16,7 +16,6 @@
   "scripts": {
     "build": "build-marketplace && node ./export-skills.mjs",
     "check": "biome check && eslint .",
-    "check:changesets": "node scripts/check-changesets.mjs",
     "eval:skill:check": "node scripts/skill-eval/check_evals.mjs",
     "eval:skill:check:all": "node scripts/skill-eval/check_evals.mjs --all",
     "eval:skill:comment-report": "node scripts/skill-eval/build_comment_report.mjs",
@@ -57,7 +56,6 @@
   "devDependencies": {
     "@biomejs/biome": "2.3.8",
     "@changesets/cli": "^2.29.8",
-    "@changesets/get-release-plan": "4.0.14",
     "build-marketplace": "workspace:*",
     "build-plugin": "workspace:*",
     "eslint": "^9.39.2",
