@@ -3,9 +3,12 @@
 // LICENSE file in the root directory of this source tree.
 
 import { spawn } from 'node:child_process';
-import { mkdtemp, readFile, writeFile } from 'node:fs/promises';
+import { mkdtemp, readFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import { Readable } from 'node:stream';
+import { pipeline } from 'node:stream/promises';
+import { extract } from 'tar';
 
 import { WasmEngine } from '../dist/index.js';
 
@@ -15,14 +18,18 @@ function skip(msg) {
   process.exit(0);
 }
 
-async function download(url, outPath) {
+async function downloadBundle(url, cwd) {
   const res = await fetch(url);
-  if (!res.ok)
+  if (!res.ok || !res.body)
     throw new Error(
       `Failed to download ${url}: ${res.status} ${res.statusText}`,
     );
-  const buf = new Uint8Array(await res.arrayBuffer());
-  await writeFile(outPath, buf);
+  await pipeline(
+    Readable.fromWeb(res.body),
+    extract({ cwd, strip: 2, strict: true }, [
+      'package/dist/GalleryComplete.lynx.bundle',
+    ]),
+  );
 }
 
 function spawnWait(cmd, args) {
@@ -46,10 +53,10 @@ async function main() {
   const bundlePath = join(dir, 'GalleryComplete.lynx.bundle');
   const tracePath = join(dir, 'GalleryComplete.ptrace');
 
-  // 1) Download test bundle
-  await download(
-    'https://unpkg.com/@lynx-example/gallery@0.6.7/dist/GalleryComplete.lynx.bundle',
-    bundlePath,
+  // 1) Download the npm package and extract only the test bundle
+  await downloadBundle(
+    'https://registry.npmjs.com/@lynx-example/gallery/-/gallery-0.6.7.tgz',
+    dir,
   );
 
   // 2) Run benchx_cli to generate a perfetto trace
