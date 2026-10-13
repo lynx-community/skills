@@ -15,7 +15,7 @@
   ],
   "scripts": {
     "build": "build-marketplace && node ./export-skills.mjs",
-    "check": "biome check && eslint .",
+    "check": "biome check && eslint . && pnpm --filter @lynx-js/devtool-connector run format:check",
     "eval:skill:check": "node scripts/skill-eval/check_evals.mjs",
     "eval:skill:check:all": "node scripts/skill-eval/check_evals.mjs --all",
     "eval:skill:comment-report": "node scripts/skill-eval/build_comment_report.mjs",
@@ -24,7 +24,7 @@
     "eval:skill:task:online:all": "node scripts/skill-eval/run_task_online_all.mjs",
     "eval:skill:trigger:online": "node scripts/skill-eval/run_trigger_online.mjs",
     "eval:skill:trigger:online:all": "node scripts/skill-eval/run_trigger_online_all.mjs",
-    "lint": "eslint . --fix && biome check --write",
+    "lint": "eslint . --fix && biome check --write && pnpm --filter @lynx-js/devtool-connector run format",
     "prepare": "husky && turbo build",
     "release": "turbo build && pnpm run build && pnpm changeset publish",
     "test": "pnpm -r --if-present test"
@@ -66,6 +66,7 @@
     "pkg-pr-new": "^0.0.87",
     "sort-package-json": "^3.4.0",
     "turbo": "^2.7.5",
+    "typescript": "^5.9.3",
     "typescript-eslint": "^8.55.0",
     "yaml": "^2.8.2"
   },

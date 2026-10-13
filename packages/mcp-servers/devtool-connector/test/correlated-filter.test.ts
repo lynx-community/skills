@@ -1,22 +1,21 @@
 // Copyright 2026 The Lynx Authors. All rights reserved.
 // Licensed under the Apache License Version 2.0 that can be found in the
 // LICENSE file in the root directory of this source tree.
-
-import type { TestContext } from 'node:test';
-import { describe, test } from 'node:test';
+import { describe, test } from "node:test";
+import type { TestContext } from "node:test";
 import {
   createCorrelatedFilter,
   isGetGlobalSwitchResponse,
   isListSessionResponse,
   type Response,
-} from '../src/types.ts';
+} from "../src/types.ts";
 
 // Helper to build a ListSessionResponse (Customized event with type "SessionList")
 function makeSessionListResponse(id?: number): Response {
   return {
-    event: 'Customized',
+    event: "Customized",
     data: {
-      type: 'SessionList',
+      type: "SessionList",
       data: [],
       ...(id !== undefined ? { id } : {}),
     },
@@ -26,12 +25,12 @@ function makeSessionListResponse(id?: number): Response {
 // Helper to build a GetGlobalSwitchResponse
 function makeGetGlobalSwitchResponse(id?: number): Response {
   return {
-    event: 'Customized',
+    event: "Customized",
     data: {
-      type: 'GetGlobalSwitch',
+      type: "GetGlobalSwitch",
       client_id: 1,
       session_id: 1,
-      message: 'true',
+      message: "true",
       ...(id !== undefined ? { id } : {}),
     },
   } as unknown as Response;
@@ -40,20 +39,20 @@ function makeGetGlobalSwitchResponse(id?: number): Response {
 // Non-matching response (different Customized type)
 function makeAppResponse(id?: number): Response {
   return {
-    event: 'Customized',
+    event: "Customized",
     data: {
-      type: 'App',
-      message: '{}',
+      type: "App",
+      message: "{}",
       ...(id !== undefined ? { id } : {}),
     },
   } as unknown as Response;
 }
 
-describe('createCorrelatedFilter', () => {
+describe("createCorrelatedFilter", () => {
   const REQUEST_ID = 12345;
 
-  describe('base filter rejection', () => {
-    test('returns false when base filter rejects the response', (t: TestContext) => {
+  describe("base filter rejection", () => {
+    test("returns false when base filter rejects the response", (t: TestContext) => {
       const filter = createCorrelatedFilter(isListSessionResponse, REQUEST_ID);
 
       // An App response should not pass isListSessionResponse
@@ -62,7 +61,7 @@ describe('createCorrelatedFilter', () => {
       t.assert.equal(result, false);
     });
 
-    test('returns false when base filter rejects even if id matches', (t: TestContext) => {
+    test("returns false when base filter rejects even if id matches", (t: TestContext) => {
       const filter = createCorrelatedFilter(isListSessionResponse, REQUEST_ID);
 
       // Correct id but wrong type — base filter should reject first
@@ -72,8 +71,8 @@ describe('createCorrelatedFilter', () => {
     });
   });
 
-  describe('Rule 1: response has NO id field → accept (old SDK)', () => {
-    test('accepts response without id field', (t: TestContext) => {
+  describe("Rule 1: response has NO id field → accept (old SDK)", () => {
+    test("accepts response without id field", (t: TestContext) => {
       const filter = createCorrelatedFilter(isListSessionResponse, REQUEST_ID);
 
       const result = filter(makeSessionListResponse());
@@ -82,8 +81,8 @@ describe('createCorrelatedFilter', () => {
     });
   });
 
-  describe('Rule 2: response id matches request id → accept', () => {
-    test('accepts response with matching id', (t: TestContext) => {
+  describe("Rule 2: response id matches request id → accept", () => {
+    test("accepts response with matching id", (t: TestContext) => {
       const filter = createCorrelatedFilter(isListSessionResponse, REQUEST_ID);
 
       const result = filter(makeSessionListResponse(REQUEST_ID));
@@ -92,8 +91,8 @@ describe('createCorrelatedFilter', () => {
     });
   });
 
-  describe('Rule 3: response id is -1 → reject (old client without id)', () => {
-    test('rejects response with id -1', (t: TestContext) => {
+  describe("Rule 3: response id is -1 → reject (old client without id)", () => {
+    test("rejects response with id -1", (t: TestContext) => {
       const filter = createCorrelatedFilter(isListSessionResponse, REQUEST_ID);
 
       const result = filter(makeSessionListResponse(-1));
@@ -102,8 +101,8 @@ describe('createCorrelatedFilter', () => {
     });
   });
 
-  describe('Rule 4: response id is a different positive number → reject', () => {
-    test('rejects response with a different id', (t: TestContext) => {
+  describe("Rule 4: response id is a different positive number → reject", () => {
+    test("rejects response with a different id", (t: TestContext) => {
       const filter = createCorrelatedFilter(isListSessionResponse, REQUEST_ID);
 
       const result = filter(makeSessionListResponse(99999));
@@ -111,7 +110,7 @@ describe('createCorrelatedFilter', () => {
       t.assert.equal(result, false);
     });
 
-    test('rejects response with id 0 (not our request)', (t: TestContext) => {
+    test("rejects response with id 0 (not our request)", (t: TestContext) => {
       const filter = createCorrelatedFilter(isListSessionResponse, REQUEST_ID);
 
       const result = filter(makeSessionListResponse(0));
@@ -120,12 +119,9 @@ describe('createCorrelatedFilter', () => {
     });
   });
 
-  describe('generic reusability with different base filters', () => {
-    test('works with isGetGlobalSwitchResponse', (t: TestContext) => {
-      const filter = createCorrelatedFilter(
-        isGetGlobalSwitchResponse,
-        REQUEST_ID,
-      );
+  describe("generic reusability with different base filters", () => {
+    test("works with isGetGlobalSwitchResponse", (t: TestContext) => {
+      const filter = createCorrelatedFilter(isGetGlobalSwitchResponse, REQUEST_ID);
 
       // Matching id → accept
       t.assert.equal(filter(makeGetGlobalSwitchResponse(REQUEST_ID)), true);
@@ -138,8 +134,8 @@ describe('createCorrelatedFilter', () => {
     });
   });
 
-  describe('type narrowing', () => {
-    test('narrows type correctly when filter returns true', (t: TestContext) => {
+  describe("type narrowing", () => {
+    test("narrows type correctly when filter returns true", (t: TestContext) => {
       const filter = createCorrelatedFilter(isListSessionResponse, REQUEST_ID);
       const response: Response = makeSessionListResponse(REQUEST_ID);
 
@@ -148,13 +144,13 @@ describe('createCorrelatedFilter', () => {
         // Access .data.data (Session[]) to verify narrowing works at compile time
         t.assert.ok(Array.isArray(response.data.data));
       } else {
-        t.assert.fail('expected filter to accept');
+        t.assert.fail("expected filter to accept");
       }
     });
   });
 
-  describe('edge cases', () => {
-    test('different request ids produce independent filters', (t: TestContext) => {
+  describe("edge cases", () => {
+    test("different request ids produce independent filters", (t: TestContext) => {
       const filter1 = createCorrelatedFilter(isListSessionResponse, 11111);
       const filter2 = createCorrelatedFilter(isListSessionResponse, 22222);
 
@@ -168,7 +164,7 @@ describe('createCorrelatedFilter', () => {
       t.assert.equal(filter2(response2), true);
     });
 
-    test('handles boundary request id values', (t: TestContext) => {
+    test("handles boundary request id values", (t: TestContext) => {
       // Test with min value of randomInt range
       const filterMin = createCorrelatedFilter(isListSessionResponse, 10_000);
       t.assert.equal(filterMin(makeSessionListResponse(10_000)), true);

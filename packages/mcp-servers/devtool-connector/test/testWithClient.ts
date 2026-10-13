@@ -2,22 +2,22 @@
 // Licensed under the Apache License Version 2.0 that can be found in the
 // LICENSE file in the root directory of this source tree.
 
-import { describe, type TestContext, test } from 'node:test';
-import { Connector } from '../src/index.ts';
-import { AndroidTransport } from '../src/transport/android.ts';
-import { DaemonTransport } from '../src/transport/daemon.ts';
-import { DesktopTransport } from '../src/transport/desktop.ts';
-import { iOSTransport } from '../src/transport/ios.ts';
-import type { Client, Transport } from '../src/transport/transport.ts';
+import { describe, test, type TestContext } from "node:test";
+import { Connector } from "../src/index.ts";
+import { AndroidTransport } from "../src/transport/android.ts";
+import { DaemonTransport } from "../src/transport/daemon.ts";
+import { DesktopTransport } from "../src/transport/desktop.ts";
+import { iOSTransport } from "../src/transport/ios.ts";
+import type { Client, Transport } from "../src/transport/transport.ts";
 
-export const TEST_APP_PACKAGE_NAME = 'com.lynx.uiapp';
-export const TEST_PAGE_URL = 'https://example.com/template.js';
-const TEST_APP_PACKAGE_ENV = 'LYNX_DEVTOOL_MCP_TESTING_APP_PACKAGE';
-const TEST_PAGE_URL_ENV = 'LYNX_DEVTOOL_MCP_TESTING_PAGE_URL';
-const TEST_OPEN_URL_ENV = 'LYNX_DEVTOOL_MCP_TESTING_OPEN_URL';
+export const TEST_APP_PACKAGE_NAME = "com.lynx.uiapp";
+export const TEST_PAGE_URL = "https://example.com/template.js";
+const TEST_APP_PACKAGE_ENV = "LYNX_DEVTOOL_MCP_TESTING_APP_PACKAGE";
+const TEST_PAGE_URL_ENV = "LYNX_DEVTOOL_MCP_TESTING_PAGE_URL";
+const TEST_OPEN_URL_ENV = "LYNX_DEVTOOL_MCP_TESTING_OPEN_URL";
 
-const transportsFromEnv = process.env['LYNX_DEVTOOL_MCP_TESTING_TRANSPORTS']
-  ? process.env['LYNX_DEVTOOL_MCP_TESTING_TRANSPORTS'].split(',')
+const transportsFromEnv = process.env["LYNX_DEVTOOL_MCP_TESTING_TRANSPORTS"]
+  ? process.env["LYNX_DEVTOOL_MCP_TESTING_TRANSPORTS"].split(",")
   : null;
 
 export interface TestingTarget {
@@ -45,10 +45,10 @@ function resolveTestingTarget(
 
 function isClientForTarget(client: Client, target: TestingTarget): boolean {
   return (
-    client.info.AppProcessName === target.appPackageName ||
-    client.info.bundleId === target.appPackageName ||
-    client.info.bundleName === target.appPackageName ||
-    client.info.App === target.appPackageName
+    client.info.AppProcessName === target.appPackageName
+    || client.info.bundleId === target.appPackageName
+    || client.info.bundleName === target.appPackageName
+    || client.info.App === target.appPackageName
   );
 }
 
@@ -71,7 +71,7 @@ function formatClient(client: Client): string {
     info.deviceModel ? `deviceModel=${info.deviceModel}` : undefined,
   ]
     .filter(Boolean)
-    .join(', ');
+    .join(", ");
 }
 
 export function formatNoTestingClientMessage(
@@ -83,9 +83,11 @@ export function formatNoTestingClientMessage(
     return `No ${name} clients found for target package ${target.appPackageName}`;
   }
 
-  return `No ${name} clients matched target package ${target.appPackageName}. Available clients: ${clients
-    .map(formatClient)
-    .join('; ')}`;
+  return `No ${name} clients matched target package ${target.appPackageName}. Available clients: ${
+    clients
+      .map(formatClient)
+      .join("; ")
+  }`;
 }
 
 export type TestingSession = {
@@ -114,18 +116,18 @@ const Transports: {
   name: string;
   createTransports: () => Promise<Transport[]> | Transport[];
 }[] = [
-  { name: 'iOS', createTransports: () => [new iOSTransport()] },
-  { name: 'Android', createTransports: () => [new AndroidTransport()] },
-  { name: 'Daemon', createTransports: () => [new DaemonTransport()] },
+  { name: "iOS", createTransports: () => [new iOSTransport()] },
+  { name: "Android", createTransports: () => [new AndroidTransport()] },
+  { name: "Daemon", createTransports: () => [new DaemonTransport()] },
   {
-    name: 'EmbeddedLynx',
+    name: "EmbeddedLynx",
     createTransports: () => [new DesktopTransport()],
   },
 ].filter((i) => !transportsFromEnv || transportsFromEnv.includes(i.name));
 
 if (transportsFromEnv && Transports.length === 0) {
   throw new Error(
-    `No transports matched LYNX_DEVTOOL_MCP_TESTING_TRANSPORTS=${process.env['LYNX_DEVTOOL_MCP_TESTING_TRANSPORTS']}`,
+    `No transports matched LYNX_DEVTOOL_MCP_TESTING_TRANSPORTS=${process.env["LYNX_DEVTOOL_MCP_TESTING_TRANSPORTS"]}`,
   );
 }
 

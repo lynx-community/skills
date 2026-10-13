@@ -22,8 +22,8 @@
  * Behavior-neutral: NO lifecycle removal (that would be a behavior change). Only
  * the configured telemetry expression calls are removed.
  */
-// jsb-backed telemetry method names live in signatures.cjs (overridable per stack /
-// via the internal overlay). ONLY confirmed jsb-backed methods belong there.
+// jsb-backed telemetry method names live in signatures.cjs and can be adapted to each stack.
+// ONLY confirmed jsb-backed methods belong there.
 // eslint-disable-next-line @typescript-eslint/no-require-imports -- CommonJS loader
 const { TELEMETRY_METHODS } = require('./signatures.cjs');
 const METHODS = new Set(TELEMETRY_METHODS);

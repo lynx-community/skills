@@ -1,101 +1,88 @@
-// Copyright 2025 The Lynx Authors. All rights reserved.
+// Copyright 2026 The Lynx Authors. All rights reserved.
 // Licensed under the Apache License Version 2.0 that can be found in the
 // LICENSE file in the root directory of this source tree.
+import { describe, test } from "node:test";
+import type { TestContext } from "node:test";
+import { ClientId } from "../src/index.ts";
 
-import type { TestContext } from 'node:test';
-import { describe, test } from 'node:test';
-import { ClientId } from '../src/index.ts';
+describe("ClientId", () => {
+  describe("serialize", () => {
+    test("returns deviceId:port format", (t: TestContext) => {
+      const serialized = ClientId.serialize("device-001", 9000);
 
-describe('ClientId', () => {
-  describe('serialize', () => {
-    test('returns deviceId:port format', (t: TestContext) => {
-      const serialized = ClientId.serialize('device-001', 9000);
-
-      t.assert.equal(serialized, 'device-001:9000');
+      t.assert.equal(serialized, "device-001:9000");
     });
 
-    test('URL encodes deviceId', (t: TestContext) => {
-      const serialized = ClientId.serialize('设备 001/测试', 9100);
+    test("URL encodes deviceId", (t: TestContext) => {
+      const serialized = ClientId.serialize("设备 001/测试", 9100);
 
-      t.assert.equal(
-        serialized,
-        '%E8%AE%BE%E5%A4%87%20001%2F%E6%B5%8B%E8%AF%95:9100',
-      );
+      t.assert.equal(serialized, "%E8%AE%BE%E5%A4%87%20001%2F%E6%B5%8B%E8%AF%95:9100");
     });
 
-    test('encodes colon inside deviceId', (t: TestContext) => {
-      const serialized = ClientId.serialize('foo:bar', 9200);
+    test("encodes colon inside deviceId", (t: TestContext) => {
+      const serialized = ClientId.serialize("foo:bar", 9200);
 
-      t.assert.equal(serialized, 'foo%3Abar:9200');
+      t.assert.equal(serialized, "foo%3Abar:9200");
     });
 
-    test('accepts a string target', (t: TestContext) => {
-      const serialized = ClientId.serialize('device-001', 'router-uuid');
+    test("accepts a string target", (t: TestContext) => {
+      const serialized = ClientId.serialize("HDT-19783", "router-uuid");
 
-      t.assert.equal(serialized, 'device-001:router-uuid');
+      t.assert.equal(serialized, "HDT-19783:router-uuid");
     });
 
-    test('encodes reserved characters in a string target', (t: TestContext) => {
-      const serialized = ClientId.serialize('device-001', 'router:sub-id%');
+    test("encodes reserved characters in a string target", (t: TestContext) => {
+      const serialized = ClientId.serialize("HDT-19783", "router:sub-id%");
 
-      t.assert.equal(serialized, 'device-001:router%3Asub-id%25');
+      t.assert.equal(serialized, "HDT-19783:router%3Asub-id%25");
       t.assert.deepStrictEqual(ClientId.deserialize(serialized), {
-        deviceId: 'device-001',
-        port: 'router:sub-id%',
+        deviceId: "HDT-19783",
+        port: "router:sub-id%",
       });
     });
   });
 
-  describe('deserialize', () => {
-    test('parses previously serialized value', (t: TestContext) => {
-      const result = ClientId.deserialize('device-001:9000');
+  describe("deserialize", () => {
+    test("parses previously serialized value", (t: TestContext) => {
+      const result = ClientId.deserialize("device-001:9000");
 
-      t.assert.deepStrictEqual(result, { deviceId: 'device-001', port: 9000 });
+      t.assert.deepStrictEqual(result, { deviceId: "device-001", port: 9000 });
     });
 
-    test('uses the last colon when multiple are present', (t: TestContext) => {
-      const result = ClientId.deserialize('foo:bar:1234');
+    test("uses the last colon when multiple are present", (t: TestContext) => {
+      const result = ClientId.deserialize("foo:bar:1234");
 
-      t.assert.deepStrictEqual(result, { deviceId: 'foo:bar', port: 1234 });
+      t.assert.deepStrictEqual(result, { deviceId: "foo:bar", port: 1234 });
     });
 
-    test('returns null when no colon exists', (t: TestContext) => {
-      const result = ClientId.deserialize('foobar');
+    test("returns null when no colon exists", (t: TestContext) => {
+      const result = ClientId.deserialize("foobar");
 
       t.assert.equal(result, null);
     });
 
-    test('parses a string target', (t: TestContext) => {
-      const result = ClientId.deserialize('foo:port');
+    test("parses a string target", (t: TestContext) => {
+      const result = ClientId.deserialize("foo:port");
 
-      t.assert.deepStrictEqual(result, { deviceId: 'foo', port: 'port' });
+      t.assert.deepStrictEqual(result, { deviceId: "foo", port: "port" });
     });
 
-    test('does not truncate a string target that starts with digits', (t: TestContext) => {
-      const result = ClientId.deserialize('device-001:123-router');
+    test("does not truncate a string target that starts with digits", (t: TestContext) => {
+      const result = ClientId.deserialize("HDT-19783:123-router");
 
-      t.assert.deepStrictEqual(result, {
-        deviceId: 'device-001',
-        port: '123-router',
-      });
+      t.assert.deepStrictEqual(result, { deviceId: "HDT-19783", port: "123-router" });
     });
 
-    test('returns null when the target is empty', (t: TestContext) => {
-      const result = ClientId.deserialize('device-001:');
+    test("returns null when decodeURIComponent throws", (t: TestContext) => {
+      const result = ClientId.deserialize("%E0%A4%:1234");
 
       t.assert.equal(result, null);
     });
 
-    test('returns null when decodeURIComponent throws', (t: TestContext) => {
-      const result = ClientId.deserialize('%E0%A4%:1234');
+    test("decodes colon inside deviceId", (t: TestContext) => {
+      const result = ClientId.deserialize("foo%3Abar:9300");
 
-      t.assert.equal(result, null);
-    });
-
-    test('decodes colon inside deviceId', (t: TestContext) => {
-      const result = ClientId.deserialize('foo%3Abar:9300');
-
-      t.assert.deepStrictEqual(result, { deviceId: 'foo:bar', port: 9300 });
+      t.assert.deepStrictEqual(result, { deviceId: "foo:bar", port: 9300 });
     });
   });
 });

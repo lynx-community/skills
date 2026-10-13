@@ -13,7 +13,7 @@ This project is a monorepo managed by `pnpm` (workspaces) and `Turbo`.
 ### General Commands (Run from Root)
 *   **Install Dependencies:** `pnpm install`
 *   **Build Everything:** `pnpm build` (Executes `turbo build` and marketplace scripts)
-*   **Check Formatting & Linting (Dry Run):** `pnpm check` (Executes `biome check && eslint .`)
+*   **Check Formatting & Linting (Dry Run):** `pnpm check` (Biome, ESLint and Connector dprint)
 *   **Fix Formatting & Linting:** `pnpm lint` (Executes `eslint . --fix && biome check --write`)
 *   **Run All Tests:** `pnpm test` (Executes `pnpm -r --if-present test`)
 
@@ -57,6 +57,7 @@ Tests are written using `@rstest/core` (which uses a syntax similar to Jest/Vite
 ### 2.3. Formatting and Linting
 *   **Tooling:** We use **Biome** for fast formatting/linting and **ESLint** (v9 Flat Config) for complex AST/TypeScript rules.
 *   **Indentation & Quotes:** Use `space` indentation (2 spaces) and `single` quotes for JavaScript/TypeScript strings.
+*   **Connector exception:** `packages/mcp-servers/devtool-connector` preserves its imported dprint style (double quotes); package `format:check` is part of `pnpm check`. Its tests use `node:test`. This keeps the source move mechanically reviewable; Biome lint and ESLint still apply.
 *   **Auto-Organization:** Biome automatically organizes imports (`organizeImports: true`). Let the formatter do the work when saving or running `pnpm lint`.
 *   **Pre-commit Hooks:** Husky and lint-staged are configured to automatically lint and format changed files before commits. Do not bypass these hooks unless strictly necessary.
 
@@ -95,4 +96,3 @@ As an autonomous coding agent working in this repository, you must:
 7.  **Commit Messages:** If making commits, provide clear and concise messages that indicate the nature of the change (e.g., `feat: add new scan rule to reactlynx`, `fix: handle edge case in trace processor`).
 8.  **Dependencies:** Ensure you do not arbitrarily add new libraries if existing ones in the monorepo can do the job. Always verify in `package.json` first.
 9.  **Pull Requests (CRITICAL):** The default branch of the `lynx-community/skills` GitHub repository is `release`, but active development happens on the `main` branch. **When submitting a PR, you MUST specify `main` as the base branch** (e.g., `gh pr create --base main ...`). Do not submit PRs targeting `release` unless explicitly instructed.
-

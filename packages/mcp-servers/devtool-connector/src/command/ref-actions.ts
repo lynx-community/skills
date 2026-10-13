@@ -1,28 +1,23 @@
 // Copyright 2026 The Lynx Authors. All rights reserved.
 // Licensed under the Apache License Version 2.0 that can be found in the
 // LICENSE file in the root directory of this source tree.
-
-import { setTimeout as delay } from 'node:timers/promises';
-import type { Connector } from '../index.ts';
-import { type CommandFailure, fail } from './result.ts';
-import {
-  type Point,
-  SNAPSHOT_REF_HIT_NODE_IDS,
-  type SnapshotRef,
-} from './snapshot.ts';
+import { setTimeout as delay } from "node:timers/promises";
+import type { Connector } from "../index.ts";
+import { type CommandFailure, fail } from "./result.ts";
+import { type Point, SNAPSHOT_REF_HIT_NODE_IDS, type SnapshotRef } from "./snapshot.ts";
 
 export type RefFailureReason =
-  | 'no-snapshot'
-  | 'ref-not-found'
-  | 'stale-ref'
-  | 'not-visible'
-  | 'covered'
-  | 'offscreen'
-  | 'disabled'
-  | 'not-editable';
+  | "no-snapshot"
+  | "ref-not-found"
+  | "stale-ref"
+  | "not-visible"
+  | "covered"
+  | "offscreen"
+  | "disabled"
+  | "not-editable";
 
 export function normalizeRef(ref: string): string {
-  return ref.startsWith('@') ? ref : `@${ref}`;
+  return ref.startsWith("@") ? ref : `@${ref}`;
 }
 
 function reasonResult(
@@ -49,12 +44,12 @@ async function resolveBackendNodeId(
   signal?: AbortSignal,
 ): Promise<number | undefined> {
   try {
-    const result = await connector.sendCDPMessage<
-      { nodeIds?: number[] },
-      { backendNodeIds: number[] }
-    >(clientId, sessionId, 'DOM.pushNodesByBackendIdsToFrontend', {
-      backendNodeIds: [backendNodeId],
-    });
+    const result = await connector.sendCDPMessage<{ nodeIds?: number[] }, { backendNodeIds: number[] }>(
+      clientId,
+      sessionId,
+      "DOM.pushNodesByBackendIdsToFrontend",
+      { backendNodeIds: [backendNodeId] },
+    );
     signal?.throwIfAborted();
     const nodeId = result.nodeIds?.[0];
     return nodeId !== undefined && nodeId !== 0 ? nodeId : undefined;
@@ -76,112 +71,70 @@ export async function validateRef(
 ): Promise<RefValidationResult> {
   signal?.throwIfAborted();
   if (ref.flags.offscreen) {
-    return reasonResult(
-      action,
-      'offscreen',
-      `Ref ${ref.ref} is offscreen; scroll it into view first.`,
-      [`agent-lynx scroll ${ref.ref} --direction down`, 'agent-lynx snapshot'],
-    );
-  }
-  if (ref.flags.disabled) {
-    return reasonResult(action, 'disabled', `Ref ${ref.ref} is disabled.`, [
-      'agent-lynx snapshot',
+    return reasonResult(action, "offscreen", `Ref ${ref.ref} is offscreen; scroll it into view first.`, [
+      `agent-lynx scroll ${ref.ref} --direction down`,
+      "agent-lynx snapshot",
     ]);
   }
+  if (ref.flags.disabled) {
+    return reasonResult(action, "disabled", `Ref ${ref.ref} is disabled.`, ["agent-lynx snapshot"]);
+  }
   if (options.requireEditable && !ref.flags.editable) {
-    return reasonResult(
-      action,
-      'not-editable',
-      `Ref ${ref.ref} (${ref.tag}) is not an editable field.`,
-      ['agent-lynx snapshot'],
-    );
+    return reasonResult(action, "not-editable", `Ref ${ref.ref} (${ref.tag}) is not an editable field.`, [
+      "agent-lynx snapshot",
+    ]);
   }
 
   const located = await connector.sendCDPMessage<LocatedNode, Point>(
     clientId,
     sessionId,
-    'DOM.getNodeForLocation',
+    "DOM.getNodeForLocation",
     { x: ref.center.x, y: ref.center.y },
   );
   signal?.throwIfAborted();
   if (
-    !located ||
-    ((located.nodeId === undefined || located.nodeId === 0) &&
-      (located.backendNodeId === undefined || located.backendNodeId === 0))
+    !located
+    || ((located.nodeId === undefined || located.nodeId === 0)
+      && (located.backendNodeId === undefined || located.backendNodeId === 0))
   ) {
-    return reasonResult(
-      action,
-      'stale-ref',
-      `Ref ${ref.ref} no longer resolves to a node.`,
-      ['agent-lynx snapshot'],
-    );
+    return reasonResult(action, "stale-ref", `Ref ${ref.ref} no longer resolves to a node.`, [
+      "agent-lynx snapshot",
+    ]);
   }
 
-  let locatedNodeId =
-    located.nodeId !== undefined && located.nodeId !== 0
-      ? located.nodeId
-      : undefined;
-  if (
-    locatedNodeId === undefined &&
-    located.backendNodeId !== undefined &&
-    located.backendNodeId !== 0
-  ) {
-    locatedNodeId = await resolveBackendNodeId(
-      connector,
-      clientId,
-      sessionId,
-      located.backendNodeId,
-      signal,
-    );
+  let locatedNodeId = located.nodeId !== undefined && located.nodeId !== 0 ? located.nodeId : undefined;
+  if (locatedNodeId === undefined && located.backendNodeId !== undefined && located.backendNodeId !== 0) {
+    locatedNodeId = await resolveBackendNodeId(connector, clientId, sessionId, located.backendNodeId, signal);
   }
-  const backendMatches =
-    located.backendNodeId !== undefined &&
-    located.backendNodeId !== 0 &&
-    located.backendNodeId === ref.backendNodeId;
-  const frontendMatches =
-    locatedNodeId !== undefined &&
-    (locatedNodeId === ref.nodeId ||
-      ref[SNAPSHOT_REF_HIT_NODE_IDS]?.has(locatedNodeId) === true);
+  const backendMatches = located.backendNodeId !== undefined
+    && located.backendNodeId !== 0
+    && located.backendNodeId === ref.backendNodeId;
+  const frontendMatches = locatedNodeId !== undefined
+    && (locatedNodeId === ref.nodeId || ref[SNAPSHOT_REF_HIT_NODE_IDS]?.has(locatedNodeId) === true);
   if (!backendMatches && !frontendMatches) {
     return reasonResult(
       action,
-      'covered',
+      "covered",
       `Ref ${ref.ref} is covered: (${ref.center.x},${ref.center.y}) hit node ${
         locatedNodeId ?? `backend:${located.backendNodeId}`
       }, expected ${ref.nodeId}.`,
-      ['agent-lynx snapshot'],
+      ["agent-lynx snapshot"],
     );
   }
   if (!ref.flags.visible) {
-    return reasonResult(
-      action,
-      'not-visible',
-      `Ref ${ref.ref} is not visible.`,
-      ['agent-lynx snapshot'],
-    );
+    return reasonResult(action, "not-visible", `Ref ${ref.ref} is not visible.`, ["agent-lynx snapshot"]);
   }
 
-  let liveNodeId =
-    locatedNodeId === ref.nodeId || backendMatches ? locatedNodeId : undefined;
-  if (
-    liveNodeId === undefined &&
-    options.requireEditable &&
-    ref.backendNodeId !== undefined
-  ) {
-    liveNodeId = await resolveBackendNodeId(
-      connector,
-      clientId,
-      sessionId,
-      ref.backendNodeId,
-      signal,
-    );
+  let liveNodeId = locatedNodeId === ref.nodeId || backendMatches ? locatedNodeId : undefined;
+  if (liveNodeId === undefined && options.requireEditable && ref.backendNodeId !== undefined) {
+    liveNodeId = await resolveBackendNodeId(connector, clientId, sessionId, ref.backendNodeId, signal);
   }
   if (options.requireEditable && liveNodeId === undefined) {
     return reasonResult(
       action,
-      'stale-ref',
+      "stale-ref",
       `Ref ${ref.ref} no longer resolves to a live editable node.`,
-      ['agent-lynx snapshot'],
+      ["agent-lynx snapshot"],
     );
   }
   return { ok: true, nodeId: liveNodeId ?? ref.nodeId };
@@ -194,20 +147,14 @@ interface RuntimeEvaluateResult {
   exceptionDetails?: unknown;
 }
 
-function selectEditableTextExpression(
-  nodeId: number,
-  selectionEnd: number,
-): string {
-  const select =
-    `(()=>{if(!lynx||typeof lynx.createSelectorQuery!=="function")return false;` +
-    `const query=lynx.createSelectorQuery();` +
-    `if(!query||typeof query.selectUniqueID!=="function")return false;` +
-    `query.selectUniqueID(${nodeId}).invoke({method:"setSelectionRange",params:{selectionStart:0,selectionEnd:${selectionEnd}}}).exec();` +
-    `return true})()`;
-  return (
-    `(function(){var __a=globalThis.multiApps&&globalThis.multiApps[globalThis.currentDebugAppId||globalThis.currentAppId];` +
-    `var lynx=__a&&__a.lynx;return(${select});})()`
-  );
+function selectEditableTextExpression(nodeId: number, selectionEnd: number): string {
+  const select = `(()=>{if(!lynx||typeof lynx.createSelectorQuery!=="function")return false;`
+    + `const query=lynx.createSelectorQuery();`
+    + `if(!query||typeof query.selectUniqueID!=="function")return false;`
+    + `query.selectUniqueID(${nodeId}).invoke({method:"setSelectionRange",params:{selectionStart:0,selectionEnd:${selectionEnd}}}).exec();`
+    + `return true})()`;
+  return `(function(){var __a=globalThis.multiApps&&globalThis.multiApps[globalThis.currentDebugAppId||globalThis.currentAppId];`
+    + `var lynx=__a&&__a.lynx;return(${select});})()`;
 }
 
 async function selectEditableText(
@@ -218,18 +165,18 @@ async function selectEditableText(
   selectionEnd: number,
   signal: AbortSignal,
 ): Promise<void> {
-  const result = await connector.sendCDPMessage<
-    RuntimeEvaluateResult,
-    Record<string, unknown>
-  >(clientId, sessionId, 'Runtime.evaluate', {
-    expression: selectEditableTextExpression(nodeId, selectionEnd),
-    returnByValue: true,
-  });
+  const result = await connector.sendCDPMessage<RuntimeEvaluateResult, Record<string, unknown>>(
+    clientId,
+    sessionId,
+    "Runtime.evaluate",
+    {
+      expression: selectEditableTextExpression(nodeId, selectionEnd),
+      returnByValue: true,
+    },
+  );
   signal.throwIfAborted();
   if (result.exceptionDetails !== undefined || result.result?.value !== true) {
-    throw new Error(
-      `Unable to select the existing value for editable node ${nodeId}.`,
-    );
+    throw new Error(`Unable to select the existing value for editable node ${nodeId}.`);
   }
 
   // SelectorQuery dispatches the UI method asynchronously. Give the UI thread
@@ -239,11 +186,11 @@ async function selectEditableText(
 }
 
 interface TouchEvent {
-  type: 'mousePressed' | 'mouseReleased' | 'mouseMoved';
+  type: "mousePressed" | "mouseReleased" | "mouseMoved";
   x: number;
   y: number;
   timestamp: number;
-  button: 'left';
+  button: "left";
   clickCount: number;
 }
 
@@ -256,7 +203,7 @@ async function sendTouch(
   await connector.sendCDPMessage<unknown, Record<string, unknown>>(
     clientId,
     sessionId,
-    'Input.emulateTouchFromMouseEvent',
+    "Input.emulateTouchFromMouseEvent",
     { ...event },
   );
 }
@@ -275,11 +222,11 @@ async function withPressedTouch(
   let failure: unknown;
   try {
     await sendTouch(connector, clientId, sessionId, {
-      type: 'mousePressed',
+      type: "mousePressed",
       x: pressPoint.x,
       y: pressPoint.y,
       timestamp: Date.now(),
-      button: 'left',
+      button: "left",
       clickCount: 1,
     });
     signal.throwIfAborted();
@@ -291,11 +238,11 @@ async function withPressedTouch(
 
   try {
     await sendTouch(connector, clientId, sessionId, {
-      type: 'mouseReleased',
+      type: "mouseReleased",
       x: releasePoint.x,
       y: releasePoint.y,
       timestamp: Date.now(),
-      button: 'left',
+      button: "left",
       clickCount: 1,
     });
   } catch (error) {
@@ -315,17 +262,9 @@ export async function touchTap(
   point: Point,
   signal: AbortSignal,
 ): Promise<void> {
-  await withPressedTouch(
-    connector,
-    clientId,
-    sessionId,
-    point,
-    point,
-    signal,
-    async () => {
-      signal.throwIfAborted();
-    },
-  );
+  await withPressedTouch(connector, clientId, sessionId, point, point, signal, async () => {
+    signal.throwIfAborted();
+  });
 }
 
 export async function touchLongPress(
@@ -336,17 +275,9 @@ export async function touchLongPress(
   durationMs: number,
   signal: AbortSignal,
 ): Promise<void> {
-  await withPressedTouch(
-    connector,
-    clientId,
-    sessionId,
-    point,
-    point,
-    signal,
-    async () => {
-      await delay(durationMs, undefined, { signal });
-    },
-  );
+  await withPressedTouch(connector, clientId, sessionId, point, point, signal, async () => {
+    await delay(durationMs, undefined, { signal });
+  });
 }
 
 export async function touchSwipe(
@@ -358,29 +289,21 @@ export async function touchSwipe(
   signal: AbortSignal,
   steps = 8,
 ): Promise<void> {
-  await withPressedTouch(
-    connector,
-    clientId,
-    sessionId,
-    from,
-    to,
-    signal,
-    async () => {
-      for (let i = 1; i <= steps; i++) {
-        signal.throwIfAborted();
-        const progress = i / steps;
-        await sendTouch(connector, clientId, sessionId, {
-          type: 'mouseMoved',
-          x: Math.round(from.x + (to.x - from.x) * progress),
-          y: Math.round(from.y + (to.y - from.y) * progress),
-          timestamp: Date.now(),
-          button: 'left',
-          clickCount: 1,
-        });
-        await delay(16, undefined, { signal });
-      }
-    },
-  );
+  await withPressedTouch(connector, clientId, sessionId, from, to, signal, async () => {
+    for (let i = 1; i <= steps; i++) {
+      signal.throwIfAborted();
+      const progress = i / steps;
+      await sendTouch(connector, clientId, sessionId, {
+        type: "mouseMoved",
+        x: Math.round(from.x + (to.x - from.x) * progress),
+        y: Math.round(from.y + (to.y - from.y) * progress),
+        timestamp: Date.now(),
+        button: "left",
+        clickCount: 1,
+      });
+      await delay(16, undefined, { signal });
+    }
+  });
 }
 
 export async function setValue(
@@ -396,24 +319,17 @@ export async function setValue(
   await connector.sendCDPMessage<unknown, { nodeId: number }>(
     clientId,
     sessionId,
-    'DOM.focus',
+    "DOM.focus",
     { nodeId },
   );
   signal.throwIfAborted();
   if (currentValue !== undefined && currentValue.length > 0) {
-    await selectEditableText(
-      connector,
-      clientId,
-      sessionId,
-      nodeId,
-      currentValue.length,
-      signal,
-    );
+    await selectEditableText(connector, clientId, sessionId, nodeId, currentValue.length, signal);
   }
   await connector.sendCDPMessage<unknown, { text: string }>(
     clientId,
     sessionId,
-    'Input.insertText',
+    "Input.insertText",
     { text: value },
   );
   signal.throwIfAborted();

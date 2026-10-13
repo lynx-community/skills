@@ -1,0 +1,12 @@
+{
+  "typescript": {},
+  "json": { "jsonTrailingCommaFiles": ["tsconfig.json"] },
+  "markdown": {},
+  "includes": ["**/*.{ts,json,jsonc,md}"],
+  "excludes": ["node_modules/**", "dist/**", ".rslib/**", "CHANGELOG.md"],
+  "plugins": [
+    "https://github.com/dprint/dprint-plugin-typescript/releases/download/0.95.11/plugin.wasm",
+    "https://github.com/dprint/dprint-plugin-json/releases/download/0.20.0/plugin.wasm",
+    "https://github.com/dprint/dprint-plugin-markdown/releases/download/0.24.0/plugin.wasm",
+  ],
+}

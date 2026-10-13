@@ -1,14 +1,14 @@
-// Copyright 2025 The Lynx Authors. All rights reserved.
+// Copyright 2026 The Lynx Authors. All rights reserved.
 // Licensed under the Apache License Version 2.0 that can be found in the
 // LICENSE file in the root directory of this source tree.
-
-import { randomInt } from 'node:crypto';
-import type { ReadableStream } from 'node:stream/web';
-import { TransformStream, WritableStream } from 'node:stream/web';
-import { createDebug } from 'obug';
-import type { ClientTarget } from '../client-id.ts';
-import { DaemonManager, DEFAULT_DAEMON_PORT } from '../daemon/manager.ts';
-import type { ClientListEntry, ControlResponse } from '../daemon/protocol.ts';
+import { randomInt } from "node:crypto";
+import { TransformStream, WritableStream } from "node:stream/web";
+import type { ReadableStream } from "node:stream/web";
+import { setTimeout as sleep } from "node:timers/promises";
+import { createDebug } from "obug";
+import { DAEMON_CONVERGENCE_TIMEOUT_MS, DaemonManager, DEFAULT_DAEMON_PORT } from "../daemon/manager.ts";
+import type { ClientListEntry, ControlResponse } from "../daemon/protocol.ts";
+import { readMessages, writeOnce } from "./stream-lifecycle.ts";
 import type {
   App,
   Client,
@@ -17,9 +17,9 @@ import type {
   OpenAppOptions,
   Transport,
   TransportConnectOptions,
-} from './transport.ts';
+} from "./transport.ts";
 
-const debug = createDebug('devtool-mcp-server:daemon:transport');
+const debug = createDebug("devtool-mcp-server:daemon:transport");
 
 /**
  * A Transport implementation that communicates with devices through the
@@ -31,10 +31,19 @@ const debug = createDebug('devtool-mcp-server:daemon:transport');
  * Initialize/Register/Customized protocol as HDT.
  */
 export class DaemonTransport implements Transport {
-  #port: number;
+  #endpoint: number | string;
 
-  constructor(port: number = DEFAULT_DAEMON_PORT) {
-    this.#port = port;
+  constructor(endpoint: number | string = DEFAULT_DAEMON_PORT) {
+    if (typeof endpoint === "string") {
+      const url = new URL(endpoint);
+      if (url.protocol !== "ws:" && url.protocol !== "wss:") {
+        throw new TypeError(`Daemon WebSocket URL must use ws: or wss:, got ${url.protocol}`);
+      }
+      this.#endpoint = url.href;
+      return;
+    }
+
+    this.#endpoint = endpoint;
   }
 
   async close(): Promise<void> {
@@ -43,59 +52,49 @@ export class DaemonTransport implements Transport {
   }
 
   async listDevices(): Promise<Device[]> {
-    const result = await this.#controlRequest<Device[]>('listDevices');
+    const result = await this.#controlRequest<Device[]>("listDevices");
     return result;
   }
 
   async listAvailableApps(deviceId: string): Promise<App[]> {
-    const result = await this.#controlRequest<App[]>('listAvailableApps', {
-      deviceId,
-    });
+    const result = await this.#controlRequest<App[]>("listAvailableApps", { deviceId });
     return result;
   }
 
-  async openApp(
-    deviceId: string,
-    packageName: string,
-    options?: OpenAppOptions,
-  ): Promise<void> {
-    await this.#controlRequest('openApp', {
-      deviceId,
-      packageName,
-      withDataCleared: options?.withDataCleared,
-    });
+  async openApp(deviceId: string, packageName: string, options?: OpenAppOptions): Promise<void> {
+    await this.#controlRequest("openApp", { deviceId, packageName, withDataCleared: options?.withDataCleared });
   }
 
   async listClients(): Promise<Client[]> {
-    const entries =
-      await this.#controlRequest<ClientListEntry[]>('listClients');
-    debug('received ClientList with %d entries', entries.length);
+    const entries = await this.#controlRequest<ClientListEntry[]>("listClients");
+    debug("received ClientList with %d entries", entries.length);
     return entries.map(({ id, info }) => ({ id, info }));
   }
 
   async connect<TInput = unknown, TOutput = unknown>(
     options: TransportConnectOptions,
   ): Promise<Connection<TOutput, TInput>> {
-    const { deviceId, port, signal } = options;
-    debug('connect to %s:%d via daemon', deviceId, port);
+    const { deviceId, signal } = options;
+    const { port } = options;
+    debug("connect to %s:%o via daemon", deviceId, port);
 
-    await DaemonManager.ensureRunning(this.#port);
     const conn = await this.#createWebSocketConnection(signal);
 
     try {
       // Subscribe this WS session to the target device:port on the daemon
-      await this.#controlRequestOnConn(conn, 'subscribe', { deviceId, port });
+      await this.#controlRequestOnConn(conn, "subscribe", { deviceId, port }, signal);
     } catch (error) {
       await conn[Symbol.asyncDispose]();
-      throw new Error(`Failed to subscribe to ${deviceId}:${port}`, {
-        cause: error,
-      });
+      throw new Error(
+        `Failed to subscribe to ${deviceId}:${port}`,
+        { cause: error },
+      );
     }
 
     const writable = new WritableStream<TInput>({
       async write(chunk) {
         const message = routeDaemonMessage(chunk, conn.assignedId, port);
-        await writeMessage(conn.writable, stringifyMessage(message), signal);
+        await writeOnce(conn.writable, stringifyMessage(message), signal);
       },
       async abort() {
         await conn[Symbol.asyncDispose]();
@@ -103,9 +102,8 @@ export class DaemonTransport implements Transport {
     });
 
     // Set up output pipeline: WS → JSON parse → TOutput
-    const outputReadable = conn.readable.pipeThrough(
-      new JSONStringToObjectStream(),
-    ) as ReadableStream<TOutput>;
+    const outputReadable = conn.readable
+      .pipeThrough(new JSONStringToObjectStream()) as ReadableStream<TOutput>;
 
     return {
       readable: outputReadable,
@@ -122,7 +120,6 @@ export class DaemonTransport implements Transport {
     method: string,
     params?: Record<string, unknown>,
   ): Promise<T> {
-    await DaemonManager.ensureRunning(this.#port);
     const conn = await this.#createWebSocketConnection();
     try {
       return await this.#controlRequestOnConn<T>(conn, method, params);
@@ -136,41 +133,51 @@ export class DaemonTransport implements Transport {
    * the matching ControlResponse.
    */
   async #controlRequestOnConn<T>(
-    conn: {
-      readable: ReadableStream<string>;
-      writable: WritableStream<string>;
-    },
+    conn: { readable: ReadableStream<string>; writable: WritableStream<string> },
     method: string,
     params?: Record<string, unknown>,
+    callerSignal?: AbortSignal,
   ): Promise<T> {
     const id = randomInt(10_000, 50_000);
 
-    const signal = AbortSignal.timeout(10_000);
+    const timeoutSignal = AbortSignal.timeout(10_000);
+    const signal = callerSignal
+      ? AbortSignal.any([callerSignal, timeoutSignal])
+      : timeoutSignal;
 
-    await this.#writeMessage(
-      conn.writable,
-      JSON.stringify({
-        event: 'Control',
-        data: { id, method, params },
-      }),
-      signal,
-    );
+    try {
+      await this.#writeMessage(
+        conn.writable,
+        JSON.stringify({
+          event: "Control",
+          data: { id, method, params },
+        }),
+        signal,
+      );
 
-    for await (const value of this.#readMessages(conn.readable, signal)) {
-      const msg = value as { event: string; data: unknown };
+      for await (const value of this.#readMessages(conn.readable, signal)) {
+        const msg = value as { event: string; data: unknown };
 
-      if (msg.event === 'ControlResponse') {
-        const resp = msg.data as ControlResponse['data'];
-        if (resp.id === id) {
-          if (resp.error) {
-            throw new Error(resp.error);
+        if (msg.event === "ControlResponse") {
+          const resp = msg.data as ControlResponse["data"];
+          if (resp.id === id) {
+            if (resp.error) {
+              throw new Error(resp.error);
+            }
+            return resp.result as T;
           }
-          return resp.result as T;
         }
       }
-    }
 
-    throw new Error(`No response for control request: ${method}`);
+      signal.throwIfAborted();
+      throw new Error(`No response for control request: ${method}`);
+    } catch (error) {
+      // A stream can reject while it is being cancelled. Preserve the
+      // request signal's reason so callers can distinguish their own abort
+      // from the control request's internal deadline.
+      signal.throwIfAborted();
+      throw error;
+    }
   }
 
   async #createWebSocketConnection(signal?: AbortSignal): Promise<{
@@ -179,27 +186,55 @@ export class DaemonTransport implements Transport {
     writable: WritableStream<string>;
     [Symbol.asyncDispose](): Promise<void>;
   }> {
-    const url = await DaemonManager.ensureRunning(this.#port);
+    const deadline = Date.now() + DAEMON_CONVERGENCE_TIMEOUT_MS;
+    let retry = 0;
+
+    while (true) {
+      try {
+        return await this.#createWebSocketConnectionOnce(signal);
+      } catch (error) {
+        signal?.throwIfAborted();
+        if (!isRetryableDaemonHandshakeError(error) || Date.now() >= deadline) throw error;
+
+        const delayMs = Math.min(50 * 2 ** retry, 250);
+        retry += 1;
+        debug("daemon WebSocket handshake raced with a lifecycle transition; retrying in %dms: %O", delayMs, error);
+        if (signal) await sleep(delayMs, undefined, { signal });
+        else await sleep(delayMs);
+      }
+    }
+  }
+
+  protected ensureDaemonRunning(port: number): Promise<string> {
+    return DaemonManager.ensureRunning(port);
+  }
+
+  async #createWebSocketConnectionOnce(signal?: AbortSignal): Promise<{
+    assignedId: number;
+    readable: ReadableStream<string>;
+    writable: WritableStream<string>;
+    [Symbol.asyncDispose](): Promise<void>;
+  }> {
+    const url = typeof this.#endpoint === "string"
+      ? this.#endpoint
+      : await this.ensureDaemonRunning(this.#endpoint);
 
     signal?.throwIfAborted();
 
-    const { wsStreams } = await import('./ws-stream.ts');
+    const { wsStreams } = await import("./ws-stream.ts");
     const wss = wsStreams.create(url);
 
     const abortHandler = () => {
       wss.close();
     };
-    signal?.addEventListener('abort', abortHandler, { once: true });
+    signal?.addEventListener("abort", abortHandler, { once: true });
 
     wss.closed.catch(() => {
-      debug('WebSocket to daemon closed');
+      debug("WebSocket to daemon closed");
     });
 
     try {
-      const { readable, writable } = await this.#withAbortSignal(
-        wss.opened,
-        signal,
-      );
+      const { readable, writable } = await this.#withAbortSignal(wss.opened, signal);
 
       // Read Initialize message
       const reader = readable.getReader();
@@ -212,14 +247,11 @@ export class DaemonTransport implements Transport {
       })();
 
       if (done) {
-        throw new Error('WebSocket closed before initialization.');
+        throw new Error("WebSocket closed before initialization.");
       }
 
-      const initMsg = JSON.parse(value as string) as {
-        event: 'Initialize';
-        data: number;
-      };
-      if (initMsg.event !== 'Initialize') {
+      const initMsg = JSON.parse(value as string) as { event: "Initialize"; data: number };
+      if (initMsg.event !== "Initialize") {
         throw new Error(`Expected Initialize, got ${initMsg.event}`);
       }
 
@@ -229,8 +261,8 @@ export class DaemonTransport implements Transport {
       await this.#writeMessage(
         writable,
         JSON.stringify({
-          event: 'Register',
-          data: { id: assignedId, type: 'Driver' },
+          event: "Register",
+          data: { id: assignedId, type: "Driver" },
         }),
         signal,
       );
@@ -240,65 +272,38 @@ export class DaemonTransport implements Transport {
         readable,
         writable,
         async [Symbol.asyncDispose]() {
-          signal?.removeEventListener('abort', abortHandler);
+          signal?.removeEventListener("abort", abortHandler);
           wss.close();
           await wss.closed.catch(() => {});
         },
       };
     } catch (err) {
-      signal?.removeEventListener('abort', abortHandler);
+      signal?.removeEventListener("abort", abortHandler);
       try {
         wss.close();
-      } catch {
-        /* ignore */
-      }
+      } catch { /* ignore */ }
       try {
         await wss.closed;
-      } catch {
-        /* ignore */
-      }
+      } catch { /* ignore */ }
       throw err;
     }
   }
 
-  async *#readMessages(
-    readable: ReadableStream<string>,
-    signal: AbortSignal,
-  ): AsyncGenerator<unknown> {
-    const reader = readable.getReader();
-    const abortHandler = () => {
-      void reader.cancel(signal.reason);
-    };
-    signal.addEventListener('abort', abortHandler, { once: true });
-
-    try {
-      while (!signal.aborted) {
-        const { value, done } = await reader.read();
-        if (done) break;
-        try {
-          yield JSON.parse(value as string);
-        } catch {
-          // skip unparseable messages
-        }
+  async *#readMessages(readable: ReadableStream<string>, signal: AbortSignal): AsyncGenerator<unknown> {
+    for await (const value of readMessages(readable, signal)) {
+      try {
+        yield JSON.parse(value as string);
+      } catch {
+        // skip unparseable messages
       }
-    } finally {
-      signal.removeEventListener('abort', abortHandler);
-      reader.releaseLock();
     }
   }
 
-  async #writeMessage(
-    writable: WritableStream,
-    chunk: string,
-    signal?: AbortSignal,
-  ) {
-    await writeMessage(writable, chunk, signal);
+  async #writeMessage(writable: WritableStream, chunk: string, signal?: AbortSignal) {
+    await writeOnce(writable, chunk, signal);
   }
 
-  async #withAbortSignal<T>(
-    promise: Promise<T>,
-    signal?: AbortSignal,
-  ): Promise<T> {
+  async #withAbortSignal<T>(promise: Promise<T>, signal?: AbortSignal): Promise<T> {
     if (!signal) return promise;
     signal.throwIfAborted();
 
@@ -306,14 +311,14 @@ export class DaemonTransport implements Transport {
       const abortHandler = () => {
         reject(signal.reason);
       };
-      signal.addEventListener('abort', abortHandler, { once: true });
+      signal.addEventListener("abort", abortHandler, { once: true });
       promise.then(
         (value) => {
-          signal.removeEventListener('abort', abortHandler);
+          signal.removeEventListener("abort", abortHandler);
           resolve(value);
         },
         (error: unknown) => {
-          signal.removeEventListener('abort', abortHandler);
+          signal.removeEventListener("abort", abortHandler);
           reject(error);
         },
       );
@@ -321,13 +326,29 @@ export class DaemonTransport implements Transport {
   }
 }
 
-function routeDaemonMessage<T>(
-  chunk: T,
-  sender: number,
-  port: ClientTarget,
-): unknown {
-  if (isRecord(chunk) && chunk['event'] === 'Customized') {
-    const data = isRecord(chunk['data']) ? chunk['data'] : {};
+function isRetryableDaemonHandshakeError(error: unknown): boolean {
+  if (!(error instanceof Error)) return false;
+
+  const code = (error as Error & { code?: unknown }).code;
+  if (
+    code === "ECONNREFUSED"
+    || code === "ECONNRESET"
+    || code === "EPIPE"
+    || code === "ETIMEDOUT"
+    || code === 1006
+  ) {
+    return true;
+  }
+
+  return error.message === "WebSocket closed before initialization."
+    || error.message === "WebSocket closed before opening."
+    || error.message === "socket hang up"
+    || error.message.startsWith("Unexpected server response: 503");
+}
+
+function routeDaemonMessage<T>(chunk: T, sender: number, port: TransportConnectOptions["port"]): unknown {
+  if (isRecord(chunk) && chunk["event"] === "Customized") {
+    const data = isRecord(chunk["data"]) ? chunk["data"] : {};
     return {
       ...chunk,
       data: {
@@ -345,38 +366,14 @@ function stringifyMessage(message: unknown): string {
   try {
     return JSON.stringify(message);
   } catch (err) {
-    throw new Error(
-      `Failed to stringify object: ${err instanceof Error ? err.message : String(err)}`,
-      {
-        cause: err,
-      },
-    );
+    throw new Error(`Failed to stringify object: ${err instanceof Error ? err.message : String(err)}`, {
+      cause: err,
+    });
   }
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === 'object' && value !== null;
-}
-
-async function writeMessage(
-  writable: WritableStream,
-  chunk: string,
-  signal?: AbortSignal,
-) {
-  signal?.throwIfAborted();
-  const writer = writable.getWriter();
-  const abortHandler = () => {
-    void writer.abort(signal?.reason);
-  };
-
-  signal?.addEventListener('abort', abortHandler, { once: true });
-
-  try {
-    await writer.write(chunk);
-  } finally {
-    signal?.removeEventListener('abort', abortHandler);
-    writer.releaseLock();
-  }
+  return typeof value === "object" && value !== null;
 }
 
 class JSONStringToObjectStream extends TransformStream<string, unknown> {
@@ -386,11 +383,7 @@ class JSONStringToObjectStream extends TransformStream<string, unknown> {
         try {
           controller.enqueue(JSON.parse(chunk));
         } catch (err) {
-          controller.error(
-            new Error(
-              `Failed to parse JSON: ${err instanceof Error ? err.message : String(err)}`,
-            ),
-          );
+          controller.error(new Error(`Failed to parse JSON: ${err instanceof Error ? err.message : String(err)}`));
         }
       },
     });
