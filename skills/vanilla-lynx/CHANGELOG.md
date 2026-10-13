@@ -1,5 +1,11 @@
 # @lynx-js/skill-vanilla-lynx
 
+## 0.2.1
+
+### Patch Changes
+
+- f9527b5: Shorten the Vanilla Lynx skill description while preserving its source-authoring and routing boundaries.
+
 ## 0.2.0
 
 ### Minor Changes
