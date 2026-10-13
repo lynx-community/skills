@@ -1,7 +1,7 @@
 // Copyright 2026 The Lynx Authors. All rights reserved.
 // Licensed under the Apache License Version 2.0 that can be found in the
 // LICENSE file in the root directory of this source tree.
-import { ReadableStream } from "node:stream/web";
+import { ReadableStream, type ReadableStreamReadResult } from "node:stream/web";
 import { createDebug } from "obug";
 import type { Connector } from "../../index.ts";
 import { applyOperationV2, applyRootOrder, createRendererState, type RendererState } from "./protocol.ts";
