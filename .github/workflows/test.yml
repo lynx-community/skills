@@ -58,7 +58,7 @@ jobs:
         run: pnpm -r build
 
       - name: Validate Skills and Eval Helpers
-        run: node --test scripts/validate-skills.test.mjs scripts/skill-eval/*.test.mjs
+        run: node --test scripts/validate-skills.test.mjs scripts/package-preview.test.mjs scripts/skill-eval/*.test.mjs
 
   test:
     runs-on: ${{ matrix.os }}
