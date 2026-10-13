@@ -1,5 +1,11 @@
 # @lynx-js/docs-mcp-server
 
+## 0.2.7
+
+### Patch Changes
+
+- 3452eb4: Move the docs MCP server from `lynx-family/lynx-stack` to `lynx-community/skills`, preserving the npm package name, MCP configuration, recursive documentation index crawling, and Codex startup compatibility.
+
 ## 0.2.6
 
 ### Patch Changes
