@@ -1,8 +1,7 @@
 // Copyright 2026 The Lynx Authors. All rights reserved.
 // Licensed under the Apache License Version 2.0 that can be found in the
 // LICENSE file in the root directory of this source tree.
-
-import type { Connector } from '../index.ts';
+import type { Connector } from "../index.ts";
 
 /** A bounding box in CDP logical coordinates. */
 export interface Box {
@@ -27,23 +26,12 @@ export interface RefFlags {
 }
 
 /** Internal hit-test identities. Symbol keys are deliberately omitted from JSON output. */
-export const SNAPSHOT_REF_HIT_NODE_IDS: unique symbol = Symbol(
-  'snapshotRefHitNodeIds',
-);
-const SNAPSHOT_REF_VISIBLE_BOX: unique symbol = Symbol('snapshotRefVisibleBox');
-const SNAPSHOT_REF_NEEDS_HIT_TEST: unique symbol = Symbol(
-  'snapshotRefNeedsHitTest',
-);
-export const SNAPSHOT_REF_ANNOTATION_ROLE: unique symbol = Symbol(
-  'snapshotRefAnnotationRole',
-);
+export const SNAPSHOT_REF_HIT_NODE_IDS: unique symbol = Symbol("snapshotRefHitNodeIds");
+const SNAPSHOT_REF_VISIBLE_BOX: unique symbol = Symbol("snapshotRefVisibleBox");
+const SNAPSHOT_REF_NEEDS_HIT_TEST: unique symbol = Symbol("snapshotRefNeedsHitTest");
+export const SNAPSHOT_REF_ANNOTATION_ROLE: unique symbol = Symbol("snapshotRefAnnotationRole");
 
-export type SnapshotRefAnnotationRole =
-  | 'action'
-  | 'editable'
-  | 'scrollable'
-  | 'target'
-  | 'generic';
+export type SnapshotRefAnnotationRole = "action" | "editable" | "scrollable" | "target" | "generic";
 
 /** Refs are stable only within the snapshot that produced them. */
 export interface SnapshotRef {
@@ -90,36 +78,13 @@ export interface DomNode {
   boxModel?: DomBoxModel;
 }
 
-const INTERACTIVE_TAGS = new Set([
-  'view',
-  'text',
-  'image',
-  'scroll-view',
-  'list',
-  'x-input',
-  'input',
-  'textarea',
-]);
-const SCROLLABLE_TAGS = new Set([
-  'scroll-view',
-  'list',
-  'x-scroll-view',
-  'x-list',
-]);
-const EDITABLE_TAGS = new Set(['input', 'textarea', 'x-input', 'x-textarea']);
-const SURFACED_ATTRS = [
-  'id',
-  'class',
-  'lynx-test-tag',
-  'value',
-  'placeholder',
-  'disabled',
-  'name',
-  'type',
-];
+const INTERACTIVE_TAGS = new Set(["view", "text", "image", "scroll-view", "list", "x-input", "input", "textarea"]);
+const SCROLLABLE_TAGS = new Set(["scroll-view", "list", "x-scroll-view", "x-list"]);
+const EDITABLE_TAGS = new Set(["input", "textarea", "x-input", "x-textarea"]);
+const SURFACED_ATTRS = ["id", "class", "lynx-test-tag", "value", "placeholder", "disabled", "name", "type"];
 const PROTOCOL_ATTR_ALIASES: Readonly<Record<string, string>> = {
-  classSelector: 'class',
-  idSelector: 'id',
+  classSelector: "class",
+  idSelector: "id",
 };
 const ACTION_EVENT_ATTR =
   /^(?:capture-)?(?:bind|catch)(?:tap|longpress|touchstart|touchmove|touchend|input|change|confirm|submit)$/u;
@@ -146,9 +111,7 @@ function surfacedAttributes(node: DomNode): Record<string, string> {
     const value = getAttr(node, name);
     if (value !== undefined) result[name] = value;
   }
-  for (const [protocolName, publicName] of Object.entries(
-    PROTOCOL_ATTR_ALIASES,
-  )) {
+  for (const [protocolName, publicName] of Object.entries(PROTOCOL_ATTR_ALIASES)) {
     if (result[publicName] !== undefined) continue;
     const value = getAttr(node, protocolName);
     if (value !== undefined) result[publicName] = value;
@@ -156,20 +119,10 @@ function surfacedAttributes(node: DomNode): Record<string, string> {
   return result;
 }
 
-function quadBounds(quad: number[]): {
-  minX: number;
-  maxX: number;
-  minY: number;
-  maxY: number;
-} {
+function quadBounds(quad: number[]): { minX: number; maxX: number; minY: number; maxY: number } {
   const xs = [quad[0]!, quad[2]!, quad[4]!, quad[6]!];
   const ys = [quad[1]!, quad[3]!, quad[5]!, quad[7]!];
-  return {
-    minX: Math.min(...xs),
-    maxX: Math.max(...xs),
-    minY: Math.min(...ys),
-    maxY: Math.max(...ys),
-  };
+  return { minX: Math.min(...xs), maxX: Math.max(...xs), minY: Math.min(...ys), maxY: Math.max(...ys) };
 }
 
 export function centerOfQuad(quad: number[]): Point {
@@ -188,53 +141,48 @@ function boxOfQuad(quad: number[]): Box {
 }
 
 function collectText(node: DomNode, depth = 0): string {
-  if (depth > 3) return '';
-  const finish = (value: string): string =>
-    depth === 0 ? value.trim() : value;
+  if (depth > 3) return "";
+  const finish = (value: string): string => depth === 0 ? value.trim() : value;
   if (node.nodeType === 3 && node.nodeValue) return finish(node.nodeValue);
   const tag = tagName(node);
-  const ownText = getAttr(node, 'text');
-  if ((tag === 'text' || tag === 'raw-text') && ownText) return finish(ownText);
-  const ownValue = getAttr(node, 'value');
+  const ownText = getAttr(node, "text");
+  if ((tag === "text" || tag === "raw-text") && ownText) return finish(ownText);
+  const ownValue = getAttr(node, "value");
   if (EDITABLE_TAGS.has(tag) && ownValue) return finish(ownValue);
-  if (SCROLLABLE_TAGS.has(tag)) return '';
+  if (SCROLLABLE_TAGS.has(tag)) return "";
 
   const parts: string[] = [];
   for (const child of node.children ?? []) {
     const childTag = tagName(child);
     const childQuad = boxQuad(child);
-    const childHasOwnRef =
-      childQuad !== undefined &&
-      childQuad.length >= 8 &&
-      isInteractive(child) &&
-      boxOfQuad(childQuad).width > 0 &&
-      boxOfQuad(childQuad).height > 0;
+    const childHasOwnRef = childQuad !== undefined
+      && childQuad.length >= 8
+      && isInteractive(child)
+      && boxOfQuad(childQuad).width > 0
+      && boxOfQuad(childQuad).height > 0;
     if (
-      tag !== 'text' &&
-      child.nodeType !== 3 &&
-      childTag !== 'text' &&
-      childTag !== 'raw-text'
+      tag !== "text"
+      && child.nodeType !== 3
+      && childTag !== "text"
+      && childTag !== "raw-text"
     ) {
       continue;
     }
-    if (tag !== 'text' && childHasOwnRef) continue;
+    if (tag !== "text" && childHasOwnRef) continue;
     const text = collectText(child, depth + 1);
     if (text) parts.push(text);
   }
-  return finish(parts.join(''));
+  return finish(parts.join(""));
 }
 
-function collectNodeIds(
-  node: DomNode,
-  result = new Set<number>(),
-): ReadonlySet<number> {
+function collectNodeIds(node: DomNode, result = new Set<number>()): ReadonlySet<number> {
   result.add(node.nodeId);
   for (const child of node.children ?? []) collectNodeIds(child, result);
   return result;
 }
 
 function tagName(node: DomNode): string {
-  return (node.localName || node.nodeName || '').toLowerCase();
+  return (node.localName || node.nodeName || "").toLowerCase();
 }
 
 function boxQuad(node: DomNode): number[] | undefined {
@@ -244,51 +192,37 @@ function boxQuad(node: DomNode): number[] | undefined {
 
 function visuallyOrderedChildren(node: DomNode): readonly DomNode[] {
   const children = node.children ?? [];
-  if (!SCROLLABLE_TAGS.has(tagName(node)) || children.length < 2)
-    return children;
+  if (!SCROLLABLE_TAGS.has(tagName(node)) || children.length < 2) return children;
   const decorated = children.map((child, index) => {
     const quad = boxQuad(child);
-    return {
-      child,
-      index,
-      box: quad && quad.length >= 8 ? boxOfQuad(quad) : undefined,
-    };
+    return { child, index, box: quad && quad.length >= 8 ? boxOfQuad(quad) : undefined };
   });
-  if (decorated.some((item) => item.box === undefined)) return children;
+  if (decorated.some(item => item.box === undefined)) return children;
   return decorated
     .sort((left, right) => {
       const leftBox = left.box!;
       const rightBox = right.box!;
-      return (
-        leftBox.y - rightBox.y ||
-        leftBox.x - rightBox.x ||
-        left.index - right.index
-      );
+      return leftBox.y - rightBox.y || leftBox.x - rightBox.x || left.index - right.index;
     })
-    .map((item) => item.child);
+    .map(item => item.child);
 }
 
 function isInteractive(node: DomNode): boolean {
   const tag = tagName(node);
   if (!INTERACTIVE_TAGS.has(tag)) return false;
   if (hasActionEvent(node)) return true;
-  if (getAttr(node, 'lynx-test-tag') !== undefined) return true;
-  return (
-    tag === 'text' ||
-    tag === 'image' ||
-    tag === 'view' ||
-    EDITABLE_TAGS.has(tag) ||
-    SCROLLABLE_TAGS.has(tag)
-  );
+  if (getAttr(node, "lynx-test-tag") !== undefined) return true;
+  return tag === "text" || tag === "image" || tag === "view" || EDITABLE_TAGS.has(tag)
+    || SCROLLABLE_TAGS.has(tag);
 }
 
 function annotationRole(node: DomNode): SnapshotRefAnnotationRole {
   const tag = tagName(node);
-  if (EDITABLE_TAGS.has(tag)) return 'editable';
-  if (hasActionEvent(node)) return 'action';
-  if (SCROLLABLE_TAGS.has(tag)) return 'scrollable';
-  if (getAttr(node, 'lynx-test-tag') !== undefined) return 'target';
-  return 'generic';
+  if (EDITABLE_TAGS.has(tag)) return "editable";
+  if (hasActionEvent(node)) return "action";
+  if (SCROLLABLE_TAGS.has(tag)) return "scrollable";
+  if (getAttr(node, "lynx-test-tag") !== undefined) return "target";
+  return "generic";
 }
 
 type VisibilityClip = Box | null | undefined;
@@ -310,19 +244,11 @@ function applyClip(clip: VisibilityClip, box: Box): Box | null {
 
 function sameBox(left: Box | null, right: Box | null): boolean {
   if (left === null || right === null) return left === right;
-  return (
-    left.x === right.x &&
-    left.y === right.y &&
-    left.width === right.width &&
-    left.height === right.height
-  );
+  return left.x === right.x && left.y === right.y && left.width === right.width && left.height === right.height;
 }
 
 function centerOfBox(box: Box): Point {
-  return {
-    x: Math.round(box.x + box.width / 2),
-    y: Math.round(box.y + box.height / 2),
-  };
+  return { x: Math.round(box.x + box.width / 2), y: Math.round(box.y + box.height / 2) };
 }
 
 function computeFlags(node: DomNode, box: Box, clip: VisibilityClip): RefFlags {
@@ -334,7 +260,7 @@ function computeFlags(node: DomNode, box: Box, clip: VisibilityClip): RefFlags {
     visible,
     offscreen: clip !== undefined && !visible,
     scrollable: SCROLLABLE_TAGS.has(tag),
-    disabled: getAttr(node, 'disabled') !== undefined,
+    disabled: getAttr(node, "disabled") !== undefined,
     editable: EDITABLE_TAGS.has(tag),
   };
 }
@@ -389,8 +315,7 @@ export function buildRefs(root: DomNode, viewport?: Box): SnapshotRef[] {
         };
         if (visibleBox) ref[SNAPSHOT_REF_VISIBLE_BOX] = visibleBox;
         if (parentRef !== undefined) ref.parentRef = parentRef;
-        if (node.backendNodeId !== undefined)
-          ref.backendNodeId = node.backendNodeId;
+        if (node.backendNodeId !== undefined) ref.backendNodeId = node.backendNodeId;
         refs.push(ref);
         childParentRef = ref.ref;
       }
@@ -398,15 +323,9 @@ export function buildRefs(root: DomNode, viewport?: Box): SnapshotRef[] {
 
     let childClip = clip;
     let childNeedsHitTest = needsHitTest;
-    if (
-      box &&
-      box.width > 0 &&
-      box.height > 0 &&
-      SCROLLABLE_TAGS.has(tagName(node))
-    ) {
+    if (box && box.width > 0 && box.height > 0 && SCROLLABLE_TAGS.has(tagName(node))) {
       const nextClip = applyClip(clip, box);
-      if (clip === undefined || !sameBox(nextClip, clip))
-        childNeedsHitTest = true;
+      if (clip === undefined || !sameBox(nextClip, clip)) childNeedsHitTest = true;
       childClip = nextClip;
     }
     for (const child of visuallyOrderedChildren(node)) {
@@ -419,7 +338,7 @@ export function buildRefs(root: DomNode, viewport?: Box): SnapshotRef[] {
   const siblingsByBox = new Map<string, SnapshotRef[]>();
   for (const ref of refs) {
     if (!ref.flags.visible) continue;
-    const key = `${ref.parentRef ?? '<root>'}:${ref.box.x}:${ref.box.y}:${ref.box.width}:${ref.box.height}`;
+    const key = `${ref.parentRef ?? "<root>"}:${ref.box.x}:${ref.box.y}:${ref.box.width}:${ref.box.height}`;
     const siblings = siblingsByBox.get(key);
     if (siblings) siblings.push(ref);
     else siblingsByBox.set(key, [ref]);
@@ -443,11 +362,8 @@ function hitTestPoints(box: Box): Point[] {
     x: Math.round(box.x + box.width * x),
     y: Math.round(box.y + box.height * y),
   }));
-  return points.filter(
-    (point, index) =>
-      points.findIndex(
-        (candidate) => candidate.x === point.x && candidate.y === point.y,
-      ) === index,
+  return points.filter((point, index) =>
+    points.findIndex(candidate => candidate.x === point.x && candidate.y === point.y) === index
   );
 }
 
@@ -463,31 +379,26 @@ async function isPaintedRef(
     signal?.throwIfAborted();
     let located: { nodeId?: number; backendNodeId?: number };
     try {
-      located = await connector.sendCDPMessage<
-        { nodeId?: number; backendNodeId?: number },
-        Point
-      >(clientId, sessionId, 'DOM.getNodeForLocation', point);
+      located = await connector.sendCDPMessage<{ nodeId?: number; backendNodeId?: number }, Point>(
+        clientId,
+        sessionId,
+        "DOM.getNodeForLocation",
+        point,
+      );
     } catch {
       signal?.throwIfAborted();
       return undefined;
     }
     if (
-      located.backendNodeId !== undefined &&
-      located.backendNodeId !== 0 &&
-      located.backendNodeId === ref.backendNodeId
+      located.backendNodeId !== undefined
+      && located.backendNodeId !== 0
+      && located.backendNodeId === ref.backendNodeId
     ) {
       return true;
     }
     if (located.nodeId !== undefined && located.nodeId !== 0) {
-      if (
-        located.nodeId === ref.nodeId ||
-        ref[SNAPSHOT_REF_HIT_NODE_IDS]?.has(located.nodeId)
-      )
-        return true;
-    } else if (
-      located.backendNodeId !== undefined &&
-      located.backendNodeId !== 0
-    ) {
+      if (located.nodeId === ref.nodeId || ref[SNAPSHOT_REF_HIT_NODE_IDS]?.has(located.nodeId)) return true;
+    } else if (located.backendNodeId !== undefined && located.backendNodeId !== 0) {
       // Some runtimes expose only backendNodeId. Without descendant backend
       // identities, this is unknown rather than proof that the ref is hidden.
       unresolvedBackendHit = true;
@@ -503,24 +414,24 @@ async function refinePaintVisibility(
   refs: SnapshotRef[],
   signal?: AbortSignal,
 ): Promise<void> {
-  const candidates = refs.filter(
-    (ref) => ref.flags.visible && ref[SNAPSHOT_REF_NEEDS_HIT_TEST] === true,
-  );
-  const concurrency = 8;
-  for (let index = 0; index < candidates.length; index += concurrency) {
-    const batch = candidates.slice(index, index + concurrency);
-    const verdicts = await Promise.all(
-      batch.map((ref) =>
-        isPaintedRef(connector, clientId, sessionId, ref, signal),
-      ),
-    );
+  const candidates = refs.filter(ref => ref.flags.visible && ref[SNAPSHOT_REF_NEEDS_HIT_TEST] === true);
+  // Retain the existing all-unknown cutoff per group while serializing the requests themselves.
+  const batchSize = 8;
+  for (let index = 0; index < candidates.length; index += batchSize) {
+    const batch = candidates.slice(index, index + batchSize);
+    const verdicts: Array<boolean | undefined> = [];
+    for (const ref of batch) {
+      // Each short connector request opens its own client-port connection. Keep
+      // hit tests serial so one snapshot cannot evict its own Android requests.
+      verdicts.push(await isPaintedRef(connector, clientId, sessionId, ref, signal));
+    }
     signal?.throwIfAborted();
     for (let offset = 0; offset < batch.length; offset += 1) {
       if (verdicts[offset] !== false) continue;
       const ref = batch[offset]!;
       ref.flags = { ...ref.flags, visible: false };
     }
-    if (verdicts.every((verdict) => verdict === undefined)) break;
+    if (verdicts.every(verdict => verdict === undefined)) break;
   }
 }
 
@@ -537,7 +448,7 @@ function firstStringProperty(
   for (const record of records) {
     for (const name of names) {
       const value = record?.[name];
-      if (typeof value === 'string') return value;
+      if (typeof value === "string") return value;
     }
   }
   return undefined;
@@ -550,16 +461,15 @@ async function enrichEditableValues(
   refs: SnapshotRef[],
   signal?: AbortSignal,
 ): Promise<void> {
-  const editableRefs = refs.filter(
-    (ref) =>
-      ref.flags.visible &&
-      ref.flags.editable &&
-      !ref.attributes['type']?.toLowerCase().includes('password'),
+  const editableRefs = refs.filter(ref =>
+    ref.flags.visible
+    && ref.flags.editable
+    && !ref.attributes["type"]?.toLowerCase().includes("password")
   );
   if (editableRefs.length === 0) return;
 
   try {
-    await connector.sendCDPMessage(clientId, sessionId, 'UITree.enable');
+    await connector.sendCDPMessage(clientId, sessionId, "UITree.enable");
   } catch {
     signal?.throwIfAborted();
     return;
@@ -575,7 +485,7 @@ async function enrichEditableValues(
       info = await connector.sendCDPMessage<UiNodeInfo, { UINodeId: number }>(
         clientId,
         sessionId,
-        'UITree.getUIInfoForNode',
+        "UITree.getUIInfoForNode",
         { UINodeId: ref.nodeId },
       );
     } catch {
@@ -585,14 +495,11 @@ async function enrichEditableValues(
     signal?.throwIfAborted();
     const value = firstStringProperty(
       [info.readonlyProps, info.ui?.readonlyProps, info.view?.readonlyProps],
-      ['value', 'text', 'mText', 'mSpannable', 'mTransformed'],
+      ["value", "text", "mText", "mSpannable", "mTransformed"],
     );
     if (value === undefined) continue;
     ref.attributes = { ...ref.attributes, value };
-    ref.text = (value || ref.attributes['placeholder'] || ref.text).slice(
-      0,
-      80,
-    );
+    ref.text = (value || ref.attributes["placeholder"] || ref.text).slice(0, 80);
   }
 }
 
@@ -601,11 +508,11 @@ export function filterSnapshotRefs(
   refs: readonly SnapshotRef[],
   predicate: (ref: SnapshotRef) => boolean,
 ): SnapshotRef[] {
-  const refsByLabel = new Map(refs.map((ref) => [ref.ref, ref]));
+  const refsByLabel = new Map(refs.map(ref => [ref.ref, ref]));
   const retained = refs.filter(predicate);
-  const retainedLabels = new Set(retained.map((ref) => ref.ref));
+  const retainedLabels = new Set(retained.map(ref => ref.ref));
 
-  return retained.map((ref) => {
+  return retained.map(ref => {
     let parentRef = ref.parentRef;
     const visited = new Set<string>();
     while (parentRef !== undefined && !retainedLabels.has(parentRef)) {
@@ -636,19 +543,20 @@ export async function buildSnapshotStructure(
   await connector.sendCDPMessage<unknown, { useCompression: boolean }>(
     clientId,
     sessionId,
-    'DOM.enable',
+    "DOM.enable",
     { useCompression: false },
   );
   signal?.throwIfAborted();
-  const result = await connector.sendCDPMessage<{
-    root: DomNode | string;
-    compress?: boolean;
-  }>(clientId, sessionId, 'DOM.getDocumentWithBoxModel');
+  const result = await connector.sendCDPMessage<{ root: DomNode | string; compress?: boolean }>(
+    clientId,
+    sessionId,
+    "DOM.getDocumentWithBoxModel",
+  );
   signal?.throwIfAborted();
 
-  if (typeof result.root === 'string') {
+  if (typeof result.root === "string") {
     throw new Error(
-      'DOM.getDocumentWithBoxModel returned a compressed tree. Retry after DOM.enable with useCompression:false.',
+      "DOM.getDocumentWithBoxModel returned a compressed tree. Retry after DOM.enable with useCompression:false.",
     );
   }
 
@@ -665,20 +573,8 @@ export async function enrichSnapshot(
   snapshot: SnapshotResult,
   signal?: AbortSignal,
 ): Promise<SnapshotResult> {
-  await refinePaintVisibility(
-    connector,
-    clientId,
-    sessionId,
-    snapshot.refs,
-    signal,
-  );
-  await enrichEditableValues(
-    connector,
-    clientId,
-    sessionId,
-    snapshot.refs,
-    signal,
-  );
+  await refinePaintVisibility(connector, clientId, sessionId, snapshot.refs, signal);
+  await enrichEditableValues(connector, clientId, sessionId, snapshot.refs, signal);
   return snapshot;
 }
 
@@ -689,11 +585,6 @@ export async function buildSnapshot(
   sessionId: number,
   signal?: AbortSignal,
 ): Promise<SnapshotResult> {
-  const snapshot = await buildSnapshotStructure(
-    connector,
-    clientId,
-    sessionId,
-    signal,
-  );
+  const snapshot = await buildSnapshotStructure(connector, clientId, sessionId, signal);
   return enrichSnapshot(connector, clientId, sessionId, snapshot, signal);
 }

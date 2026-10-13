@@ -1,13 +1,12 @@
 // Copyright 2026 The Lynx Authors. All rights reserved.
 // Licensed under the Apache License Version 2.0 that can be found in the
 // LICENSE file in the root directory of this source tree.
-
-import type { SnapshotRef } from '../snapshot.ts';
-import type { DevNodeType, ID, VNode } from './protocol.ts';
+import type { SnapshotRef } from "../snapshot.ts";
+import type { DevNodeType, ID, VNode } from "./protocol.ts";
 
 export type ReactLynxCacheInfo =
-  | { status: 'not-used' }
-  | { status: 'refreshed' | 'reused'; generation: number; capturedAt: number };
+  | { status: "not-used" }
+  | { status: "refreshed" | "reused"; generation: number; capturedAt: number };
 
 export interface ReactLynxTargetData {
   clientId: string;
@@ -67,13 +66,10 @@ export interface ReactLynxLinkedComponent {
 }
 
 export interface ReactLynxLinkData extends ReactLynxTargetData {
-  direction: 'element-to-component' | 'component-to-element';
-  relation: 'nearest-component' | 'first-host-element';
+  direction: "element-to-component" | "component-to-element";
+  relation: "nearest-component" | "first-host-element";
   element: SnapshotRef;
   component: ReactLynxLinkedComponent;
 }
 
-export type ReactLynxUpdateKind =
-  | 'update-prop'
-  | 'update-state'
-  | 'update-context';
+export type ReactLynxUpdateKind = "update-prop" | "update-state" | "update-context";

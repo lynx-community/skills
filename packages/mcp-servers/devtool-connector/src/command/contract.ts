@@ -1,15 +1,17 @@
 // Copyright 2026 The Lynx Authors. All rights reserved.
 // Licensed under the Apache License Version 2.0 that can be found in the
 // LICENSE file in the root directory of this source tree.
-
+import type { Client } from "../transport/transport.ts";
+import type { ListSessionResponse, Session } from "../types.ts";
 import type {
   ReactLynxComponentData,
   ReactLynxFindData,
   ReactLynxLinkData,
   ReactLynxTreeData,
-} from './reactlynx/types.ts';
-import type { CommandResult } from './result.ts';
-import type { Box, Point, SnapshotRef } from './snapshot.ts';
+} from "./reactlynx/types.ts";
+import type { CommandResult } from "./result.ts";
+import type { Box, Point, SnapshotRef } from "./snapshot.ts";
+import type { OriginalNodeSourceInfo } from "./source-info.ts";
 
 export type CommandObject = Record<string, unknown>;
 
@@ -19,6 +21,39 @@ export interface ClientTarget {
 
 export interface SessionTarget extends ClientTarget {
   sessionId?: number;
+}
+
+export type EmptyCommandParams = Record<string, never>;
+
+export interface ListClientsData {
+  clients: Client[];
+}
+
+export interface ListSessionsData {
+  clientId: string;
+  sessions: Session[];
+}
+
+export interface OpenData {
+  clientId: string;
+  response: ListSessionResponse;
+}
+
+export interface WaitForClientData {
+  matched: true;
+  clients: Client[];
+  /** Non-headless clients returned by the latest successful discovery attempt. */
+  availableClients: Client[];
+  attempts: number;
+  elapsedMs: number;
+}
+
+export interface WaitForClientProgressData {
+  matched: false;
+  /** Non-headless clients returned by the latest successful discovery attempt. */
+  availableClients: Client[];
+  attempts: number;
+  elapsedMs: number;
 }
 
 export interface SnapshotData {
@@ -50,6 +85,18 @@ export interface ScreenshotAnnotation {
 }
 
 export interface CommandMap {
+  "list-clients": {
+    params: EmptyCommandParams;
+    data: ListClientsData;
+  };
+  "list-sessions": {
+    params: ClientTarget;
+    data: ListSessionsData;
+  };
+  open: {
+    params: ClientTarget & { url: string };
+    data: OpenData;
+  };
   snapshot: {
     params: SessionTarget & { visibleOnly?: boolean };
     data: SnapshotData;
@@ -68,19 +115,10 @@ export interface CommandMap {
   };
   tap: {
     params: SessionTarget & { ref: string; snapshotAfter?: boolean };
-    data: {
-      clientId: string;
-      sessionId: number;
-      ref: string;
-      point: Point;
-    } & SnapshotAfterResult;
+    data: { clientId: string; sessionId: number; ref: string; point: Point } & SnapshotAfterResult;
   };
-  'long-press': {
-    params: SessionTarget & {
-      ref: string;
-      duration?: number;
-      snapshotAfter?: boolean;
-    };
+  "long-press": {
+    params: SessionTarget & { ref: string; duration?: number; snapshotAfter?: boolean };
     data: {
       clientId: string;
       sessionId: number;
@@ -90,76 +128,56 @@ export interface CommandMap {
     } & SnapshotAfterResult;
   };
   fill: {
-    params: SessionTarget & {
-      ref: string;
-      text: string;
-      snapshotAfter?: boolean;
-    };
-    data: {
-      clientId: string;
-      sessionId: number;
-      ref: string;
-      value: string;
-    } & SnapshotAfterResult;
+    params: SessionTarget & { ref: string; text: string; snapshotAfter?: boolean };
+    data: { clientId: string; sessionId: number; ref: string; value: string } & SnapshotAfterResult;
   };
   clear: {
     params: SessionTarget & { ref: string; snapshotAfter?: boolean };
-    data: {
-      clientId: string;
-      sessionId: number;
-      ref: string;
-      value: string;
-    } & SnapshotAfterResult;
+    data: { clientId: string; sessionId: number; ref: string; value: string } & SnapshotAfterResult;
   };
   scroll: {
     params: SessionTarget & {
       ref: string;
-      direction?: 'up' | 'down' | 'left' | 'right';
+      direction?: "up" | "down" | "left" | "right";
       snapshotAfter?: boolean;
     };
     data: {
       clientId: string;
       sessionId: number;
       ref: string;
-      direction: 'up' | 'down' | 'left' | 'right';
+      direction: "up" | "down" | "left" | "right";
       from: Point;
       to: Point;
     } & SnapshotAfterResult;
   };
-  'get-text': {
+  "get-text": {
     params: SessionTarget & { ref: string };
     data: { clientId: string; sessionId: number; ref: string; text: string };
   };
-  'get-style': {
+  "get-style": {
     params: SessionTarget & { ref: string; property?: string | string[] };
-    data: {
-      clientId: string;
-      sessionId: number;
-      ref: string;
-      style: Record<string, string>;
-    };
+    data: { clientId: string; sessionId: number; ref: string; style: Record<string, string> };
+  };
+  "get-source-info": {
+    params: SessionTarget & { ref: string };
+    data: OriginalNodeSourceInfo;
   };
   wait: {
-    params: SessionTarget & {
-      text?: string;
-      ref?: string;
-      timeout?: number;
-      interval?: number;
-    };
+    params: SessionTarget & { text?: string; ref?: string; timeout?: number; interval?: number };
     data: {
       clientId: string;
       sessionId: number;
       matched: true;
-      by: 'text' | 'ref';
+      by: "text" | "ref";
       query: string;
       elapsedMs: number;
     };
   };
-  'reactlynx-tree': {
+  "reactlynx-tree": {
     params: SessionTarget & { depth?: number; showShells?: boolean };
     data: ReactLynxTreeData;
   };
-  'reactlynx-find': {
+  "reactlynx-find": {
     params: SessionTarget & {
       pattern: string;
       regex?: boolean;
@@ -169,23 +187,15 @@ export interface CommandMap {
     };
     data: ReactLynxFindData;
   };
-  'reactlynx-component': {
-    params: SessionTarget & {
-      ref: string;
-      showShells?: boolean;
-      refresh?: boolean;
-    };
+  "reactlynx-component": {
+    params: SessionTarget & { ref: string; showShells?: boolean; refresh?: boolean };
     data: ReactLynxComponentData;
   };
-  'reactlynx-link': {
-    params: SessionTarget & {
-      ref: string;
-      showShells?: boolean;
-      refresh?: boolean;
-    };
+  "reactlynx-link": {
+    params: SessionTarget & { ref: string; showShells?: boolean; refresh?: boolean };
     data: ReactLynxLinkData;
   };
-  'reactlynx-update-prop': {
+  "reactlynx-update-prop": {
     params: SessionTarget & {
       ref: string;
       path: string;
@@ -195,7 +205,7 @@ export interface CommandMap {
     };
     data: ReactLynxComponentData;
   };
-  'reactlynx-update-state': {
+  "reactlynx-update-state": {
     params: SessionTarget & {
       ref: string;
       path: string;
@@ -205,7 +215,7 @@ export interface CommandMap {
     };
     data: ReactLynxComponentData;
   };
-  'reactlynx-update-context': {
+  "reactlynx-update-context": {
     params: SessionTarget & {
       ref: string;
       path: string;
@@ -218,33 +228,33 @@ export interface CommandMap {
 }
 
 export type CommandAction = keyof CommandMap;
-export type CommandParams<Action extends CommandAction> =
-  CommandMap[Action]['params'];
-export type CommandData<Action extends CommandAction> =
-  CommandMap[Action]['data'];
+export type CommandParams<Action extends CommandAction> = CommandMap[Action]["params"];
+export type CommandData<Action extends CommandAction> = CommandMap[Action]["data"];
 
 export interface WaitProgressData {
   clientId: string;
   sessionId: number;
   matched: false;
-  by: 'text' | 'ref';
+  by: "text" | "ref";
   query: string;
   elapsedMs: number;
   refCount: number;
 }
 
 export interface StreamCommandMap {
+  "wait-for-client": {
+    params: { clientName?: string; timeoutMs?: number; intervalMs?: number };
+    event: WaitForClientProgressData | WaitForClientData;
+  };
   wait: {
-    params: CommandParams<'wait'>;
-    event: WaitProgressData | CommandData<'wait'>;
+    params: CommandParams<"wait">;
+    event: WaitProgressData | CommandData<"wait">;
   };
 }
 
 export type StreamCommandAction = keyof StreamCommandMap;
-export type StreamCommandParams<Action extends StreamCommandAction> =
-  StreamCommandMap[Action]['params'];
-export type StreamCommandEvent<Action extends StreamCommandAction> =
-  StreamCommandMap[Action]['event'];
+export type StreamCommandParams<Action extends StreamCommandAction> = StreamCommandMap[Action]["params"];
+export type StreamCommandEvent<Action extends StreamCommandAction> = StreamCommandMap[Action]["event"];
 
 export interface CommandClient {
   execute<Action extends CommandAction>(
@@ -255,6 +265,6 @@ export interface CommandClient {
   stream<Action extends StreamCommandAction>(
     action: Action,
     params: StreamCommandParams<Action>,
-    options?: { signal?: AbortSignal; method?: 'GET' | 'POST' },
+    options?: { signal?: AbortSignal; method?: "GET" | "POST" },
   ): AsyncGenerator<CommandResult<StreamCommandEvent<Action>>>;
 }

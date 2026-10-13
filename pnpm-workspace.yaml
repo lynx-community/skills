@@ -8,6 +8,12 @@ packages:
   - packages/mcp-servers/*
 
 catalogs:
+  connector_rstack:
+    '@rslib/core': 1.0.1
+  connector_adb:
+    '@yume-chan/adb': 3.0.0-beta.2
+    '@yume-chan/adb-server-node-tcp': 3.0.0-beta.2
+    '@yume-chan/stream-extra': 3.0.0-beta.2
   rstack:
     '@rslib/core': 0.23.0
     '@rsbuild/core': 2.1.0

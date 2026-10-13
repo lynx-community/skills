@@ -1,26 +1,13 @@
-// Copyright 2025 The Lynx Authors. All rights reserved.
+// Copyright 2026 The Lynx Authors. All rights reserved.
 // Licensed under the Apache License Version 2.0 that can be found in the
 // LICENSE file in the root directory of this source tree.
-
-import { ReadableStream, WritableStream } from 'node:stream/web';
-import { type RawData, WebSocket } from 'ws';
+import { ReadableStream, WritableStream } from "node:stream/web";
+import { type RawData, WebSocket } from "ws";
 
 function stringifyWebSocketData(data: RawData | string): string {
-  return typeof data === 'string' ? data : data.toString();
+  return typeof data === "string" ? data : data.toString();
 }
 
-/**
- * WebSocket close codes that represent an orderly shutdown, so the readable
- * side should simply reach EOF instead of erroring:
- *
- * - `1000` Normal Closure
- * - `1001` Going Away
- * - `1005` No Status Received (the peer closed without a status code)
- *
- * Every other code (notably `1006` Abnormal Closure and `1011` Internal Error)
- * means the connection died unexpectedly, and callers such as the daemon
- * handshake must be able to tell that apart from a clean end of stream.
- */
 const NORMAL_CLOSE_CODES = new Set([1000, 1001, 1005]);
 
 function createWebSocketCloseError(
@@ -28,11 +15,9 @@ function createWebSocketCloseError(
   reason: Buffer,
 ): (Error & { code: number; reason: string }) | null {
   if (NORMAL_CLOSE_CODES.has(code)) return null;
-  const text = reason.toString('utf8');
+  const text = reason.toString("utf8");
   return Object.assign(
-    new Error(
-      `WebSocket closed abnormally (${code})${text ? `: ${text}` : ''}`,
-    ),
+    new Error(`WebSocket closed abnormally (${code})${text ? `: ${text}` : ""}`),
     { code, reason: text },
   );
 }
@@ -69,16 +54,16 @@ function createOwnedWebSocketReadable(ws: WebSocket): {
           paused = false;
           ws.resume();
         }
-        ws.off('message', onMessage);
-        ws.off('close', onClose);
-        ws.off('error', onError);
+        ws.off("message", onMessage);
+        ws.off("close", onClose);
+        ws.off("error", onError);
       };
       const stopAcceptingMessages = () => {
         if (!active || !acceptingMessages) {
           return;
         }
         acceptingMessages = false;
-        ws.off('message', onMessage);
+        ws.off("message", onMessage);
         resume();
       };
       const onMessage = (data: RawData | string) => {
@@ -112,9 +97,9 @@ function createOwnedWebSocketReadable(ws: WebSocket): {
 
       cleanup = stop;
       prepareForClose = stopAcceptingMessages;
-      ws.on('message', onMessage);
-      ws.on('close', onClose);
-      ws.on('error', onError);
+      ws.on("message", onMessage);
+      ws.on("close", onClose);
+      ws.on("error", onError);
     },
     pull() {
       resume();
@@ -133,13 +118,6 @@ function createOwnedWebSocketReadable(ws: WebSocket): {
   };
 }
 
-/**
- * Wraps a `ws` WebSocket into a `ReadableStream<string>` of text frames.
- *
- * The stream applies backpressure by pausing the socket once the queue is
- * full, reaches EOF on an orderly close, and errors with a
- * `code`/`reason`-carrying `Error` on an abnormal close.
- */
 export function createWebSocketReadable(ws: WebSocket): ReadableStream<string> {
   return createOwnedWebSocketReadable(ws).readable;
 }
@@ -148,7 +126,7 @@ export function createWebSocketReadable(ws: WebSocket): ReadableStream<string> {
  * A lightweight wrapper around the `ws` WebSocket that exposes a
  * `WebSocketStream`-compatible interface (opened / closed / close).
  *
- * This allows `DaemonTransport` to work on Node 18+
+ * This allows `HDTTransport` and `DaemonTransport` to work on Node 18+
  * without depending on `undici`'s `WebSocketStream` (which requires
  * Node 22+).
  */
@@ -182,17 +160,17 @@ export class WsWebSocketStream {
       const onClose = (code: number, reason: Buffer) => {
         cleanup();
         const error = createWebSocketCloseError(code, reason);
-        reject(error ?? new Error('WebSocket closed before opening.'));
+        reject(error ?? new Error("WebSocket closed before opening."));
         if (error) this.#rejectClosed(error);
         else this.#resolveClosed();
       };
 
       const cleanup = () => {
-        ws.removeListener('error', onError);
-        ws.removeListener('close', onClose);
+        ws.removeListener("error", onError);
+        ws.removeListener("close", onClose);
       };
 
-      ws.once('open', () => {
+      ws.once("open", () => {
         cleanup();
 
         // --- readable ---
@@ -220,19 +198,19 @@ export class WsWebSocketStream {
         resolve({ readable, writable });
 
         // Wire up closed promise
-        ws.on('close', (code, reason) => {
+        ws.on("close", (code, reason) => {
           const error = createWebSocketCloseError(code, reason);
           if (error) this.#rejectClosed(error);
           else this.#resolveClosed();
         });
 
-        ws.on('error', (err) => {
+        ws.on("error", (err) => {
           this.#rejectClosed(err);
         });
       });
 
-      ws.once('error', onError);
-      ws.once('close', onClose);
+      ws.once("error", onError);
+      ws.once("close", onClose);
     });
   }
 

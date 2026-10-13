@@ -1,17 +1,12 @@
-// Copyright 2025 The Lynx Authors. All rights reserved.
+// Copyright 2026 The Lynx Authors. All rights reserved.
 // Licensed under the Apache License Version 2.0 that can be found in the
 // LICENSE file in the root directory of this source tree.
+import { createDebug } from "obug";
+import type { ClientTarget } from "../client-id.ts";
+import type { Connection, Transport, TransportConnectOptions } from "../transport/transport.ts";
+import { type AppInfo, isInitializeResponse, type Response } from "../types.ts";
 
-import { createDebug } from 'obug';
-import type { ClientTarget } from '../client-id.ts';
-import type {
-  Connection,
-  Transport,
-  TransportConnectOptions,
-} from '../transport/transport.ts';
-import { type AppInfo, isInitializeResponse, type Response } from '../types.ts';
-
-const debug = createDebug('devtool-mcp-server:daemon:device-connection');
+const debug = createDebug("devtool-mcp-server:daemon:device-connection");
 
 export interface DeviceConnectionSubscriber {
   readonly id: number;
@@ -68,11 +63,9 @@ export class DeviceConnection {
    * in a try/catch — a failure means the device:port is unreachable.
    */
   async connect(): Promise<void> {
-    debug('connecting to %s', this.key);
+    debug("connecting to %s", this.key);
     if (this.#disposed) {
-      throw new Error(
-        `DeviceConnection ${this.key} was disposed before connect started`,
-      );
+      throw new Error(`DeviceConnection ${this.key} was disposed before connect started`);
     }
 
     try {
@@ -83,16 +76,14 @@ export class DeviceConnection {
       throw error;
     }
     if (this.#disposed) {
-      const error = new Error(
-        `DeviceConnection ${this.key} was disposed before connect completed`,
-      );
+      const error = new Error(`DeviceConnection ${this.key} was disposed before connect completed`);
       this.#rejectRegistration(error);
       throw error;
     }
 
     this.#writer = this.#conn.writable.getWriter();
     this.#readLoopPromise = this.#readLoop();
-    debug('connected to %s', this.key);
+    debug("connected to %s", this.key);
   }
 
   waitUntilRegistered(): Promise<AppInfo> {
@@ -104,22 +95,12 @@ export class DeviceConnection {
       throw new Error(`Device connection ${this.key} is no longer active`);
     }
     this.#subscribers.set(subscriber.id, subscriber);
-    debug(
-      'subscriber %d added to %s (total: %d)',
-      subscriber.id,
-      this.key,
-      this.#subscribers.size,
-    );
+    debug("subscriber %d added to %s (total: %d)", subscriber.id, this.key, this.#subscribers.size);
   }
 
   removeSubscriber(id: number): void {
     this.#subscribers.delete(id);
-    debug(
-      'subscriber %d removed from %s (total: %d)',
-      id,
-      this.key,
-      this.#subscribers.size,
-    );
+    debug("subscriber %d removed from %s (total: %d)", id, this.key, this.#subscribers.size);
   }
 
   get subscriberCount(): number {
@@ -130,16 +111,17 @@ export class DeviceConnection {
     return this.#disposed;
   }
 
+  get transport(): Transport {
+    return this.#transport;
+  }
+
   get isPersistent(): boolean {
     return this.#transport.persistent === true;
   }
 
   async send(message: unknown): Promise<void> {
     if (this.#disposed) {
-      throw (
-        this.#terminalCause ??
-        new Error(`DeviceConnection ${this.key} is no longer active`)
-      );
+      throw this.#terminalCause ?? new Error(`DeviceConnection ${this.key} is no longer active`);
     }
     if (!this.#writer) {
       throw new Error(`DeviceConnection ${this.key} is not connected`);
@@ -147,7 +129,7 @@ export class DeviceConnection {
     try {
       await this.#writer.write(message);
     } catch (err) {
-      debug('send to %s failed: %O', this.key, err);
+      debug("send to %s failed: %O", this.key, err);
       this.#terminate(err, false);
       throw this.#terminalCause ?? err;
     }
@@ -155,20 +137,17 @@ export class DeviceConnection {
 
   dispose(): Promise<void> {
     this.#disposed = true;
-    this.#rejectRegistration(
-      new Error(`DeviceConnection ${this.key} was disposed before Register`),
-    );
+    this.#rejectRegistration(new Error(`DeviceConnection ${this.key} was disposed before Register`));
     return this.#startDisposal(true);
   }
 
   async #disposeConnection(awaitReadLoop: boolean): Promise<void> {
-    debug('disposing device connection %s', this.key);
+    debug("disposing device connection %s", this.key);
     let disposeFailed = false;
     let disposeCause: unknown;
 
     try {
-      if (!this.#conn && this.#connectPromise)
-        this.#conn = await this.#connectPromise;
+      if (!this.#conn && this.#connectPromise) this.#conn = await this.#connectPromise;
     } catch {
       // No connection was acquired, so there is nothing to dispose.
     }
@@ -183,7 +162,7 @@ export class DeviceConnection {
     try {
       await this.#conn?.[Symbol.asyncDispose]();
     } catch (err) {
-      debug('error disposing connection %s: %O', this.key, err);
+      debug("error disposing connection %s: %O", this.key, err);
       disposeFailed = true;
       disposeCause = err;
     }
@@ -197,7 +176,7 @@ export class DeviceConnection {
     if (!this.#disposePromise) {
       this.#disposePromise = this.#disposeConnection(awaitReadLoop);
       void this.#disposePromise.catch((err: unknown) => {
-        debug('device connection %s disposal failed: %O', this.key, err);
+        debug("device connection %s disposal failed: %O", this.key, err);
       });
     }
     return this.#disposePromise;
@@ -213,25 +192,31 @@ export class DeviceConnection {
           const response = message as Response;
           if (isInitializeResponse(response)) {
             this.#resolveRegistration(response.data.info);
-            debug('captured appInfo for %s: %O', this.key, this.appInfo);
+            debug("captured appInfo for %s: %O", this.key, this.appInfo);
             continue;
           }
         }
+
+        // HDT can publish router-wide discovery updates on a connection that
+        // is already scoped to one target. The daemon owns ClientList on its
+        // upstream socket, so forwarding this would overwrite that list with
+        // HDT's numeric target IDs.
+        if (isClientListMessage(message)) continue;
 
         this.#broadcast(message);
       }
     } catch (err) {
       terminalCause = err;
       if (!this.#disposed) {
-        debug('read loop error on %s: %O', this.key, err);
+        debug("read loop error on %s: %O", this.key, err);
       }
     }
 
     if (!this.#disposed) {
-      debug('device connection %s closed by remote', this.key);
+      debug("device connection %s closed by remote", this.key);
       this.#terminate(
-        terminalCause ??
-          new Error(
+        terminalCause
+          ?? new Error(
             this.appInfo === null
               ? `Device connection ${this.key} closed before Register`
               : `Device connection ${this.key} closed by remote`,
@@ -268,7 +253,7 @@ export class DeviceConnection {
       try {
         subscriber.close();
       } catch (err) {
-        debug('failed to close subscriber %d: %O', subscriber.id, err);
+        debug("failed to close subscriber %d: %O", subscriber.id, err);
       }
     }
     this.#subscribers.clear();
@@ -279,8 +264,14 @@ export class DeviceConnection {
       try {
         subscriber.send(message);
       } catch (err) {
-        debug('failed to send to subscriber %d: %O', subscriber.id, err);
+        debug("failed to send to subscriber %d: %O", subscriber.id, err);
       }
     }
   }
+}
+
+function isClientListMessage(message: unknown): boolean {
+  return typeof message === "object"
+    && message !== null
+    && (message as { event?: unknown }).event === "ClientList";
 }

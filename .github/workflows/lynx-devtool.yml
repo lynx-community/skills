@@ -70,7 +70,7 @@ jobs:
         env:
           LYNX_DEVTOOL_MCP_TESTING_PAGE_URL: ${{ env.SWIPER_BUNDLE_URL }}
           LYNX_DEVTOOL_MCP_TESTING_OPEN_URL: ${{ env.SWIPER_BUNDLE_URL }}
-        run: node --test --test-concurrency=1 'e2e/**/*.test.ts'
+        run: pnpm run test:e2e:public
 
       - name: E2E (devtool-mcp-server)
         working-directory: packages/mcp-servers/devtool-mcp-server

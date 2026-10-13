@@ -1,152 +1,36 @@
-# @lynx-js/devtool-connector
+# Lynx DevTool Connector
 
-`@lynx-js/devtool-connector` provides low-level connectivity for Lynx DevTool. It unifies transport layers for Android / iOS / Desktop, and exposes stable request APIs (such as `CDP`, `App`, and `ListSession`).
-
-It can be used as a TypeScript library in higher-level services like `devtool-mcp-server`.
-
-## Requirements
-
-- Node.js >= 18.19
-- At least one available device channel:
-  - Android: ADB (default `127.0.0.1:5037`)
-  - iOS: usbmuxd
-  - Desktop: local `127.0.0.1` port
-
-## Installation
-
-```bash
-pnpm add @lynx-js/devtool-connector
-```
-
-## Library usage
-
-### 1) Initialize Connector
+`@lynx-js/devtool-connector` is the standalone device and command layer shared by public and internal Lynx tools. It supports Android, iOS, Desktop, Peertalk, HDT and a persistent loopback daemon. Use Node 22.12+ or Node 24 for source development.
 
 ```ts
 import { Connector } from "@lynx-js/devtool-connector";
+import { HttpCommandClient } from "@lynx-js/devtool-connector/command";
 import { DaemonTransport } from "@lynx-js/devtool-connector/transport";
 
-const transports = [
-  new DaemonTransport(),
-];
-
-const connector = new Connector(transports);
-```
-
-Use `DaemonTransport` as the default transport. It automatically manages a local daemon process and reuses stable device connections, so it should be the primary path for client discovery and follow-up requests.
-
-Add other transports only when you need fallback behavior for environments where the daemon is unavailable or cannot discover a target client. When fallback transports are present, `Connector` tries daemon-backed clients first, then the remaining direct platform transports.
-
-Fallback example:
-
-```ts
-import { Connector } from "@lynx-js/devtool-connector";
-import {
-  AndroidTransport,
-  DaemonTransport,
-  DesktopTransport,
-  iOSTransport,
-} from "@lynx-js/devtool-connector/transport";
-
-const connector = new Connector([
-  new DaemonTransport(),
-  new AndroidTransport(),
-  new iOSTransport(),
-  new DesktopTransport(),
-]);
-```
-
-### 2) List devices, clients, and sessions
-
-```ts
-const devices = await connector.listDevices();
+const connector = new Connector([new DaemonTransport()]);
 const clients = await connector.listClients();
-
-if (clients.length === 0) {
-  throw new Error("No available clients found");
-}
-
-const clientId = clients[0].id;
-const sessions = await connector.sendListSessionMessage(clientId);
-```
-
-### 3) Send CDP / App requests
-
-```ts
-const sessionId = sessions[0]?.session_id;
-if (!sessionId) {
-  throw new Error("No session found");
-}
-
-const dom = await connector.sendCDPMessage(
-  clientId,
-  sessionId,
-  "DOM.getDocument",
-  { depth: -1 },
-);
-
-const mainThreadEval = await connector.sendCDPMessage(
-  clientId,
-  sessionId,
-  "Runtime.evaluate",
-  { expression: "2 + 2" },
-  // isMainThread
-  true,
-);
-
-await connector.sendAppMessage(clientId, "App.openPage", {
-  url: "https://lynxjs.org",
+const client = clients[0];
+if (!client) throw new Error("No Lynx clients found");
+const commands = new HttpCommandClient();
+const sessions = await commands.execute("list-sessions", {
+  clientId: client.id,
 });
 ```
 
-Pass `true` as the optional `isMainThread` argument to target the main-thread VM. Main-thread CDP requests currently support only `Debugger.*`, `Runtime.*`, `HeapProfiler.*`, and `Profiler.*` methods.
+The daemon owns physical connections; requests subscribe to them rather than opening a competing DebugRouter connection. Successful daemon/HDT discovery, including an empty result, is authoritative. Lifecycle conflicts never fall back to direct connections.
 
-### 4) Streaming APIs (advanced)
+## Product adapters
 
-The connector also supports streaming send/receive:
+The public exports include `DaemonLifecycle`, `DevtoolDaemon`, `StaticServer`, `InspectorAssetProvider` and `DebugMetadataLoader`. A product may subclass the lifecycle to resolve its own entry and environment, bind its own daemon identity/command core/assets, and override the command client's and daemon transport's protected lifecycle method. HDT uses the shared implementation directly; it needs no discovery policy injection.
 
-- `sendCDPStream(...)`
-- `sendStream(...)` (custom pipeline)
+`ActionCore` accepts a metadata loader; source-info acquisition, caching and remapping remain shared. Android adapters may override `getKnownApp` for product-specific labels and activity names. Private integrations are not required to install or run this package.
 
-These APIs are useful for subscription-style logs, continuous requests, or protocol debugging.
+The GET/OPTIONS version endpoint allows arbitrary origins (`*`) for discovery. Command, shutdown and WebSocket control remain restricted to same-origin loopback requests. The public Inspector uses the public Lynx DevTool frontend; it does not advertise the internal browser Preview protocol.
 
-When you finish consuming the returned stream, make sure to close it (dispose the output stream) to release the underlying connection.
+## Migration from 0.13.2
 
-Example: consume CDP events with `for await...of`
+The implementation now includes the 0.16.2 command, ReactLynx, lifecycle and HDT capabilities. Existing source export paths remain available. `DaemonManager` is now the default `DaemonLifecycle` instance (its `ensureRunning`/`kill` call shape is unchanged). Product adapters should extend `DaemonLifecycle`, not duplicate the manager. Daemon metadata's `product` is a string and `browserPreviewProtocol` is optional because it describes actual product capability.
 
-```ts
-import { ReadableStream } from "node:stream/web";
+## Development
 
-await using outputStream = await connector.sendCDPStream(
-  clientId,
-  sessionId,
-  ReadableStream.from([
-    { method: "Runtime.enable" },
-  ]),
-);
-
-for await (const message of outputStream) {
-  // `sendCDPStream` yields CDP events, e.g. { method: "Runtime.consoleAPICalled", params: ... }
-  console.log(message.method, message.params);
-  break;
-}
-```
-
-## Exported entry points
-
-- `@lynx-js/devtool-connector`: `Connector`, `ClientId`, and protocol transform streams
-- `@lynx-js/devtool-connector/transport`: platform transport implementations and type definitions
-- `@lynx-js/devtool-connector/test-with-client`: helper for integration tests with real clients
-
-## Debugging
-
-Use the `debug` namespace to inspect connection/protocol send-receive details while running code that imports this package:
-
-```bash
-DEBUG=devtool-mcp-server:connector* node ./your-script.mjs
-```
-
-## Known limitations
-
-- USB-based iOS transport (`iOSTransport`) still does not implement `listAvailableApps` / `openApp`.
-- `listClients()` has snapshot semantics: each call re-scans ports and re-validates clients via handshake.
+Run `pnpm build`, `pnpm test` and `pnpm format:check` in this package. Tests use `node:test`; device-independent tests are in `test/`, explicitly configured device tests in `e2e/`. The package retains its imported dprint source style to keep mechanical moves reviewable; the rest of the public repository uses Biome.

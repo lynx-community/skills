@@ -62,7 +62,7 @@ async function main() {
     throw new Error('No task evals selected.');
   }
 
-  const model = args.model ?? 'codebase/gpt-5.2__dev';
+  const model = args.model ?? 'opencode/gpt-5-nano';
   const graderModel = args.graderModel ?? model;
   const timeout = Number(args.timeout ?? 300);
   const minPassRate = Number(args.minPassRate ?? 0.85);

@@ -21,6 +21,7 @@ type CustomizedCDPRequest = {
   data: {
     data: {
       message: {
+        id: number;
         method: string;
         params?: unknown;
       };
@@ -76,6 +77,19 @@ class FakeTransport implements Transport {
               },
             },
           });
+        } else if (request.data.data.message.method === 'Page.stopScreencast') {
+          outputController?.enqueue({
+            event: 'Customized',
+            data: {
+              type: 'CDP',
+              data: {
+                message: JSON.stringify({
+                  id: request.data.data.message.id,
+                  result: {},
+                }),
+              },
+            },
+          });
         }
       },
     });
@@ -94,40 +108,46 @@ class FakeTransport implements Transport {
   }
 }
 
-test('take-screenshot acks the captured frame without stopping screencast', async (t) => {
-  const transport = new FakeTransport();
-  const context: Context = { transports: [transport] };
-  const program = new Command();
-  program.exitOverride();
-  registerTakeScreenshotCommand(program, context);
+test(
+  'take-screenshot acks the captured frame and stops screencast',
+  { timeout: 5_000 },
+  async (t) => {
+    const transport = new FakeTransport();
+    const context: Context = { transports: [transport] };
+    const program = new Command();
+    program.exitOverride();
+    registerTakeScreenshotCommand(program, context);
 
-  const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'lynx-screenshot-'));
-  t.after(() => {
-    void fs.rm(tempDir, { recursive: true, force: true });
-  });
-  const output = path.join(tempDir, 'screenshot.jpeg');
+    const tempDir = await fs.mkdtemp(
+      path.join(os.tmpdir(), 'lynx-screenshot-'),
+    );
+    t.after(() => {
+      void fs.rm(tempDir, { recursive: true, force: true });
+    });
+    const output = path.join(tempDir, 'screenshot.jpeg');
 
-  await program.parseAsync([
-    'node',
-    'test',
-    'take-screenshot',
-    '--client',
-    'device:1234',
-    '--session',
-    '7',
-    '--output',
-    output,
-  ]);
-  await setTimeout(0);
+    await program.parseAsync([
+      'node',
+      'test',
+      'take-screenshot',
+      '--client',
+      'device:1234',
+      '--session',
+      '7',
+      '--output',
+      output,
+    ]);
+    await setTimeout(0);
 
-  const methods = transport.requests.map(
-    (request) => request.data.data.message.method,
-  );
-  t.assert.deepEqual(methods, [
-    'Page.startScreencast',
-    'Page.screencastFrameAck',
-  ]);
-  t.assert.equal(methods.includes('Page.stopScreencast'), false);
-  t.assert.equal(transport.requests[1]?.data.data.message.params, undefined);
-  t.assert.equal(await fs.readFile(output, 'utf8'), 'screenshot');
-});
+    const methods = transport.requests.map(
+      (request) => request.data.data.message.method,
+    );
+    t.assert.deepEqual(methods, [
+      'Page.startScreencast',
+      'Page.screencastFrameAck',
+      'Page.stopScreencast',
+    ]);
+    t.assert.equal(transport.requests[1]?.data.data.message.params, undefined);
+    t.assert.equal(await fs.readFile(output, 'utf8'), 'screenshot');
+  },
+);
