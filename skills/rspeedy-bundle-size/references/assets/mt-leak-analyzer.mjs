@@ -24,7 +24,7 @@ const mods = heads.map((h, i) => ({
 }));
 
 // Background-only signatures (basename + content) live in signatures.cjs
-// (overridable per stack / via the internal overlay).
+// and can be adapted to each stack.
 import signatures from './signatures.cjs';
 
 const { BG_NAME, BG_CONTENT } = signatures;

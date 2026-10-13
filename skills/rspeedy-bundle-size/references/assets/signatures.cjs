@@ -14,8 +14,8 @@
  * (`console.*`) runs on the main thread too, so those are "look here", not proof.
  *
  * CUSTOMIZE the logger/monitor/telemetry terms to YOUR stack — the defaults below are
- * generic placeholders. (Inside ByteDance, the internal build overrides this whole file
- * via the skill overlay with the real telemetry/SDK signatures.)
+ * generic placeholders. Adapt this file to the telemetry/SDK implementations used
+ * by the project being analyzed.
  */
 module.exports = {
   // scan-levers.mjs — [label, regex] matched against app SOURCE

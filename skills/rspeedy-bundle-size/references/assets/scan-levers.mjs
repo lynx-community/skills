@@ -19,8 +19,8 @@
 import { readdirSync, readFileSync, statSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 
-// Background-only signatures live in signatures.cjs (overridable per stack / via the
-// internal overlay). See that file for the jsb-backed-vs-console caveat.
+// Background-only signatures live in signatures.cjs and can be adapted to each stack.
+// See that file for the jsb-backed-vs-console caveat.
 import signatures from './signatures.cjs';
 
 const { LEAK_PATTERNS } = signatures;

@@ -41,7 +41,7 @@ const real = (p) => {
 };
 
 // Background-only packages + app-module signatures live in signatures.cjs
-// (overridable per stack / via the internal overlay).
+// and can be adapted to each stack.
 import signatures from './signatures.cjs';
 
 const { BG_PACKAGES: BG, BG_APP } = signatures;
