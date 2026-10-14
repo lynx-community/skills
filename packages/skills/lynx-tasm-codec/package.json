@@ -1,0 +1,19 @@
+{
+  "name": "@lynx-js/skill-lynx-tasm-codec",
+  "version": "0.0.0",
+  "description": "Encode and decode Lynx TASM artifacts with the @lynx-js/tasm CLI",
+  "repository": {
+    "url": "https://github.com/lynx-community/skills"
+  },
+  "license": "Apache-2.0",
+  "type": "module",
+  "files": [
+    "SKILL.md"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}
