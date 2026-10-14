@@ -171,6 +171,37 @@ The build process:
 1. Compiles TypeScript scripts via rslib
 2. Copies dependent Skills into the plugin's `skills/` directory
 3. Generates `.claude-plugin/plugin.json` metadata
+4. Generates `.codex-plugin/plugin.json` metadata for plugins that opt in (see
+   [Codex Support](#codex-support))
+
+## Codex Support
+
+Codex reads a separate manifest from `.codex-plugin/plugin.json`. `build-plugin`
+only generates it when a plugin opts in, either by listing `.codex-plugin` in
+`files` or by declaring a `codexPlugin` block:
+
+```json
+{
+  "files": [".claude-plugin", ".codex-plugin", "skills"],
+  "codexPlugin": {
+    "category": "Development",
+    "interface": {
+      "displayName": "My Plugin",
+      "capabilities": ["Interactive", "Read", "Write"]
+    }
+  }
+}
+```
+
+Every field under `codexPlugin.interface` overrides the corresponding generated
+default. `codexPlugin.policy` tunes how Codex offers the plugin
+(`installation`, `authentication`), and `codexPlugin.manifest` is a free-form
+escape hatch merged into the generated manifest.
+
+`build-marketplace` then lists each opted-in plugin in
+`.agents/plugins/marketplace.json`, which is what `codex plugin marketplace add`
+consumes. Plugins without a Codex manifest are silently skipped there and keep
+working as Claude-only plugins.
 
 ## Release Process
 
@@ -181,7 +212,7 @@ When code is merged to `main`:
 
 1. CI builds all packages
 2. Artifacts are pushed to the `release` branch
-3. Only `plugins/`, `skills/`, `.claude-plugin/`, and `README.md` are kept on `release`
+3. Only `plugins/`, `skills/`, `.claude-plugin/`, `.agents/`, and `README.md` are kept on `release`
 
 ## Escape Hatch
 

@@ -2,43 +2,126 @@
 // Licensed under the Apache License Version 2.0 that can be found in the
 // LICENSE file in the root directory of this source tree.
 
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { mkdir, rm, writeFile } from 'node:fs/promises';
-import { resolve } from 'node:path';
+import { dirname, resolve } from 'node:path';
 import { exportPlugin } from 'build-plugin';
 import { Command } from 'commander';
+
+const MARKETPLACE_PACKAGE_NAME_RE = /^@lynx-js\/marketplace-/;
+const PLUGIN_PACKAGE_NAME_PREFIX = '@lynx-js/ai-plugin-';
+
+type PackageJson = {
+  name: string;
+  version: string;
+  description?: string;
+  author?: unknown;
+  dependencies?: Record<string, string>;
+  codexMarketplace?: {
+    interface?: {
+      displayName?: string;
+    };
+  };
+};
+
+type PluginPackageJson = {
+  description?: string;
+  claudePlugin?: {
+    category?: string;
+    [key: string]: unknown;
+  };
+  codexPlugin?: {
+    category?: string;
+    policy?: Partial<CodexMarketplacePlugin['policy']>;
+  };
+};
+
+type LegacyMarketplacePlugin = {
+  name: string;
+  description?: string | undefined;
+  source: string;
+  [key: string]: unknown;
+};
+
+type CodexMarketplacePlugin = {
+  name: string;
+  description?: string | undefined;
+  source: {
+    source: 'local';
+    path: string;
+  };
+  policy: {
+    installation: 'NOT_AVAILABLE' | 'AVAILABLE' | 'INSTALLED_BY_DEFAULT';
+    authentication: 'ON_INSTALL' | 'ON_USE';
+  };
+  category: string;
+};
+
+async function writeJsonFile(filePath: string, value: unknown) {
+  await mkdir(dirname(filePath), { recursive: true });
+  await writeFile(filePath, `${JSON.stringify(value, null, 2)}\n`);
+}
+
+function normalizeCategory(category: unknown) {
+  if (typeof category !== 'string' || category.trim() === '') {
+    return 'Development';
+  }
+  return `${category.charAt(0).toUpperCase()}${category.slice(1)}`;
+}
+
+function normalizeCodexPolicy(
+  policy: Partial<CodexMarketplacePlugin['policy']> | undefined,
+): CodexMarketplacePlugin['policy'] {
+  const installation =
+    policy?.installation === 'NOT_AVAILABLE' ||
+    policy?.installation === 'INSTALLED_BY_DEFAULT'
+      ? policy.installation
+      : 'AVAILABLE';
+  const authentication =
+    policy?.authentication === 'ON_USE' ? policy.authentication : 'ON_INSTALL';
+
+  return {
+    installation,
+    authentication,
+  };
+}
 
 async function buildMarketplace(pkgDir: string) {
   const pkgPath = `${pkgDir}/package.json`;
 
   // Read package.json to get the marketplace name
-  const { default: pkg } = await import(`file://${pkgPath}`, {
+  const { default: pkg } = (await import(`file://${pkgPath}`, {
     with: { type: 'json' },
-  });
+  })) as { default: PackageJson };
 
-  if (!pkg.name.match(/^@lynx-js\/marketplace-/)) {
+  if (!pkg.name.match(MARKETPLACE_PACKAGE_NAME_RE)) {
     throw new Error('Package is not a marketplace. Aborting...');
   }
 
   const { dependencies = {} } = pkg;
 
-  const plugins: Array<{ name: string; description?: string; source: string }> =
-    [];
+  const plugins: LegacyMarketplacePlugin[] = [];
+  const codexPlugins: CodexMarketplacePlugin[] = [];
 
-  // Clean plugins output directory before rebuilding
+  // Clean plugins output directories before rebuilding
   await rm(resolve(pkgDir, 'plugins'), { recursive: true, force: true });
+  await rm(resolve(pkgDir, '.agents', 'plugins'), {
+    recursive: true,
+    force: true,
+  });
 
   // PLUGINS
   for (const dep in dependencies) {
-    if (dep.startsWith('@lynx-js/ai-plugin-')) {
-      const name = dep.replace(/^@lynx-js\/ai-plugin-/, '');
+    if (dep.startsWith(PLUGIN_PACKAGE_NAME_PREFIX)) {
+      const name = dep.slice(PLUGIN_PACKAGE_NAME_PREFIX.length);
       const source = resolve(pkgDir, 'node_modules', dep);
+      const target = resolve(pkgDir, 'plugins', name);
 
-      await exportPlugin(source, resolve(pkgDir, 'plugins', name));
+      await exportPlugin(source, target);
 
       const pluginMeta = JSON.parse(
         readFileSync(`${source}/package.json`, 'utf-8'),
-      );
+      ) as PluginPackageJson;
 
       plugins.push({
         name,
@@ -47,28 +130,51 @@ async function buildMarketplace(pkgDir: string) {
         // for category or other fields
         ...(pluginMeta.claudePlugin ?? {}),
       });
+
+      // Codex only picks up plugins that shipped a Codex manifest.
+      if (existsSync(resolve(target, '.codex-plugin', 'plugin.json'))) {
+        codexPlugins.push({
+          name,
+          description: pluginMeta.description,
+          source: {
+            source: 'local',
+            path: `./plugins/${name}`,
+          },
+          policy: normalizeCodexPolicy(pluginMeta.codexPlugin?.policy),
+          category: normalizeCategory(
+            pluginMeta.codexPlugin?.category ??
+              pluginMeta.claudePlugin?.category,
+          ),
+        });
+      }
     }
   }
 
   // metadata files
-  const metadataContent = `${JSON.stringify(
-    {
-      name: pkg.name.replace(/^@lynx-js\/marketplace-/, ''),
-      version: pkg.version,
-      description: pkg.description || 'A marketplace',
-      owner: pkg.author || { name: 'lynx' },
-      plugins,
-    },
-    null,
-    2,
-  )}\n`;
+  const name = pkg.name.replace(MARKETPLACE_PACKAGE_NAME_RE, '');
 
   // .claude-plugin/marketplace.json
-  const claudePluginDir = resolve(pkgDir, '.claude-plugin');
-  await mkdir(claudePluginDir, { recursive: true });
-  await writeFile(
-    resolve(claudePluginDir, 'marketplace.json'),
-    metadataContent,
+  await writeJsonFile(resolve(pkgDir, '.claude-plugin', 'marketplace.json'), {
+    name,
+    version: pkg.version,
+    description: pkg.description || 'A marketplace',
+    owner: pkg.author || { name: 'lynx' },
+    plugins,
+  });
+
+  // .agents/plugins/marketplace.json
+  await writeJsonFile(
+    resolve(pkgDir, '.agents', 'plugins', 'marketplace.json'),
+    {
+      name,
+      interface: {
+        displayName:
+          pkg.codexMarketplace?.interface?.displayName ??
+          pkg.description ??
+          name,
+      },
+      plugins: codexPlugins,
+    },
   );
 }
 
