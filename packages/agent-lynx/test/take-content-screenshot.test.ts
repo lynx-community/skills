@@ -7,6 +7,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { ReadableStream, WritableStream } from 'node:stream/web';
 import test from 'node:test';
+
 import type { Connector } from '@lynx-js/devtool-connector';
 import type {
   Connection,
@@ -51,7 +52,7 @@ class FakeRuntimeTransport implements Transport {
     Connection<TOutput, TInput>
   > {
     let outputController:
-      | { enqueue(chunk: unknown): void; close(): void }
+      | { enqueue(chunk: unknown): void; close(): void; }
       | undefined;
     const readable = new ReadableStream<unknown>({
       start(controller) {
@@ -77,18 +78,20 @@ class FakeRuntimeTransport implements Transport {
                 result: isCleanup
                   ? { result: { type: 'boolean', value: true } }
                   : {
-                      result: {
-                        type: 'string',
-                        value: JSON.stringify({
-                          status: 'success',
-                          data: {
-                            data: `data:image/png;base64,${Buffer.from('content screenshot').toString('base64')}`,
-                            width: 120,
-                            height: 640,
-                          },
-                        }),
-                      },
+                    result: {
+                      type: 'string',
+                      value: JSON.stringify({
+                        status: 'success',
+                        data: {
+                          data: `data:image/png;base64,${
+                            Buffer.from('content screenshot').toString('base64')
+                          }`,
+                          width: 120,
+                          height: 640,
+                        },
+                      }),
                     },
+                  },
               }),
             },
           },
@@ -168,7 +171,7 @@ test('take-content-screenshot captures scroll content through Runtime.evaluate',
   t.assert.match(invocation, /__task\.exec\(\)/);
   t.assert.match(invocation, /else if\(__usesSelectorQuery\)/);
   t.assert.match(
-    (runtimeRequests[1]?.data.data.message.params as { expression: string })
+    (runtimeRequests[1]?.data.data.message.params as { expression: string; })
       .expression,
     /delete globalThis/,
   );
@@ -177,19 +180,19 @@ test('take-content-screenshot captures scroll content through Runtime.evaluate',
 
 function createRuntimeConnector(
   handler: (expression: string, call: number) => unknown,
-): Connector & { expressions: string[] } {
+): Connector & { expressions: string[]; } {
   const expressions: string[] = [];
   return {
     expressions,
     async sendCDPMessage(_clientId, _sessionId, method, params) {
-      const expression = (params as { expression: string }).expression;
+      const expression = (params as { expression: string; }).expression;
       expressions.push(expression);
       if (method !== 'Runtime.evaluate') {
         throw new Error(`Unexpected CDP method: ${method}`);
       }
       return handler(expression, expressions.length);
     },
-  } as Connector & { expressions: string[] };
+  } as Connector & { expressions: string[]; };
 }
 
 function runtimeState(state: unknown): unknown {

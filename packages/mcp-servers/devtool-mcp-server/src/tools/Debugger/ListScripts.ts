@@ -32,7 +32,7 @@ export const ListScripts = /*#__PURE__*/ defineTool({
       { signal: extra.signal },
     );
 
-    const scripts: { scriptId: string; url: string }[] = [];
+    const scripts: { scriptId: string; url: string; }[] = [];
 
     const reader = stream.getReader();
     const IDLE_TIMEOUT = 200;

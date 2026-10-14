@@ -4,6 +4,7 @@
 
 import assert from 'node:assert/strict';
 import test from 'node:test';
+
 import type { Client } from '@lynx-js/devtool-connector/transport';
 import { runWaitForClientCommand } from '../src/commands/wait-for-client.ts';
 import { createProgram } from '../src/devtool.ts';

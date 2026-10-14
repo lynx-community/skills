@@ -74,7 +74,9 @@ async function fixture(t, { existingRecord = false } = {}) {
       private: true,
       packageManager: packageJson.packageManager,
       scripts: {
-        changeset: `${JSON.stringify(process.execPath)} ${JSON.stringify(changesetCli)}`,
+        changeset: `${JSON.stringify(process.execPath)} ${
+          JSON.stringify(changesetCli)
+        }`,
       },
     }),
   );

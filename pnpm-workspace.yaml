@@ -8,21 +8,24 @@ packages:
   - packages/mcp-servers/*
 
 catalogs:
-  connector_rstack:
-    '@rslib/core': 1.0.1
-  connector_adb:
-    '@yume-chan/adb': 3.0.0-beta.2
-    '@yume-chan/adb-server-node-tcp': 3.0.0-beta.2
-    '@yume-chan/stream-extra': 3.0.0-beta.2
   rstack:
-    '@rslib/core': 0.23.0
-    '@rsbuild/core': 2.1.0
-    '@rspack/core': 2.1.0
-    '@rstest/core': 0.10.6
+    "@rslib/core": 1.0.3
+    "@rsbuild/core": 2.2.13
+    "@rspack/core": 2.2.9
+    "@rstest/core": 0.12.3
   adb:
-    '@yume-chan/adb': ^2.6.0
-    '@yume-chan/adb-server-node-tcp': ^2.5.2
-    '@yume-chan/stream-extra': ^2.6.1
+    "@yume-chan/adb": 3.0.0-beta.4
+    "@yume-chan/adb-server-node-tcp": 3.0.0-beta.4
+    "@yume-chan/stream-extra": 3.0.0-beta.4
 
-onlyBuiltDependencies:
-  - esbuild
+allowBuilds:
+  core-js: false
+  dprint: false
+  esbuild: false
+
+packageExtensions:
+  eslint-plugin-headers@1:
+    # Rslint runs this plugin without loading the ESLint engine.
+    peerDependenciesMeta:
+      eslint:
+        optional: true

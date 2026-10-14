@@ -3,6 +3,7 @@
 // LICENSE file in the root directory of this source tree.
 
 import { writeFile } from 'node:fs/promises';
+
 import {
   fail,
   type ScreenshotAnnotation,
@@ -85,10 +86,10 @@ export function registerScreenshotCommand(
 
           if (options.annotate) {
             if (
-              !result.data.annotations ||
-              !result.data.snapshot ||
-              result.data.width === undefined ||
-              result.data.height === undefined
+              !result.data.annotations
+              || !result.data.snapshot
+              || result.data.width === undefined
+              || result.data.height === undefined
             ) {
               return fail(
                 'screenshot',

@@ -11,7 +11,7 @@ const require = createRequire(import.meta.url);
 
 const rootPkg = JSON.parse(readFileSync('./package.json', 'utf-8'));
 const skillDeps = Object.keys(rootPkg.dependencies || {}).filter((dep) =>
-  dep.startsWith('@lynx-js/skill-'),
+  dep.startsWith('@lynx-js/skill-')
 );
 
 const allWorkspaces = JSON.parse(

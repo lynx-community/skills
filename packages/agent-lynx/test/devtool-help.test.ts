@@ -34,8 +34,8 @@ test('top-level help presents skill discovery as the agent fallback', () => {
     ),
   );
   assert.ok(
-    output.indexOf('Agent Skills:\n  skills ') <
-      output.indexOf('Commands:\n  list-clients '),
+    output.indexOf('Agent Skills:\n  skills ')
+      < output.indexOf('Commands:\n  list-clients '),
     'skills must have the first dedicated command section in help',
   );
   assert.match(

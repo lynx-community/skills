@@ -17,9 +17,9 @@ import { registerCdpCommand } from './commands/cdp.ts';
 import { CLI_PLACEHOLDER } from './commands/cli.ts';
 import { registerEvaluateCommand } from './commands/evaluate.ts';
 import { registerFillCommand } from './commands/fill.ts';
-import { registerGetCommand } from './commands/get.ts';
 import { registerGetConsoleCommand } from './commands/get-console.ts';
 import { registerGetSourcesCommand } from './commands/get-sources.ts';
+import { registerGetCommand } from './commands/get.ts';
 import { registerGlobalSwitchCommand } from './commands/global-switch.ts';
 import { registerInspectCommand } from './commands/inspect.ts';
 import { registerListClientsCommand } from './commands/list-clients.ts';
@@ -38,8 +38,8 @@ import { registerTakeScreenshotCommand } from './commands/take-screenshot.ts';
 import { registerTapCommand } from './commands/tap.ts';
 import { registerTraceCommand } from './commands/trace.ts';
 import type { Context } from './commands/utils.ts';
-import { registerWaitCommand } from './commands/wait.ts';
 import { registerWaitForClientCommand } from './commands/wait-for-client.ts';
+import { registerWaitCommand } from './commands/wait.ts';
 
 function getAndroidTransportSpec(env: NodeJS.ProcessEnv): {
   host: string;
@@ -100,7 +100,7 @@ class TransportClosingCommand extends Command {
     } finally {
       await Promise.allSettled(
         this.#context.transports.map((transport) =>
-          Promise.resolve().then(() => transport.close()),
+          Promise.resolve().then(() => transport.close())
         ),
       );
     }
@@ -122,13 +122,13 @@ function isSkillsAction(command: Command): boolean {
 
 function isOfflineTraceAction(command: Command): boolean {
   return (
-    command.parent?.name() === 'trace' &&
-    (command.name() === 'query' || command.name() === 'event-summary')
+    command.parent?.name() === 'trace'
+    && (command.name() === 'query' || command.name() === 'event-summary')
   );
 }
 
 export function createProgram(
-  options: { env?: NodeJS.ProcessEnv } = {},
+  options: { env?: NodeJS.ProcessEnv; } = {},
 ): Command {
   const env = options.env ?? process.env;
   const context: Context = {
@@ -182,8 +182,11 @@ Examples:
     .hook('preAction', async (thisCommand, actionCommand) => {
       const rootOptions = thisCommand.opts<RootOptions>();
 
-      if (isSkillsAction(actionCommand) || isOfflineTraceAction(actionCommand))
+      if (
+        isSkillsAction(actionCommand) || isOfflineTraceAction(actionCommand)
+      ) {
         return;
+      }
 
       if (process.env['CODEX_SANDBOX_NETWORK_DISABLED'] === '1') {
         throw new Error(

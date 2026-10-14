@@ -55,7 +55,7 @@ describe('DOM.describeNode', () => {
       'test-client-id:9999',
     );
     const result = await call<{
-      node: { nodeId: number; nodeName: string };
+      node: { nodeId: number; nodeName: string; };
       compress: boolean;
     }>({
       nodeId: 7,
@@ -117,7 +117,7 @@ describe('DOM.describeNode', () => {
       'test-client-id:9999',
     );
     const result = await call<{
-      node: { backendNodeId: number; childNodeCount: number };
+      node: { backendNodeId: number; childNodeCount: number; };
       compress: boolean;
     }>({
       backendNodeId: 9,
@@ -174,13 +174,13 @@ describe('DOM.describeNode', () => {
       'test-client-id:9999',
     );
     const depthZero = await call<{
-      node: { nodeId: number; childNodeCount: number; children?: unknown[] };
+      node: { nodeId: number; childNodeCount: number; children?: unknown[]; };
     }>({
       nodeId: 3,
       depth: 0,
     });
     const depthOne = await call<{
-      node: { nodeId: number; children?: Array<{ children?: unknown[] }> };
+      node: { nodeId: number; children?: Array<{ children?: unknown[]; }>; };
     }>({
       nodeId: 3,
       depth: 1,

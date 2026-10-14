@@ -20,7 +20,7 @@ describe('App global switch tools', () => {
   const testClientId = 'test-client-id';
 
   test('App_getGlobalSwitch should read one key', async () => {
-    let called: { clientId: string; key: string } | null = null;
+    let called: { clientId: string; key: string; } | null = null;
     const mockConnector = createMockConnector({
       getGlobalSwitch: async (clientId: string, key: string) => {
         called = { clientId, key };
@@ -33,7 +33,7 @@ describe('App global switch tools', () => {
       mockConnector as never,
       testClientId,
     );
-    const result = await call<{ key: string; value: boolean }>({
+    const result = await call<{ key: string; value: boolean; }>({
       key: 'enable_devtool',
     });
 
@@ -45,7 +45,8 @@ describe('App global switch tools', () => {
   });
 
   test('App_setGlobalSwitch should write one key', async () => {
-    let called: { clientId: string; key: string; value: boolean } | null = null;
+    let called: { clientId: string; key: string; value: boolean; } | null =
+      null;
     const mockConnector = createMockConnector({
       setGlobalSwitch: async (
         clientId: string,
@@ -61,7 +62,7 @@ describe('App global switch tools', () => {
       mockConnector as never,
       testClientId,
     );
-    const result = await call<{ key: string; value: boolean }>({
+    const result = await call<{ key: string; value: boolean; }>({
       key: 'enable_devtool',
       switch: false,
     });
@@ -86,7 +87,7 @@ describe('App global switch tools', () => {
       testClientId,
     );
     const result = await call<{
-      switches: Array<{ key: string; value?: boolean; error?: string }>;
+      switches: Array<{ key: string; value?: boolean; error?: string; }>;
     }>({});
 
     assert.equal(result.switches.length, 15);
@@ -117,7 +118,7 @@ describe('App global switch tools', () => {
       testClientId,
     );
     const result = await call<{
-      switches: Array<{ key: string; value?: boolean; error?: string }>;
+      switches: Array<{ key: string; value?: boolean; error?: string; }>;
     }>({});
     const failed = result.switches.find((item) => item.key === 'enable_v8');
 

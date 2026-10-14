@@ -5,6 +5,7 @@
 import fs from 'node:fs/promises';
 import type { TestContext } from 'node:test';
 import { setTimeout } from 'node:timers/promises';
+
 import {
   getTestingSession,
   testWithClient,
@@ -71,8 +72,8 @@ function flattenUITree(node: UITreeNode): UITreeNode[] {
 
 function supportsMemoryUsage(appPackageName: string): boolean {
   return (
-    appPackageName === 'com.lynx.uiapp' ||
-    appPackageName === 'com.lynx.LynxExample'
+    appPackageName === 'com.lynx.uiapp'
+    || appPackageName === 'com.lynx.LynxExample'
   );
 }
 
@@ -96,12 +97,12 @@ function hasLynx4Metadata(node: UITreeNode): node is UITreeNode & {
   label: string;
 } {
   return (
-    typeof node.tagName === 'string' &&
-    typeof node.nodeIndex === 'number' &&
-    typeof node.props === 'object' &&
-    node.props !== null &&
-    !Array.isArray(node.props) &&
-    typeof node.label === 'string'
+    typeof node.tagName === 'string'
+    && typeof node.nodeIndex === 'number'
+    && typeof node.props === 'object'
+    && node.props !== null
+    && !Array.isArray(node.props)
+    && typeof node.label === 'string'
   );
 }
 
@@ -129,8 +130,11 @@ testWithClient('Tools', async (suite, connector, client, target) => {
     }
 
     const countNodes = (node: Node): number =>
-      1 +
-      (node.children ?? []).reduce((sum, child) => sum + countNodes(child), 0);
+      1
+      + (node.children ?? []).reduce(
+        (sum, child) => sum + countNodes(child),
+        0,
+      );
     const depthZeroTree = await call<GetDocumentResponse>({ depth: 0 });
     const fullTree = await call<GetDocumentResponse>({ depth: -1 });
 
@@ -158,7 +162,7 @@ testWithClient('Tools', async (suite, connector, client, target) => {
 
     const { root } = await connector.sendCDPMessage<
       GetDocumentResponse,
-      { depth: number }
+      { depth: number; }
     >(clientId, sessionId!, 'DOM.getDocument', {
       depth: -1,
     });
@@ -166,10 +170,10 @@ testWithClient('Tools', async (suite, connector, client, target) => {
 
     const findElementWithChildren = (node: Node): Node | undefined => {
       if (
-        node.nodeType === 1 &&
-        node.nodeName !== 'PAGE' &&
-        (node.childNodeCount ?? 0) > 0 &&
-        node.children?.length === node.childNodeCount
+        node.nodeType === 1
+        && node.nodeName !== 'PAGE'
+        && (node.childNodeCount ?? 0) > 0
+        && node.children?.length === node.childNodeCount
       ) {
         return node;
       }
@@ -312,7 +316,7 @@ testWithClient('Tools', async (suite, connector, client, target) => {
 
       const { root } = await connector.sendCDPMessage<
         GetDocumentResponse,
-        { depth: number }
+        { depth: number; }
       >(clientId, sessionId!, 'DOM.getDocument', { depth: -1 });
       const targetNode = findFirstElementNode(root);
       t.assert.ok(targetNode, 'Should find an element node');
@@ -350,7 +354,7 @@ testWithClient('Tools', async (suite, connector, client, target) => {
 
     const { root } = await connector.sendCDPMessage<
       GetDocumentResponse,
-      { depth: number }
+      { depth: number; }
     >(clientId, sessionId!, 'DOM.getDocument', {
       depth: -1,
     });
@@ -358,10 +362,10 @@ testWithClient('Tools', async (suite, connector, client, target) => {
 
     const findLayoutNode = (node: Node): number | undefined => {
       if (
-        node.nodeType === 1 &&
-        node.nodeName !== 'HTML' &&
-        node.nodeName !== 'BODY' &&
-        node.nodeName !== '#document'
+        node.nodeType === 1
+        && node.nodeName !== 'HTML'
+        && node.nodeName !== 'BODY'
+        && node.nodeName !== '#document'
       ) {
         return node.nodeId;
       }
@@ -416,16 +420,16 @@ testWithClient('Tools', async (suite, connector, client, target) => {
 
     const { root } = await connector.sendCDPMessage<
       GetDocumentResponse,
-      { depth: number }
+      { depth: number; }
     >(clientId, sessionId!, 'DOM.getDocument', { depth: -1 });
     t.assert.ok(root, 'Should have a root node');
 
     const findLayoutNode = (node: Node): number | undefined => {
       if (
-        node.nodeType === 1 &&
-        node.nodeName !== 'HTML' &&
-        node.nodeName !== 'BODY' &&
-        node.nodeName !== '#document'
+        node.nodeType === 1
+        && node.nodeName !== 'HTML'
+        && node.nodeName !== 'BODY'
+        && node.nodeName !== '#document'
       ) {
         return node.nodeId;
       }
@@ -443,7 +447,7 @@ testWithClient('Tools', async (suite, connector, client, target) => {
 
     const box = await connector.sendCDPMessage<
       GetBoxModelResponse,
-      { nodeId: number }
+      { nodeId: number; }
     >(clientId, sessionId, 'DOM.getBoxModel', { nodeId });
     t.assert.ok(box.model?.content, 'Should have content quad');
 
@@ -535,7 +539,7 @@ testWithClient('Tools', async (suite, connector, client, target) => {
 
     const { searchId, resultCount } = await connector.sendCDPMessage<
       PerformSearchResponse,
-      { query: string }
+      { query: string; }
     >(clientId, sessionId!, 'DOM.performSearch', {
       query: '*',
     });
@@ -639,7 +643,7 @@ testWithClient('Tools', async (suite, connector, client, target) => {
       );
       const tree = await getTree<{
         frameTree?: {
-          frame?: { id?: string; url?: string };
+          frame?: { id?: string; url?: string; };
           resources?: unknown[];
         };
       }>({});
@@ -679,10 +683,9 @@ testWithClient('Tools', async (suite, connector, client, target) => {
   await suite.test(
     'Lynx.getVersion',
     {
-      skip:
-        target.appPackageName === 'EmbeddedLynx'
-          ? 'EmbeddedLynx does not support Lynx.getVersion (for now)'
-          : false,
+      skip: target.appPackageName === 'EmbeddedLynx'
+        ? 'EmbeddedLynx does not support Lynx.getVersion (for now)'
+        : false,
     },
     async (t: TestContext) => {
       const { call } = createToolContext(GetVersion, connector, clientId);
@@ -759,7 +762,7 @@ testWithClient('Tools', async (suite, connector, client, target) => {
         clientId,
       );
       const evaluated = await evaluate<{
-        result?: { objectId?: string; type?: string; description?: string };
+        result?: { objectId?: string; type?: string; description?: string; };
       }>({
         expression: "({ answer: 42, label: 'devtool-e2e' })",
         objectGroup: 'mcp-tools-test',
@@ -781,7 +784,7 @@ testWithClient('Tools', async (suite, connector, client, target) => {
       const properties = await getProperties<{
         result?: Array<{
           name: string;
-          value?: { value?: unknown; type?: string };
+          value?: { value?: unknown; type?: string; };
         }>;
       }>({
         objectId: objectId!,
@@ -812,7 +815,7 @@ testWithClient('Tools', async (suite, connector, client, target) => {
         clientId,
       );
       const evaluated = await evaluate<{
-        result?: { type?: string; value?: unknown };
+        result?: { type?: string; value?: unknown; };
       }>({
         expression: 'lynx.__globalProps !== undefined',
         returnByValue: true,
@@ -833,7 +836,7 @@ testWithClient('Tools', async (suite, connector, client, target) => {
 
   await suite.test('Runtime.getHeapUsage', async (t: TestContext) => {
     const { call } = createToolContext(GetHeapUsage, connector, clientId);
-    const result = await call<{ usedSize: number; totalSize: number }>({});
+    const result = await call<{ usedSize: number; totalSize: number; }>({});
 
     t.assert.ok(typeof result.usedSize === 'number', 'Should return usedSize');
     t.assert.ok(
@@ -846,7 +849,7 @@ testWithClient('Tools', async (suite, connector, client, target) => {
     'Runtime.getHeapUsage supports the main thread',
     async (t: TestContext) => {
       const { call } = createToolContext(GetHeapUsage, connector, clientId);
-      const result = await call<{ usedSize: number; totalSize: number }>({
+      const result = await call<{ usedSize: number; totalSize: number; }>({
         thread: 'main',
       });
 
@@ -992,12 +995,14 @@ testWithClient('Tools', async (suite, connector, client, target) => {
       typeof setupTiming === 'object' && setupTiming !== null,
       'Should include setup_timing object',
     );
-    for (const key of [
-      'pipeline_start',
-      'load_template_start',
-      'load_template_end',
-      'draw_end',
-    ]) {
+    for (
+      const key of [
+        'pipeline_start',
+        'load_template_start',
+        'load_template_end',
+        'draw_end',
+      ]
+    ) {
       t.assert.ok(
         typeof (setupTiming as Record<string, unknown>)[key] === 'number',
         `setup_timing.${key} should be a number`,
@@ -1099,7 +1104,7 @@ testWithClient('Tools', async (suite, connector, client, target) => {
 
       try {
         const content = await fs.readFile(filePath, 'utf8');
-        const snapshot = JSON.parse(content) as { strings?: string[] };
+        const snapshot = JSON.parse(content) as { strings?: string[]; };
 
         t.assert.ok(
           Array.isArray(snapshot.strings),
@@ -1129,7 +1134,7 @@ testWithClient('Tools', async (suite, connector, client, target) => {
 
     const { root } = await connector.sendCDPMessage<
       GetDocumentResponse,
-      { depth: number }
+      { depth: number; }
     >(clientId, sessionId!, 'DOM.getDocument', { depth: -1 });
     const targetNode = findFirstElementNode(root);
     t.assert.ok(targetNode, 'Should find an element node');
@@ -1140,7 +1145,7 @@ testWithClient('Tools', async (suite, connector, client, target) => {
       clientId,
     );
     const result = await call<{
-      computedStyle: Array<{ name: string; value: string }>;
+      computedStyle: Array<{ name: string; value: string; }>;
     }>({
       nodeId: targetNode.nodeId,
     });
@@ -1169,7 +1174,7 @@ testWithClient('Tools', async (suite, connector, client, target) => {
 
     const { root } = await connector.sendCDPMessage<
       GetDocumentResponse,
-      { depth: number }
+      { depth: number; }
     >(clientId, sessionId!, 'DOM.getDocument', { depth: -1 });
     const targetNode = findFirstElementNode(root);
     t.assert.ok(targetNode, 'Should find an element node');
@@ -1199,7 +1204,7 @@ testWithClient('Tools', async (suite, connector, client, target) => {
 
     const { root } = await connector.sendCDPMessage<
       GetDocumentResponse,
-      { depth: number }
+      { depth: number; }
     >(clientId, sessionId!, 'DOM.getDocument', { depth: -1 });
     const targetNode = findFirstElementNode(root);
     t.assert.ok(targetNode, 'Should find an element node');
@@ -1210,8 +1215,8 @@ testWithClient('Tools', async (suite, connector, client, target) => {
       clientId,
     );
     const result = await call<{
-      inlineStyle?: { cssProperties: unknown[] };
-      attributesStyle?: { cssProperties: unknown[] };
+      inlineStyle?: { cssProperties: unknown[]; };
+      attributesStyle?: { cssProperties: unknown[]; };
     }>({
       nodeId: targetNode.nodeId,
     });
@@ -1228,7 +1233,7 @@ testWithClient('Tools', async (suite, connector, client, target) => {
 
     const { root } = await connector.sendCDPMessage<
       GetDocumentResponse,
-      { depth: number }
+      { depth: number; }
     >(clientId, sessionId!, 'DOM.getDocument', { depth: -1 });
     const targetNode = findFirstElementNode(root);
     t.assert.ok(targetNode, 'Should find an element node');
@@ -1257,14 +1262,14 @@ testWithClient('Tools', async (suite, connector, client, target) => {
 
     const { root } = await connector.sendCDPMessage<
       GetDocumentResponse,
-      { depth: number }
+      { depth: number; }
     >(clientId, sessionId!, 'DOM.getDocument', { depth: -1 });
     const targetNode = findFirstElementNode(root);
     t.assert.ok(targetNode, 'Should find an element node');
 
     const matchedResult = await connector.sendCDPMessage<
-      { matchedCSSRules?: Array<{ rule?: { styleSheetId?: string } }> },
-      { nodeId: number }
+      { matchedCSSRules?: Array<{ rule?: { styleSheetId?: string; }; }>; },
+      { nodeId: number; }
     >(clientId, sessionId!, 'CSS.getMatchedStylesForNode', {
       nodeId: targetNode.nodeId,
     });
@@ -1280,7 +1285,7 @@ testWithClient('Tools', async (suite, connector, client, target) => {
     }
 
     const { call } = createToolContext(GetStyleSheetText, connector, clientId);
-    const result = await call<{ text: string }>({
+    const result = await call<{ text: string; }>({
       styleSheetId: sheetId,
     });
 
@@ -1293,10 +1298,9 @@ testWithClient('Tools', async (suite, connector, client, target) => {
   await suite.test(
     'Debugger.enable (listScripts)',
     {
-      skip:
-        target.appPackageName === 'EmbeddedLynx'
-          ? 'EmbeddedLynx does not support Debugger.enable'
-          : false,
+      skip: target.appPackageName === 'EmbeddedLynx'
+        ? 'EmbeddedLynx does not support Debugger.enable'
+        : false,
     },
     async (t: TestContext) => {
       const { call } = createToolContext(ListScripts, connector, clientId);
@@ -1319,10 +1323,9 @@ testWithClient('Tools', async (suite, connector, client, target) => {
   await suite.test(
     'Debugger.getScriptSource',
     {
-      skip:
-        target.appPackageName === 'EmbeddedLynx'
-          ? 'EmbeddedLynx does not support Debugger.enable'
-          : false,
+      skip: target.appPackageName === 'EmbeddedLynx'
+        ? 'EmbeddedLynx does not support Debugger.enable'
+        : false,
     },
     async (t: TestContext) => {
       const { call: listScripts } = createToolContext(

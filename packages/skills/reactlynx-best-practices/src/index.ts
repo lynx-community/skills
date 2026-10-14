@@ -9,11 +9,7 @@ export { analyzeBackgroundOnlyUsage } from './background-only';
 
 export { analyzeLifecycleUsage } from './lifecycle';
 
-export {
-  analyzeSource,
-  createScanSummary,
-  formatScanReport,
-} from './scanner';
+export { analyzeSource, createScanSummary, formatScanReport } from './scanner';
 
 export type {
   Diagnostic,

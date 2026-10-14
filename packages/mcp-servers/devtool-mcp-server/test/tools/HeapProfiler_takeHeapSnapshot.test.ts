@@ -6,6 +6,7 @@ import assert from 'node:assert';
 import fs from 'node:fs/promises';
 import { ReadableStream } from 'node:stream/web';
 import { describe, test } from 'node:test';
+
 import { ClientId } from '@lynx-js/devtool-connector';
 import { TakeHeapSnapshot } from '../../src/tools/HeapProfiler/TakeHeapSnapshot.ts';
 import { createToolContext } from '../utils/testTool.ts';
@@ -186,8 +187,8 @@ describe('HeapProfiler.takeHeapSnapshot', () => {
     try {
       Array.prototype.join = function patchedJoin(separator?: string) {
         if (
-          Array.isArray(this) &&
-          this.some((value) => value === firstChunk || value === secondChunk)
+          Array.isArray(this)
+          && this.some((value) => value === firstChunk || value === secondChunk)
         ) {
           throw new Error(
             'Array.prototype.join should not be used to assemble heap snapshots',

@@ -31,8 +31,10 @@ export function renderLink(data: LinkResult): string {
   const element = `${data.element.ref} [${data.element.tag}]${elementText}`;
   const componentLabel = data.component.ref ?? '(unlabelled component)';
   const component =
-    `${componentLabel} [${typeTag(data.component.type)}] ${data.component.name} ` +
-    `(id=${data.component.id})`;
+    `${componentLabel} [${
+      typeTag(data.component.type)
+    }] ${data.component.name} `
+    + `(id=${data.component.id})`;
   return data.direction === 'element-to-component'
     ? `${element} -> ${component}`
     : `${component} -> ${element}`;

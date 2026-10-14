@@ -52,7 +52,9 @@ export function registerFillCommand(program: Command, context: Context): void {
             snapshotAfter: options.snapshot ?? false,
           }),
         (data) =>
-          `Filled ${data.ref} with "${data.value}". ${formatSnapshotRefresh(data)}`,
+          `Filled ${data.ref} with "${data.value}". ${
+            formatSnapshotRefresh(data)
+          }`,
       );
     },
   );

@@ -4,6 +4,7 @@
 
 import assert from 'node:assert';
 import { describe, test } from 'node:test';
+
 import type { Connector } from '@lynx-js/devtool-connector';
 import { OpenPage } from '../../src/tools/Device/OpenPage.ts';
 import { createToolContext } from '../utils/testTool.ts';

@@ -3,6 +3,7 @@
 // LICENSE file in the root directory of this source tree.
 
 import type { TestContext } from 'node:test';
+
 import {
   ActionCore,
   type CommandData,
@@ -67,16 +68,16 @@ testWithClient(
           data.labels,
         );
         t.diagnostic(
-          'page=' +
-            target.pageUrl +
-            ' generation=' +
-            (data.cache.status === 'refreshed'
+          'page='
+            + target.pageUrl
+            + ' generation='
+            + (data.cache.status === 'refreshed'
               ? data.cache.generation
-              : 'n/a') +
-            ' nodes=' +
-            data.nodes.length +
-            ' first=' +
-            formatted.text.split('\n')[0],
+              : 'n/a')
+            + ' nodes='
+            + data.nodes.length
+            + ' first='
+            + formatted.text.split('\n')[0],
         );
         treeData = data;
       },
@@ -99,7 +100,7 @@ testWithClient(
         const nodesById = new Map(
           treeData.nodes.map((node) => [node.id, node]),
         );
-        let named: { pattern: string; label: string } | undefined;
+        let named: { pattern: string; label: string; } | undefined;
         for (const [index, id] of treeData.labels.entries()) {
           const name = nodesById.get(id)?.name;
           if (name) {
@@ -125,8 +126,8 @@ testWithClient(
         const data = result.data as CommandData<'reactlynx-find'>;
         t.assert.equal(data.cache.status, 'reused');
         if (
-          data.cache.status === 'reused' &&
-          treeData.cache.status === 'refreshed'
+          data.cache.status === 'reused'
+          && treeData.cache.status === 'refreshed'
         ) {
           t.assert.equal(data.cache.generation, treeData.cache.generation);
         }
@@ -147,10 +148,10 @@ testWithClient(
           t.assert.ok(match.name.toLowerCase().includes(pattern.toLowerCase()));
         }
         t.diagnostic(
-          'find pattern=' +
-            pattern +
-            ' matches: ' +
-            data.matches
+          'find pattern='
+            + pattern
+            + ' matches: '
+            + data.matches
               .map((match) => match.label + ' ' + match.name)
               .join(', '),
         );
@@ -196,8 +197,8 @@ testWithClient(
         ]
           .filter(
             (ref, index, refs) =>
-              refs.findIndex((candidate) => candidate.ref === ref.ref) ===
-              index,
+              refs.findIndex((candidate) => candidate.ref === ref.ref)
+                === index,
           )
           .slice(0, 8);
         t.assert.ok(
@@ -225,7 +226,9 @@ testWithClient(
         }
         t.assert.ok(
           sourceElement && componentData,
-          `none of ${candidates.length} visible DOM candidates mapped to ReactLynx (${mappingFailures.join(', ')})`,
+          `none of ${candidates.length} visible DOM candidates mapped to ReactLynx (${
+            mappingFailures.join(', ')
+          })`,
         );
         if (!sourceElement || !componentData) return;
 
@@ -301,26 +304,27 @@ testWithClient(
         const data = result.data as CommandData<'reactlynx-update-prop'>;
         t.assert.equal(data.cache.status, 'reused');
         t.assert.ok(
-          typeof data.component.props === 'object' &&
-            data.component.props !== null,
+          typeof data.component.props === 'object'
+            && data.component.props !== null,
           'post-update inspect-result.props must be an object',
         );
         if (
-          typeof data.component.props !== 'object' ||
-          data.component.props === null
-        )
+          typeof data.component.props !== 'object'
+          || data.component.props === null
+        ) {
           return;
+        }
         t.assert.equal(
           (data.component.props as Record<string, unknown>)[key],
           value,
         );
         t.diagnostic(
-          'update-prop confirmed: id=' +
-            data.id +
-            ' props.' +
-            key +
-            '=' +
-            value,
+          'update-prop confirmed: id='
+            + data.id
+            + ' props.'
+            + key
+            + '='
+            + value,
         );
       },
     );

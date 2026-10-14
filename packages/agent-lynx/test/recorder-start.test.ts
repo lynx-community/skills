@@ -3,6 +3,7 @@
 // LICENSE file in the root directory of this source tree.
 
 import { describe, test } from 'node:test';
+
 import type { Connector } from '@lynx-js/devtool-connector';
 import { runRecordingStart } from '../src/commands/recorder-start.ts';
 
@@ -11,9 +12,9 @@ function createMockConnector(opts: {
   debugModePersists?: boolean;
   recordingStartError?: Error;
 }): Connector & {
-  calls: Array<{ method: string; args: unknown[] }>;
+  calls: Array<{ method: string; args: unknown[]; }>;
 } {
-  const calls: Array<{ method: string; args: unknown[] }> = [];
+  const calls: Array<{ method: string; args: unknown[]; }> = [];
   let currentDebugMode = opts.debugMode;
   return {
     calls,
@@ -41,7 +42,7 @@ function createMockConnector(opts: {
       return Promise.resolve({});
     },
   } as unknown as Connector & {
-    calls: Array<{ method: string; args: unknown[] }>;
+    calls: Array<{ method: string; args: unknown[]; }>;
   };
 }
 

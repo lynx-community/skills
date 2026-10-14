@@ -49,7 +49,7 @@ describe('DOM.getDocument', () => {
       41,
     );
     const result = await call<{
-      root: { nodeId: number; nodeName: string; childNodeCount: number };
+      root: { nodeId: number; nodeName: string; childNodeCount: number; };
     }>({
       depth: -1,
     });

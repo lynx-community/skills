@@ -3,14 +3,19 @@
 // LICENSE file in the root directory of this source tree.
 
 import path from 'node:path';
+
 import { defineConfig } from '@rslib/core';
 
 const buildTime = new Date();
-const formattedBuildTime = `${buildTime.getFullYear()}-${String(
-  buildTime.getMonth() + 1,
-).padStart(2, '0')}-${String(buildTime.getDate()).padStart(2, '0')} ${String(
-  buildTime.getHours(),
-).padStart(2, '0')}:${String(buildTime.getMinutes()).padStart(2, '0')}`;
+const formattedBuildTime = `${buildTime.getFullYear()}-${
+  String(
+    buildTime.getMonth() + 1,
+  ).padStart(2, '0')
+}-${String(buildTime.getDate()).padStart(2, '0')} ${
+  String(
+    buildTime.getHours(),
+  ).padStart(2, '0')
+}:${String(buildTime.getMinutes()).padStart(2, '0')}`;
 
 export default defineConfig({
   source: {
@@ -36,13 +41,13 @@ export default defineConfig({
         distPath: './dist',
       },
       output: {
+        // Keep @lynx-js/devtool-connector as the package's real runtime dependency.
+        autoExternal: true,
         filename: {
           js: '[name].mjs',
         },
         distPath: './dist',
       },
-      // Keep @lynx-js/devtool-connector as the package's real runtime dependency.
-      autoExternal: true,
       autoExtension: false,
     },
     {
@@ -55,13 +60,13 @@ export default defineConfig({
       },
       dts: false,
       output: {
+        // Keep @lynx-js/devtool-connector as the package's real runtime dependency.
+        autoExternal: true,
         filename: {
           js: '[name].mjs',
         },
         distPath: './dist',
       },
-      // Keep @lynx-js/devtool-connector as the package's real runtime dependency.
-      autoExternal: true,
       autoExtension: false,
       tools: {
         rspack: {

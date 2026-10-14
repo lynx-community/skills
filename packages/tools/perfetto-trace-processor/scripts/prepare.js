@@ -5,6 +5,7 @@ import { copyFile, mkdir, readFile, rm, writeFile } from 'node:fs/promises';
 import { dirname, join, normalize } from 'node:path';
 import { pipeline } from 'node:stream/promises';
 import { fileURLToPath } from 'node:url';
+
 import { build } from 'esbuild';
 import { extract } from 'tar';
 
@@ -116,8 +117,8 @@ function createVirtualFSPlugin(
             bareModuleMap.set(modulePath, path);
           }
           if (
-            modulePath.endsWith('/index.js') ||
-            modulePath.endsWith('/index.ts')
+            modulePath.endsWith('/index.js')
+            || modulePath.endsWith('/index.ts')
           ) {
             const moduleDir = modulePath.replace(/\/index\.[jt]s$/, '');
             if (!bareModuleMap.has(moduleDir)) {
@@ -156,13 +157,15 @@ function createVirtualFSPlugin(
             return { path: exactMatch, namespace: 'virtual' };
           }
 
-          for (const suffix of [
-            '/index.js',
-            '/index.ts',
-            '.js',
-            '.ts',
-            '/minimal.js',
-          ]) {
+          for (
+            const suffix of [
+              '/index.js',
+              '/index.ts',
+              '.js',
+              '.ts',
+              '/minimal.js',
+            ]
+          ) {
             const tryPath = args.path + suffix;
             const match = bareModuleMap.get(tryPath);
             if (match) {
@@ -207,7 +210,8 @@ function createVirtualFSPlugin(
               return {
                 errors: [
                   {
-                    text: `Patch failed: oldCode not found in ${args.path}\n\nExpected to find:\n${patch.oldCode}`,
+                    text:
+                      `Patch failed: oldCode not found in ${args.path}\n\nExpected to find:\n${patch.oldCode}`,
                   },
                 ],
               };

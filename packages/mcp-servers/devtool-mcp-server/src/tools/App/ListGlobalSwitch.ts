@@ -17,7 +17,7 @@ export const ListGlobalSwitch = /*#__PURE__*/ defineTool({
   },
   async handler({ params }, response, context) {
     const connector = context.connector();
-    const switches: Array<{ key: string; value?: boolean; error?: string }> =
+    const switches: Array<{ key: string; value?: boolean; error?: string; }> =
       [];
 
     for (const key of GLOBAL_SWITCH_KEYS) {

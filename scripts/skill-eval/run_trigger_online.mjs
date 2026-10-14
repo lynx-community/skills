@@ -134,7 +134,9 @@ async function main() {
 }
 
 async function runTriggerProbe({ model, query, repoRoot, skill, timeout }) {
-  const tempSkillName = `${skill.name}-trigger-eval-${randomUUID().slice(0, 8)}`;
+  const tempSkillName = `${skill.name}-trigger-eval-${
+    randomUUID().slice(0, 8)
+  }`;
   const tempSkillDir = join(OPENCODE_SKILLS_DIR, tempSkillName);
   await mkdir(tempSkillDir, { recursive: true });
   await writeFile(
@@ -165,9 +167,9 @@ function parseArgs(argv) {
     else if (arg === '--model') args.model = argv[++index];
     else if (arg === '--runs-per-query') args.runsPerQuery = argv[++index];
     else if (arg === '--timeout') args.timeout = argv[++index];
-    else if (arg === '--trigger-threshold')
+    else if (arg === '--trigger-threshold') {
       args.triggerThreshold = argv[++index];
-    else if (arg === '--min-pass-rate') args.minPassRate = argv[++index];
+    } else if (arg === '--min-pass-rate') args.minPassRate = argv[++index];
     else if (arg === '--output') args.output = argv[++index];
     else throw new Error(`Unknown argument: ${arg}`);
   }
@@ -280,8 +282,8 @@ function runOpencodeForTrigger({
         return;
       }
       if (event.type === 'error') {
-        const message =
-          event.error?.data?.message ?? event.error?.message ?? 'unknown error';
+        const message = event.error?.data?.message ?? event.error?.message
+          ?? 'unknown error';
         finish(new Error(`opencode error: ${message}`));
         return;
       }

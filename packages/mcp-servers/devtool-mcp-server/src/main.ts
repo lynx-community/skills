@@ -16,7 +16,8 @@ async function main() {
       version: pkg.version,
     },
     {
-      instructions: `The Lynx DevTool MCP Server provides tools to interact with Lynx-based applications.
+      instructions:
+        `The Lynx DevTool MCP Server provides tools to interact with Lynx-based applications.
 
 Glossary:
   1. Device: The DevTool MCP Server can connect to multiple devices (simulators or real devices).

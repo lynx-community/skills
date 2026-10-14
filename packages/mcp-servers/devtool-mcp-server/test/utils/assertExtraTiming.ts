@@ -21,8 +21,8 @@ export function assertExtraTiming(value: unknown): void {
   for (const key of extraTimingKeys) {
     if (Object.hasOwn(extraTiming, key)) {
       assert.ok(
-        typeof extraTiming[key] === 'number' &&
-          Number.isFinite(extraTiming[key]),
+        typeof extraTiming[key] === 'number'
+          && Number.isFinite(extraTiming[key]),
         `extra_timing.${key} should be a finite number when present`,
       );
     }

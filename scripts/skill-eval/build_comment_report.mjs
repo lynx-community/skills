@@ -42,22 +42,18 @@ async function main() {
 
   const report = {
     reports: [definitionReport, ...onlineReports],
-    task_error:
-      taskErrorFile && existsSync(taskErrorFile)
-        ? (await readFile(taskErrorFile, 'utf8')).trim()
-        : undefined,
-    task_skip:
-      taskSkipFile && existsSync(taskSkipFile)
-        ? (await readFile(taskSkipFile, 'utf8')).trim()
-        : undefined,
-    trigger_error:
-      triggerErrorFile && existsSync(triggerErrorFile)
-        ? (await readFile(triggerErrorFile, 'utf8')).trim()
-        : undefined,
-    trigger_skip:
-      triggerSkipFile && existsSync(triggerSkipFile)
-        ? (await readFile(triggerSkipFile, 'utf8')).trim()
-        : undefined,
+    task_error: taskErrorFile && existsSync(taskErrorFile)
+      ? (await readFile(taskErrorFile, 'utf8')).trim()
+      : undefined,
+    task_skip: taskSkipFile && existsSync(taskSkipFile)
+      ? (await readFile(taskSkipFile, 'utf8')).trim()
+      : undefined,
+    trigger_error: triggerErrorFile && existsSync(triggerErrorFile)
+      ? (await readFile(triggerErrorFile, 'utf8')).trim()
+      : undefined,
+    trigger_skip: triggerSkipFile && existsSync(triggerSkipFile)
+      ? (await readFile(triggerSkipFile, 'utf8')).trim()
+      : undefined,
   };
   await mkdir(dirname(outputPath), { recursive: true });
   await writeFile(outputPath, `${JSON.stringify(report, null, 2)}\n`);
@@ -120,8 +116,8 @@ async function readOnlineReports(root) {
   const reports = [];
   for (const path of await findJsonFiles(root)) {
     if (
-      basename(path) !== 'task-online-report.json' &&
-      basename(path) !== 'trigger-online-report.json'
+      basename(path) !== 'task-online-report.json'
+      && basename(path) !== 'trigger-online-report.json'
     ) {
       continue;
     }
@@ -131,7 +127,7 @@ async function readOnlineReports(root) {
     }
   }
   return reports.sort((left, right) =>
-    stringValue(left.skill_name).localeCompare(stringValue(right.skill_name)),
+    stringValue(left.skill_name).localeCompare(stringValue(right.skill_name))
   );
 }
 

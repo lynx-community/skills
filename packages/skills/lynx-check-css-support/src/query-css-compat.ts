@@ -7,9 +7,9 @@ import { Command } from 'commander';
 import { z } from 'zod';
 import {
   getBundledPackageVersion,
+  queryCompatibility,
   QueryError,
   type QueryResult,
-  queryCompatibility,
 } from './data.js';
 import { CssPropertyNameSchema } from './schemas.js';
 import {
@@ -79,7 +79,9 @@ function printHumanResult(result: QueryResult): void {
     const notes = noteText === undefined ? '' : `; notes=${noteText}`;
     const partial = row.partial_implementation === true ? '; partial' : '';
     console.log(
-      `- ${row.backend}: added=${formatVersionAdded(row.version_added)}; ${row.availability}${partial}${notes}`,
+      `- ${row.backend}: added=${
+        formatVersionAdded(row.version_added)
+      }; ${row.availability}${partial}${notes}`,
     );
   }
 }
@@ -113,10 +115,10 @@ function normalizeArguments(argv: readonly string[]): NormalizedArguments {
       continue;
     }
     if (
-      argument.startsWith('-') &&
-      !argument.startsWith('--') &&
-      argument !== '-h' &&
-      CssPropertyNameSchema.safeParse(argument).success
+      argument.startsWith('-')
+      && !argument.startsWith('--')
+      && argument !== '-h'
+      && CssPropertyNameSchema.safeParse(argument).success
     ) {
       propertyIndex = index;
       break;
@@ -189,10 +191,10 @@ async function main(): Promise<void> {
     const options = program.opts<CliOptions>();
     if (options.checkUpdates === true) {
       if (
-        property !== undefined ||
-        options.backend !== undefined ||
-        options.feature !== undefined ||
-        options.lynxVersion !== undefined
+        property !== undefined
+        || options.backend !== undefined
+        || options.feature !== undefined
+        || options.lynxVersion !== undefined
       ) {
         program.error(
           '--check-updates cannot be combined with a property or query filters',

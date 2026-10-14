@@ -110,9 +110,8 @@ export function registerTakeHeapSnapshotCommand(
 
       let didReceiveSnapshotResponse = false;
       let didWriteSnapshotChunk = false;
-      const fileName =
-        output ??
-        path.join(tmpdir(), `heap-${thread}-${Date.now()}.heapsnapshot`);
+      const fileName = output
+        ?? path.join(tmpdir(), `heap-${thread}-${Date.now()}.heapsnapshot`);
       const temporaryFileName = path.join(
         path.dirname(fileName),
         `.${path.basename(fileName)}.${randomUUID()}.tmp`,
@@ -120,10 +119,12 @@ export function registerTakeHeapSnapshotCommand(
       const temporaryFile = await fs.open(temporaryFileName, 'wx');
 
       async function* snapshotChunks() {
-        for await (const value of readUntilIdle(stream, {
-          idleMs: 15_000,
-          maxMs: 60_000,
-        })) {
+        for await (
+          const value of readUntilIdle(stream, {
+            idleMs: 15_000,
+            maxMs: 60_000,
+          })
+        ) {
           const {
             method,
             params: eventParams,
@@ -154,8 +155,7 @@ export function registerTakeHeapSnapshotCommand(
               break;
             }
           } else if (method === 'HeapProfiler.reportHeapSnapshotProgress') {
-            if (responseSessionId !== expectedSessionId) {
-            }
+            // Progress notifications do not contain snapshot chunks.
           } else if (id === requestId) {
             didReceiveSnapshotResponse = true;
             if (didWriteSnapshotChunk) {

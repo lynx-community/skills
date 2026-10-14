@@ -36,7 +36,7 @@ describe('Performance.getAllTimingInfo', () => {
       connector as never,
       'test-client-id:9999',
     );
-    const result = await call<{ metrics: { fcp: number } }>({});
+    const result = await call<{ metrics: { fcp: number; }; }>({});
 
     assert.deepStrictEqual(sentMessages, [
       {

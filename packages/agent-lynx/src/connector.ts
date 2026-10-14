@@ -12,8 +12,8 @@ export * from '@lynx-js/devtool-connector';
 export * from '@lynx-js/devtool-connector/streams';
 export * from '@lynx-js/devtool-connector/transport';
 export {
-  type EvaluateOptions,
   evaluateExpression,
+  type EvaluateOptions,
   wrapExpression,
 } from './evaluate-expression.ts';
 

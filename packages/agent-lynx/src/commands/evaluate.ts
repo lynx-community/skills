@@ -4,8 +4,8 @@
 
 import type { Command } from 'commander';
 import {
-  type EvaluateOptions,
   evaluateExpression,
+  type EvaluateOptions,
   wrapExpression,
 } from '../evaluate-expression.ts';
 import {
@@ -75,8 +75,9 @@ export function registerEvaluateCommand(program: Command, context: Context) {
       'Expose the command line API when supported by the engine',
     )
     .action(async (expression: string, options: EvaluateCommandOptions) => {
-      const contextId =
-        options.contextId === undefined ? undefined : Number(options.contextId);
+      const contextId = options.contextId === undefined
+        ? undefined
+        : Number(options.contextId);
       if (contextId !== undefined && !Number.isInteger(contextId)) {
         throw new Error(
           `Invalid context ID: ${options.contextId}. Expected an integer.`,

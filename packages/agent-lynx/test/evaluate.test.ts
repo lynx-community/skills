@@ -5,6 +5,7 @@
 import assert from 'node:assert/strict';
 import { describe, test } from 'node:test';
 import { runInNewContext } from 'node:vm';
+
 import { Connector } from '@lynx-js/devtool-connector';
 import { Command } from 'commander';
 import {
@@ -148,13 +149,15 @@ describe('evaluate', () => {
     assert.equal(sentMessages[0]?.isMainThread, false);
   });
 
-  for (const [name, runtimeGlobal] of [
-    ['multiApps is unavailable', {}],
-    [
-      'the current app has no lynx object',
-      { multiApps: { app: {} }, currentAppId: 'app' },
-    ],
-  ] as const) {
+  for (
+    const [name, runtimeGlobal] of [
+      ['multiApps is unavailable', {}],
+      [
+        'the current app has no lynx object',
+        { multiApps: { app: {} }, currentAppId: 'app' },
+      ],
+    ] as const
+  ) {
     test(`evaluates unrelated expressions when ${name}`, () => {
       assert.equal(
         runInNewContext(wrapExpression('2 + 2'), { globalThis: runtimeGlobal }),

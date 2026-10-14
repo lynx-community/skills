@@ -7,6 +7,7 @@ import { mkdir, stat, writeFile } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
 import { pipeline } from 'node:stream/promises';
 import { fileURLToPath } from 'node:url';
+
 import * as tar from 'tar';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -43,10 +44,11 @@ async function download(url, outPath) {
       'User-Agent': '@lynx-js/benchx-cli prepare',
     },
   });
-  if (!res.ok)
+  if (!res.ok) {
     throw new Error(
       `Failed to download ${url}: ${res.status} ${res.statusText}`,
     );
+  }
   await pipeline(res.body, createWriteStream(outPath));
 }
 
@@ -70,7 +72,8 @@ async function main() {
     return;
   }
 
-  const url = `https://github.com/${REPO}/releases/download/${BENCHX_VERSION}/${info.asset}`;
+  const url =
+    `https://github.com/${REPO}/releases/download/${BENCHX_VERSION}/${info.asset}`;
   const tgzPath = join(vendorDir, info.asset);
 
   console.log(`[@lynx-js/benchx-cli] downloading ${url}`);
@@ -93,8 +96,9 @@ async function main() {
   walk(vendorDir);
 
   const extracted = found[0];
-  if (!extracted)
+  if (!extracted) {
     throw new Error(`benchx_cli not found after extracting ${tgzPath}`);
+  }
 
   if (extracted !== binPath) {
     fs.copyFileSync(extracted, binPath);

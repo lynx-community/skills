@@ -69,9 +69,13 @@ async function main() {
 
   if (failures.length > 0) {
     console.error(
-      `[skill-eval] ${failures.length} trigger eval suite${failures.length === 1 ? '' : 's'} failed: ${failures
-        .map((failure) => `${failure.slug}(${failure.exitCode})`)
-        .join(', ')}`,
+      `[skill-eval] ${failures.length} trigger eval suite${
+        failures.length === 1 ? '' : 's'
+      } failed: ${
+        failures
+          .map((failure) => `${failure.slug}(${failure.exitCode})`)
+          .join(', ')
+      }`,
     );
     process.exitCode = 1;
   }
@@ -84,14 +88,14 @@ function parseArgs(argv) {
     if (arg === '--') continue;
     if (arg === '--repo-root') args.repoRoot = argv[++index];
     else if (arg === '--model') args.model = argv[++index];
-    else if (arg === '--runs-per-query')
+    else if (arg === '--runs-per-query') {
       args.runsPerQuery = Number(argv[++index]);
-    else if (arg === '--timeout') args.timeout = Number(argv[++index]);
-    else if (arg === '--trigger-threshold')
+    } else if (arg === '--timeout') args.timeout = Number(argv[++index]);
+    else if (arg === '--trigger-threshold') {
       args.triggerThreshold = Number(argv[++index]);
-    else if (arg === '--min-pass-rate')
+    } else if (arg === '--min-pass-rate') {
       args.minPassRate = Number(argv[++index]);
-    else if (arg === '--skip-skills') args.skipSkills = argv[++index];
+    } else if (arg === '--skip-skills') args.skipSkills = argv[++index];
     else if (arg === '--output-root') args.outputRoot = argv[++index];
     else if (arg === '--dry-run') args.dryRun = true;
     else throw new Error(`Unknown argument: ${arg}`);

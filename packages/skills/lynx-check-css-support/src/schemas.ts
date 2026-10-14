@@ -61,7 +61,7 @@ const FeatureCompatSchema: z.ZodType<FeatureCompat> = z.lazy(() =>
       __compat: CompatStatementSchema,
     })
     .catchall(FeatureCompatSchema)
-    .readonly(),
+    .readonly()
 );
 
 const CompatDataSchema = z

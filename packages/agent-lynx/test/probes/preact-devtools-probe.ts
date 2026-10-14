@@ -32,6 +32,7 @@
 
 import { ReadableStream } from 'node:stream/web';
 import { parseArgs } from 'node:util';
+
 import type { CDPRequestMessage } from '@lynx-js/devtool-connector';
 import { Connector } from '@lynx-js/devtool-connector';
 import { createDefaultTransports } from '../../src/connector.ts';
@@ -68,8 +69,9 @@ const { values } = parseArgs({
   strict: false,
 });
 
-const TIMEOUT_MS =
-  Number(values.timeout) > 0 ? Number(values.timeout) * 1000 : 0;
+const TIMEOUT_MS = Number(values.timeout) > 0
+  ? Number(values.timeout) * 1000
+  : 0;
 const SEND_INIT = Boolean(values['send-init']);
 const SEND_REFRESH = Boolean(values.refresh);
 
@@ -94,7 +96,7 @@ async function pickSession(
   if (!sessions.length) throw new Error(`No sessions for client ${clientId}`);
   // Prefer the latest session, like the rest of the skill does.
   const latest = sessions.reduce((max, s) =>
-    Number(s.session_id) > Number(max.session_id) ? s : max,
+    Number(s.session_id) > Number(max.session_id) ? s : max
   );
   return Number(latest.session_id);
 }
@@ -114,7 +116,9 @@ async function main() {
   );
 
   process.stderr.write(
-    `[probe] clientId=${clientId} sessionId=${sessionId} timeout=${TIMEOUT_MS || 'infinite'}ms\n`,
+    `[probe] clientId=${clientId} sessionId=${sessionId} timeout=${
+      TIMEOUT_MS || 'infinite'
+    }ms\n`,
   );
 
   const ac = new AbortController();
@@ -166,7 +170,9 @@ async function main() {
       ac.signal.addEventListener('abort', () => {
         try {
           controller.close();
-        } catch {}
+        } catch {
+          // The stream may already be closed when the client disconnects.
+        }
       });
     },
   });
@@ -184,13 +190,13 @@ async function main() {
       // `msg` is whatever the device returned in CDP envelope form. We only
       // care about Lynx.onVMEvent frames whose event === "PreactDevtools".
       if (typeof msg !== 'object' || msg === null) continue;
-      const method = (msg as { method?: string }).method;
+      const method = (msg as { method?: string; }).method;
       if (method !== 'Lynx.onVMEvent') continue;
 
-      const params = (msg as { params?: LynxOnVMEventParams }).params ?? {};
+      const params = (msg as { params?: LynxOnVMEventParams; }).params ?? {};
       if (params.event !== PREACT_EVENT_NAME) continue;
 
-      let envelope: PreactEnvelope | { __parseError: string; raw: unknown } = {
+      let envelope: PreactEnvelope | { __parseError: string; raw: unknown; } = {
         __parseError: 'n/a',
         raw: params.data,
       };
@@ -223,7 +229,9 @@ async function main() {
 
 main().catch((err) => {
   process.stderr.write(
-    `[probe] fatal: ${err instanceof Error ? (err.stack ?? err.message) : String(err)}\n`,
+    `[probe] fatal: ${
+      err instanceof Error ? (err.stack ?? err.message) : String(err)
+    }\n`,
   );
   process.exit(1);
 });

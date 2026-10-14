@@ -37,23 +37,23 @@ export function formatInspectResult(
   const lines: string[] = [];
   const headerKey = data.key ? ' key=' + data.key : '';
   lines.push(
-    ref +
-      ' (id=' +
-      data.id +
-      ') [' +
-      typeTag(data.type) +
-      '] ' +
-      data.name +
-      headerKey,
+    ref
+      + ' (id='
+      + data.id
+      + ') ['
+      + typeTag(data.type)
+      + '] '
+      + data.name
+      + headerKey,
   );
   if (data.__source) {
     lines.push(
-      '  source: ' +
-        data.__source.fileName +
-        ':' +
-        data.__source.lineNumber +
-        ':' +
-        data.__source.columnNumber,
+      '  source: '
+        + data.__source.fileName
+        + ':'
+        + data.__source.lineNumber
+        + ':'
+        + data.__source.columnNumber,
     );
   }
   if (data.suspended) lines.push('  suspended: true');
@@ -70,11 +70,12 @@ function appendSection(lines: string[], label: string, value: unknown): void {
   if (value === null || value === undefined) return;
   if (Array.isArray(value) && value.length === 0) return;
   if (
-    typeof value === 'object' &&
-    !Array.isArray(value) &&
-    Object.keys(value).length === 0
-  )
+    typeof value === 'object'
+    && !Array.isArray(value)
+    && Object.keys(value).length === 0
+  ) {
     return;
+  }
   lines.push('  ' + label + ':');
   lines.push(
     JSON.stringify(value, null, 2)

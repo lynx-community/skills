@@ -33,10 +33,12 @@ async function consumeWaitStream(
   ]);
 
   try {
-    for await (const event of getCommandClient(context).stream('wait', params, {
-      signal,
-      method: 'POST',
-    })) {
+    for await (
+      const event of getCommandClient(context).stream('wait', params, {
+        signal,
+        method: 'POST',
+      })
+    ) {
       if (!event.ok || event.action === 'wait') {
         return event as CommandResult<WaitResult>;
       }

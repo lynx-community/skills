@@ -10,8 +10,8 @@ const DEBUG_MODE_RESTART_MESSAGE =
   '`enable_debug_mode` has been enabled. Restart the app and run `recorder start` again.';
 
 type RecordingStartResult =
-  | { started: true; restartRequired: false; message: string }
-  | { started: false; restartRequired: true; message: string };
+  | { started: true; restartRequired: false; message: string; }
+  | { started: false; restartRequired: true; message: string; };
 
 export function registerStartCommand(parent: Command, context: Context) {
   parent
@@ -22,8 +22,6 @@ export function registerStartCommand(parent: Command, context: Context) {
       const { connector, clientId } = await resolveClient(context, options);
 
       const result = await runRecordingStart(connector, clientId);
-      if (result.started) {
-      }
       console.log(JSON.stringify({ success: result.started, ...result }));
     });
 }
@@ -59,9 +57,9 @@ export async function runRecordingStart(
   } catch (err) {
     if (!isRecordingStartNotImplementedError(err)) throw err;
     throw new Error(
-      'Recording.start is not implemented even after `enable_debug_mode` is enabled. ' +
-        'The app or engine may not include `ENABLE_TESTBENCH_RECORDER`, ' +
-        'or it may not be a dev/recorder build.',
+      'Recording.start is not implemented even after `enable_debug_mode` is enabled. '
+        + 'The app or engine may not include `ENABLE_TESTBENCH_RECORDER`, '
+        + 'or it may not be a dev/recorder build.',
       { cause: err },
     );
   }
@@ -92,8 +90,8 @@ type ConnectorCDPMessage = (
 
 function isRecordingStartNotImplementedError(err: unknown): boolean {
   return (
-    err instanceof Error &&
-    err.message.includes('Not implemented') &&
-    err.message.includes('Recording.start')
+    err instanceof Error
+    && err.message.includes('Not implemented')
+    && err.message.includes('Recording.start')
   );
 }

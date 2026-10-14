@@ -36,13 +36,15 @@ test('installTempSkill copies skill resources but excludes evals', async (t) => 
     '',
   ].join('\n');
 
-  for (const directory of [
-    'references',
-    'scripts',
-    'examples',
-    'assets',
-    'evals',
-  ]) {
+  for (
+    const directory of [
+      'references',
+      'scripts',
+      'examples',
+      'assets',
+      'evals',
+    ]
+  ) {
     await mkdir(join(skillPath, directory), { recursive: true });
     await writeFile(join(skillPath, directory, 'resource.txt'), directory);
   }

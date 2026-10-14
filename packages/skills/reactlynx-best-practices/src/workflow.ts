@@ -28,8 +28,8 @@ export interface IssuePlan {
   severity: string;
   message: string;
   location: {
-    start: { line: number; column: number };
-    end: { line: number; column: number };
+    start: { line: number; column: number; };
+    end: { line: number; column: number; };
   };
   fixable: boolean;
   suggestedFixes: Fix[];
@@ -75,8 +75,8 @@ export class ReactLynxWorkflow {
       const issues: IssuePlan[] = [];
 
       for (const diagnostic of result.diagnostics) {
-        const hasAutoFix =
-          diagnostic.fixes !== undefined && diagnostic.fixes.length > 0;
+        const hasAutoFix = diagnostic.fixes !== undefined
+          && diagnostic.fixes.length > 0;
         if (hasAutoFix) {
           fixableIssues++;
         } else {
@@ -109,7 +109,7 @@ export class ReactLynxWorkflow {
     };
   }
 
-  applyAutoFixes(source: string): { fixed: string; appliedFixes: Fix[] } {
+  applyAutoFixes(source: string): { fixed: string; appliedFixes: Fix[]; } {
     const diagnostics = analyzeSource(source, { generateFixes: true });
     const allFixes: Fix[] = [];
 

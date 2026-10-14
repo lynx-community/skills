@@ -5,6 +5,7 @@
 import { readFileSync } from 'node:fs';
 import { mkdir, rm, writeFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
+
 import { exportPlugin } from 'build-plugin';
 import { Command } from 'commander';
 
@@ -22,8 +23,9 @@ async function buildMarketplace(pkgDir: string) {
 
   const { dependencies = {} } = pkg;
 
-  const plugins: Array<{ name: string; description?: string; source: string }> =
-    [];
+  const plugins: Array<
+    { name: string; description?: string; source: string; }
+  > = [];
 
   // Clean plugins output directory before rebuilding
   await rm(resolve(pkgDir, 'plugins'), { recursive: true, force: true });
@@ -51,17 +53,19 @@ async function buildMarketplace(pkgDir: string) {
   }
 
   // metadata files
-  const metadataContent = `${JSON.stringify(
-    {
-      name: pkg.name.replace(/^@lynx-js\/marketplace-/, ''),
-      version: pkg.version,
-      description: pkg.description || 'A marketplace',
-      owner: pkg.author || { name: 'lynx' },
-      plugins,
-    },
-    null,
-    2,
-  )}\n`;
+  const metadataContent = `${
+    JSON.stringify(
+      {
+        name: pkg.name.replace(/^@lynx-js\/marketplace-/, ''),
+        version: pkg.version,
+        description: pkg.description || 'A marketplace',
+        owner: pkg.author || { name: 'lynx' },
+        plugins,
+      },
+      null,
+      2,
+    )
+  }\n`;
 
   // .claude-plugin/marketplace.json
   const claudePluginDir = resolve(pkgDir, '.claude-plugin');
@@ -80,7 +84,7 @@ program
   .option('-C, --cwd <cwd>', 'Set current working directory', process.cwd());
 
 program.action(async () => {
-  const { cwd } = program.opts<{ cwd: string }>();
+  const { cwd } = program.opts<{ cwd: string; }>();
   const pkgDir = resolve(process.cwd(), cwd);
   await buildMarketplace(pkgDir);
 });
@@ -89,8 +93,8 @@ program
   .command('export')
   .description('Build and export your claude plugin marketplace')
   .argument('<targetDir>')
-  .action(async (targetDir: string, options: { skipBuild: boolean }) => {
-    const { cwd } = program.opts<{ cwd: string }>();
+  .action(async (targetDir: string, options: { skipBuild: boolean; }) => {
+    const { cwd } = program.opts<{ cwd: string; }>();
     const pkgDir = resolve(process.cwd(), cwd);
     if (!options.skipBuild) {
       await buildMarketplace(pkgDir);

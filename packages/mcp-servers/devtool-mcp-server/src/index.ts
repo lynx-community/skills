@@ -25,6 +25,7 @@ import { GetMatchedStylesForNode } from './tools/CSS/GetMatchedStylesForNode.ts'
 import { GetStyleSheetText } from './tools/CSS/GetStyleSheetText.ts';
 import { GetScriptSource } from './tools/Debugger/GetScriptSource.ts';
 import { ListScripts } from './tools/Debugger/ListScripts.ts';
+import type { ToolDefinition } from './tools/defineTool.ts';
 import { ClosePage } from './tools/Device/ClosePage.ts';
 import { ListClients } from './tools/Device/ListClients.ts';
 import { ListDevices } from './tools/Device/ListDevices.ts';
@@ -46,7 +47,6 @@ import { QuerySelectorAll } from './tools/DOM/QuerySelectorAll.ts';
 import { RequestChildNodes } from './tools/DOM/RequestChildNodes.ts';
 import { ScrollIntoViewIfNeeded } from './tools/DOM/ScrollIntoViewIfNeeded.ts';
 import { SetAttributesAsText } from './tools/DOM/SetAttributesAsText.ts';
-import type { ToolDefinition } from './tools/defineTool.ts';
 import { TakeHeapSnapshot } from './tools/HeapProfiler/TakeHeapSnapshot.ts';
 import { EmulateTouchFromMouseEvent } from './tools/Input/EmulateTouchFromMouseEvent.ts';
 import { GetVersion } from './tools/Lynx/GetVersion.ts';
@@ -162,8 +162,9 @@ export function registerTool(
 
         return { content };
       } catch (error) {
-        const errorText =
-          error instanceof Error ? error.message : String(error);
+        const errorText = error instanceof Error
+          ? error.message
+          : String(error);
 
         return {
           isError: true,

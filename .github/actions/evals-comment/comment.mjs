@@ -63,7 +63,9 @@ async function main() {
     );
   } catch (error) {
     console.warn(
-      `Unable to publish skill evals comment; scores remain available in the workflow summary. ${formatErrorMessage(error)}`,
+      `Unable to publish skill evals comment; scores remain available in the workflow summary. ${
+        formatErrorMessage(error)
+      }`,
     );
   }
 }
@@ -108,27 +110,25 @@ function parseJson(content, source) {
     return JSON.parse(content);
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
-    throw new Error(`Failed to parse ${source} as JSON: ${message}`);
+    throw new Error(`Failed to parse ${source} as JSON: ${message}`, {
+      cause: error,
+    });
   }
 }
 
 function normalizeReport(payload) {
-  const taskError =
-    payload && typeof payload.task_error === 'string'
-      ? payload.task_error.trim()
-      : '';
-  const taskSkip =
-    payload && typeof payload.task_skip === 'string'
-      ? payload.task_skip.trim()
-      : '';
-  const triggerError =
-    payload && typeof payload.trigger_error === 'string'
-      ? payload.trigger_error.trim()
-      : '';
-  const triggerSkip =
-    payload && typeof payload.trigger_skip === 'string'
-      ? payload.trigger_skip.trim()
-      : '';
+  const taskError = payload && typeof payload.task_error === 'string'
+    ? payload.task_error.trim()
+    : '';
+  const taskSkip = payload && typeof payload.task_skip === 'string'
+    ? payload.task_skip.trim()
+    : '';
+  const triggerError = payload && typeof payload.trigger_error === 'string'
+    ? payload.trigger_error.trim()
+    : '';
+  const triggerSkip = payload && typeof payload.trigger_skip === 'string'
+    ? payload.trigger_skip.trim()
+    : '';
   const reports = normalizeReportList(payload);
   const rows = new Map();
   let definitionSummary;
@@ -208,7 +208,7 @@ function normalizeDefinitionReport(report) {
   }
 
   const normalizedResults = results.map((result, index) =>
-    normalizeDefinitionResult(result, index),
+    normalizeDefinitionResult(result, index)
   );
   const passed = normalizedResults.filter(
     (result) => result.definitionPass,
@@ -323,8 +323,8 @@ function emptyRow(skillName) {
 function buildTaskSummary(results) {
   const taskRows = results.filter(
     (result) =>
-      Number.isFinite(result.withSkillScore) &&
-      Number.isFinite(result.withoutSkillScore),
+      Number.isFinite(result.withSkillScore)
+      && Number.isFinite(result.withoutSkillScore),
   );
   if (taskRows.length === 0) return undefined;
 
@@ -342,7 +342,7 @@ function buildTaskSummary(results) {
 
 function buildTriggerSummary(results) {
   const triggerRows = results.filter((result) =>
-    Number.isFinite(result.triggerScore),
+    Number.isFinite(result.triggerScore)
   );
   if (triggerRows.length === 0) return undefined;
   return {
@@ -366,16 +366,28 @@ function formatComment({ marker, report, title }) {
 
   if (report.taskSummary) {
     lines.push(
-      `Task eval score: **${formatScore(report.taskSummary.withSkill)} / 100 with skill** vs **${formatScore(report.taskSummary.withoutSkill)} / 100 without skill** (Δ ${formatSignedScore(report.taskSummary.delta)}) across ${report.taskSummary.skills} skill suite${report.taskSummary.skills === 1 ? '' : 's'}.`,
+      `Task eval score: **${
+        formatScore(report.taskSummary.withSkill)
+      } / 100 with skill** vs **${
+        formatScore(report.taskSummary.withoutSkill)
+      } / 100 without skill** (Δ ${
+        formatSignedScore(report.taskSummary.delta)
+      }) across ${report.taskSummary.skills} skill suite${
+        report.taskSummary.skills === 1 ? '' : 's'
+      }.`,
     );
     if (report.taskError) {
       lines.push(
-        `Online task eval finished with errors after producing reports: ${escapeMarkdown(report.taskError)}`,
+        `Online task eval finished with errors after producing reports: ${
+          escapeMarkdown(report.taskError)
+        }`,
       );
     }
   } else if (report.taskError) {
     lines.push(
-      `Task eval score: failed before producing online task reports. ${escapeMarkdown(report.taskError)}`,
+      `Task eval score: failed before producing online task reports. ${
+        escapeMarkdown(report.taskError)
+      }`,
     );
   } else if (report.taskSkip) {
     lines.push(`Task eval score: skipped. ${escapeMarkdown(report.taskSkip)}`);
@@ -387,16 +399,24 @@ function formatComment({ marker, report, title }) {
 
   if (report.triggerSummary) {
     lines.push(
-      `Trigger eval score: **${formatScore(report.triggerSummary.score)} / 100** across ${report.triggerSummary.skills} skill suite${report.triggerSummary.skills === 1 ? '' : 's'}.`,
+      `Trigger eval score: **${
+        formatScore(report.triggerSummary.score)
+      } / 100** across ${report.triggerSummary.skills} skill suite${
+        report.triggerSummary.skills === 1 ? '' : 's'
+      }.`,
     );
     if (report.triggerError) {
       lines.push(
-        `Online trigger eval finished with errors after producing reports: ${escapeMarkdown(report.triggerError)}`,
+        `Online trigger eval finished with errors after producing reports: ${
+          escapeMarkdown(report.triggerError)
+        }`,
       );
     }
   } else if (report.triggerError) {
     lines.push(
-      `Trigger eval score: failed before producing online trigger reports. ${escapeMarkdown(report.triggerError)}`,
+      `Trigger eval score: failed before producing online trigger reports. ${
+        escapeMarkdown(report.triggerError)
+      }`,
     );
   } else if (report.triggerSkip) {
     lines.push(
@@ -406,7 +426,9 @@ function formatComment({ marker, report, title }) {
 
   if (failedCount > 0) {
     lines.push(
-      `${failedCount} skill suite${failedCount === 1 ? ' needs' : 's need'} attention.`,
+      `${failedCount} skill suite${
+        failedCount === 1 ? ' needs' : 's need'
+      } attention.`,
     );
   }
 
@@ -473,9 +495,9 @@ function isPassing(result) {
 
 function hasOnlineScore(result) {
   return (
-    Number.isFinite(result.withSkillScore) ||
-    Number.isFinite(result.withoutSkillScore) ||
-    Number.isFinite(result.triggerScore)
+    Number.isFinite(result.withSkillScore)
+    || Number.isFinite(result.withoutSkillScore)
+    || Number.isFinite(result.triggerScore)
   );
 }
 
@@ -581,7 +603,9 @@ async function writeOutput(name, value) {
 
 function truncateComment(body) {
   if (body.length <= MAX_COMMENT_LENGTH) return body;
-  return `${body.slice(0, MAX_COMMENT_LENGTH - 80)}\n\n_Comment truncated because it exceeded GitHub's length limit._`;
+  return `${
+    body.slice(0, MAX_COMMENT_LENGTH - 80)
+  }\n\n_Comment truncated because it exceeded GitHub's length limit._`;
 }
 
 function emptyToUndefined(value) {
@@ -666,10 +690,12 @@ function formatTaskScore(score, passed, total) {
 function formatTriggerScore(result) {
   if (!Number.isFinite(result.triggerScore)) return '-';
   if (
-    Number.isFinite(result.triggerPassed) &&
-    Number.isFinite(result.triggerTotal)
+    Number.isFinite(result.triggerPassed)
+    && Number.isFinite(result.triggerTotal)
   ) {
-    return `${formatScore(result.triggerScore)} (${result.triggerPassed}/${result.triggerTotal})`;
+    return `${
+      formatScore(result.triggerScore)
+    } (${result.triggerPassed}/${result.triggerTotal})`;
   }
   return formatScore(result.triggerScore);
 }

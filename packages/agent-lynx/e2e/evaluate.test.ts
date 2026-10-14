@@ -3,6 +3,7 @@
 // LICENSE file in the root directory of this source tree.
 
 import type { TestContext } from 'node:test';
+
 import {
   getTestingSession,
   testWithClient,
@@ -52,9 +53,9 @@ testWithClient('evaluate', async (suite, connector, client, target) => {
         evaluated.result!.value as string,
       ) as unknown;
       t.assert.ok(
-        typeof globalProps === 'object' &&
-          globalProps !== null &&
-          !Array.isArray(globalProps),
+        typeof globalProps === 'object'
+          && globalProps !== null
+          && !Array.isArray(globalProps),
         'lynx.__globalProps should serialize to an object',
       );
     },
@@ -85,9 +86,9 @@ testWithClient('evaluate', async (suite, connector, client, target) => {
 
       const properties = await connector.sendCDPMessage<
         {
-          result?: Array<{ name: string; value?: { value?: unknown } }>;
+          result?: Array<{ name: string; value?: { value?: unknown; }; }>;
         },
-        { objectId: string; ownProperties: boolean }
+        { objectId: string; ownProperties: boolean; }
       >(client.id, session.session_id, 'Runtime.getProperties', {
         objectId: objectId!,
         ownProperties: true,

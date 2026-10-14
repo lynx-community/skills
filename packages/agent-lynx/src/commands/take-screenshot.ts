@@ -3,6 +3,7 @@
 // LICENSE file in the root directory of this source tree.
 
 import fs from 'node:fs/promises';
+
 import { captureScreenshot } from '@lynx-js/devtool-connector/command';
 import type { Command } from 'commander';
 import {

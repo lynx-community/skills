@@ -45,8 +45,8 @@ export function registerFindCommand(
   const command = reactlynx
     .command('find <pattern>')
     .description(
-      'Find components by display name in the daemon-cached tree. ' +
-        'Use --regex for a JavaScript regular expression.',
+      'Find components by display name in the daemon-cached tree. '
+        + 'Use --regex for a JavaScript regular expression.',
     )
     .option(...CLIENT_OPTION)
     .option(...SESSION_OPTION)
@@ -110,8 +110,8 @@ export function formatMatches(matches: ReactLynxFindMatch[]): string {
     lines.push(header);
     if (match.ancestors.length > 0) {
       lines.push(
-        '  in ' +
-          match.ancestors
+        '  in '
+          + match.ancestors
             .map((ancestor) => ancestor.label + ' ' + ancestor.name)
             .join(' > '),
       );

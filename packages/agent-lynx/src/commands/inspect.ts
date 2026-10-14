@@ -26,9 +26,12 @@ export function registerInspectCommand(program: Command, context: Context) {
       );
 
       const port = parseInt(options.port, 10) || DEFAULT_DAEMON_PORT;
-      const inspectorUrl = `http://127.0.0.1:${port}/devtool/connector/inspector?clientId=${encodeURIComponent(
-        clientId,
-      )}&sessionId=${encodeURIComponent(sessionId)}`;
+      const inspectorUrl =
+        `http://127.0.0.1:${port}/devtool/connector/inspector?clientId=${
+          encodeURIComponent(
+            clientId,
+          )
+        }&sessionId=${encodeURIComponent(sessionId)}`;
 
       console.log(inspectorUrl);
     });

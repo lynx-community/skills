@@ -31,7 +31,9 @@ jobs:
         run: pnpm install
 
       - name: Code Style Check
-        run: pnpm check
+        run: |
+          pnpm lint
+          pnpm exec dprint check
 
   validate-skills:
     runs-on: ubuntu-latest

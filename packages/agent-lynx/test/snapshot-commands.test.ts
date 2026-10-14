@@ -4,6 +4,7 @@
 
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
+
 import type {
   CommandClient,
   CommandResult,
@@ -55,21 +56,23 @@ function registerSnapshotFamily(program: Command, context: Context): void {
 
 test('registers snapshot, trace, and skill discovery without other deferred agent commands', () => {
   const commandNames = createProgram({ env: {} }).commands.map((command) =>
-    command.name(),
+    command.name()
   );
-  for (const name of [
-    'snapshot',
-    'screenshot',
-    'tap',
-    'long-press',
-    'fill',
-    'clear',
-    'scroll',
-    'wait',
-    'get',
-    'trace',
-    'skills',
-  ]) {
+  for (
+    const name of [
+      'snapshot',
+      'screenshot',
+      'tap',
+      'long-press',
+      'fill',
+      'clear',
+      'scroll',
+      'wait',
+      'get',
+      'trace',
+      'skills',
+    ]
+  ) {
     assert.ok(commandNames.includes(name), `${name} must be registered`);
   }
   for (const deferred of ['doctor', 'devices', 'logs']) {

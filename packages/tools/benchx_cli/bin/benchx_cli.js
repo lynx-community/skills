@@ -11,10 +11,12 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 function platformDir() {
-  if (process.platform === 'linux' && process.arch === 'x64')
+  if (process.platform === 'linux' && process.arch === 'x64') {
     return 'linux-x64';
-  if (process.platform === 'darwin' && process.arch === 'arm64')
+  }
+  if (process.platform === 'darwin' && process.arch === 'arm64') {
     return 'darwin-arm64';
+  }
   return null;
 }
 

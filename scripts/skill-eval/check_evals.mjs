@@ -202,14 +202,14 @@ async function validateTaskEvals(skillName, path) {
       throw new Error(`${path} eval id ${id} prompt too short`);
     }
     if (
-      typeof item.expected_output !== 'string' ||
-      item.expected_output.trim().length < 10
+      typeof item.expected_output !== 'string'
+      || item.expected_output.trim().length < 10
     ) {
       throw new Error(`${path} eval id ${id} missing expected_output`);
     }
     if (
-      !Array.isArray(item.files) ||
-      item.files.some((file) => typeof file !== 'string')
+      !Array.isArray(item.files)
+      || item.files.some((file) => typeof file !== 'string')
     ) {
       throw new Error(
         `${path} eval id ${id} files must be an array of strings`,
@@ -276,7 +276,7 @@ async function readJson(path) {
     return JSON.parse(await readFile(path, 'utf8'));
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
-    throw new Error(`invalid JSON in ${path}: ${message}`);
+    throw new Error(`invalid JSON in ${path}: ${message}`, { cause: error });
   }
 }
 
@@ -289,17 +289,17 @@ function assertObject(value, label) {
 function printReport(report) {
   const { summary } = report;
   console.info(
-    `[skill-eval] definition_score=${summary.score.toFixed(1)} ` +
-      `passed=${summary.passed}/${summary.total}`,
+    `[skill-eval] definition_score=${summary.score.toFixed(1)} `
+      + `passed=${summary.passed}/${summary.total}`,
   );
   for (const result of report.results) {
     const status = result.pass ? 'PASS' : 'FAIL';
     console.info(
-      `[skill-eval] ${status} ${result.skill_name}: ` +
-        `task_evals=${result.task_evals} ` +
-        `expectations=${result.task_expectations} ` +
-        `trigger_evals=${result.trigger_evals} ` +
-        `score=${result.score.toFixed(1)}`,
+      `[skill-eval] ${status} ${result.skill_name}: `
+        + `task_evals=${result.task_evals} `
+        + `expectations=${result.task_expectations} `
+        + `trigger_evals=${result.trigger_evals} `
+        + `score=${result.score.toFixed(1)}`,
     );
     for (const error of result.errors) {
       console.error(`[skill-eval] ERROR ${result.skill_name}: ${error}`);

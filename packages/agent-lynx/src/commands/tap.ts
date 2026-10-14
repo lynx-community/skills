@@ -49,7 +49,9 @@ export function registerTapCommand(program: Command, context: Context): void {
             snapshotAfter: options.snapshot ?? false,
           }),
         (data) =>
-          `Tapped ${data.ref} at (${data.point.x},${data.point.y}). ${formatSnapshotRefresh(data)}`,
+          `Tapped ${data.ref} at (${data.point.x},${data.point.y}). ${
+            formatSnapshotRefresh(data)
+          }`,
       );
     },
   );
@@ -92,7 +94,9 @@ export function registerTapCommand(program: Command, context: Context): void {
             snapshotAfter: options.snapshot ?? false,
           }),
         (data) =>
-          `Long-pressed ${data.ref} at (${data.point.x},${data.point.y}). ${formatSnapshotRefresh(data)}`,
+          `Long-pressed ${data.ref} at (${data.point.x},${data.point.y}). ${
+            formatSnapshotRefresh(data)
+          }`,
       );
     },
   );

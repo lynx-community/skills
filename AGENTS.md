@@ -13,9 +13,11 @@ This project is a monorepo managed by `pnpm` (workspaces) and `Turbo`.
 ### General Commands (Run from Root)
 *   **Install Dependencies:** `pnpm install`
 *   **Build Everything:** `pnpm build` (Executes `turbo build` and marketplace scripts)
-*   **Check Formatting & Linting (Dry Run):** `pnpm check` (Biome, ESLint and Connector dprint)
-*   **Fix Formatting & Linting:** `pnpm lint` (Executes `eslint . --fix && biome check --write`)
-*   **Run All Tests:** `pnpm test` (Executes `pnpm -r --if-present test`)
+*   **Check Linting:** `pnpm lint` (Executes Rslint)
+*   **Check Formatting:** `pnpm exec dprint check`
+*   **Fix Formatting:** `pnpm exec dprint fmt`
+*   **Fix Linting:** `pnpm exec rslint --config rslint.config.mjs --fix .`
+*   **Run All Tests:** `pnpm test` (Executes workspace tests)
 
 ### Running Specific Tests
 Tests are written using `@rstest/core` (which uses a syntax similar to Jest/Vitest).
@@ -37,7 +39,7 @@ Tests are written using `@rstest/core` (which uses a syntax similar to Jest/Vite
 ## 🎨 2. Code Style & Conventions
 
 ### 2.1. Mandatory Copyright Headers
-**CRITICAL:** Every new source file MUST begin with the following copyright and license header. This is strictly enforced by `eslint-plugin-headers`. Your PRs will fail CI if this is missing.
+**CRITICAL:** Every new source file MUST begin with the following copyright and license header. Rslint runs `eslint-plugin-headers` with the `headers/header-format` rule in CI and pre-commit hooks. Your PRs will fail CI if this is missing.
 
 ```typescript
 // Copyright 2026 The Lynx Authors. All rights reserved.
@@ -55,11 +57,11 @@ Tests are written using `@rstest/core` (which uses a syntax similar to Jest/Vite
 *   **Module Resolution:** The project uses `NodeNext`/`Node16` module resolution. Ensure your imports are compatible with this ecosystem (e.g., handling `.js` extensions in imports if required by the target environment).
 
 ### 2.3. Formatting and Linting
-*   **Tooling:** We use **Biome** for fast formatting/linting and **ESLint** (v9 Flat Config) for complex AST/TypeScript rules.
+*   **Tooling:** We use **Rslint** with JavaScript/TypeScript recommended rules and **dprint** for formatting.
 *   **Indentation & Quotes:** Use `space` indentation (2 spaces) and `single` quotes for JavaScript/TypeScript strings.
-*   **Connector exception:** `packages/mcp-servers/devtool-connector` preserves its imported dprint style (double quotes); package `format:check` is part of `pnpm check`. Its tests use `node:test`. This keeps the source move mechanically reviewable; Biome lint and ESLint still apply.
-*   **Auto-Organization:** Biome automatically organizes imports (`organizeImports: true`). Let the formatter do the work when saving or running `pnpm lint`.
-*   **Pre-commit Hooks:** Husky and lint-staged are configured to automatically lint and format changed files before commits. Do not bypass these hooks unless strictly necessary.
+*   **Connector exception:** `packages/mcp-servers/devtool-connector` preserves its imported dprint style (double quotes); package `format:check` is part of `pnpm lint`. Its tests use `node:test`. Rslint still applies.
+*   **Auto-Organization:** dprint sorts import declarations within groups separated by blank lines. Keep `node:*` imports in the first group and run `pnpm exec dprint fmt` when formatting.
+*   **Pre-commit Hooks:** Husky and nano-staged are configured to automatically lint and format changed files before commits. Do not bypass these hooks unless strictly necessary.
 
 ### 2.4. Naming Conventions
 *   **Files & Directories:** Use `kebab-case` for file and directory names (e.g., `reactlynx-best-practices`, `format-scan-report.ts`).
@@ -90,7 +92,7 @@ As an autonomous coding agent working in this repository, you must:
 1.  **Understand Before Acting:** Always use your search/grep tools to read related configuration, type definitions, and neighboring files before creating or modifying code.
 2.  **Match Surrounding Style:** The existing code is the source of truth. If you see a specific pattern for testing or error handling, duplicate that pattern.
 3.  **Use Absolute Paths:** When using file editing tools, ALWAYS construct the absolute path by combining the repo root with the relative path.
-4.  **Verify Your Work:** Do not assume your code works. If you make a logic change, run `pnpm check` or `pnpm lint` to ensure you haven't broken the formatting or types. If you edit a package, run its tests.
+4.  **Verify Your Work:** Do not assume your code works. If you make a logic change, run `pnpm lint` and `pnpm exec dprint check`. If you edit a package, run its tests.
 5.  **No Extraneous Comments:** Keep comments strictly focused on *why* complex logic exists. Do not add chatty "I am doing X" comments.
 6.  **Avoid Interactive Commands:** Never run `npm init`, `git rebase -i`, or similar interactive commands that can hang the terminal.
 7.  **Commit Messages:** If making commits, provide clear and concise messages that indicate the nature of the change (e.g., `feat: add new scan rule to reactlynx`, `fix: handle edge case in trace processor`).

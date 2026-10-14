@@ -7,6 +7,7 @@ import fs from 'node:fs/promises';
 import { createRequire } from 'node:module';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+
 import type { Command } from 'commander';
 import { parse } from 'yaml';
 
@@ -49,7 +50,7 @@ function isMissingPath(error: unknown): boolean {
 function parseFrontmatter(
   source: string,
   location: string,
-): { data: SkillFrontmatter; body: string } {
+): { data: SkillFrontmatter; body: string; } {
   const normalizedSource = source.startsWith('\uFEFF')
     ? source.slice(1)
     : source;
@@ -64,9 +65,9 @@ function parseFrontmatter(
 
   const frontmatter = parse(match[1] ?? '') as unknown;
   if (
-    frontmatter === null ||
-    typeof frontmatter !== 'object' ||
-    Array.isArray(frontmatter)
+    frontmatter === null
+    || typeof frontmatter !== 'object'
+    || Array.isArray(frontmatter)
   ) {
     throw new Error(`${location} frontmatter must be a YAML mapping.`);
   }
@@ -98,9 +99,9 @@ function requirePackageManifest(packageRoot: string): PackageManifest {
   const location = path.join(packageRoot, 'package.json');
   const manifest = JSON.parse(readFileSync(location, 'utf8')) as unknown;
   if (
-    manifest === null ||
-    typeof manifest !== 'object' ||
-    Array.isArray(manifest)
+    manifest === null
+    || typeof manifest !== 'object'
+    || Array.isArray(manifest)
   ) {
     throw new Error(`${location} must contain a JSON object.`);
   }
@@ -112,9 +113,9 @@ export function discoverSkillDependencyNames(packageRoot: string): string[] {
   const dependencies = requirePackageManifest(packageRoot).dependencies;
   if (dependencies === undefined) return [];
   if (
-    dependencies === null ||
-    typeof dependencies !== 'object' ||
-    Array.isArray(dependencies)
+    dependencies === null
+    || typeof dependencies !== 'object'
+    || Array.isArray(dependencies)
   ) {
     throw new Error(`${location} dependencies must be a JSON object.`);
   }
@@ -147,9 +148,12 @@ export function resolvePackageSkillRoot(
       }
     }
     throw new Error(
-      `Cannot resolve declared skill dependency "${packageName}" from ${packageManifest}: ${errorMessage(
-        resolveError,
-      )}`,
+      `Cannot resolve declared skill dependency "${packageName}" from ${packageManifest}: ${
+        errorMessage(
+          resolveError,
+        )
+      }`,
+      { cause: resolveError },
     );
   }
 }
@@ -164,7 +168,7 @@ export function resolveSkillRootsFromPackageRoot(
   return [
     ...ownSkillRoots,
     ...discoverSkillDependencyNames(resolvedPackageRoot).map((packageName) =>
-      resolvePackageSkillRoot(packageName, resolvedPackageRoot),
+      resolvePackageSkillRoot(packageName, resolvedPackageRoot)
     ),
   ];
 }
@@ -298,7 +302,9 @@ function selectSkill(
   if (skill) return skill;
 
   throw new Error(
-    `Unknown skill "${selector}". Available skills: ${skills.map((candidate) => candidate.name).join(', ')}.`,
+    `Unknown skill "${selector}". Available skills: ${
+      skills.map((candidate) => candidate.name).join(', ')
+    }.`,
   );
 }
 
@@ -315,9 +321,8 @@ export function registerSkillsCommand(
   program: Command,
   options: RegisterSkillsCommandOptions = {},
 ): void {
-  const skillRoots =
-    options.skillRoots ??
-    (options.skillRoot ? [options.skillRoot] : resolveBuiltInSkillRoots());
+  const skillRoots = options.skillRoots
+    ?? (options.skillRoot ? [options.skillRoot] : resolveBuiltInSkillRoots());
   const skills = program
     .command('skills')
     .description('Discover and read the Agent Skills shipped with Agent Lynx');
@@ -327,7 +332,7 @@ export function registerSkillsCommand(
     .description('List available skills as agent-readable XML')
     .action(async () => {
       await printSkillOutput(async () =>
-        renderAvailableSkills(await readSkillDocuments(skillRoots)),
+        renderAvailableSkills(await readSkillDocuments(skillRoots))
       );
     });
 

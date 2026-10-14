@@ -41,8 +41,9 @@ export const GetAllMemoryUsage = /*#__PURE__*/ defineTool({
   },
   async handler({ params }, response, context) {
     const connector = context.connector();
-    const requestParams =
-      params.timeoutMs === undefined ? {} : { timeoutMs: params.timeoutMs };
+    const requestParams = params.timeoutMs === undefined
+      ? {}
+      : { timeoutMs: params.timeoutMs };
 
     const result = await connector.sendCDPMessage(
       params.clientId,

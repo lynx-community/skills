@@ -58,7 +58,7 @@ export async function discoverSkillSuites(repoRoot) {
   return Array.from(suitesBySkillPath.values()).sort((left, right) =>
     String(left.packageName ?? left.skillPath).localeCompare(
       String(right.packageName ?? right.skillPath),
-    ),
+    )
   );
 }
 

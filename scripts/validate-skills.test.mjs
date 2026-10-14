@@ -6,6 +6,7 @@ import assert from 'node:assert/strict';
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { describe, it } from 'node:test';
+
 import { parse as parseYaml } from 'yaml';
 
 const SKILLS_DIR = new URL('../skills', import.meta.url).pathname;
@@ -27,9 +28,11 @@ const ALLOWED_PREFIXES = [
   'vanilla-lynx',
 ];
 const ALLOWED_PREFIX_RE = new RegExp(
-  `^(${ALLOWED_PREFIXES.map((prefix) =>
-    prefix.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'),
-  ).join('|')})`,
+  `^(${
+    ALLOWED_PREFIXES.map((prefix) =>
+      prefix.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+    ).join('|')
+  })`,
 );
 const ALLOWED_PREFIX_LABEL = ALLOWED_PREFIXES.join(' / ');
 

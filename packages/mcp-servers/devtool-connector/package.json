@@ -1,6 +1,6 @@
 {
   "name": "@lynx-js/devtool-connector",
-  "version": "0.16.2",
+  "version": "0.16.3",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/lynx-community/skills.git",
@@ -96,23 +96,23 @@
   },
   "dependencies": {
     "@lynx-js/debug-metadata": "0.1.0",
-    "@yume-chan/adb": "catalog:connector_adb"
+    "@yume-chan/adb": "catalog:adb"
   },
   "devDependencies": {
-    "@rslib/core": "catalog:connector_rstack",
-    "@types/node": "^24.13.5",
+    "@rslib/core": "catalog:rstack",
+    "@types/node": "^24.19.2",
     "@types/semver": "^7.8.0",
-    "@types/ws": "^8.18.1",
-    "@yume-chan/adb-server-node-tcp": "catalog:connector_adb",
-    "@yume-chan/stream-extra": "catalog:connector_adb",
-    "dprint": "^0.57.4",
+    "@types/ws": "^8.18.2",
+    "@yume-chan/adb-server-node-tcp": "catalog:adb",
+    "@yume-chan/stream-extra": "catalog:adb",
+    "dprint": "^0.62.0",
     "jpeg-js": "^0.4.4",
     "obug": "^2.2.1",
     "plist": "^5.0.0",
     "rsbuild-plugin-publint": "^1.0.0",
     "semver": "^7.8.5",
     "typescript": "^7.0.2",
-    "ws": "^8.21.3"
+    "ws": "^8.22.0"
   },
   "engines": {
     "node": ">=18.19"

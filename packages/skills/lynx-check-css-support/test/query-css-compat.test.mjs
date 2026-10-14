@@ -7,6 +7,11 @@ import test from 'node:test';
 import { fileURLToPath } from 'node:url';
 import { promisify } from 'node:util';
 
+import cssDefinesPackage from '@lynx-js/css-defines/package.json' with {
+  type: 'json',
+};
+
+const { version: bundledVersion } = cssDefinesPackage;
 const execFileAsync = promisify(execFile);
 const cliPath = fileURLToPath(
   new URL('../scripts/query-css-compat.mjs', import.meta.url),
@@ -37,7 +42,7 @@ test('reports a feature as requiring a newer Lynx version', async () => {
   // Then: the result preserves the introduction version and rejects 2.0.
   assert.deepEqual(result.package, {
     name: '@lynx-js/css-defines',
-    version: '0.0.16',
+    version: bundledVersion,
     source: 'bundled',
   });
   assert.equal(result.property.name, 'display');

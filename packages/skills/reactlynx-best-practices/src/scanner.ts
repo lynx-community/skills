@@ -8,7 +8,7 @@ import type { DiagnosticWithFix, ScanResult, ScanSummary } from './types';
 
 export function analyzeSource(
   source: string,
-  options?: { generateFixes?: boolean },
+  options?: { generateFixes?: boolean; },
 ): DiagnosticWithFix[] {
   const diagnostics = [
     ...analyzeBackgroundOnlyUsage(source),
@@ -53,12 +53,11 @@ export function formatScanReport(summary: ScanSummary): string {
 
       lines.push(`📁 ${result.file}`);
       for (const diagnostic of result.diagnostics) {
-        const icon =
-          diagnostic.severity === 'error'
-            ? '❌'
-            : diagnostic.severity === 'warning'
-              ? '⚠️'
-              : 'ℹ️';
+        const icon = diagnostic.severity === 'error'
+          ? '❌'
+          : diagnostic.severity === 'warning'
+          ? '⚠️'
+          : 'ℹ️';
         lines.push(
           `   ${icon} Line ${diagnostic.location.start.line}: ${diagnostic.message}`,
         );

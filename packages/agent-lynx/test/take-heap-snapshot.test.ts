@@ -7,6 +7,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { ReadableStream, WritableStream } from 'node:stream/web';
 import test from 'node:test';
+
 import type {
   Connection,
   Transport,
@@ -133,8 +134,8 @@ test('take-heap-snapshot streams chunks to an atomically published file', async 
     separator?: string,
   ) {
     if (
-      Array.isArray(this) &&
-      this.some((value) => value === firstChunk || value === secondChunk)
+      Array.isArray(this)
+      && this.some((value) => value === firstChunk || value === secondChunk)
     ) {
       throw new Error('heap snapshot chunks must not be joined in memory');
     }

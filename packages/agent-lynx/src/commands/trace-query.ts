@@ -5,6 +5,7 @@
 import { createHash, randomUUID } from 'node:crypto';
 import fs from 'node:fs/promises';
 import path from 'node:path';
+
 import type { Command } from 'commander';
 
 const DEFAULT_MAX_QUERY_ROWS = 1_000;
@@ -15,7 +16,7 @@ GROUP BY name
 ORDER BY count DESC, name ASC`;
 
 export type TraceFailurePhase = 'processor' | 'parse' | 'query';
-export type SerializedSqlValue = string | number | null | { base64: string };
+export type SerializedSqlValue = string | number | null | { base64: string; };
 
 interface TraceProcessorIterator {
   valid(): boolean;
@@ -137,7 +138,7 @@ function sha256(data: string | Uint8Array): string {
 
 async function readTraceFile(
   tracePath: string,
-): Promise<{ data: Uint8Array; identity: TraceFileIdentity }> {
+): Promise<{ data: Uint8Array; identity: TraceFileIdentity; }> {
   const absolutePath = path.resolve(tracePath);
   const data = await fs.readFile(absolutePath);
   return {
@@ -168,13 +169,15 @@ function validateRowCount(value: number): number {
 function serializeSqlValue(value: unknown): SerializedSqlValue {
   if (value === null || typeof value === 'string') return value;
   if (typeof value === 'number') {
-    if (!Number.isFinite(value))
+    if (!Number.isFinite(value)) {
       throw new TypeError(`Unexpected non-finite SQL number: ${String(value)}`);
+    }
     return value;
   }
   if (typeof value === 'bigint') return value.toString();
-  if (value instanceof Uint8Array)
+  if (value instanceof Uint8Array) {
     return { base64: Buffer.from(value).toString('base64') };
+  }
   throw new TypeError(`Unexpected SQL value: ${String(value)}`);
 }
 
@@ -187,8 +190,9 @@ function readRows(
   const iterator = result.iter({});
   while (iterator.valid() && rows.length < maxRows) {
     const row: Record<string, SerializedSqlValue> = {};
-    for (const column of columns)
+    for (const column of columns) {
       row[column] = serializeSqlValue(iterator.get(column));
+    }
     rows.push(row);
     iterator.next();
   }
@@ -312,7 +316,7 @@ function toSafeCount(value: unknown, eventName: string): number {
 
 export async function runTraceEventSummary(
   tracePath: string,
-  options: { engineFactory?: TraceProcessorEngineFactory } = {},
+  options: { engineFactory?: TraceProcessorEngineFactory; } = {},
 ): Promise<TraceEventSummaryResult> {
   const { data, identity } = await readTraceFile(tracePath);
   const engineFactory = options.engineFactory ?? createTraceProcessorEngine;
@@ -342,7 +346,9 @@ export async function runTraceEventSummary(
     const totalEvents = events.reduce((total, event) => total + event.count, 0);
     if (!Number.isSafeInteger(totalEvents)) {
       throw new TypeError(
-        `Trace event total exceeds the safe integer range: ${String(totalEvents)}`,
+        `Trace event total exceeds the safe integer range: ${
+          String(totalEvents)
+        }`,
       );
     }
     return {
@@ -369,8 +375,9 @@ export function renderTraceEventSummary(
   result: TraceEventSummarySuccess,
 ): string {
   let countWidth = 'COUNT'.length;
-  for (const event of result.events)
+  for (const event of result.events) {
     countWidth = Math.max(countWidth, String(event.count).length);
+  }
   const rows = result.events.map((event) => {
     const name = event.name.replace(/[\t\r\n]+/gu, ' ');
     return `${String(event.count).padStart(countWidth)}  ${name}`;
@@ -389,7 +396,7 @@ export function renderTraceEventSummary(
 
 async function readSql(
   options: TraceQueryCommandOptions,
-): Promise<{ sql: string; sqlFile?: string }> {
+): Promise<{ sql: string; sqlFile?: string; }> {
   const hasInlineSql = options.sql !== undefined;
   const hasSqlFile = options.sqlFile !== undefined;
   if (hasInlineSql === hasSqlFile) {
@@ -482,10 +489,9 @@ export function registerTraceQueryCommands(trace: Command): void {
     .action(
       async (tracePath: string, options: TraceEventSummaryCommandOptions) => {
         const result = await runTraceEventSummary(tracePath);
-        const contents =
-          result.success && !options.json
-            ? renderTraceEventSummary(result)
-            : JSON.stringify(result, null, 2);
+        const contents = result.success && !options.json
+          ? renderTraceEventSummary(result)
+          : JSON.stringify(result, null, 2);
         await emitResult(result, contents, options.output);
       },
     );

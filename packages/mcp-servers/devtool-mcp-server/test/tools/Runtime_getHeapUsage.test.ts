@@ -50,7 +50,7 @@ describe('Runtime.getHeapUsage', () => {
       connector as never,
       'test-client-id:9999',
     );
-    const result = await call<{ usedSize: number; totalSize: number }>({
+    const result = await call<{ usedSize: number; totalSize: number; }>({
       thread: 'background',
     });
 
@@ -107,7 +107,7 @@ describe('Runtime.getHeapUsage', () => {
       connector as never,
       'test-client-id:9999',
     );
-    const result = await call<{ usedSize: number; totalSize: number }>({
+    const result = await call<{ usedSize: number; totalSize: number; }>({
       thread: 'main',
     });
 

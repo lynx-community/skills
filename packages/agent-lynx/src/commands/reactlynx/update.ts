@@ -36,15 +36,15 @@ type UpdateAction =
 
 export function parseUpdateValue(
   input: string,
-  options: { raw: boolean },
+  options: { raw: boolean; },
 ): unknown {
   if (options.raw) return input;
   try {
     return JSON.parse(input);
   } catch (error) {
     throw new Error(
-      '<value> must be valid JSON; pass --raw to send the input verbatim as a string. Underlying error: ' +
-        (error instanceof Error ? error.message : String(error)),
+      '<value> must be valid JSON; pass --raw to send the input verbatim as a string. Underlying error: '
+        + (error instanceof Error ? error.message : String(error)),
       { cause: error },
     );
   }
@@ -76,7 +76,7 @@ export function registerUpdateCommands(
 function registerOneUpdate(
   reactlynx: Command,
   context: Context,
-  spec: { name: UpdateKind; action: UpdateAction; description: string },
+  spec: { name: UpdateKind; action: UpdateAction; description: string; },
 ): void {
   const command = reactlynx
     .command(spec.name + ' <ref> <path> <value>')

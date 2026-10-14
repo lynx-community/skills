@@ -3,6 +3,7 @@
 // LICENSE file in the root directory of this source tree.
 
 import { setTimeout as delay } from 'node:timers/promises';
+
 import { Connector } from '@lynx-js/devtool-connector';
 import type { Client } from '@lynx-js/devtool-connector/transport';
 import type { Command } from 'commander';

@@ -20,8 +20,9 @@ type SnapshotResult = CommandData<'snapshot'>;
 
 function refFlagsBadge(ref: SnapshotRef): string {
   const badges: string[] = [];
-  if (!ref.flags.visible)
+  if (!ref.flags.visible) {
     badges.push(ref.flags.offscreen ? 'offscreen' : 'hidden');
+  }
   if (ref.flags.scrollable) badges.push('scrollable');
   if (ref.flags.editable) badges.push('editable');
   if (ref.flags.disabled) badges.push('disabled');
@@ -30,21 +31,24 @@ function refFlagsBadge(ref: SnapshotRef): string {
 
 function formatRef(ref: SnapshotRef): string {
   const text = ref.text ? ` "${ref.text}"` : '';
-  return `${ref.ref} [${ref.tag}]${text} @(${ref.center.x},${ref.center.y})${refFlagsBadge(ref)}`;
+  return `${ref.ref} [${ref.tag}]${text} @(${ref.center.x},${ref.center.y})${
+    refFlagsBadge(ref)
+  }`;
 }
 
 export function renderSnapshotTree(refs: readonly SnapshotRef[]): string {
-  if (refs.length === 0)
+  if (refs.length === 0) {
     return 'No interactive elements found in the current snapshot.';
+  }
 
   const refsByLabel = new Map(refs.map((ref) => [ref.ref, ref]));
   const childrenByParent = new Map<string, SnapshotRef[]>();
   const roots: SnapshotRef[] = [];
   for (const ref of refs) {
     if (
-      ref.parentRef !== undefined &&
-      ref.parentRef !== ref.ref &&
-      refsByLabel.has(ref.parentRef)
+      ref.parentRef !== undefined
+      && ref.parentRef !== ref.ref
+      && refsByLabel.has(ref.parentRef)
     ) {
       const children = childrenByParent.get(ref.parentRef) ?? [];
       children.push(ref);

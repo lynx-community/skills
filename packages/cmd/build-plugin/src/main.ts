@@ -3,6 +3,7 @@
 // LICENSE file in the root directory of this source tree.
 
 import { resolve } from 'node:path';
+
 import { Command } from 'commander';
 import { buildPlugin, exportPlugin } from './lib.ts';
 
@@ -14,7 +15,7 @@ program
   .option('-C, --cwd <cwd>', 'Set current working directory', process.cwd());
 
 program.action(async () => {
-  const { cwd } = program.opts<{ cwd: string }>();
+  const { cwd } = program.opts<{ cwd: string; }>();
   const pkgDir = resolve(process.cwd(), cwd);
   await buildPlugin(pkgDir);
 });
@@ -24,8 +25,8 @@ program
   .description('Build and export your claude plugin')
   .option('--skip-build', 'Skip the build step')
   .argument('<targetDir>')
-  .action(async (targetDir: string, options: { skipBuild: boolean }) => {
-    const { cwd } = program.opts<{ cwd: string }>();
+  .action(async (targetDir: string, options: { skipBuild: boolean; }) => {
+    const { cwd } = program.opts<{ cwd: string; }>();
     const pkgDir = resolve(process.cwd(), cwd);
     if (!options.skipBuild) {
       await buildPlugin(pkgDir);
