@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /*! LICENSE: query-css-compat.mjs.LICENSE.txt */
 import { readFile, readdir } from "node:fs/promises";
-import { resolve as external_node_path_resolve } from "node:path";
+import { dirname, resolve as external_node_path_resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { createRequire as __rspack_createRequire } from "node:module";
 const __rspack_createRequire_require = __rspack_createRequire(import.meta.url);
@@ -23,21 +23,6 @@ __webpack_require__.m = __webpack_modules__;
     };
 })();
 __webpack_require__.add({
-    "node:child_process" (module) {
-        module.exports = __rspack_createRequire_require("node:child_process");
-    },
-    "node:events" (module) {
-        module.exports = __rspack_createRequire_require("node:events");
-    },
-    "node:fs" (module) {
-        module.exports = __rspack_createRequire_require("node:fs");
-    },
-    "node:path?435f" (module) {
-        module.exports = __rspack_createRequire_require("node:path");
-    },
-    "node:process" (module) {
-        module.exports = __rspack_createRequire_require("node:process");
-    },
     "../../../node_modules/.pnpm/commander@13.1.0/node_modules/commander/index.js" (__unused_rspack_module, exports, __webpack_require__) {
         const { Argument } = __webpack_require__("../../../node_modules/.pnpm/commander@13.1.0/node_modules/commander/lib/argument.js");
         const { Command } = __webpack_require__("../../../node_modules/.pnpm/commander@13.1.0/node_modules/commander/lib/command.js");
@@ -129,11 +114,11 @@ __webpack_require__.add({
         exports.humanReadableArgName = humanReadableArgName;
     },
     "../../../node_modules/.pnpm/commander@13.1.0/node_modules/commander/lib/command.js" (__unused_rspack_module, exports, __webpack_require__) {
-        const EventEmitter = __webpack_require__("node:events").EventEmitter;
-        const childProcess = __webpack_require__("node:child_process");
-        const path = __webpack_require__("node:path?435f");
-        const fs = __webpack_require__("node:fs");
-        const process1 = __webpack_require__("node:process");
+        const EventEmitter = __rspack_createRequire_require("node:events").EventEmitter;
+        const childProcess = __rspack_createRequire_require("node:child_process");
+        const path = __rspack_createRequire_require("node:path");
+        const fs = __rspack_createRequire_require("node:fs");
+        const process1 = __rspack_createRequire_require("node:process");
         const { Argument, humanReadableArgName } = __webpack_require__("../../../node_modules/.pnpm/commander@13.1.0/node_modules/commander/lib/argument.js");
         const { CommanderError } = __webpack_require__("../../../node_modules/.pnpm/commander@13.1.0/node_modules/commander/lib/error.js");
         const { Help, stripColor } = __webpack_require__("../../../node_modules/.pnpm/commander@13.1.0/node_modules/commander/lib/help.js");
@@ -687,7 +672,7 @@ Expecting one of '${allowedValues.join("', '")}'`);
                 promiseChain = this._chainOrCallSubCommandHook(promiseChain, subCommand, 'preSubcommand');
                 promiseChain = this._chainOrCall(promiseChain, ()=>{
                     if (!subCommand._executableHandler) return subCommand._parseCommand(operands, unknown);
-                    this._executeSubCommand(subCommand, operands.concat(unknown));
+                    else this._executeSubCommand(subCommand, operands.concat(unknown));
                 });
                 return promiseChain;
             }
@@ -5151,7 +5136,7 @@ const objectProcessor = (schema, ctx, _json, params)=>{
     ].filter((key)=>{
         const v = def.shape[key]._zod;
         if ("input" === ctx.io) return void 0 === v.optin;
-        return void 0 === v.optout;
+        else return void 0 === v.optout;
     }));
     if (requiredKeys.size > 0) json.required = Array.from(requiredKeys);
     if (def.catchall?._zod.def.type === "never") json.additionalProperties = false;
@@ -6317,7 +6302,7 @@ async function readPackageSource(root) {
     };
 }
 function getBundledPackageRoot() {
-    return fileURLToPath(new URL('./css-defines', import.meta.url));
+    return external_node_path_resolve(dirname(fileURLToPath(import.meta.url)), 'css-defines');
 }
 async function getBundledPackageVersion() {
     return (await readPackageSource(getBundledPackageRoot())).version;

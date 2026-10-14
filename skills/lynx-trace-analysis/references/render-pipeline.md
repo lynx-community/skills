@@ -127,11 +127,36 @@ Triggered by data changes or user interactions:
   - If **Deep Component Tree**: Flatten component hierarchy; use memoization for expensive components.
 
 ## Update Trigger Latency Analysis
-
-When `origin` indicates an update-triggered pipeline (e.g., `updateTriggeredByBts`, `updateTriggeredByNative`, `updateGlobalProps`, `setNativeProps`):
-
-1. For `updateTriggeredByBts` specifically, call `query_flow_events` anchoring on the `diffVdom` event, and trace **backwards** along the flow to find its immediate precursors (e.g., Background Thread Script work, NativeModule responses, timers/callbacks, resource readiness, UpdateData etc.).  
-3. For host-driven origins (`updateTriggeredByNative`, `updateGlobalProps`, `setNativeProps`), inspect client-side investigation required to determine why the trigger timing is late.
+For each `timing_flag` present in the metrics, you must calculate the "Wait for Update" duration and compare all metrics, focusing on the following core areas:
+You need to determine the trigger source and duration difference based on `pipeline origin` for every `timing_flag`.
+- **Native Triggered** (`updateGlobalProps` / `updateTriggeredByNative` / `reloadBundleFromNative`):
+  - *Calculation*: Wait for Update Duration = `pipeline` start time - `loadBundle` end time.
+  - *Verdict*: If this phase degrades or improves (on same device), it indicates the client triggered the update late. The conclusion points to **Native logic degradations or improvements**.
+- **Frontend/BTS Triggered** (`updateTriggeredByBts` / `reloadBundleFromBts` / `setNativeProps`):
+  - *Calculation*: Wait for Update Duration = `pipeline` start time - `loadBackground` end time.
+  - *Verdict*: If this phase degrades or improves, query preceding trace data triggered by `diffVdom` (using `flow` id) to trace back the preceding chain (e.g., **NativeModule calls slowing down**).
+- **Example Input JSON Snippet**:
+    ```json
+    [
+      {
+        "timing_flags": "Lynx FCP",
+        "origin": "loadBundle",
+        "details": [
+          { "metrics_name": "loadBackground", "end_ts_ms": "46420290.34ms" }
+        ]
+      },
+      {
+        "timing_flags": "lynx_actual_fmp",
+        "origin": "updateTriggeredByBts",
+        "start_ts_ms": "46420317.43ms",
+      }
+    ]
+    ```
+    *Step-by-Step Execution:*
+    - **Identify Origin**: For the `lynx_actual_fmp` block, the `origin` is `"updateTriggeredByBts"` (Frontend Trigger).
+    - **Select Formula**: `pipeline` start time - `loadBackground` end time.
+    - **Calculate**: `46420317.43 - 46420290.34 = 27.09ms`.
+    - **Result**: The Wait for Update for `lynx_actual_fmp` is `27.09ms`. You MUST output this exact math result in the Metric Comparison table.
 
 **Deep Dive Logic**
 - Attribute late update-start to the concrete precursor types you actually observe (e.g., slow NativeModule response before `diffVdom`, heavy background computation, delayed host-triggered calls).  

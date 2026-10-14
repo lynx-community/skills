@@ -21,6 +21,7 @@ export interface RadioGroupRootProps {
    * @iOS
    * @Harmony
    * @zh 子节点
+   * @docTypeFallback ReactNode | ((state: { value: string | null; disabled: boolean }) => ReactNode)
    */
   children?:
     | ReactNode

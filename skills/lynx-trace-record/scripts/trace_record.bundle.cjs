@@ -253,6 +253,13 @@ function createIOReadStream(handle) {
     return { stream, onResponse };
 }
 const transports = [new _lynx_js_devtool_connector_transport__WEBPACK_IMPORTED_MODULE_6__/* .AndroidTransport */ .Ry(), new _lynx_js_devtool_connector_transport__WEBPACK_IMPORTED_MODULE_6__/* .DesktopTransport */ .y4(), new _lynx_js_devtool_connector_transport__WEBPACK_IMPORTED_MODULE_6__/* .iOSTransport */ .HS()];
+function parseCategories(categories, defaultCategories) {
+    const parsedCategories = categories
+        ?.split(',')
+        .map((category) => category.trim())
+        .filter(Boolean) ?? [];
+    return parsedCategories.length > 0 ? parsedCategories : defaultCategories;
+}
 async function main() {
     const program = new commander__WEBPACK_IMPORTED_MODULE_7__/* .Command */ .uB();
     program.version('0.0.1').description('Trace Record CLI Tool');
@@ -289,19 +296,36 @@ async function main() {
         .description('Start trace events collection')
         .requiredOption('-c, --client <clientId>', 'Client ID')
         .option('--enable-systrace', 'Enable systrace', true)
+        .option('--include-categories <categories>', 'Comma-separated trace categories to include', '*')
+        .option('--exclude-categories <categories>', 'Comma-separated trace categories to exclude', '*')
+        .option('--enable-memory-trace', 'Enable memory data collection', false)
+        .option('--force-gc', 'Enable automatic Garbage Collection', true)
+        .option('--no-force-gc', 'Disable automatic Garbage Collection')
+        .option('--enable-auto-heap-snapshot', 'Enable automatic heap snapshots for "shared-group" VMs', false)
+        .option('--shared-group-id <id>', 'Only capture automatic heap snapshots for the specified "shared-group" VM', '')
         .option('--js-profile-interval <interval>', 'JS profile interval', '-1')
-        .option('--js-profile-type <type>', 'JS profile type', 'sampling')
+        .option('--js-profile-type <type>', 'JS profile type (quickjs or v8)', '')
         .action(async (options) => {
         const connector = new _lynx_js_devtool_connector__WEBPACK_IMPORTED_MODULE_5__/* .Connector */ .Wi(transports);
         const clientId = options.client;
+        const includedCategories = parseCategories(options.includeCategories, ['*']);
+        const excludedCategories = parseCategories(options.excludeCategories, ['*']);
+        let jsProfileInterval = Number(options.jsProfileInterval);
+        if (options.jsProfileType && jsProfileInterval <= 0) {
+            jsProfileInterval = 100;
+        }
         try {
             const config = {
                 recordMode: 'recordContinuously',
-                includedCategories: ['*'],
-                excludedCategories: ['*'],
+                includedCategories,
+                excludedCategories,
                 enableSystrace: options.enableSystrace,
+                enableMemoryTrace: options.enableMemoryTrace,
+                forceGC: options.forceGc,
+                enableAutoHeapSnapshot: options.enableAutoHeapSnapshot,
+                sharedGroupId: options.sharedGroupId,
                 bufferSize: 200 * 1024,
-                JSProfileInterval: Number(options.jsProfileInterval),
+                JSProfileInterval: jsProfileInterval,
                 JSProfileType: options.jsProfileType,
                 enableCompress: true,
             };

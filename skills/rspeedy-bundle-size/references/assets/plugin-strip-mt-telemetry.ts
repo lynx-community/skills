@@ -4,6 +4,7 @@
 
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+
 import type { RsbuildPlugin } from '@lynx-js/rspeedy';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -19,7 +20,7 @@ export function pluginStripMtTelemetry(): RsbuildPlugin {
         order: 'post',
         handler: (
           chain,
-          util = {} as { CHAIN_ID?: Record<string, Record<string, string>> },
+          util = {} as { CHAIN_ID?: Record<string, Record<string, string>>; },
         ) => {
           const { CHAIN_ID } = util || {};
           const jsRule = chain.module.rule(CHAIN_ID?.RULE?.JS || '');

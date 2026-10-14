@@ -22,6 +22,32 @@ Execute the start command **BEFORE** building or opening the page on your device
    node <path_to_the_skill>/scripts/trace_record.bundle.cjs start --client <client-id>
    ```
 
+Optional start parameters can be controlled from the user's natural language request:
+
+| User intent | CLI parameter | Trace config field | Default |
+| --- | --- | --- | --- |
+| Include only specific trace categories | `--include-categories <categories>` | `includedCategories` | `*` |
+| Exclude specific trace categories | `--exclude-categories <categories>` | `excludedCategories` | `*` |
+| Enable memory data collection | `--enable-memory-trace` | `enableMemoryTrace` | `false` |
+| Disable automatic Garbage Collection | `--no-force-gc` | `forceGC` | `true` |
+| Automatically capture heap snapshots for "shared-group" VMs | `--enable-auto-heap-snapshot` | `enableAutoHeapSnapshot` | `false` |
+| Only capture automatic heap snapshots for a specific "shared-group" VM | `--shared-group-id <id>` | `sharedGroupId` | empty string |
+| Specify the JS profile type, such as quickjs or v8 | `--js-profile-type <type>` | `JSProfileType` | empty string (JS profile disabled) |
+| Specify the JS profile interval, such as 100 | `--js-profile-interval <interval>` | `JSProfileInterval` | `100` when `JSProfileType` is non-empty and interval is `<= 0`; otherwise `-1` |
+
+When the user asks in natural language, translate the request into the corresponding `start` flags. For example, if the user says "record a trace with trace_record, enable memory data collection, and automatically capture heap snapshots for the VM named 'xxx'", run:
+   ```bash
+   node <path_to_the_skill>/scripts/trace_record.bundle.cjs start --client <client-id> --enable-memory-trace --enable-auto-heap-snapshot --shared-group-id xxx
+   ```
+
+Common trace categories are `lynx`, `vitals`, `javascript`, `jsb`, and `devtool`. If the user asks to include only specific event categories, pass them as a comma-separated list with `--include-categories`. For example, "录制trace时只允许以下类型的事件js，jsb" maps to `--include-categories lynx,jsb`. If the user asks "录制trace时允许所有事件", do not pass `--include-categories`; the default `includedCategories: ['*']` records all events.
+
+If the user asks to exclude specific event categories, pass them as a comma-separated list with `--exclude-categories`. For example, "录制trace时关闭devtool事件和vitals事件" maps to `--exclude-categories devtool,vitals`.
+
+If the user asks to use a specific JS engine profile type, such as "record with v8 JS profile", add `--js-profile-type v8`. If the user does not ask for JS profile collection, do not pass `--js-profile-type`; the default empty string disables JS profile collection.
+
+If the user asks to use a specific JS profile interval, such as "record with JS profile interval 100", add `--js-profile-interval 100`. For example, "record with v8 JS profile and interval 100" maps to `--js-profile-type v8 --js-profile-interval 100`.
+
 ### Step 3. Build and Open the Page
 Start your development server. If it does not auto-open the page, manually open the target page.
   ```bash

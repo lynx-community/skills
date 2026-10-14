@@ -96,7 +96,7 @@ export interface ButtonRenderProps {
  * Use them as CSS selectors to style different states.
  * @zh Button 根据交互状态注入的 ui-variants，可用于 CSS selector 按状态定制样式。
  */
-export interface ButtonUiVariants {
+export interface ButtonUIVariants {
   /**
    * Applied when `status.active` is true.
    * @zh 当 status.active 为 true 时生效，可用于 `.ui-active { ... }`。
@@ -109,4 +109,9 @@ export interface ButtonUiVariants {
    */
   'ui-disabled'?: boolean
 }
+
+/**
+ * @deprecated Use `ButtonUIVariants` instead.
+ */
+export type ButtonUiVariants = ButtonUIVariants
 ```

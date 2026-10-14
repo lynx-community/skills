@@ -5,6 +5,7 @@
 ## 1. Core Capabilities
 
 - **Vertical and Horizontal Scrolling**: Supports vertical (`scrollOrientation = 'vertical'`) and horizontal (`scrollOrientation = 'horizontal'`) scrolling.
+- **Native Scroll Architecture**: `enableNewArch` defaults to `true` on Lynx SDK 4.3 and newer and to `false` on earlier versions. The new architecture uses native bounces across Android, iOS, and Harmony; set the prop explicitly to override the SDK-based default.
 - **BounceableOptions**: Supports edge rubber-band and bounce effects, configurable via:
   - `enableBounces`: enable/disable edge bounce
   - `singleSidedBounce`: select bounce side (`'upper' | 'lower' | 'both'`)

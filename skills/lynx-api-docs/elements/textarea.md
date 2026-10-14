@@ -74,6 +74,7 @@ This guide covers the current native Android, iOS, and Harmony `<textarea>` elem
 | `disabled` | `boolean` | Fully disables interaction |
 | `readonly` | `boolean` | Prevents edits without always behaving exactly like `disabled` |
 | `show-soft-input-on-focus` | `boolean` | Controls whether the system keyboard appears on focus |
+| `set-soft-input-mode` | `"unspecified" \| "nothing" \| "pan" \| "resize"` | Sets the host keyboard avoidance mode on Android and Harmony |
 | `confirm-enter` | `boolean` | Keeps the textarea focused after confirm instead of auto-blurring |
 | `avoid-keyboard` | `boolean` | Moves the Lynx root or view when keyboard overlap would occur |
 | `avoid-keyboard-spacing` | `string \| number` | Adds extra keyboard-avoidance spacing; prefer string units for Android-safe behavior |
@@ -106,7 +107,7 @@ This guide covers the current native Android, iOS, and Harmony `<textarea>` elem
 | `ios-spell-check` | iOS | Toggles spell checking |
 | `ios-send-composing-input` | iOS | Controls whether composing input updates stay in the `input` payload |
 | `android-fullscreen-mode` | Android | Controls IME fullscreen extract mode |
-| `android-set-soft-input-mode` | Android | Requests the host window soft-input adjustment mode |
+| `android-set-soft-input-mode` | Android | Compatibility alias for `set-soft-input-mode` |
 
 ## Events
 
@@ -177,8 +178,11 @@ this.getNodeRef('#feedback').invoke({
 | `focus` | none | Focuses the textarea |
 | `blur` | none | Blurs the textarea |
 | `getValue` | none | Returns `value`, `selectionStart`, `selectionEnd`, and `isComposing` |
-| `setValue` | `value: string`, `cursor?: number` | `cursor` is supported on iOS and Android; do not rely on it for Harmony |
+| `setValue` | `value: string`, `cursor?: number` | `cursor` is supported on iOS, Android, and Harmony (4.3.0) |
 | `setSelectionRange` | `selectionStart: number`, `selectionEnd: number` | Keep the range inside the current value length |
+
+On Harmony, the text is updated before cursor validation. If supplied, `cursor` must be a number, finite, integral, and no greater than `2147483647`; otherwise the method reports `PARAM_INVALID` while preserving the text update. Negative integers skip caret positioning. A non-negative cursor uses the native caret offset API, and a native failure reports `OPERATION_ERROR`. Keep the cursor within the new text's UTF-16 length for a meaningful position.
+
 
 ## Common Patterns
 
@@ -221,7 +225,7 @@ this.getNodeRef('#feedback').invoke({
 | `beforeinput` | Yes | No | No |
 | `keyboardheightchange` | Yes | Yes | Yes |
 | Extra `keyboard` event | Yes | No | No |
-| `setValue({ cursor })` | Yes | Yes | No |
+| `setValue({ cursor })` | Yes | Yes | Yes (4.3.0) |
 | `type="password"` | Yes | Yes | No local mapping |
 | `enable-scroll-bar` | Yes | Yes | No local handler |
 | `bounces` | Yes | No | No local handler |

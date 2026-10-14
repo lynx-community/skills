@@ -16,11 +16,9 @@ import {
   SliderTrack,
 } from '@lynx-js/lynx-ui'
 
-import './index.css'
+import { formatPercentage } from '../shared/formatPercentage'
 
-function formatValue(value: number) {
-  return `${Math.round(value * 100)}%`
-}
+import './index.css'
 
 function App() {
   const [variantValue, setVariantValue] = useState(0.68)
@@ -37,7 +35,7 @@ function App() {
 
           <view className='row'>
             <text className='slider-label'>
-              {formatValue(variantValue)}
+              {formatPercentage(variantValue)}
             </text>
             <SliderRoot
               className='slider-root'
@@ -56,9 +54,9 @@ function App() {
           </view>
 
           <view className='row'>
-            <text className='slider-label disabled'>Readonly</text>
+            <text className='slider-label disabled'>Disabled</text>
             <SliderRoot
-              className='slider-root ui-disabled'
+              className='slider-root'
               defaultValue={0.45}
               disabled
             >
@@ -81,7 +79,7 @@ function App() {
 
           <view className='row rtl-card'>
             <text className='slider-label'>
-              {formatValue(rtlValue)}
+              {formatPercentage(rtlValue)}
             </text>
             <SliderRoot
               className='slider-root'
@@ -126,13 +124,12 @@ import {
   SliderTrack,
 } from '@lynx-js/lynx-ui'
 
+import { formatPercentage } from '../shared/formatPercentage'
+import { OptionChipRow } from '../shared/OptionChipRow'
+
 import './index.css'
 
 const PRESET_VALUES = [0, 0.25, 0.5, 0.75, 1]
-
-function formatValue(value: number) {
-  return `${Math.round(value * 100)}%`
-}
 
 function App() {
   const [value, setValue] = useState(0.32)
@@ -153,7 +150,7 @@ function App() {
             <text className='slider-label'>
               {primitiveDragging
                 ? 'Dragging...'
-                : formatValue(value)}
+                : formatPercentage(value)}
             </text>
             <SliderRoot
               className='slider-root'
@@ -176,21 +173,16 @@ function App() {
               </SliderTrack>
             </SliderRoot>
 
-            <view className='preset-row'>
-              {PRESET_VALUES.map((v) => (
-                <view
-                  key={`preset-${v}`}
-                  className='preset-chip'
-                  bindtap={() => {
-                    setValue(v)
-                  }}
-                >
-                  <text className='preset-label'>
-                    {formatValue(v)}
-                  </text>
-                </view>
-              ))}
-            </view>
+            <OptionChipRow
+              options={PRESET_VALUES}
+              getKey={(preset) => `preset-${preset}`}
+              getLabel={(preset) => formatPercentage(preset)}
+              isSelected={(preset) => Math.abs(preset - value) < 0.001}
+              onSelect={(preset) => {
+                setPrimitiveDragging(false)
+                setValue(preset)
+              }}
+            />
           </view>
         </view>
 
@@ -202,7 +194,7 @@ function App() {
 
           <view className='row'>
             <text className='slider-label'>
-              {formatValue(steppedValue)} — Step: 10%
+              {formatPercentage(steppedValue)} — Step: 10%
             </text>
             <SliderRoot
               className='slider-root'
@@ -247,22 +239,35 @@ import {
   SliderTrack,
 } from '@lynx-js/lynx-ui'
 
+import { formatPercentage } from '../shared/formatPercentage'
+import { OptionChipRow } from '../shared/OptionChipRow'
+
 import './index.css'
 
-const WIDTHS = [200, 300, 420, 280, 360]
-
-function formatValue(value: number) {
-  return `${Math.round(value * 100)}%`
-}
+const WIDTH_RATIOS = [0.56, 0.68, 0.8, 0.92, 1]
+const DEMO_CONTAINER_HORIZONTAL_PADDING = 72
 
 function App() {
   const [widthIndex, setWidthIndex] = useState(2)
   const [value, setValue] = useState(0.5)
-  const currentWidth = WIDTHS[widthIndex]
+  const screenWidth = lynx.__globalProps.screenWidth
+    ?? SystemInfo.pixelWidth / SystemInfo.pixelRatio
+  const availableCanvasWidth = Math.max(
+    screenWidth - DEMO_CONTAINER_HORIZONTAL_PADDING,
+    0,
+  )
+  const maxCanvasWidth = Math.min(
+    420,
+    availableCanvasWidth,
+  )
+  const widths = WIDTH_RATIOS.map((ratio) => {
+    return Math.round((maxCanvasWidth * ratio) / 10) * 10
+  })
+  const currentWidth = widths[widthIndex] ?? widths[widths.length - 1]
 
   return (
     <view className='demo-container lunaris-dark luna-gradient-berry'>
-      <view className='demo-canvas' style={{ maxWidth: `${currentWidth}px` }}>
+      <view className='demo-canvas' style={{ width: `${currentWidth}px` }}>
         <view className='section'>
           <text className='title'>Dynamic Width</text>
           <text className='desc'>
@@ -272,7 +277,7 @@ function App() {
 
           <view className='row'>
             <text className='slider-label'>
-              {formatValue(value)} — {currentWidth}px
+              {formatPercentage(value)} — {currentWidth}px
             </text>
             <SliderRoot
               className='slider-root'
@@ -289,27 +294,15 @@ function App() {
               </SliderTrack>
             </SliderRoot>
 
-            <view className='width-row'>
-              {WIDTHS.map((w, i) => (
-                <view
-                  key={`w-${w}`}
-                  className={`width-chip${
-                    i === widthIndex ? ' width-chip-active' : ''
-                  }`}
-                  bindtap={() => {
-                    setWidthIndex(i)
-                  }}
-                >
-                  <text
-                    className={`width-label${
-                      i === widthIndex ? ' width-label-active' : ''
-                    }`}
-                  >
-                    {w}px
-                  </text>
-                </view>
-              ))}
-            </view>
+            <OptionChipRow
+              options={widths}
+              getKey={(width, index) => `width-${index}-${width}`}
+              getLabel={(width) => `${width}px`}
+              isSelected={(_, index) => index === widthIndex}
+              onSelect={(_, index) => {
+                setWidthIndex(index)
+              }}
+            />
           </view>
         </view>
       </view>
@@ -339,6 +332,8 @@ import {
   SliderTrack,
 } from '@lynx-js/lynx-ui'
 import type { SliderRef, SliderRootProps } from '@lynx-js/lynx-ui'
+
+import { formatPercentage } from '../shared/formatPercentage'
 
 import './index.css'
 
@@ -375,10 +370,6 @@ const Slider = memo(
   }),
 )
 
-function formatValue(value: number) {
-  return `${Math.round(value * 100)}%`
-}
-
 function App() {
   const [defaultValue, setDefaultValue] = useState(0.4)
   const [pillValue, setPillValue] = useState(0.72)
@@ -395,7 +386,7 @@ function App() {
 
           <view className='row'>
             <text className='slider-label'>
-              {formatValue(defaultValue)}
+              {formatPercentage(defaultValue)}
             </text>
             <Slider
               className='slider-root'
@@ -412,7 +403,7 @@ function App() {
 
           <view className='row'>
             <text className='slider-label'>
-              {formatValue(pillValue)}
+              {formatPercentage(pillValue)}
             </text>
             <Slider
               className='slider-root'
@@ -428,7 +419,7 @@ function App() {
           </view>
 
           <view className='row'>
-            <text className='slider-label disabled'>Readonly</text>
+            <text className='slider-label disabled'>Disabled</text>
             <Slider
               className='slider-root'
               defaultValue={0.45}
@@ -450,6 +441,133 @@ root.render(<App />)
 export default App
 ```
 
+### PriceRange
+
+```tsx
+// Copyright 2026 The Lynx Authors. All rights reserved.
+// Licensed under the Apache License Version 2.0 that can be found in the
+// LICENSE file in the root directory of this source tree.
+
+import { root, useState } from '@lynx-js/react'
+
+import {
+  SliderIndicator,
+  SliderRoot,
+  SliderThumb,
+  SliderTrack,
+} from '@lynx-js/lynx-ui'
+import type { SliderRangeValue } from '@lynx-js/lynx-ui'
+
+import {
+  INITIAL_RANGE,
+  MAX_PRICE,
+  MIN_PRICE,
+  formatPriceRange,
+  ratioToPrice,
+  toSliderRange,
+} from './data'
+import type { PriceRange, VehiclePreset } from './data'
+import { PricePresets } from './PricePresets'
+import './index.css'
+
+function App() {
+  const [range, setRange] = useState<SliderRangeValue>(INITIAL_RANGE)
+  const [committedRange, setCommittedRange] = useState<SliderRangeValue>(
+    INITIAL_RANGE,
+  )
+  const [dragging, setDragging] = useState(false)
+
+  const displayedPrices: PriceRange = [
+    ratioToPrice(range[0]),
+    ratioToPrice(range[1]),
+  ]
+  const committedPrices: PriceRange = [
+    ratioToPrice(committedRange[0]),
+    ratioToPrice(committedRange[1]),
+  ]
+
+  const selectPreset = (preset: VehiclePreset) => {
+    const nextRange = toSliderRange(preset.prices)
+    setRange(nextRange)
+    setCommittedRange(nextRange)
+    setDragging(false)
+  }
+
+  return (
+    <view className='demo-container lunaris-dark luna-gradient-berry'>
+      <view className='demo-canvas card'>
+        <view className='header'>
+          <text className='heading'>
+            Selected price range
+          </text>
+          <text className='status'>
+            {dragging
+              ? 'Adjusting price range'
+              : `Confirmed ${formatPriceRange(committedPrices)}`}
+          </text>
+        </view>
+
+        <view className='selection'>
+          <text className='selection-label'>Price range</text>
+          <text className='selection-value'>
+            {formatPriceRange(displayedPrices)}
+          </text>
+        </view>
+
+        <view className='slider-section'>
+          <SliderRoot
+            className='slider'
+            value={range}
+            step={1 / (MAX_PRICE - MIN_PRICE)}
+            onDragging={() => {
+              setDragging((active) => !active)
+            }}
+            onValueChange={(nextValue) => {
+              setRange(nextValue)
+            }}
+            onValueCommit={(nextValue) => {
+              setRange(nextValue)
+              setCommittedRange(nextValue)
+              setDragging(false)
+            }}
+          >
+            <SliderTrack className='slider-track'>
+              <SliderIndicator className='slider-indicator' />
+              <SliderThumb index={0} className='slider-thumb'>
+                <text className='thumb-label'>
+                  ${displayedPrices[0]}
+                </text>
+                <view className='thumb-dot' />
+              </SliderThumb>
+              <SliderThumb index={1} className='slider-thumb'>
+                <text className='thumb-label'>
+                  ${displayedPrices[1]}
+                </text>
+                <view className='thumb-dot' />
+              </SliderThumb>
+            </SliderTrack>
+          </SliderRoot>
+
+          <view className='endpoints'>
+            <text className='endpoint'>${MIN_PRICE}</text>
+            <text className='endpoint'>${MAX_PRICE}</text>
+          </view>
+        </view>
+
+        <PricePresets
+          selectedPrices={displayedPrices}
+          onSelect={selectPreset}
+        />
+      </view>
+    </view>
+  )
+}
+
+root.render(<App />)
+
+export default App
+```
+
 ### Progress
 
 ```tsx
@@ -461,11 +579,9 @@ import { root, useEffect, useRef, useState } from '@lynx-js/react'
 
 import { SliderIndicator, SliderRoot, SliderTrack } from '@lynx-js/lynx-ui'
 
-import './index.css'
+import { formatPercentage } from '../shared/formatPercentage'
 
-function formatValue(value: number) {
-  return `${Math.round(value * 100)}%`
-}
+import './index.css'
 
 function App() {
   const [downloadProgress, setDownloadProgress] = useState(0)
@@ -508,7 +624,7 @@ function App() {
             <view className='progress-meta'>
               <text className='progress-label'>Downloading...</text>
               <text className='progress-value'>
-                {formatValue(downloadProgress)}
+                {formatPercentage(downloadProgress)}
               </text>
             </view>
             <SliderRoot
@@ -526,7 +642,7 @@ function App() {
             <view className='progress-meta'>
               <text className='progress-label'>Uploading...</text>
               <text className='progress-value'>
-                {formatValue(uploadProgress)}
+                {formatPercentage(uploadProgress)}
               </text>
             </view>
             <SliderRoot
@@ -550,7 +666,7 @@ function App() {
           <view className='progress-row'>
             {[0.25, 0.5, 0.75, 1].map((v) => (
               <view key={`static-${v}`} className='static-row'>
-                <text className='static-label'>{formatValue(v)}</text>
+                <text className='static-label'>{formatPercentage(v)}</text>
                 <view className='static-bar-wrapper'>
                   <SliderRoot
                     className='progress-root'
@@ -592,11 +708,9 @@ import {
   SliderTrack,
 } from '@lynx-js/lynx-ui'
 
-import './index.css'
+import { formatPercentage } from '../shared/formatPercentage'
 
-function formatValue(value: number) {
-  return `${Math.round(value * 100)}%`
-}
+import './index.css'
 
 function App() {
   const [fullValue, setFullValue] = useState(0.4)
@@ -617,7 +731,7 @@ function App() {
 
           <view className='row'>
             <text className='slider-label'>
-              {formatValue(fullValue)} — Full
+              {formatPercentage(fullValue)} — Full
             </text>
             <SliderRoot
               className='slider-root'
@@ -637,7 +751,7 @@ function App() {
 
           <view className='row'>
             <text className='slider-label'>
-              {formatValue(gradientValue)} — Gradient
+              {formatPercentage(gradientValue)} — Gradient
             </text>
             <SliderRoot
               className='slider-root'
@@ -659,7 +773,7 @@ function App() {
 
           <view className='row'>
             <text className='slider-label'>
-              {formatValue(secondaryValue)} — Ring
+              {formatPercentage(secondaryValue)} — Ring
             </text>
             <SliderRoot
               className='slider-root'
@@ -679,7 +793,7 @@ function App() {
 
           <view className='row'>
             <text className='slider-label'>
-              {formatValue(invertedRingValue)} — Inverted Ring
+              {formatPercentage(invertedRingValue)} — Inverted Ring
             </text>
             <SliderRoot
               className='slider-root'
@@ -701,7 +815,7 @@ function App() {
 
           <view className='row'>
             <text className='slider-label'>
-              {formatValue(pillValue)} — Pill
+              {formatPercentage(pillValue)} — Pill
             </text>
             <SliderRoot
               className='slider-root-pill'
@@ -745,11 +859,9 @@ import {
   SliderTrack,
 } from '@lynx-js/lynx-ui'
 
-import './index.css'
+import { formatPercentage } from '../shared/formatPercentage'
 
-function formatValue(value: number) {
-  return `${Math.round(value * 100)}%`
-}
+import './index.css'
 
 const VERTICAL_ITEMS = Array.from({ length: 8 }, (_, i) => i)
 
@@ -759,7 +871,7 @@ function SliderCard({ index }: { index: number }) {
   return (
     <view className='card'>
       <text className='card-title'>Slider {index + 1}</text>
-      <text className='card-value'>{formatValue(value)}</text>
+      <text className='card-value'>{formatPercentage(value)}</text>
       <SliderRoot
         className='slider-root'
         defaultValue={0.5}
@@ -786,21 +898,23 @@ function App() {
         scroll-orientation='vertical'
         className='vertical-scroll'
       >
-        {VERTICAL_ITEMS.map((i) => (
-          <view className='horizontal-section' key={`section-${i}`}>
-            <text className='section-title'>Section {i + 1}</text>
-            <scroll-view
-              scroll-orientation='horizontal'
-              className='horizontal-scroll'
-            >
-              <view className='horizontal-content'>
-                <SliderCard index={i * 3} />
-                <SliderCard index={i * 3 + 1} />
-                <SliderCard index={i * 3 + 2} />
-              </view>
-            </scroll-view>
-          </view>
-        ))}
+        <view className='vertical-scroll-content'>
+          {VERTICAL_ITEMS.map((i) => (
+            <view className='horizontal-section' key={`section-${i}`}>
+              <text className='section-title'>Section {i + 1}</text>
+              <scroll-view
+                scroll-orientation='horizontal'
+                className='horizontal-scroll'
+              >
+                <view className='horizontal-content'>
+                  <SliderCard index={i * 3} />
+                  <SliderCard index={i * 3 + 1} />
+                  <SliderCard index={i * 3 + 2} />
+                </view>
+              </scroll-view>
+            </view>
+          ))}
+        </view>
       </scroll-view>
     </view>
   )

@@ -1515,6 +1515,7 @@ function SwiperEntry() {
           bounceConfig={{
             enable: true,
             startBounceItemWidth: 0,
+            endBounceItemWidth: 80,
             endBounceItem: (
               <view className='bounce-item'>
                 <text className='bounce-item-text'>Show More</text>

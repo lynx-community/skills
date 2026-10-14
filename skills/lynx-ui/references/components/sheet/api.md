@@ -13,19 +13,34 @@ import type { OverlayViewProps } from '@lynx-js/lynx-ui-overlay'
 export type SheetSide = 'top' | 'bottom' | 'left' | 'right' | 'start' | 'end'
 
 export interface SheetRootRef {
+  /**
+   * @docTypeFallback (index: number, opts?: {animate?: boolean, snapAnimation?: SheetTransition}) => void
+   */
   snapTo: (
     index: number,
     opts?: { animate?: boolean, snapAnimation?: SheetTransition },
   ) => void
+  /**
+   * @docTypeFallback (opts?: {animate?: boolean, snapAnimation?: SheetTransition}) => void
+   */
   expand: (
     opts?: { animate?: boolean, snapAnimation?: SheetTransition },
   ) => void
+  /**
+   * @docTypeFallback (opts?: {animate?: boolean, snapAnimation?: SheetTransition}) => void
+   */
   collapse: (
     opts?: { animate?: boolean, snapAnimation?: SheetTransition },
   ) => void
+  /**
+   * @docTypeFallback (opts?: {animate?: boolean, snapAnimation?: SheetTransition}) => void
+   */
   close: (
     opts?: { animate?: boolean, snapAnimation?: SheetTransition },
   ) => void
+  /**
+   * @docTypeFallback (opts?: {animate?: boolean, snapAnimation?: SheetTransition}) => void
+   */
   open: (
     opts?: { animate?: boolean, snapAnimation?: SheetTransition },
   ) => void

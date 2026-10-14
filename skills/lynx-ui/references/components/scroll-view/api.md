@@ -182,6 +182,15 @@ export interface ScrollViewProps
    */
   enableScrollMonitor?: boolean
   /**
+   * Enable the native `<scroll-view>` new architecture. When enabled, `bounceableOptions` uses native bounces on Android, iOS, and Harmony. Defaults to `true` on Lynx SDK 4.3 and newer, and `false` on earlier versions.
+   * @zh 启用原生 `<scroll-view>` 新架构。启用后，`bounceableOptions` 会在 Android、iOS 和 Harmony 上使用原生回弹。Lynx SDK 4.3 及以上版本默认为 `true`，更早版本默认为 `false`。
+   * @defaultValue `true on Lynx SDK >= 4.3; false otherwise`
+   * @Android
+   * @iOS
+   * @Harmony
+   */
+  enableNewArch?: boolean
+  /**
    * The tag for scroll monitor.
    * @zh 滚动监控的标签。
    * @defaultValue false
@@ -271,6 +280,28 @@ export interface ScrollViewProps
    * @Android
    */
   'main-thread:gesture'?: BaseGesture
+
+  /**
+   * Adapts Harmony nested scroll behavior. 'selfOnly' scrolls only this component. 'selfFirst' scrolls this component first, then the parent after this component reaches a scroll boundary. 'parentFirst' scrolls the parent first, then this component after the parent reaches a scroll boundary. 'parallel' scrolls this component and the parent at the same time.
+   * @zh 适配 Harmony 的嵌套滚动行为。'selfOnly' 表示只自身滚动，不与父组件联动。'selfFirst' 表示自身先滚动，自身滚动到边界以后父组件滚动。'parentFirst' 表示父组件先滚动，父组件滚动到边界以后自身滚动。'parallel' 表示自身和父组件同时滚动。
+   * @Harmony
+   */
+  experimentalNestedScrollForward?:
+    | 'selfOnly'
+    | 'selfFirst'
+    | 'parentFirst'
+    | 'parallel'
+
+  /**
+   * Adapts Harmony nested scroll behavior. 'selfOnly' scrolls only this component. 'selfFirst' scrolls this component first, then the parent after this component reaches a scroll boundary. 'parentFirst' scrolls the parent first, then this component after the parent reaches a scroll boundary. 'parallel' scrolls this component and the parent at the same time.
+   * @zh 适配 Harmony 的嵌套滚动行为。'selfOnly' 表示只自身滚动，不与父组件联动。'selfFirst' 表示自身先滚动，自身滚动到边界以后父组件滚动。'parentFirst' 表示父组件先滚动，父组件滚动到边界以后自身滚动。'parallel' 表示自身和父组件同时滚动。
+   * @Harmony
+   */
+  experimentalNestedScrollBackward?:
+    | 'selfOnly'
+    | 'selfFirst'
+    | 'parentFirst'
+    | 'parallel'
 
   /**
    * Android touch recognition mode. When inside a component that supports 'paging' mode, 'paging' must be enabled.

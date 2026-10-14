@@ -18,16 +18,19 @@ When a task combines components, check [component-composition.md](./component-co
 
 - [Button](#button)
 - [Checkbox](#checkbox)
+- [DeferredComponent](#deferredcomponent)
 - [Dialog](#dialog)
 - [Draggable](#draggable)
 - [FeedList](#feedlist)
 - [Form](#form)
 - [Input and TextArea](#input-and-textarea)
+- [InputOTP](#inputotp)
 - [LazyComponent](#lazycomponent)
 - [List](#list)
 - [OverlayView](#overlayview)
 - [Popover](#popover)
 - [RadioGroup](#radiogroup)
+- [ScrollCoordinator](#scrollcoordinator)
 - [ScrollView](#scrollview)
 - [Sheet](#sheet)
 - [Slider](#slider)
@@ -35,6 +38,8 @@ When a task combines components, check [component-composition.md](./component-co
 - [SwipeAction](#swipeaction)
 - [Swiper](#swiper)
 - [Switch](#switch)
+- [TabGroup](#tabgroup)
+- [ViewPager](#viewpager)
 
 ## Components
 
@@ -55,6 +60,15 @@ When a task combines components, check [component-composition.md](./component-co
 - Guide: Not available yet.
 - [API](./components/checkbox/api.md)
 - [Examples](./components/checkbox/examples.md)
+
+### `DeferredComponent`
+
+- Choose when: An expensive subtree should mount after its first layout or a configured number of frames.
+- Avoid when: Mounting should depend on viewport visibility; use LazyComponent.
+- [Official docs](https://lynxjs.org/next/lynx-ui/components/deferred-component.html)
+- [Guide](./components/deferred-component/guide.md)
+- [API](./components/deferred-component/api.md)
+- [Examples](./components/deferred-component/examples.md)
 
 ### `Dialog`
 
@@ -97,9 +111,18 @@ When a task combines components, check [component-composition.md](./component-co
 - Choose when: The user needs text entry or keyboard-aware input layout behavior.
 - Avoid when: The content is read-only text.
 - [Official docs](https://lynxjs.org/next/lynx-ui/components/input.html)
-- Guide: Not available yet.
+- [Guide](./components/input/guide.md)
 - [API](./components/input/api.md)
 - [Examples](./components/input/examples.md)
+
+### `InputOTP`
+
+- Choose when: The user needs four- or six-character numeric, alphabetic, or alphanumeric OTP, PIN, or verification-code entry.
+- Avoid when: The input length is variable or a conventional editable text field is required.
+- [Official docs](https://lynxjs.org/next/lynx-ui/components/input-otp.html)
+- [Guide](./components/input-otp/guide.md)
+- [API](./components/input-otp/api.md)
+- [Examples](./components/input-otp/examples.md)
 
 ### `LazyComponent`
 
@@ -145,6 +168,15 @@ When a task combines components, check [component-composition.md](./component-co
 - Guide: Not available yet.
 - [API](./components/radio-group/api.md)
 - [Examples](./components/radio-group/examples.md)
+
+### `ScrollCoordinator`
+
+- Choose when: The UI needs a collapsible header coordinated with nested vertical scrolling or paged lists.
+- Avoid when: The UI only needs a standalone vertical scroll container; use ScrollView or List.
+- [Official docs](https://lynxjs.org/next/lynx-ui/components/scroll-coordinator.html)
+- [Guide](./components/scroll-coordinator/guide.md)
+- [API](./components/scroll-coordinator/api.md)
+- [Examples](./components/scroll-coordinator/examples.md)
 
 ### `ScrollView`
 
@@ -208,3 +240,21 @@ When a task combines components, check [component-composition.md](./component-co
 - Guide: Not available yet.
 - [API](./components/switch/api.md)
 - [Examples](./components/switch/examples.md)
+
+### `TabGroup`
+
+- Choose when: The UI needs coordinated tab navigation with selectable items and an animated indicator.
+- Avoid when: The UI needs carousel-style content paging; use Swiper.
+- [Official docs](https://lynxjs.org/next/lynx-ui/components/tab-group.html)
+- [Guide](./components/tab-group/guide.md)
+- [API](./components/tab-group/api.md)
+- [Examples](./components/tab-group/examples.md)
+
+### `ViewPager`
+
+- Choose when: The UI needs page-snapped horizontal content navigation with optional lazy rendering.
+- Avoid when: The UI needs a looping carousel with custom transition behavior; use Swiper.
+- [Official docs](https://lynxjs.org/next/lynx-ui/components/view-pager.html)
+- [Guide](./components/view-pager/guide.md)
+- [API](./components/view-pager/api.md)
+- [Examples](./components/view-pager/examples.md)

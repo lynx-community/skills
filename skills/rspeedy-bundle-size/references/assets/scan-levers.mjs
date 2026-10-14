@@ -81,7 +81,9 @@ function scanProject(subdir) {
       let sz = 0;
       try {
         sz = statSync(full).size;
-      } catch {}
+      } catch {
+        // Skip files removed while scanning the build output.
+      }
       if (sz >= BIG_IMG) {
         bigImgCount++;
         bigImgBytes += sz;
@@ -98,20 +100,24 @@ function scanProject(subdir) {
     if (src.length > 4 * 1024 * 1024) return;
     scannedSrc++;
     let fileLeaks = false;
-    for (const [name, re] of LEAK_PATTERNS)
+    for (const [name, re] of LEAK_PATTERNS) {
       if (re.test(src)) {
         leakHits[name] = (leakHits[name] || 0) + 1;
         fileLeaks = true;
       }
+    }
     if (fileLeaks) {
       leakFiles.add(full);
       if (GUARD_PATTERNS.some((g) => g.test(src))) guardedFiles++;
     }
-    for (const m of src.matchAll(/data:[^;]+;base64,([A-Za-z0-9+/=]{1000,})/g))
+    for (
+      const m of src.matchAll(/data:[^;]+;base64,([A-Za-z0-9+/=]{1000,})/g)
+    ) {
       if (m[1].length >= BIG_B64) {
         b64Count++;
         b64Bytes += m[1].length;
       }
+    }
   });
   let sideEffects = 'missing';
   try {
@@ -119,7 +125,9 @@ function scanProject(subdir) {
       readFileSync(path.join(subdir, 'package.json'), 'utf8'),
     );
     if ('sideEffects' in j) sideEffects = JSON.stringify(j.sideEffects);
-  } catch {}
+  } catch {
+    // Keep the missing marker when package metadata is unavailable.
+  }
   return {
     dir: subdir,
     scannedSrc,
@@ -165,13 +173,17 @@ const ranked = [...results]
       (a.guardRatio ?? 1) - (b.guardRatio ?? 1) || b.leakFiles - a.leakFiles,
   );
 const leakFreq = {};
-for (const r of results)
+for (const r of results) {
   for (const k of Object.keys(r.leakHits)) leakFreq[k] = (leakFreq[k] || 0) + 1;
+}
 console.log('=== ranked leak candidates (low guardRatio first) ===');
-for (const r of ranked.slice(0, 30))
+for (const r of ranked.slice(0, 30)) {
   console.log(
-    `${path.basename(r.dir).slice(0, 36).padEnd(36)} leakFiles=${String(r.leakFiles).padStart(3)} guard=${r.guardRatio} bigImg=${r.bigImgCount} sideFx=${r.sideEffects}`,
+    `${path.basename(r.dir).slice(0, 36).padEnd(36)} leakFiles=${
+      String(r.leakFiles).padStart(3)
+    } guard=${r.guardRatio} bigImg=${r.bigImgCount} sideFx=${r.sideEffects}`,
   );
+}
 console.log(
   '\n=== leak-API frequency (projects) ===',
   JSON.stringify(
@@ -179,7 +191,11 @@ console.log(
   ),
 );
 console.log(
-  `projects=${results.length} withLeak=${results.filter((r) => r.leakFiles > 0).length} missingSideEffects=${results.filter((r) => r.sideEffects === 'missing').length}`,
+  `projects=${results.length} withLeak=${
+    results.filter((r) => r.leakFiles > 0).length
+  } missingSideEffects=${
+    results.filter((r) => r.sideEffects === 'missing').length
+  }`,
 );
 if (jsonOut) {
   writeFileSync(jsonOut, JSON.stringify({ results, leakFreq }, null, 2));

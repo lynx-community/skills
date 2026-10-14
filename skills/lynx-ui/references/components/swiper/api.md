@@ -54,6 +54,7 @@ export interface SwiperProps<T> {
    *    )}
    *  </Swiper>
    * ```
+   * @docTypeFallback (prop: {index: number, item: T, realIndex: number}) => ReactElement
    */
   children: (prop: RenderFunctionProps<T>) => ReactElement
   /**
@@ -248,7 +249,7 @@ export interface SwiperProps<T> {
   /**
    * Determines how swiper respond to touch in different angle.
    * By default, swiper will only respond to horizontal touches.
-   * Refer to https://lynxjs.org/en/api/elements/built-in/view.html#consume-slide-event for more
+   * Refer to https://lynxjs.org/api/elements/built-in/view.html#consume-slide-event for more
    * @defaultValue [[-180, -135], [-45, 45], [135, 180]]
    * @Android
    * @iOS
@@ -387,6 +388,7 @@ export interface BounceConfig {
    * @iOS
    * @Harmony
    * @zh 当startBounceItem处于回弹状态时，释放手指将调用此函数。
+   * @docTypeFallback (bounceParams: {offset: number, type: 'start' | 'end'}) => void
    */
   onStartBounceItemBounce?: (bounceParams: onBounceParams) => void
   /**                       ·····   ··
@@ -395,12 +397,13 @@ export interface BounceConfig {
    * @iOS
    * @Harmony
    * @zh 当endBounceItem处于回弹状态时，释放手指将调用此函数。
+   * @docTypeFallback (bounceParams: {offset: number, type: 'start' | 'end'}) => void
    */
   onEndBounceItemBounce?: (bounceParams: onBounceParams) => void
   /**
    * Width of bounceItem.
    * When overscroll the bounces, you will have larger and larger resistance, to make overscroll not exceed bounceItemWidth
-   * @defaultValue 100
+   * @defaultValue 50
    * @Android
    * @iOS
    * @Harmony
@@ -410,7 +413,7 @@ export interface BounceConfig {
   /**
    * Width of bounceItem.
    * When overscroll the bounces, you will have larger and larger resistance, to make overscroll not exceed bounceItemWidth
-   * @defaultValue 100
+   * @defaultValue 50
    * @Android
    * @iOS
    * @Harmony
@@ -426,6 +429,7 @@ export interface SwiperRef {
    * @iOS
    * @Harmony
    * @zh 滑动到指定索引的项目
+   * @docTypeFallback (index: number, options?: {animate?: boolean, onFinished?: () => void}) => void
    */
   swipeTo: (index: number, options?: SwipeToOptions) => void
   /**
