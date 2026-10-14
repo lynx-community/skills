@@ -169,7 +169,7 @@ export function createLineStarts(source: string): number[] {
 export function positionAt(
   index: number,
   lineStarts: number[],
-): { line: number; column: number } {
+): { line: number; column: number; } {
   let low = 0;
   let high = lineStarts.length - 1;
 

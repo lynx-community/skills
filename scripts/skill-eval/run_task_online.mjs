@@ -17,8 +17,8 @@ const SKILL_RESOURCE_DIRECTORIES = [
 ];
 
 if (
-  process.argv[1] &&
-  import.meta.url === pathToFileURL(resolve(process.argv[1])).href
+  process.argv[1]
+  && import.meta.url === pathToFileURL(resolve(process.argv[1])).href
 ) {
   main().catch((error) => {
     console.error(error instanceof Error ? error.message : String(error));
@@ -457,8 +457,9 @@ Use exactly this schema:
 }
 
 function buildGraderRepairPrompt(graderResponse, parseError) {
-  const message =
-    parseError instanceof Error ? parseError.message : String(parseError);
+  const message = parseError instanceof Error
+    ? parseError.message
+    : String(parseError);
   return `
 The grader output below could not be parsed as JSON:
 
@@ -491,8 +492,8 @@ async function runOpencode({ files, model, prompt, repoRoot, timeout }) {
       continue;
     }
     if (event.type === 'error') {
-      const message =
-        event.error?.data?.message ?? event.error?.message ?? 'unknown error';
+      const message = event.error?.data?.message ?? event.error?.message
+        ?? 'unknown error';
       throw new Error(`opencode error: ${message}`);
     }
     if (event.type === 'text' && typeof event.part?.text === 'string') {
@@ -683,23 +684,29 @@ async function writeReport(outputDir, report) {
 
 function renderBenchmark(report) {
   const { config_summary: configSummary } = report;
-  return `${[
-    `# ${report.report_title}`,
-    '',
-    `- model: \`${report.model}\``,
-    `- grader_model: \`${report.grader_model}\``,
-    `- with_skill: \`${configSummary.with_skill.passed}/${configSummary.with_skill.total}\` (${formatPercent(configSummary.with_skill.pass_rate)})`,
-    `- without_skill: \`${configSummary.without_skill.passed}/${configSummary.without_skill.total}\` (${formatPercent(configSummary.without_skill.pass_rate)})`,
-    `- delta: \`${formatSignedPercent(configSummary.delta.pass_rate)}\``,
-    '',
-    '| id | name | with_skill | without_skill | skill_invoked |',
-    '| --- | --- | ---: | ---: | --- |',
-    ...report.results.map(
-      (item) =>
-        `| ${item.eval_id} | ${item.eval_name} | ${item.with_skill.summary.passed}/${item.with_skill.summary.total} | ${item.without_skill.summary.passed}/${item.without_skill.summary.total} | ${item.with_skill.skill_invoked} |`,
-    ),
-    '',
-  ].join('\n')}\n`;
+  return `${
+    [
+      `# ${report.report_title}`,
+      '',
+      `- model: \`${report.model}\``,
+      `- grader_model: \`${report.grader_model}\``,
+      `- with_skill: \`${configSummary.with_skill.passed}/${configSummary.with_skill.total}\` (${
+        formatPercent(configSummary.with_skill.pass_rate)
+      })`,
+      `- without_skill: \`${configSummary.without_skill.passed}/${configSummary.without_skill.total}\` (${
+        formatPercent(configSummary.without_skill.pass_rate)
+      })`,
+      `- delta: \`${formatSignedPercent(configSummary.delta.pass_rate)}\``,
+      '',
+      '| id | name | with_skill | without_skill | skill_invoked |',
+      '| --- | --- | ---: | ---: | --- |',
+      ...report.results.map(
+        (item) =>
+          `| ${item.eval_id} | ${item.eval_name} | ${item.with_skill.summary.passed}/${item.with_skill.summary.total} | ${item.without_skill.summary.passed}/${item.without_skill.summary.total} | ${item.with_skill.skill_invoked} |`,
+      ),
+      '',
+    ].join('\n')
+  }\n`;
 }
 
 async function writeText(path, content) {

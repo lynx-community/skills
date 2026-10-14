@@ -8,8 +8,8 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { Readable } from 'node:stream';
 import { pipeline } from 'node:stream/promises';
-import { extract } from 'tar';
 
+import { extract } from 'tar';
 import { WasmEngine } from '../dist/index.js';
 
 function skip(msg) {
@@ -20,10 +20,11 @@ function skip(msg) {
 
 async function downloadBundle(url, cwd) {
   const res = await fetch(url);
-  if (!res.ok || !res.body)
+  if (!res.ok || !res.body) {
     throw new Error(
       `Failed to download ${url}: ${res.status} ${res.statusText}`,
     );
+  }
   await pipeline(
     Readable.fromWeb(res.body),
     extract({ cwd, strip: 2, strict: true }, [
@@ -105,8 +106,9 @@ async function main() {
         const ok = [...found].some((x) => x.startsWith(sym.replace('*', '')));
         if (!ok) throw new Error(`Missing expected symbol prefix '${sym}'`);
       } else {
-        if (!found.has(sym))
+        if (!found.has(sym)) {
           throw new Error(`Missing expected symbol '${sym}'`);
+        }
       }
     }
 

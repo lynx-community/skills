@@ -46,17 +46,23 @@ function formatConsoleMessage({
   stackTrace,
   consoleTag,
 }: ConsoleMessage): string {
-  return `- [${type}/${consoleTag === 'Lepus' ? 'main-thread' : 'background'}]: ${args
-    .map((arg) => {
-      if (arg.objectId) {
-        return `<${arg.description || arg.className || 'Object'} (objectId:${arg.objectId})>`;
-      }
-      return arg.value;
-    })
-    .join(' ')}${
+  return `- [${type}/${
+    consoleTag === 'Lepus' ? 'main-thread' : 'background'
+  }]: ${
+    args
+      .map((arg) => {
+        if (arg.objectId) {
+          return `<${
+            arg.description || arg.className || 'Object'
+          } (objectId:${arg.objectId})>`;
+        }
+        return arg.value;
+      })
+      .join(' ')
+  }${
     stackTrace
-      ? '\n' +
-        stackTrace.callFrames
+      ? '\n'
+        + stackTrace.callFrames
           .map(
             ({ url, lineNumber, columnNumber }) =>
               `    at ${url}:${lineNumber}:${columnNumber}`,
@@ -190,10 +196,12 @@ export function registerGetConsoleCommand(program: Command, context: Context) {
 
       const messages: ConsoleMessage[] = [];
 
-      for await (const value of readUntilIdle(stream, {
-        idleMs: 500,
-        maxMs: 5000,
-      })) {
+      for await (
+        const value of readUntilIdle(stream, {
+          idleMs: 500,
+          maxMs: 5000,
+        })
+      ) {
         if (value.method !== 'Runtime.consoleAPICalled') continue;
         const params = value.params as ConsoleMessage;
         if (!allowedLevels.includes(params.type)) continue;

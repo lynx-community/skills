@@ -106,7 +106,7 @@ function collectDirectiveRanges(
     hasBackgroundOnlyDirective(source, {
       start: range.start + 1,
       end: range.end - 1,
-    }),
+    })
   );
 }
 
@@ -130,7 +130,7 @@ function collectEffectCallRanges(source: string, masked: string): TextRange[] {
 function collectEventHandlerNames(
   source: string,
   masked: string,
-): { names: Set<string>; inlineRanges: TextRange[] } {
+): { names: Set<string>; inlineRanges: TextRange[]; } {
   const names = new Set<string>();
   const inlineRanges: TextRange[] = [];
   EVENT_ATTRIBUTE_PATTERN.lastIndex = 0;
@@ -151,10 +151,12 @@ function collectEventHandlerNames(
   }
 
   EVENT_ATTRIBUTE_STRING_PATTERN.lastIndex = 0;
-  for (const match of collectRegExpMatches(
-    EVENT_ATTRIBUTE_STRING_PATTERN,
-    source,
-  )) {
+  for (
+    const match of collectRegExpMatches(
+      EVENT_ATTRIBUTE_STRING_PATTERN,
+      source,
+    )
+  ) {
     const handlerName = match[4];
     if (handlerName) {
       names.add(handlerName);
@@ -261,7 +263,8 @@ export function analyzeBackgroundOnlyUsage(source: string): Diagnostic[] {
 
     diagnostics.push({
       ruleId: 'detect-background-only',
-      message: `'${match.apiName}' must only be called in background-only contexts (useEffect, useImperativeHandle, ref callback, 'background only' functions, event handlers, or modules marked with import 'background-only').`,
+      message:
+        `'${match.apiName}' must only be called in background-only contexts (useEffect, useImperativeHandle, ref callback, 'background only' functions, event handlers, or modules marked with import 'background-only').`,
       severity: 'error',
       location: {
         start: positionAt(match.start, lineStarts),

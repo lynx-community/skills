@@ -7,6 +7,7 @@ import fs from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import { ReadableStream } from 'node:stream/web';
+
 import type { CDPResponseMessage, Connector } from '@lynx-js/devtool-connector';
 import type { Command } from 'commander';
 import { registerTraceQueryCommands } from './trace-query.ts';
@@ -61,8 +62,8 @@ interface TraceReadDataCommandOptions extends TraceTimeoutCommandOptions {
 }
 
 export type TraceStartResult =
-  | { started: true; restartRequired: false; message: string }
-  | { started: false; restartRequired: true; message: string };
+  | { started: true; restartRequired: false; message: string; }
+  | { started: false; restartRequired: true; message: string; };
 
 export interface TraceEndResult {
   stream: string;
@@ -125,31 +126,31 @@ function parseCategories(
   categories: string | undefined,
   defaultCategories: string[],
 ): string[] {
-  const parsedCategories =
-    categories
-      ?.split(',')
-      .map((category) => category.trim())
-      .filter(Boolean) ?? [];
+  const parsedCategories = categories
+    ?.split(',')
+    .map((category) => category.trim())
+    .filter(Boolean) ?? [];
 
   return parsedCategories.length > 0 ? parsedCategories : defaultCategories;
 }
 
 function traceUnsupportedError(cause: unknown): Error {
   return new Error(
-    'Tracing is not supported by this app or Lynx runtime. Use an Android local_test build ' +
-      `or an iOS Lynx Profile build. See ${TRACE_DOCUMENTATION_URL}`,
+    'Tracing is not supported by this app or Lynx runtime. Use an Android local_test build '
+      + `or an iOS Lynx Profile build. See ${TRACE_DOCUMENTATION_URL}`,
     { cause },
   );
 }
 
 function normalizeTraceStartError(error: unknown): Error {
-  if (!(error instanceof Error))
+  if (!(error instanceof Error)) {
     return new Error(`Trace start failed: ${String(error)}`);
+  }
   if (
-    error.message.includes('Failed to get trace controller') ||
-    error.message.includes('Not implemented:') ||
-    error.message.includes('Tracing not enabled') ||
-    error.message.includes('Failed to start tracing')
+    error.message.includes('Failed to get trace controller')
+    || error.message.includes('Not implemented:')
+    || error.message.includes('Tracing not enabled')
+    || error.message.includes('Failed to start tracing')
   ) {
     return traceUnsupportedError(error);
   }
@@ -232,13 +233,15 @@ export async function runTraceEnd(
       { signal },
     );
 
-    for await (const value of stream as unknown as AsyncIterable<
-      CDPResponseMessage & {
-        method?: string;
-        params?: TraceCompleteParams;
-        error?: { message?: string };
-      }
-    >) {
+    for await (
+      const value of stream as unknown as AsyncIterable<
+        CDPResponseMessage & {
+          method?: string;
+          params?: TraceCompleteParams;
+          error?: { message?: string; };
+        }
+      >
+    ) {
       if (value.error) {
         throw new Error(
           value.error.message || 'Tracing.end returned an unknown CDP error.',
@@ -263,23 +266,25 @@ export async function runTraceEnd(
     }
   } catch (error) {
     if (
-      isAbortError(error) ||
-      (error instanceof Error && error.name === 'TimeoutError')
+      isAbortError(error)
+      || (error instanceof Error && error.name === 'TimeoutError')
     ) {
       throw new Error(
-        `Trace end timed out after ${timeoutMs / 1_000} seconds before Tracing.tracingComplete was received.`,
+        `Trace end timed out after ${
+          timeoutMs / 1_000
+        } seconds before Tracing.tracingComplete was received.`,
         { cause: error },
       );
     }
     if (
-      error instanceof Error &&
-      error.message.includes('Failed to get trace controller')
+      error instanceof Error
+      && error.message.includes('Failed to get trace controller')
     ) {
       throw traceUnsupportedError(error);
     }
     if (
-      error instanceof Error &&
-      error.message.includes('Tracing is not started')
+      error instanceof Error
+      && error.message.includes('Tracing is not started')
     ) {
       throw new Error(
         'Tracing is not started. Run `agent-lynx trace start` first.',
@@ -290,8 +295,8 @@ export async function runTraceEnd(
   }
 
   throw new Error(
-    'Trace stream closed before Tracing.tracingComplete was received. ' +
-      'Make sure tracing was started and the device is still connected.',
+    'Trace stream closed before Tracing.tracingComplete was received. '
+      + 'Make sure tracing was started and the device is still connected.',
   );
 }
 
@@ -354,13 +359,15 @@ export async function runTraceReadData(
       const chunk = await abortable(
         connector.sendCDPMessage<
           TraceIOReadResult,
-          { handle: string; size: number }
+          { handle: string; size: number; }
         >(clientId, -1, 'IO.read', {
           handle: streamHandle,
           size: IO_READ_CHUNK_SIZE,
         }),
         signal,
-        `Trace download timed out after ${timeoutMs / 1_000} seconds while reading stream ${streamHandle}.`,
+        `Trace download timed out after ${
+          timeoutMs / 1_000
+        } seconds while reading stream ${streamHandle}.`,
       );
 
       if (chunk.data) {
@@ -461,8 +468,7 @@ export function registerTraceCommand(program: Command, context: Context): void {
         jsProfileInterval,
         jsProfileType: options.jsProfileType,
       });
-      if (result.started) {
-      } else {
+      if (!result.started) {
         process.exitCode = 1;
       }
       console.log(JSON.stringify({ success: result.started, ...result }));
@@ -514,7 +520,7 @@ export function registerTraceCommand(program: Command, context: Context): void {
       DEFAULT_TIMEOUT_SECONDS,
     )
     .action(
-      async (options: TraceReadDataCommandOptions & { stream: string }) => {
+      async (options: TraceReadDataCommandOptions & { stream: string; }) => {
         const { connector, clientId } = await resolveClient(context, options);
         const result = await runTraceReadData(
           connector,

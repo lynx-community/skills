@@ -31,7 +31,7 @@ export function registerGetCommand(program: Command, context: Context): void {
   text.action(
     async (
       ref: string,
-      options: { client?: string; session?: string; json?: boolean },
+      options: { client?: string; session?: string; json?: boolean; },
     ) => {
       await runSnapshotCommand<GetTextResult>(
         'get-text',

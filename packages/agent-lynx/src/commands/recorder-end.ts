@@ -6,6 +6,7 @@ import fs from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import { ReadableStream } from 'node:stream/web';
+
 import type { CDPResponseMessage, Connector } from '@lynx-js/devtool-connector';
 import type { Command } from 'commander';
 import {
@@ -69,8 +70,8 @@ export async function runRecordingEnd(
 
   if (!Array.isArray(streams) || streams.length === 0) {
     throw new Error(
-      'Recording.recordingComplete did not include any streams. ' +
-        'If recording was never started, run `recorder start` first.',
+      'Recording.recordingComplete did not include any streams. '
+        + 'If recording was never started, run `recorder start` first.',
     );
   }
 
@@ -78,8 +79,8 @@ export async function runRecordingEnd(
     const sessionId = sessionIDs?.[index];
     if (sessionId === undefined) {
       throw new Error(
-        'Recording.recordingComplete returned mismatched `stream` and `sessionIDs` lengths. ' +
-          'Reconnect and retry `recorder end`.',
+        'Recording.recordingComplete returned mismatched `stream` and `sessionIDs` lengths. '
+          + 'Reconnect and retry `recorder end`.',
       );
     }
     if (sessionId === -1) continue;
@@ -117,17 +118,17 @@ export async function runRecordingEnd(
   const unhealthy = diagnostics.filter((d) => !d.healthy);
   if (unhealthy.length > 0) {
     console.warn(
-      'Recording saved, but the following file(s) may be unusable:\n' +
-        unhealthy.map((d) => `  - ${d.file}: ${d.verdict}`).join('\n'),
+      'Recording saved, but the following file(s) may be unusable:\n'
+        + unhealthy.map((d) => `  - ${d.file}: ${d.verdict}`).join('\n'),
     );
   }
 
   const noTemplate = diagnostics.filter((d) => d.healthy && !d.hasTemplate);
   if (noTemplate.length > 0) {
     console.warn(
-      'Note: the following file(s) have no `loadTemplate` action and cannot be replayed,\n' +
-        'but may still be useful for inspecting recorded behavior:\n' +
-        noTemplate.map((d) => `  - ${d.file}: ${d.verdict}`).join('\n'),
+      'Note: the following file(s) have no `loadTemplate` action and cannot be replayed,\n'
+        + 'but may still be useful for inspecting recorded behavior:\n'
+        + noTemplate.map((d) => `  - ${d.file}: ${d.verdict}`).join('\n'),
     );
   }
 
@@ -141,14 +142,15 @@ function buildNoPageRecordingMessage(
   sessionIDs: number[] | undefined,
 ): string {
   const filenames = recordingComplete['filenames'];
-  const nativeFiles =
-    Array.isArray(filenames) && filenames.length > 0
-      ? ` Native filenames: ${JSON.stringify(filenames)}.`
-      : '';
+  const nativeFiles = Array.isArray(filenames) && filenames.length > 0
+    ? ` Native filenames: ${JSON.stringify(filenames)}.`
+    : '';
 
   return [
     'Recording ended, but no page recording was produced.',
-    `Native returned sessionIDs=${JSON.stringify(sessionIDs ?? [])}, streams=${streams.length}.${nativeFiles}`,
+    `Native returned sessionIDs=${
+      JSON.stringify(sessionIDs ?? [])
+    }, streams=${streams.length}.${nativeFiles}`,
     'This usually means no Lynx page session was opened or reloaded after `recorder start`.',
     'To produce a replayable file:',
     `1. Run \`list-sessions --client ${clientId}\` and confirm there is a Lynx session.`,
@@ -174,35 +176,37 @@ async function readRecordingCompleteEvent(
       { signal: timeoutSignal },
     );
 
-    for await (const value of stream as unknown as AsyncIterable<
-      CDPResponseMessage & {
-        method?: string;
-        params?: Record<string, unknown>;
-        error?: { message: string };
-      }
-    >) {
+    for await (
+      const value of stream as unknown as AsyncIterable<
+        CDPResponseMessage & {
+          method?: string;
+          params?: Record<string, unknown>;
+          error?: { message: string; };
+        }
+      >
+    ) {
       if (value.method === 'Recording.recordingComplete') {
         return value.params ?? {};
       }
       if (value.error) {
         throw new Error(
-          `Recording.end failed: ${value.error.message}. ` +
-            'If recording was never started, run `recorder start` first.',
+          `Recording.end failed: ${value.error.message}. `
+            + 'If recording was never started, run `recorder start` first.',
         );
       }
     }
   } catch (err) {
     if (!isTimeoutError(err)) throw err;
     throw new Error(
-      'Recording.end timed out before receiving Recording.recordingComplete. ' +
-        'Make sure recording was started with `recorder start` and the device is still connected.',
+      'Recording.end timed out before receiving Recording.recordingComplete. '
+        + 'Make sure recording was started with `recorder start` and the device is still connected.',
       { cause: err },
     );
   }
 
   throw new Error(
-    'Recording.end stream closed before Recording.recordingComplete was received. ' +
-      'Make sure recording was started with `recorder start` and the device is still connected.',
+    'Recording.end stream closed before Recording.recordingComplete was received. '
+      + 'Make sure recording was started with `recorder start` and the device is still connected.',
   );
 }
 
@@ -217,12 +221,12 @@ async function readStreamFully(
     while (true) {
       const chunk = await abortable(
         connector.sendCDPMessage<
-          { data?: string; base64Encoded?: boolean; eof?: boolean },
+          { data?: string; base64Encoded?: boolean; eof?: boolean; },
           Record<string, unknown>
         >(clientId, -1, 'IO.read', { handle, size: IO_READ_CHUNK_SIZE }),
         signal,
-        `IO.read timed out reading recording stream handle ${handle}. ` +
-          'The device may have stalled; reconnect and retry `recorder end`.',
+        `IO.read timed out reading recording stream handle ${handle}. `
+          + 'The device may have stalled; reconnect and retry `recorder end`.',
       );
       if (chunk.data) {
         chunks.push(
@@ -267,7 +271,9 @@ async function resolveRecordingBaseOutputPath(
   output: string | undefined,
   clientId: string,
 ): Promise<string> {
-  const defaultFileName = `recording-${clientId.replace(/[<>:"/\\|?*()]/g, '_')}-${Date.now()}.json`;
+  const defaultFileName = `recording-${
+    clientId.replace(/[<>:"/\\|?*()]/g, '_')
+  }-${Date.now()}.json`;
   if (!output) {
     return path.resolve(
       os.homedir(),
@@ -279,11 +285,10 @@ async function resolveRecordingBaseOutputPath(
   }
 
   const resolvedOutput = path.resolve(output);
-  const outputLooksLikeDirectory =
-    output.endsWith(path.sep) || output.endsWith('/') || output.endsWith('\\');
-  const outputIsDirectory =
-    outputLooksLikeDirectory ||
-    (await fs
+  const outputLooksLikeDirectory = output.endsWith(path.sep)
+    || output.endsWith('/') || output.endsWith('\\');
+  const outputIsDirectory = outputLooksLikeDirectory
+    || (await fs
       .stat(resolvedOutput)
       .then((stats) => stats.isDirectory())
       .catch(() => false));

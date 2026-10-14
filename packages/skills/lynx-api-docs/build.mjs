@@ -34,7 +34,7 @@ const excludedEntries = new Set([
 
 await Promise.all(
   generatedEntries.map((entry) =>
-    rm(resolve(targetRoot, entry), { recursive: true, force: true }),
+    rm(resolve(targetRoot, entry), { recursive: true, force: true })
   ),
 );
 

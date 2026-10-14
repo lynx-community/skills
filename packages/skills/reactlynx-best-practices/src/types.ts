@@ -6,8 +6,8 @@ export interface Diagnostic {
   message: string;
   severity: 'error' | 'warning' | 'info';
   location: {
-    start: { line: number; column: number };
-    end: { line: number; column: number };
+    start: { line: number; column: number; };
+    end: { line: number; column: number; };
   };
 }
 
@@ -21,8 +21,8 @@ export interface Fix {
   oldCode: string;
   newCode: string;
   location: {
-    start: { line: number; column: number };
-    end: { line: number; column: number };
+    start: { line: number; column: number; };
+    end: { line: number; column: number; };
   };
 }
 

@@ -30,7 +30,8 @@ export function generateFixes(source: string, diagnostic: Diagnostic): Fix[] {
     type: 'add-directive',
     description: "Move to a function with 'background only' directive",
     oldCode: violatingCode,
-    newCode: `function doBackgroundWork() {\n  'background only';\n  ${violatingCode};\n}`,
+    newCode:
+      `function doBackgroundWork() {\n  'background only';\n  ${violatingCode};\n}`,
     location: diagnostic.location,
   });
 
@@ -38,7 +39,8 @@ export function generateFixes(source: string, diagnostic: Diagnostic): Fix[] {
     type: 'move-to-event-handler',
     description: 'Move the call to an event handler (bindtap/catchtap)',
     oldCode: violatingCode,
-    newCode: `function handleTap() {\n  ${violatingCode};\n}\n// Use: <view bindtap={handleTap} />`,
+    newCode:
+      `function handleTap() {\n  ${violatingCode};\n}\n// Use: <view bindtap={handleTap} />`,
     location: diagnostic.location,
   });
 

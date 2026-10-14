@@ -4,6 +4,7 @@
 
 import assert from 'node:assert/strict';
 import test, { type TestContext } from 'node:test';
+
 import {
   type CommandClient,
   type CommandObject,
@@ -316,10 +317,13 @@ function createFixture(t: TestContext): {
 
   const program = new Command();
   program.option('--no-daemon');
-  registerReactLynxCommand(program, {
-    commandClient,
-    transports: [],
-  } satisfies Context);
+  registerReactLynxCommand(
+    program,
+    {
+      commandClient,
+      transports: [],
+    } satisfies Context,
+  );
   return {
     calls,
     parse: async (args) => {

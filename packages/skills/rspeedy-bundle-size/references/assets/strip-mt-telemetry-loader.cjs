@@ -51,19 +51,19 @@ module.exports = function stripMtTelemetryLoader(source) {
           const isTelemetry = (node) => {
             const c = node?.callee;
             if (!c) return false;
-            const member =
-              c.type === 'MemberExpression' ||
-              c.type === 'OptionalMemberExpression';
+            const member = c.type === 'MemberExpression'
+              || c.type === 'OptionalMemberExpression';
             return (
-              member &&
-              c.property &&
-              c.property.type === 'Identifier' &&
-              METHODS.has(c.property.name)
+              member
+              && c.property
+              && c.property.type === 'Identifier'
+              && METHODS.has(c.property.name)
             );
           };
           const handle = (path) => {
-            if (isTelemetry(path.node))
+            if (isTelemetry(path.node)) {
               path.replaceWith(t.unaryExpression('void', t.numericLiteral(0)));
+            }
           };
           return {
             visitor: { CallExpression: handle, OptionalCallExpression: handle },

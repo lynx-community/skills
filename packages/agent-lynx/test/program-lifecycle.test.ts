@@ -3,7 +3,8 @@
 // LICENSE file in the root directory of this source tree.
 
 import assert from 'node:assert/strict';
-import { type TestContext, test } from 'node:test';
+import { test, type TestContext } from 'node:test';
+
 import {
   AndroidTransport,
   DaemonTransport,
@@ -157,7 +158,7 @@ function trackCloses(
   {
     androidError,
     daemonError,
-  }: { androidError?: Error; daemonError?: Error } = {},
+  }: { androidError?: Error; daemonError?: Error; } = {},
 ) {
   const closed = zeroCloses();
   t.mock.method(AndroidTransport.prototype, 'close', async () => {

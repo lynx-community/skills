@@ -56,7 +56,7 @@ export const TakeScreenshot = /*#__PURE__*/ defineTool({
 
     for await (const { method, params: eventParams } of stream) {
       if (method === 'Page.screencastFrame') {
-        const { data } = eventParams as { data: string };
+        const { data } = eventParams as { data: string; };
         if (data) {
           resolve();
           response.attachImage({

@@ -33,7 +33,7 @@ export function registerGetSourcesCommand(program: Command, context: Context) {
 
       const numericSessionId = Number(sessionId);
 
-      const messages: { method: string }[] = [
+      const messages: { method: string; }[] = [
         { method: 'Debugger.disable' },
         { method: 'Debugger.enable' },
       ];
@@ -46,10 +46,12 @@ export function registerGetSourcesCommand(program: Command, context: Context) {
 
       const scripts: ScriptParsedEvent[] = [];
 
-      for await (const value of readUntilIdle(stream, {
-        idleMs: 2000,
-        maxMs: 5000,
-      })) {
+      for await (
+        const value of readUntilIdle(stream, {
+          idleMs: 2000,
+          maxMs: 5000,
+        })
+      ) {
         if (value.method === 'Debugger.scriptParsed') {
           scripts.push(value.params as ScriptParsedEvent);
         }

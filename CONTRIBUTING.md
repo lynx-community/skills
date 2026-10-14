@@ -4,7 +4,7 @@ Thank you for your interest in contributing! This guide will help you get starte
 
 ## Prerequisites
 
-- Node.js 18+
+- Node.js 24 (repository tooling and tests)
 - pnpm 10+
 
 ```bash
@@ -198,3 +198,20 @@ git add -f packages/skills/my-skill/scripts/
 ## Questions?
 
 Open an issue or reach out to the maintainers.
+
+## Code quality
+
+Run `pnpm lint` for Rslint recommended rules and copyright headers through
+`eslint-plugin-headers`, and `pnpm exec dprint check` for formatting.
+Use `pnpm exec rslint --config rslint.config.mjs --fix .` to fix lint issues and
+`pnpm exec dprint fmt` to format files. Keep `node:*` imports in the first group,
+separated from other imports by a blank line so dprint sorts each group separately.
+Husky runs nano-staged on changed files, including package manifest sorting.
+
+The ESLint migration retains the TypeScript recommended preset, copyright rule
+options, existing `eslint-disable` directives, and lint-specific exclusions.
+Rslint reads `.gitignore` directly and provides the Node globals used by the config.
+dprint handles formatting for the other file types; it does not replace Biome's
+CSS or JSON lint rules.
+The Connector keeps its package-local dprint configuration; `pnpm lint` also
+runs its `format:check`, and staged Connector files use that configuration.

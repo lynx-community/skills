@@ -246,7 +246,7 @@ test('the built bin runs offline trace analysis without a device', async (t) => 
     await fs.readFile(eventSummaryPath, 'utf8'),
   ) as {
     success?: boolean;
-    events?: Array<{ name?: string; count?: number }>;
+    events?: Array<{ name?: string; count?: number; }>;
   };
   assert.equal(eventSummary.success, true);
   assert.deepEqual(eventSummary.events, [

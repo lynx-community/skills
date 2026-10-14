@@ -4,21 +4,21 @@ on:
   pull_request:
     branches: [main]
     paths:
-      - 'evals/**'
-      - 'packages/skills/**'
-      - 'packages/plugins/**/skills/**'
-      - 'scripts/skill-eval/**'
-      - '.github/workflows/evals-comment.yml'
-      - '.github/actions/evals-comment/**'
+      - "evals/**"
+      - "packages/skills/**"
+      - "packages/plugins/**/skills/**"
+      - "scripts/skill-eval/**"
+      - ".github/workflows/evals-comment.yml"
+      - ".github/actions/evals-comment/**"
   push:
     branches: [main]
     paths:
-      - 'evals/**'
-      - 'packages/skills/**'
-      - 'packages/plugins/**/skills/**'
-      - 'scripts/skill-eval/**'
-      - '.github/workflows/evals-comment.yml'
-      - '.github/actions/evals-comment/**'
+      - "evals/**"
+      - "packages/skills/**"
+      - "packages/plugins/**/skills/**"
+      - "scripts/skill-eval/**"
+      - ".github/workflows/evals-comment.yml"
+      - ".github/actions/evals-comment/**"
   workflow_dispatch:
 
 permissions:

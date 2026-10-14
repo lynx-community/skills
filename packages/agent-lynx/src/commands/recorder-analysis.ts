@@ -21,7 +21,7 @@ interface Action {
   Params?: Record<string, unknown>;
 }
 
-type RecordingData = Action[] | { 'Action List'?: Action[] };
+type RecordingData = Action[] | { 'Action List'?: Action[]; };
 
 export function analyzeRecordingBuffer(
   filePath: string,
@@ -72,8 +72,8 @@ export function analyzeRecordingBuffer(
   );
   const hasTouchEvents = actions.some(
     (a) =>
-      a['Function Name'] === 'SendTouchEvent' ||
-      a['Function Name'] === 'sendEventDarwin',
+      a['Function Name'] === 'SendTouchEvent'
+      || a['Function Name'] === 'sendEventDarwin',
   );
 
   let healthy: boolean;
@@ -111,8 +111,11 @@ export function recordingOutputPath(
   sessionId: number,
   index: number,
 ): string {
-  const suffix =
-    sessionId > 0 ? `-session${sessionId}` : index > 0 ? `-${index}` : '';
+  const suffix = sessionId > 0
+    ? `-session${sessionId}`
+    : index > 0
+    ? `-${index}`
+    : '';
   if (!suffix) return basePath;
   const parsed = path.parse(basePath);
   return path.join(

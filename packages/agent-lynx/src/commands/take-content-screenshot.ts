@@ -5,6 +5,7 @@
 import { randomUUID } from 'node:crypto';
 import fs from 'node:fs/promises';
 import { setTimeout as delay } from 'node:timers/promises';
+
 import type { Connector } from '@lynx-js/devtool-connector';
 import type { Command } from 'commander';
 import { evaluateExpression } from '../evaluate-expression.ts';
@@ -27,14 +28,14 @@ export type ContentScreenshotResult = {
 };
 
 type ContentScreenshotState =
-  | { status: 'pending' }
-  | { status: 'success'; data: ContentScreenshotResult }
-  | { status: 'error'; error?: unknown }
-  | { status: 'missing' };
+  | { status: 'pending'; }
+  | { status: 'success'; data: ContentScreenshotResult; }
+  | { status: 'error'; error?: unknown; }
+  | { status: 'missing'; };
 
 const UI_METHOD_ERROR_DESCRIPTIONS: Record<
   number,
-  { name: string; message: string }
+  { name: string; message: string; }
 > = {
   1: {
     name: 'UNKNOWN',
@@ -86,7 +87,7 @@ type RuntimeEvaluateResponse = {
   };
   exceptionDetails?: {
     text?: string;
-    exception?: { description?: string };
+    exception?: { description?: string; };
   };
 };
 
@@ -137,7 +138,9 @@ function createContentScreenshotExpression(
 }
 
 function createReadStateExpression(stateKey: string): string {
-  return `JSON.stringify(globalThis[${JSON.stringify(stateKey)}]||{status:"missing"})`;
+  return `JSON.stringify(globalThis[${
+    JSON.stringify(stateKey)
+  }]||{status:"missing"})`;
 }
 
 function createDeleteStateExpression(stateKey: string): string {
@@ -149,15 +152,15 @@ function runtimeEvaluationError(
 ): string | undefined {
   if (response.exceptionDetails) {
     return (
-      response.exceptionDetails.exception?.description ??
-      response.exceptionDetails.text ??
-      JSON.stringify(response.exceptionDetails)
+      response.exceptionDetails.exception?.description
+        ?? response.exceptionDetails.text
+        ?? JSON.stringify(response.exceptionDetails)
     );
   }
   if (response.result?.subtype === 'error') {
     return (
-      response.result.description ??
-      String(response.result.value ?? 'Runtime evaluation failed')
+      response.result.description
+        ?? String(response.result.value ?? 'Runtime evaluation failed')
     );
   }
   return undefined;
@@ -174,16 +177,20 @@ function parseContentScreenshotState(
   const value = response.result?.value;
   if (typeof value !== 'string') {
     throw new Error(
-      `Runtime.evaluate returned an unexpected result: ${JSON.stringify(response)}`,
+      `Runtime.evaluate returned an unexpected result: ${
+        JSON.stringify(response)
+      }`,
     );
   }
 
   try {
     const state = JSON.parse(value) as Partial<ContentScreenshotState>;
     if (
-      !state ||
-      typeof state !== 'object' ||
-      !['pending', 'success', 'error', 'missing'].includes(state.status ?? '')
+      !state
+      || typeof state !== 'object'
+      || !['pending', 'success', 'error', 'missing'].includes(
+        state.status ?? '',
+      )
     ) {
       throw new Error('unknown screenshot state');
     }
@@ -202,15 +209,19 @@ function describeContentScreenshotError(error: unknown): string {
     const record = error as Record<string, unknown>;
     const detail = record['message'] ?? record['data'];
     const code = record['code'];
-    const description =
-      typeof code === 'number' ? UI_METHOD_ERROR_DESCRIPTIONS[code] : undefined;
+    const description = typeof code === 'number'
+      ? UI_METHOD_ERROR_DESCRIPTIONS[code]
+      : undefined;
     if (description) {
-      const runtimeDetail =
-        detail === undefined ? '' : ` Runtime detail: ${String(detail)}`;
+      const runtimeDetail = detail === undefined
+        ? ''
+        : ` Runtime detail: ${String(detail)}`;
       return `[code ${code} ${description.name}] ${description.message}${runtimeDetail}`;
     }
     if (detail !== undefined) {
-      return `${code === undefined ? '' : `[code ${String(code)}] `}${String(detail)}`;
+      return `${code === undefined ? '' : `[code ${String(code)}] `}${
+        String(detail)
+      }`;
     }
   }
   try {
@@ -224,16 +235,18 @@ function validateContentScreenshotResult(
   data: ContentScreenshotResult,
 ): ContentScreenshotResult {
   if (
-    !data ||
-    typeof data !== 'object' ||
-    typeof data.data !== 'string' ||
-    !Number.isFinite(data.width) ||
-    data.width <= 0 ||
-    !Number.isFinite(data.height) ||
-    data.height <= 0
+    !data
+    || typeof data !== 'object'
+    || typeof data.data !== 'string'
+    || !Number.isFinite(data.width)
+    || data.width <= 0
+    || !Number.isFinite(data.height)
+    || data.height <= 0
   ) {
     throw new Error(
-      `takeContentScreenshot returned an invalid payload: ${JSON.stringify(data)}`,
+      `takeContentScreenshot returned an invalid payload: ${
+        JSON.stringify(data)
+      }`,
     );
   }
   return data;
@@ -258,13 +271,16 @@ function resolveCompletedState(
   state: ContentScreenshotState,
   selector: string,
 ): ContentScreenshotResult | undefined {
-  if (state.status === 'success')
+  if (state.status === 'success') {
     return validateContentScreenshotResult(state.data);
+  }
   if (state.status === 'error') {
     throw new Error(
-      `takeContentScreenshot failed for selector ${JSON.stringify(selector)}: ${describeContentScreenshotError(
-        state.error,
-      )}`,
+      `takeContentScreenshot failed for selector ${JSON.stringify(selector)}: ${
+        describeContentScreenshotError(
+          state.error,
+        )
+      }`,
     );
   }
   if (state.status === 'missing') {
@@ -283,12 +299,11 @@ export async function takeContentScreenshot(
   options: ContentScreenshotOptions,
 ): Promise<ContentScreenshotResult> {
   const timeoutMs = options.timeoutMs ?? CONTENT_SCREENSHOT_TIMEOUT_MS;
-  const pollIntervalMs =
-    options.pollIntervalMs ?? CONTENT_SCREENSHOT_POLL_INTERVAL_MS;
+  const pollIntervalMs = options.pollIntervalMs
+    ?? CONTENT_SCREENSHOT_POLL_INTERVAL_MS;
   const waitForPoll = options.waitForPoll ?? delay;
-  const stateKey =
-    options.stateKey ??
-    `__lynxDevtoolContentScreenshot_${randomUUID().replaceAll('-', '')}`;
+  const stateKey = options.stateKey
+    ?? `__lynxDevtoolContentScreenshot_${randomUUID().replaceAll('-', '')}`;
   const deadline = Date.now() + timeoutMs;
 
   try {
@@ -325,7 +340,9 @@ export async function takeContentScreenshot(
     }
 
     throw new Error(
-      `Timed out waiting for takeContentScreenshot on selector ${JSON.stringify(selector)} after ${timeoutMs}ms.`,
+      `Timed out waiting for takeContentScreenshot on selector ${
+        JSON.stringify(selector)
+      } after ${timeoutMs}ms.`,
     );
   } finally {
     await evaluateRuntime(
@@ -413,8 +430,8 @@ export function registerTakeContentScreenshotCommand(
         { format, scale },
       );
       const decoded = decodeContentScreenshotDataUrl(result.data);
-      const fileName =
-        options.output ?? `content-screenshot-${Date.now()}.${decoded.format}`;
+      const fileName = options.output
+        ?? `content-screenshot-${Date.now()}.${decoded.format}`;
       await fs.writeFile(fileName, decoded.bytes);
 
       console.log(

@@ -6,7 +6,8 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
-import { type TestContext, test } from 'node:test';
+import { test, type TestContext } from 'node:test';
+
 import { Command } from 'commander';
 import {
   discoverSkillDependencyNames,
@@ -41,7 +42,7 @@ async function writeFile(
 
 async function writeSkill(
   skillRoot: string,
-  options: { name?: string; description?: string; body?: string } = {},
+  options: { name?: string; description?: string; body?: string; } = {},
 ): Promise<void> {
   await writeFile(
     skillRoot,
@@ -167,15 +168,17 @@ test('list and get support multiple canonical package skills', async (t) => {
   );
   const renderedList = renderAvailableSkills(skills);
   assert.ok(
-    renderedList.indexOf('<name>lynx-devtool</name>') <
-      renderedList.indexOf('<name>lynx-trace-analysis</name>'),
+    renderedList.indexOf('<name>lynx-devtool</name>')
+      < renderedList.indexOf('<name>lynx-trace-analysis</name>'),
   );
 
   const output: string[] = [];
   const errors: string[] = [];
   t.mock.method(console, 'log', (value: unknown) => output.push(String(value)));
-  t.mock.method(console, 'error', (value: unknown) =>
-    errors.push(String(value)),
+  t.mock.method(
+    console,
+    'error',
+    (value: unknown) => errors.push(String(value)),
   );
   const originalExitCode = process.exitCode;
   t.after(() => {
@@ -308,10 +311,14 @@ test('duplicate canonical skill names fail with both source locations', async (t
   await assert.rejects(
     readSkillDocuments([firstSkillRoot, secondSkillRoot]),
     new RegExp(
-      `Duplicate skill name "duplicate" in ${path.join(firstSkillRoot, 'SKILL.md')} and ${path.join(
-        secondSkillRoot,
-        'SKILL.md',
-      )}\\.`,
+      `Duplicate skill name "duplicate" in ${
+        path.join(firstSkillRoot, 'SKILL.md')
+      } and ${
+        path.join(
+          secondSkillRoot,
+          'SKILL.md',
+        )
+      }\\.`,
     ),
   );
 });

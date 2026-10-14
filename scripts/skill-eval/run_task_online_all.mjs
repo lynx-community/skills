@@ -51,7 +51,9 @@ async function main() {
     }
 
     console.info(
-      `[skill-eval] task_online skill=${slug} eval_ids=${evalIds.join(',') || 'all'}`,
+      `[skill-eval] task_online skill=${slug} eval_ids=${
+        evalIds.join(',') || 'all'
+      }`,
     );
     if (args.dryRun) {
       console.info(
@@ -74,9 +76,13 @@ async function main() {
 
   if (failures.length > 0) {
     console.error(
-      `[skill-eval] ${failures.length} task eval suite${failures.length === 1 ? '' : 's'} failed: ${failures
-        .map((failure) => `${failure.slug}(${failure.exitCode})`)
-        .join(', ')}`,
+      `[skill-eval] ${failures.length} task eval suite${
+        failures.length === 1 ? '' : 's'
+      } failed: ${
+        failures
+          .map((failure) => `${failure.slug}(${failure.exitCode})`)
+          .join(', ')
+      }`,
     );
     process.exitCode = 1;
   }
@@ -91,12 +97,12 @@ function parseArgs(argv) {
     else if (arg === '--model') args.model = argv[++index];
     else if (arg === '--grader-model') args.graderModel = argv[++index];
     else if (arg === '--timeout') args.timeout = Number(argv[++index]);
-    else if (arg === '--min-pass-rate')
+    else if (arg === '--min-pass-rate') {
       args.minPassRate = Number(argv[++index]);
-    else if (arg === '--eval-ids') args.evalIds = argv[++index];
-    else if (arg === '--max-evals-per-skill')
+    } else if (arg === '--eval-ids') args.evalIds = argv[++index];
+    else if (arg === '--max-evals-per-skill') {
       args.maxEvalsPerSkill = Number(argv[++index]);
-    else if (arg === '--skip-skills') args.skipSkills = argv[++index];
+    } else if (arg === '--skip-skills') args.skipSkills = argv[++index];
     else if (arg === '--output-root') args.outputRoot = argv[++index];
     else if (arg === '--dry-run') args.dryRun = true;
     else throw new Error(`Unknown argument: ${arg}`);

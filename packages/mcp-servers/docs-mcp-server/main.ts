@@ -4,46 +4,21 @@
 // Licensed under the Apache License Version 2.0 that can be found in the
 // LICENSE file in the root directory of this source tree.
 import { readFile } from 'node:fs/promises';
-import { dirname } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { findPackageJSON } from 'node:module';
 
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import { Command } from 'commander';
-import createDebug from 'debug';
-import * as findPackage from 'empathic/package';
 import type { Link, Node } from 'mdast';
 import { fromMarkdown } from 'mdast-util-from-markdown';
 import { toMarkdown } from 'mdast-util-to-markdown';
-import { fetch } from 'undici';
-
-// NOTE: Un comment below to enable caching and debug for undici fetch requests
-// import {
-//   interceptors,
-//   EnvHttpProxyAgent
-//   setGlobalDispatcher,
-//   // @ts-expect-error missing types
-//   cacheStores,
-// } from 'undici';
-// const agent = new EnvHttpProxyAgent().compose(
-//   interceptors.cache({
-//     store: new cacheStores.MemoryCacheStore({
-//       maxSize: 100 * 1024 * 1024, // 100MB
-//       maxCount: 1000,
-//       maxEntrySize: 5 * 1024 * 1024, // 5MB
-//     }),
-//     methods: ['GET', 'HEAD'], // Optional: specify which methods to cache
-//   }),
-// );
-// setGlobalDispatcher(agent);
+import { createDebug } from 'obug';
 
 const debug = createDebug('lynx-docs-mcp');
 
-const moduleDirPath = dirname(fileURLToPath(import.meta.url));
-const pkgPath = findPackage.up({ cwd: moduleDirPath });
-
+const pkgPath = findPackageJSON(import.meta.url);
 if (!pkgPath) {
-  throw new Error(`Failed to locate package.json from ${moduleDirPath}`);
+  throw new Error(`Failed to locate package.json from ${import.meta.url}`);
 }
 
 const pkg = JSON.parse(await readFile(pkgPath, 'utf-8')) as {
@@ -99,9 +74,9 @@ async function crawlAndRegisterResources(
       const base = new URL(baseURL);
       const u = new URL(link.url);
       if (
-        u.hostname === base.hostname ||
+        u.hostname === base.hostname
         // Some links may be absolute URLs to lynxjs.org
-        u.hostname === 'lynxjs.org'
+        || u.hostname === 'lynxjs.org'
       ) {
         // Strip versioned path prefixes like /next/ or /1.2.3/
         const strippedUrl = u.pathname.replace(
@@ -293,7 +268,7 @@ Usage as a MCP Server:
   }
 `,
   )
-  .action(async (options: { baseUrl: string }) => {
+  .action(async (options: { baseUrl: string; }) => {
     await main(
       // need to remove trailing slash if any
       options.baseUrl.replace(/\/+$/, ''),

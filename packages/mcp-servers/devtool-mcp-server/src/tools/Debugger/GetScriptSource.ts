@@ -5,6 +5,7 @@
 import fs from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
+
 import * as z from 'zod';
 import { clientId, scriptId, sessionId } from '../../schema/index.ts';
 import { defineTool } from '../defineTool.ts';
@@ -33,8 +34,8 @@ export const GetScriptSource = /*#__PURE__*/ defineTool({
     const connector = context.connector();
 
     const { scriptSource } = await connector.sendCDPMessage<
-      { scriptSource: string },
-      { scriptId: string }
+      { scriptSource: string; },
+      { scriptId: string; }
     >(params.clientId, params.sessionId, 'Debugger.getScriptSource', {
       scriptId: params.scriptId,
     });

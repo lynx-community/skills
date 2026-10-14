@@ -5,6 +5,7 @@
 import assert from 'node:assert/strict';
 import { ReadableStream, WritableStream } from 'node:stream/web';
 import test from 'node:test';
+
 import type {
   Connection,
   Transport,
@@ -39,7 +40,7 @@ class FakeOpenTransport implements Transport {
     Connection<TOutput, TInput>
   > {
     let outputController:
-      | { enqueue(chunk: unknown): void; close(): void }
+      | { enqueue(chunk: unknown): void; close(): void; }
       | undefined;
     const readable = new ReadableStream<unknown>({
       start(controller) {

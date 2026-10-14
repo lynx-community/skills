@@ -2,7 +2,7 @@
 // Licensed under the Apache License Version 2.0 that can be found in the
 // LICENSE file in the root directory of this source tree.
 import { readdir, readFile } from 'node:fs/promises';
-import { resolve } from 'node:path';
+import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import type { CompatibilityRow } from './availability.js';
 import { createCompatibilityRows } from './availability.js';
@@ -54,7 +54,7 @@ async function readPackageSource(root: string): Promise<PackageSource> {
 }
 
 function getBundledPackageRoot(): string {
-  return fileURLToPath(new URL('./css-defines', import.meta.url));
+  return resolve(dirname(fileURLToPath(import.meta.url)), 'css-defines');
 }
 
 export async function getBundledPackageVersion(): Promise<NumericVersion> {
@@ -74,8 +74,8 @@ async function readDefinition(
     }
     const definitionName = candidate.slice(separator + 1, -'.json'.length);
     return (
-      definitionName === property ||
-      (property.startsWith('-') && definitionName === property.slice(1))
+      definitionName === property
+      || (property.startsWith('-') && definitionName === property.slice(1))
     );
   });
 
@@ -108,7 +108,7 @@ async function readBundledDefinition(propertyInput: string): Promise<{
 function selectCompatStatement(
   definition: Definition,
   featureInput: string | undefined,
-): { readonly feature: string; readonly statement: CompatStatement } | null {
+): { readonly feature: string; readonly statement: CompatStatement; } | null {
   if (definition.compat_data === null || definition.compat_data === undefined) {
     if (featureInput !== undefined) {
       const feature = FeatureNameSchema.parse(featureInput);
@@ -141,7 +141,9 @@ function selectCompatStatement(
       .filter((name) => name !== '__compat')
       .join(', ');
     throw new QueryError(
-      `Unknown feature ${definition.name}.${feature}. Available features: ${available || 'none'}`,
+      `Unknown feature ${definition.name}.${feature}. Available features: ${
+        available || 'none'
+      }`,
     );
   }
   return { feature, statement: selected.__compat };
@@ -153,29 +155,28 @@ export async function queryCompatibility(
 ): Promise<QueryResult> {
   const { definition, source } = await readBundledDefinition(propertyInput);
   const selected = selectCompatStatement(definition, options.feature);
-  const targetVersion =
-    options.lynxVersion === undefined
-      ? undefined
-      : NumericVersionSchema.parse(options.lynxVersion);
-  const backend =
-    options.backend === undefined
-      ? undefined
-      : BackendNameSchema.parse(options.backend);
+  const targetVersion = options.lynxVersion === undefined
+    ? undefined
+    : NumericVersionSchema.parse(options.lynxVersion);
+  const backend = options.backend === undefined
+    ? undefined
+    : BackendNameSchema.parse(options.backend);
 
   if (
-    selected !== null &&
-    backend !== undefined &&
-    !Object.hasOwn(selected.statement.support, backend)
+    selected !== null
+    && backend !== undefined
+    && !Object.hasOwn(selected.statement.support, backend)
   ) {
     throw new QueryError(
-      `Unknown backend: ${backend}. Available backends: ${Object.keys(selected.statement.support).join(', ')}`,
+      `Unknown backend: ${backend}. Available backends: ${
+        Object.keys(selected.statement.support).join(', ')
+      }`,
     );
   }
 
-  const compatibility =
-    selected === null
-      ? null
-      : createCompatibilityRows(selected.statement, targetVersion, backend);
+  const compatibility = selected === null
+    ? null
+    : createCompatibilityRows(selected.statement, targetVersion, backend);
 
   return {
     package: {

@@ -18,7 +18,7 @@ export function renderJson(result: CommandResult): string {
 /** Keep rendering at the CLI edge; ActionCore owns execution and result shape. */
 export async function runCommand<T>(
   action: string,
-  options: { json?: boolean },
+  options: { json?: boolean; },
   handler: () => Promise<CommandResult<T>>,
   renderText: (data: T) => string,
   renderJsonData?: (data: T) => unknown,
@@ -62,7 +62,7 @@ function validateDaemonInvocation(
   command: Command,
   noDaemonMessage: string,
 ): CommandResult<never> | null {
-  const options = command.optsWithGlobals<{ daemon?: boolean }>();
+  const options = command.optsWithGlobals<{ daemon?: boolean; }>();
   if (options.daemon === false) {
     return fail(
       action,
@@ -82,7 +82,7 @@ function validateDaemonInvocation(
 export async function runSnapshotCommand<T>(
   action: string,
   command: Command,
-  options: { json?: boolean },
+  options: { json?: boolean; },
   handler: () => Promise<CommandResult<T>>,
   renderText: (data: T) => string,
 ): Promise<void> {
@@ -103,7 +103,7 @@ export async function runSnapshotCommand<T>(
 export async function runReactLynxCommand<T>(
   action: string,
   command: Command,
-  options: { json?: boolean },
+  options: { json?: boolean; },
   handler: () => Promise<CommandResult<T>>,
   renderText: (data: T) => string,
   renderJsonData: (data: T) => unknown,

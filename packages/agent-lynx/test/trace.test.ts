@@ -8,6 +8,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { ReadableStream } from 'node:stream/web';
 import { describe, test } from 'node:test';
+
 import { Connector } from '@lynx-js/devtool-connector';
 import { Command } from 'commander';
 import {
@@ -19,7 +20,7 @@ import {
 import type { Context } from '../src/commands/utils.ts';
 
 interface MockTraceConnector extends Connector {
-  calls: Array<{ method: string; args: unknown[] }>;
+  calls: Array<{ method: string; args: unknown[]; }>;
 }
 
 interface MockTraceConnectorOptions {
@@ -27,14 +28,14 @@ interface MockTraceConnectorOptions {
   debugMode?: boolean;
   startError?: Error;
   endEvents?: unknown[];
-  ioChunks?: Array<{ data?: string; base64Encoded?: boolean; eof?: boolean }>;
+  ioChunks?: Array<{ data?: string; base64Encoded?: boolean; eof?: boolean; }>;
   ioReadErrorAt?: number;
 }
 
 function createMockConnector(
   options: MockTraceConnectorOptions = {},
 ): MockTraceConnector {
-  const calls: Array<{ method: string; args: unknown[] }> = [];
+  const calls: Array<{ method: string; args: unknown[]; }> = [];
   let debugMode = options.debugMode ?? true;
   let ioReadCount = 0;
 
@@ -45,10 +46,9 @@ function createMockConnector(
       return Promise.resolve([
         {
           id: 'test-client',
-          info:
-            options.appProcessName === undefined
-              ? {}
-              : { AppProcessName: options.appProcessName },
+          info: options.appProcessName === undefined
+            ? {}
+            : { AppProcessName: options.appProcessName },
         },
       ]);
     },
@@ -96,8 +96,9 @@ function createMockConnector(
       const stream = new ReadableStream<unknown>({
         start(currentController) {
           controller = currentController;
-          for (const event of options.endEvents ?? [])
+          for (const event of options.endEvents ?? []) {
             currentController.enqueue(event);
+          }
           currentController.close();
         },
       });
@@ -238,18 +239,20 @@ describe('runTraceStart', () => {
 });
 
 describe('trace start command', () => {
-  for (const { name, args, expectedEnableSystrace } of [
-    {
-      name: 'enables systrace by default',
-      args: [] as string[],
-      expectedEnableSystrace: true,
-    },
-    {
-      name: 'disables systrace with --no-systrace',
-      args: ['--no-systrace'],
-      expectedEnableSystrace: false,
-    },
-  ]) {
+  for (
+    const { name, args, expectedEnableSystrace } of [
+      {
+        name: 'enables systrace by default',
+        args: [] as string[],
+        expectedEnableSystrace: true,
+      },
+      {
+        name: 'disables systrace with --no-systrace',
+        args: ['--no-systrace'],
+        expectedEnableSystrace: false,
+      },
+    ]
+  ) {
     test(name, async (t) => {
       const startParams: Array<Record<string, unknown>> = [];
       t.mock.method(Connector.prototype, 'listClients', async () => [
@@ -267,8 +270,9 @@ describe('trace start command', () => {
           method: string,
           params: unknown,
         ) => {
-          if (method === 'Tracing.start')
+          if (method === 'Tracing.start') {
             startParams.push(params as Record<string, unknown>);
+          }
           return {};
         },
       );
@@ -323,8 +327,9 @@ describe('trace start command', () => {
         method: string,
         params: unknown,
       ) => {
-        if (method === 'Tracing.start')
+        if (method === 'Tracing.start') {
           startParams.push(params as Record<string, unknown>);
+        }
         return {};
       },
     );

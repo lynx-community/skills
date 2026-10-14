@@ -76,7 +76,7 @@ test('resolves and caches the canonical package dist-tag', async (t) => {
       path.join(cacheRoot, 'agent-lynx', 'update-check.json'),
       'utf8',
     ),
-  ) as { latest: string };
+  ) as { latest: string; };
   assert.equal(cache.latest, '1.0.76');
 });
 
@@ -98,7 +98,7 @@ test('treats an empty XDG cache directory as unset', async (t) => {
       path.join(cacheRoot, 'agent-lynx', 'update-check.json'),
       'utf8',
     ),
-  ) as { latest: string };
+  ) as { latest: string; };
   assert.equal(cache.latest, '1.0.76');
 });
 
@@ -109,25 +109,27 @@ test('treats empty registry environment variables as unset', async (t) => {
   t.after(() => rm(cacheRoot, { force: true, recursive: true }));
   const requests: string[] = [];
 
-  for (const [name, registryEnv, expectedUrl] of [
-    [
-      'inherited',
-      {
-        AGENT_LYNX_UPDATE_REGISTRY: '',
-        npm_config_registry: 'https://registry.example.test/fallback/',
-      },
-      'https://registry.example.test/fallback/-/package/agent-lynx/dist-tags',
-    ],
-    [
-      'default',
-      {
-        AGENT_LYNX_UPDATE_REGISTRY: '',
-        npm_config_registry: '',
-        NPM_CONFIG_REGISTRY: '',
-      },
-      'https://registry.npmjs.org/-/package/agent-lynx/dist-tags',
-    ],
-  ] as const) {
+  for (
+    const [name, registryEnv, expectedUrl] of [
+      [
+        'inherited',
+        {
+          AGENT_LYNX_UPDATE_REGISTRY: '',
+          npm_config_registry: 'https://registry.example.test/fallback/',
+        },
+        'https://registry.example.test/fallback/-/package/agent-lynx/dist-tags',
+      ],
+      [
+        'default',
+        {
+          AGENT_LYNX_UPDATE_REGISTRY: '',
+          npm_config_registry: '',
+          NPM_CONFIG_REGISTRY: '',
+        },
+        'https://registry.npmjs.org/-/package/agent-lynx/dist-tags',
+      ],
+    ] as const
+  ) {
     await resolveUpdateNotice({
       currentVersion: '1.0.64',
       env: { XDG_CACHE_HOME: path.join(cacheRoot, name), ...registryEnv },
@@ -175,11 +177,13 @@ test('registry failures are silent and cached briefly', async (t) => {
 });
 
 test('an explicit or inherited offline mode disables the registry request', async () => {
-  for (const env of [
-    { AGENT_LYNX_DISABLE_UPDATE_NOTICE: '1' },
-    { CODEX_SANDBOX_NETWORK_DISABLED: '1' },
-    { npm_config_offline: 'true' },
-  ]) {
+  for (
+    const env of [
+      { AGENT_LYNX_DISABLE_UPDATE_NOTICE: '1' },
+      { CODEX_SANDBOX_NETWORK_DISABLED: '1' },
+      { npm_config_offline: 'true' },
+    ]
+  ) {
     assert.equal(
       await resolveUpdateNotice({
         currentVersion: '1.0.64',
@@ -194,12 +198,14 @@ test('an explicit or inherited offline mode disables the registry request', asyn
 
 test('writes every update notice to stderr without changing stdout', async () => {
   assert.equal('command' in NOTICE, false);
-  for (const output of [
-    '{\n  "ok": true\n}\n',
-    '[\n  { "id": "client" }\n]\n',
-    '{"first":true}\n{"second":true}\n',
-    'snapshot tree\n',
-  ]) {
+  for (
+    const output of [
+      '{\n  "ok": true\n}\n',
+      '[\n  { "id": "client" }\n]\n',
+      '{"first":true}\n{"second":true}\n',
+      'snapshot tree\n',
+    ]
+  ) {
     const stdout = memoryWriter();
     const stderr = memoryWriter();
     await withUpdateNotice(
@@ -277,7 +283,7 @@ test('does not buffer streaming stdout while waiting for the notice', async () =
 
 function memoryWriter(): {
   read(): string;
-  writer: { write: (chunk: string | Uint8Array) => boolean };
+  writer: { write: (chunk: string | Uint8Array) => boolean; };
 } {
   const chunks: Buffer[] = [];
   return {

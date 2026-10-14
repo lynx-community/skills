@@ -58,7 +58,9 @@ export function registerScrollCommand(
             snapshotAfter: options.snapshot ?? false,
           }),
         (data) =>
-          `Scrolled ${data.ref} ${data.direction}. ${formatSnapshotRefresh(data)}`,
+          `Scrolled ${data.ref} ${data.direction}. ${
+            formatSnapshotRefresh(data)
+          }`,
       );
     },
   );

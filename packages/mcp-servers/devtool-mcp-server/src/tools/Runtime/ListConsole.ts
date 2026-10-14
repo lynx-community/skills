@@ -3,6 +3,7 @@
 // LICENSE file in the root directory of this source tree.
 
 import { ReadableStream } from 'node:stream/web';
+
 import * as z from 'zod';
 import { clientId, sessionId, thread } from '../../schema/index.ts';
 import { raceWithTimeout } from '../../utils/raceWithTimeout.ts';
@@ -153,21 +154,29 @@ export const ListConsole = /*#__PURE__*/ defineTool({
     response.appendLines(
       ...messages.map(
         ({ type, args, stackTrace, consoleTag }) =>
-          `- [${type}/${consoleTag === 'Lepus' ? 'main-thread' : 'background'}]: ${args
-            .map((arg) => {
-              if (arg.objectId) {
-                return `<${arg.description || arg.className || 'Object'} (objectId:${arg.objectId})>`;
-              }
-              return String(arg.value);
-            })
-            .join(' ')}${
+          `- [${type}/${
+            consoleTag === 'Lepus' ? 'main-thread' : 'background'
+          }]: ${
+            args
+              .map((arg) => {
+                if (arg.objectId) {
+                  return `<${
+                    arg.description || arg.className || 'Object'
+                  } (objectId:${arg.objectId})>`;
+                }
+                return String(arg.value);
+              })
+              .join(' ')
+          }${
             stackTrace
-              ? `\n${stackTrace.callFrames
+              ? `\n${
+                stackTrace.callFrames
                   .map(
                     ({ url, lineNumber, columnNumber }) =>
                       `    at ${url}:${lineNumber}:${columnNumber}`,
                   )
-                  .join('\n')}`
+                  .join('\n')
+              }`
               : ''
           }`,
       ),

@@ -47,7 +47,7 @@ describe('Runtime.evaluate', () => {
       connector as never,
       'test-client-id:9999',
     );
-    const result = await call<{ result: { type: string; value: number } }>({
+    const result = await call<{ result: { type: string; value: number; }; }>({
       expression: '2 + 2',
       generatePreview: true,
       objectGroup: 'mcp',
@@ -110,13 +110,15 @@ describe('Runtime.evaluate', () => {
     ]);
   });
 
-  for (const [name, runtimeGlobal] of [
-    ['multiApps is unavailable', {}],
-    [
-      'the current app has no lynx object',
-      { multiApps: { app: {} }, currentAppId: 'app' },
-    ],
-  ] as const) {
+  for (
+    const [name, runtimeGlobal] of [
+      ['multiApps is unavailable', {}],
+      [
+        'the current app has no lynx object',
+        { multiApps: { app: {} }, currentAppId: 'app' },
+      ],
+    ] as const
+  ) {
     test(`evaluates the original expression when ${name}`, async () => {
       const connector = {
         sendCDPMessage: async (
@@ -139,7 +141,7 @@ describe('Runtime.evaluate', () => {
         connector as never,
         'test-client-id:9999',
       );
-      const result = await call<{ result: { type: string; value: number } }>({
+      const result = await call<{ result: { type: string; value: number; }; }>({
         expression: '2 + 2',
       });
 
@@ -180,7 +182,7 @@ describe('Runtime.getProperties', () => {
       connector as never,
       'test-client-id:9999',
     );
-    const result = await call<{ result: Array<{ name: string }> }>({
+    const result = await call<{ result: Array<{ name: string; }>; }>({
       objectId: 'remote-object-id',
       ownProperties: true,
       thread: 'main',

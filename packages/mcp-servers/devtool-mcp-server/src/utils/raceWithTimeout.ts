@@ -9,7 +9,7 @@ export async function raceWithTimeout<T, TimeoutValue>(
   operation: PromiseLike<T>,
   timeoutMs: number,
   timeoutValue: TimeoutValue,
-  options?: { signal?: AbortSignal },
+  options?: { signal?: AbortSignal; },
 ): Promise<T | TimeoutValue> {
   const controller = new AbortController();
   const signal = options?.signal

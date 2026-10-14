@@ -43,7 +43,7 @@ describe('Page resource tools', () => {
       connector as never,
       'test-client-id:9999',
     );
-    const result = await call<{ frameTree: { frame: { id: string } } }>({});
+    const result = await call<{ frameTree: { frame: { id: string; }; }; }>({});
 
     assert.deepStrictEqual(sentMessages, [
       {
@@ -77,7 +77,7 @@ describe('Page resource tools', () => {
       connector as never,
       'test-client-id:9999',
     );
-    const result = await call<{ content: string; base64Encoded: boolean }>({
+    const result = await call<{ content: string; base64Encoded: boolean; }>({
       url: 'lynx://page/template.js',
       frameId: 'frame-1',
     });

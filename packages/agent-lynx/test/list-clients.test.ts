@@ -3,6 +3,7 @@
 // LICENSE file in the root directory of this source tree.
 
 import test from 'node:test';
+
 import type { Client } from '@lynx-js/devtool-connector/transport';
 import { runListClientsCommand } from '../src/commands/list-clients.ts';
 

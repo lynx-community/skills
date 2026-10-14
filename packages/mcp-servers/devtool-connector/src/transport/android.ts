@@ -2,7 +2,7 @@
 // Licensed under the Apache License Version 2.0 that can be found in the
 // LICENSE file in the root directory of this source tree.
 import { type Adb, AdbServerClient } from "@yume-chan/adb";
-import { AdbServerNodeTcpConnector } from "@yume-chan/adb-server-node-tcp";
+import { AdbServerNodeJsTcpConnector } from "@yume-chan/adb-server-node-tcp";
 import { ReadableStream } from "@yume-chan/stream-extra";
 import type { SocketConnectOpts } from "node:net";
 import { createDebug } from "obug";
@@ -86,8 +86,8 @@ export class AndroidTransport implements Transport {
     // Narrow Node's socket option union so TypeScript can select the matching
     // TCP or IPC overload added by @yume-chan/adb-server-node-tcp v3.
     const connector = "path" in resolvedSpec
-      ? new AdbServerNodeTcpConnector(resolvedSpec)
-      : new AdbServerNodeTcpConnector(resolvedSpec);
+      ? new AdbServerNodeJsTcpConnector(resolvedSpec)
+      : new AdbServerNodeJsTcpConnector(resolvedSpec);
     this.client = new AdbServerClient(connector);
   }
 

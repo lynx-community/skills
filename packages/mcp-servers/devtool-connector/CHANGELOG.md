@@ -1,5 +1,24 @@
 # @lynx-js/devtool-connector
 
+## 0.16.3
+
+### Patch Changes
+
+- Updated dependency `@yume-chan/adb-server-node-tcp` to `3.0.0-beta.4`.
+- Updated dependency `@yume-chan/adb` to `3.0.0-beta.4`.
+- Updated dependency `@yume-chan/stream-extra` to `3.0.0-beta.4`.
+- Updated dependency `dprint` to `^0.62.0`.
+- Updated dependency `@types/node` to `^24.19.2`.
+- Updated dependency `ws` to `^8.22.0`.
+- Use Node's stream read-result type in ReactLynx sessions to avoid declaration-build failures caused by mixing Node and DOM stream types. Runtime behavior is unchanged.
+- Share the Connector, HDT transports, command engine and daemon lifecycle between the public and internal distributions. Align the public implementation with version 0.16.2 and allow cross-origin version discovery while retaining loopback control protections.
+  
+  Use the Connector namespace for the Android app icon helper, including its embedded DEX artifact.
+  
+  Keep host-specific protocol declarations in the internal facade while sharing the generic Customized response parser and request correlation logic.
+  
+  The `/transport` entry point no longer exports `wsStreams`, `WsWebSocketStream` or `createWebSocketReadable`. Keep the WebSocket implementation internal and bundled for daemon and HDT transports so consumers do not need `ws` types.
+
 ## 0.13.2
 
 ### Patch Changes

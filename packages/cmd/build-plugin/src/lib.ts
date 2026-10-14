@@ -4,19 +4,20 @@
 
 import { copyFile, mkdir, readFile, stat, writeFile } from 'node:fs/promises';
 import { dirname, resolve } from 'node:path';
+
 import { default as packList } from 'npm-packlist';
 
 async function packageFilesIncludesPackageJSON(pkgDir: string) {
   const pkg = JSON.parse(
     await readFile(resolve(pkgDir, 'package.json'), 'utf-8'),
-  ) as { files?: unknown };
+  ) as { files?: unknown; };
 
   return (
-    Array.isArray(pkg.files) &&
-    pkg.files.some(
+    Array.isArray(pkg.files)
+    && pkg.files.some(
       (file) =>
-        typeof file === 'string' &&
-        file.replaceAll('\\', '/').replace(/^\.\//, '') === 'package.json',
+        typeof file === 'string'
+        && file.replaceAll('\\', '/').replace(/^\.\//, '') === 'package.json',
     )
   );
 }
@@ -35,8 +36,8 @@ export async function copyPackageFiles(
   skipPackageJSON: boolean = false,
 ) {
   const files = await packList({ path: pkgDir });
-  const skipImplicitPackageJSON =
-    skipPackageJSON && !(await packageFilesIncludesPackageJSON(pkgDir));
+  const skipImplicitPackageJSON = skipPackageJSON
+    && !(await packageFilesIncludesPackageJSON(pkgDir));
 
   for (const file of files) {
     if (skipImplicitPackageJSON && file === 'package.json') {
@@ -75,15 +76,17 @@ export async function buildPlugin(pkgDir: string) {
   }
 
   // metadata files
-  const metadataContent = `${JSON.stringify(
-    {
-      name: pkg.name.replace(/^@lynx-js\/ai-plugin-/, ''),
-      version: pkg.version,
-      description: pkg.description || '',
-    },
-    null,
-    2,
-  )}\n`;
+  const metadataContent = `${
+    JSON.stringify(
+      {
+        name: pkg.name.replace(/^@lynx-js\/ai-plugin-/, ''),
+        version: pkg.version,
+        description: pkg.description || '',
+      },
+      null,
+      2,
+    )
+  }\n`;
 
   // .claude-plugin
   const claudePluginDir = resolve(pkgDir, '.claude-plugin');
@@ -114,7 +117,7 @@ export async function validateDirForCopying(
       );
     }
   } catch (error) {
-    if ((error as { code?: string }).code !== 'ENOENT') {
+    if ((error as { code?: string; }).code !== 'ENOENT') {
       throw error;
     }
   }

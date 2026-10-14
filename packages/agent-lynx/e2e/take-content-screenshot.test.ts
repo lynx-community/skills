@@ -13,12 +13,11 @@ const TEST_APP_PACKAGE_ENV = 'LYNX_DEVTOOL_MCP_TESTING_APP_PACKAGE';
 const MISSING_SELECTOR = '#lynx-devtool-missing-content-screenshot-node';
 const NON_SCROLL_SELECTOR = 'view';
 
-const targetAppPackage =
-  process.env[TEST_APP_PACKAGE_ENV]?.trim() || TEST_APP_PACKAGE_NAME;
-const testWithAndroidLynxExample =
-  targetAppPackage === TEST_APP_PACKAGE_NAME
-    ? testWithClient
-    : testWithClient.skip;
+const targetAppPackage = process.env[TEST_APP_PACKAGE_ENV]?.trim()
+  || TEST_APP_PACKAGE_NAME;
+const testWithAndroidLynxExample = targetAppPackage === TEST_APP_PACKAGE_NAME
+  ? testWithClient
+  : testWithClient.skip;
 
 testWithAndroidLynxExample(
   'take-content-screenshot',
@@ -78,8 +77,10 @@ testWithAndroidLynxExample(
             ),
           {
             message: new RegExp(
-              `takeContentScreenshot failed for selector ${JSON.stringify(MISSING_SELECTOR)}: ` +
-                '\\[code 2 NODE_NOT_FOUND\\] No node matched the selector\\..*Runtime detail: no node found',
+              `takeContentScreenshot failed for selector ${
+                JSON.stringify(MISSING_SELECTOR)
+              }: `
+                + '\\[code 2 NODE_NOT_FOUND\\] No node matched the selector\\..*Runtime detail: no node found',
             ),
           },
         );
@@ -98,8 +99,10 @@ testWithAndroidLynxExample(
           ),
         {
           message: new RegExp(
-            `takeContentScreenshot failed for selector ${JSON.stringify(NON_SCROLL_SELECTOR)}: ` +
-              '\\[code 3 METHOD_NOT_FOUND\\].*does not support takeContentScreenshot.*targets a <scroll-view>',
+            `takeContentScreenshot failed for selector ${
+              JSON.stringify(NON_SCROLL_SELECTOR)
+            }: `
+              + '\\[code 3 METHOD_NOT_FOUND\\].*does not support takeContentScreenshot.*targets a <scroll-view>',
           ),
         },
       );

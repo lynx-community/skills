@@ -31,9 +31,11 @@ export default defineConfig({
           main: './src/main.ts',
         },
       },
-      autoExternal: {
-        // Bundle @modelcontextprotocol/sdk in CLI.
-        peerDependencies: false,
+      output: {
+        autoExternal: {
+          // Bundle @modelcontextprotocol/sdk in CLI.
+          peerDependencies: false,
+        },
       },
     },
   ],

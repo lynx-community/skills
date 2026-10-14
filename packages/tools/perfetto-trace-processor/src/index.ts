@@ -13,12 +13,12 @@ export class WasmEngine extends EngineBase {
   declare port: MessagePort;
   declare [Symbol.dispose]: () => void;
 
-  constructor(id: string, { wasmBinary }: { wasmBinary?: Uint8Array } = {}) {
+  constructor(id: string, { wasmBinary }: { wasmBinary?: Uint8Array; } = {}) {
     super();
     this.id = id;
     const wasmBridge = new WasmBridge(
-      wasmBinary ??
-        new Uint8Array(
+      wasmBinary
+        ?? new Uint8Array(
           readFileSync(
             new URL('../vendor/perfetto/trace_processor.wasm', import.meta.url),
           ),

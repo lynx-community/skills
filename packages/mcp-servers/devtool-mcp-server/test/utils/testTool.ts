@@ -29,9 +29,9 @@ export function createToolContext<Schema extends z.ZodRawShape>(
     }
 
     if (
-      tool.schema['sessionId'] &&
-      fullParams['sessionId'] == null &&
-      defaultSessionId !== undefined
+      tool.schema['sessionId']
+      && fullParams['sessionId'] == null
+      && defaultSessionId !== undefined
     ) {
       fullParams['sessionId'] = defaultSessionId;
     }

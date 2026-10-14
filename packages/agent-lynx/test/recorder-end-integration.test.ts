@@ -8,12 +8,13 @@ import os from 'node:os';
 import path from 'node:path';
 import { ReadableStream } from 'node:stream/web';
 import { after, before, describe, test } from 'node:test';
+
 import type { Connector } from '@lynx-js/devtool-connector';
 import { runRecordingEnd } from '../src/commands/recorder-end.ts';
 
 function createMockConnector(opts: {
   recordingComplete: Record<string, unknown>;
-  streamData: Map<number, { data: string; base64Encoded?: boolean }[]>;
+  streamData: Map<number, { data: string; base64Encoded?: boolean; }[]>;
 }): Connector {
   return {
     sendCDPStream() {
@@ -39,7 +40,7 @@ function createMockConnector(opts: {
       params: unknown,
     ) {
       if (method === 'IO.read') {
-        const p = params as { handle: number };
+        const p = params as { handle: number; };
         const chunks = opts.streamData.get(p.handle) ?? [];
         const chunk = chunks.shift();
         if (!chunk || chunks.length === 0) {

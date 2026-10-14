@@ -4,6 +4,7 @@
 
 import type { ReadableStream } from 'node:stream/web';
 import { setTimeout as delay } from 'node:timers/promises';
+
 import { Connector } from '@lynx-js/devtool-connector';
 import type {
   CommandClient,
@@ -23,7 +24,7 @@ export async function raceWithTimeout<T, TimeoutValue>(
   operation: PromiseLike<T>,
   timeoutMs: number,
   timeoutValue: TimeoutValue,
-  options?: { signal?: AbortSignal },
+  options?: { signal?: AbortSignal; },
 ): Promise<T | TimeoutValue> {
   const controller = new AbortController();
   const signal = options?.signal
@@ -126,7 +127,7 @@ export function getClientsByName(
   clientName: string,
 ): Client[] {
   return clients.filter((client) =>
-    getClientNames(client).includes(clientName),
+    getClientNames(client).includes(clientName)
   );
 }
 
@@ -137,8 +138,8 @@ export function formatNoClientByNameMessage(
   const availableClients = clients.map(formatClientForError).join('\n');
 
   return (
-    `No client found matching --client-name "${clientName}".` +
-    (availableClients
+    `No client found matching --client-name "${clientName}".`
+    + (availableClients
       ? `\nAvailable clients:\n${availableClients}`
       : '\nNo clients are available.')
   );
@@ -151,12 +152,12 @@ export async function getLatestSession(
   const sessions = await connector.sendListSessionMessage(clientId);
   if (!sessions || sessions.length === 0) {
     throw new Error(
-      `No available sessions found for client: ${clientId}. Open a page first, e.g.:\n` +
-        `  ${CLI_PLACEHOLDER} open --client ${clientId} <url>`,
+      `No available sessions found for client: ${clientId}. Open a page first, e.g.:\n`
+        + `  ${CLI_PLACEHOLDER} open --client ${clientId} <url>`,
     );
   }
   const latestSession = sessions.reduce((max, session) =>
-    Number(session.session_id) > Number(max.session_id) ? session : max,
+    Number(session.session_id) > Number(max.session_id) ? session : max
   );
   return String(latestSession.session_id);
 }
@@ -168,8 +169,8 @@ export async function getLatestSession(
  */
 export async function resolveClient(
   { transports }: Context,
-  options: { client?: string },
-): Promise<{ connector: Connector; clientId: string }> {
+  options: { client?: string; },
+): Promise<{ connector: Connector; clientId: string; }> {
   const connector = new Connector(transports);
   const clientId = options.client ?? (await getFirstClient(connector));
   return { connector, clientId };
@@ -182,11 +183,11 @@ export async function resolveClient(
  */
 export async function resolveClientAndSession(
   context: Context,
-  options: { client?: string; session?: string },
-): Promise<{ connector: Connector; clientId: string; sessionId: string }> {
+  options: { client?: string; session?: string; },
+): Promise<{ connector: Connector; clientId: string; sessionId: string; }> {
   const { connector, clientId } = await resolveClient(context, options);
-  const sessionId =
-    options.session ?? (await getLatestSession(connector, clientId));
+  const sessionId = options.session
+    ?? (await getLatestSession(connector, clientId));
   return { connector, clientId, sessionId };
 }
 
@@ -251,7 +252,7 @@ export function parseOnOff(input: string, optionName = '--status'): boolean {
 export function buildWatchSignal(
   watch: boolean,
   fallbackTimeoutMs: number,
-): { signal: AbortSignal; cleanup: () => void } {
+): { signal: AbortSignal; cleanup: () => void; } {
   if (!watch) {
     return {
       signal: AbortSignal.timeout(fallbackTimeoutMs),
@@ -306,8 +307,9 @@ export async function* readUntilIdle<T>(
       }
 
       pendingRead ??= reader.read();
-      const idleMs =
-        typeof opts.idleMs === 'function' ? opts.idleMs() : opts.idleMs;
+      const idleMs = typeof opts.idleMs === 'function'
+        ? opts.idleMs()
+        : opts.idleMs;
       const remainingMs = opts.maxMs - elapsedMs;
       const deadlineWins = remainingMs <= idleMs;
       const result = await raceWithTimeout(

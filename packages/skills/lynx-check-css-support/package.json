@@ -17,11 +17,11 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@lynx-js/css-defines": "0.0.16"
+    "@lynx-js/css-defines": "0.0.18"
   },
   "devDependencies": {
     "@rslib/core": "catalog:rstack",
-    "@types/node": "^24.10.4",
+    "@types/node": "^24.19.2",
     "commander": "^13.1.0",
     "ky": "^1.14.3",
     "typescript": "^5.9.3",

@@ -9,6 +9,7 @@ import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { pipeline } from 'node:stream/promises';
 import { ReadableStream } from 'node:stream/web';
+
 import {
   type CDPResponseMessage,
   CDPResponseTransformStream,
@@ -92,7 +93,9 @@ export const TakeHeapSnapshot = /*#__PURE__*/ defineTool({
     let didReceiveSnapshotResponse = false;
     const tmpFile = path.join(
       tmpdir(),
-      `heap-${params.thread === 'main' ? 'main' : 'background'}-${Date.now()}.heapsnapshot`,
+      `heap-${
+        params.thread === 'main' ? 'main' : 'background'
+      }-${Date.now()}.heapsnapshot`,
     );
 
     const reader = stream.getReader();
@@ -149,8 +152,7 @@ export const TakeHeapSnapshot = /*#__PURE__*/ defineTool({
               break;
             }
           } else if (method === 'HeapProfiler.reportHeapSnapshotProgress') {
-            if (sessionId !== expectedSessionId) {
-            }
+            // Progress notifications do not contain snapshot chunks.
           } else if (id === requestId) {
             didReceiveSnapshotResponse = true;
             if (didWriteSnapshotChunk) {

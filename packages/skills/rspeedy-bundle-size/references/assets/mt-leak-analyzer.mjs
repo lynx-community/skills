@@ -13,8 +13,9 @@ const src = fs.readFileSync(file, 'utf8');
 // Distinguish from __webpack_require__("path") by requiring an OPEN paren right after the quote.
 const HEADER = /"(\(react:(?:main-thread|background)\)\/[^"]+)"\(/g;
 const heads = [];
-for (const m of src.matchAll(HEADER))
+for (const m of src.matchAll(HEADER)) {
   heads.push({ path: m[1], start: m.index });
+}
 const mods = heads.map((h, i) => ({
   path: h.path,
   body: src.slice(
@@ -50,7 +51,9 @@ for (const mod of mods) {
 const isMT = (p) => p.startsWith('(react:main-thread)');
 const mtMods = mods.filter((x) => isMT(x.path));
 console.log(
-  `=== main-thread modules: ${mtMods.length}, total ${(mtMods.reduce((a, b) => a + b.size, 0) / 1024).toFixed(0)} kB ===`,
+  `=== main-thread modules: ${mtMods.length}, total ${
+    (mtMods.reduce((a, b) => a + b.size, 0) / 1024).toFixed(0)
+  } kB ===`,
 );
 
 // Background-only modules that LEAKED into main-thread, by size.
@@ -65,12 +68,16 @@ for (const l of leaks.slice(0, 30)) {
     .map((p) => p.replace('(react:main-thread)/', ''))
     .slice(0, 3);
   console.log(
-    `${(l.size / 1024).toFixed(1).padStart(7)}kB ${l.bgContent ? 'C' : ' '}${l.bgName ? 'N' : ' '}  ${l.path.replace('(react:main-thread)/', '')}`,
+    `${(l.size / 1024).toFixed(1).padStart(7)}kB ${l.bgContent ? 'C' : ' '}${
+      l.bgName ? 'N' : ' '
+    }  ${l.path.replace('(react:main-thread)/', '')}`,
   );
   console.log(
     `          ← ${imps.join(' | ') || '(no MT importer — entry/root)'}`,
   );
 }
 console.log(
-  `\nleak total: ${(leaks.reduce((a, b) => a + b.size, 0) / 1024).toFixed(1)} kB across ${leaks.length} modules`,
+  `\nleak total: ${
+    (leaks.reduce((a, b) => a + b.size, 0) / 1024).toFixed(1)
+  } kB across ${leaks.length} modules`,
 );

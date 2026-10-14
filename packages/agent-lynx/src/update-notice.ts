@@ -50,18 +50,19 @@ export interface WithUpdateNoticeOptions {
 
 function parseSemver(value: string): ParsedSemver | null {
   const match =
-    /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-([0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*))?(?:\+[0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*)?$/u.exec(
-      value,
-    );
+    /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-([0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*))?(?:\+[0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*)?$/u
+      .exec(
+        value,
+      );
   if (!match) return null;
 
   const prerelease = match[4]?.split('.') ?? [];
   if (
     prerelease.some(
       (identifier) =>
-        /^\d+$/u.test(identifier) &&
-        identifier.length > 1 &&
-        identifier.startsWith('0'),
+        /^\d+$/u.test(identifier)
+        && identifier.length > 1
+        && identifier.startsWith('0'),
     )
   ) {
     return null;
@@ -126,23 +127,23 @@ function updateNotice(current: string, latest: string): UpdateNotice | null {
 }
 
 function cacheFile(env: NodeJS.ProcessEnv): string {
-  const cacheRoot =
-    env['XDG_CACHE_HOME'] ||
-    env['LOCALAPPDATA'] ||
-    path.join(os.homedir(), '.cache');
+  const cacheRoot = env['XDG_CACHE_HOME']
+    || env['LOCALAPPDATA']
+    || path.join(os.homedir(), '.cache');
   return path.join(cacheRoot, 'agent-lynx', 'update-check.json');
 }
 
 function isCachedLatestVersion(value: unknown): value is CachedLatestVersion {
-  if (typeof value !== 'object' || value === null || Array.isArray(value))
+  if (typeof value !== 'object' || value === null || Array.isArray(value)) {
     return false;
+  }
   const record = value as Record<string, unknown>;
   return (
-    typeof record['checkedAt'] === 'number' &&
-    Number.isFinite(record['checkedAt']) &&
-    typeof record['expiresAt'] === 'number' &&
-    Number.isFinite(record['expiresAt']) &&
-    (record['latest'] === null || typeof record['latest'] === 'string')
+    typeof record['checkedAt'] === 'number'
+    && Number.isFinite(record['checkedAt'])
+    && typeof record['expiresAt'] === 'number'
+    && Number.isFinite(record['expiresAt'])
+    && (record['latest'] === null || typeof record['latest'] === 'string')
   );
 }
 
@@ -174,11 +175,10 @@ async function writeCache(
 }
 
 function registryUrl(env: NodeJS.ProcessEnv): URL {
-  const registry =
-    env['AGENT_LYNX_UPDATE_REGISTRY'] ||
-    env['npm_config_registry'] ||
-    env['NPM_CONFIG_REGISTRY'] ||
-    DEFAULT_REGISTRY;
+  const registry = env['AGENT_LYNX_UPDATE_REGISTRY']
+    || env['npm_config_registry']
+    || env['NPM_CONFIG_REGISTRY']
+    || DEFAULT_REGISTRY;
   const base = registry.endsWith('/') ? registry : `${registry}/`;
   return new URL(
     `-/package/${encodeURIComponent(AGENT_LYNX_PACKAGE)}/dist-tags`,
@@ -200,8 +200,9 @@ export async function resolveUpdateNotice(
   options: ResolveUpdateNoticeOptions,
 ): Promise<UpdateNotice | null> {
   const env = options.env ?? process.env;
-  if (updateChecksDisabled(env) || !parseSemver(options.currentVersion))
+  if (updateChecksDisabled(env) || !parseSemver(options.currentVersion)) {
     return null;
+  }
 
   const now = options.now ?? Date.now;
   const checkedAt = now();
@@ -213,16 +214,17 @@ export async function resolveUpdateNotice(
       : null;
   }
 
-  let latest: string | null = null;
+  let latest: string | null;
   let cacheTtl = FAILURE_CACHE_TTL_MS;
   try {
     const response = await (options.fetchImpl ?? fetch)(registryUrl(env), {
       headers: { accept: 'application/json' },
       signal: AbortSignal.timeout(options.timeoutMs ?? DEFAULT_TIMEOUT_MS),
     });
-    if (!response.ok)
+    if (!response.ok) {
       throw new Error(`Registry returned HTTP ${response.status}.`);
-    const metadata = (await response.json()) as { latest?: unknown };
+    }
+    const metadata = (await response.json()) as { latest?: unknown; };
     if (typeof metadata.latest !== 'string' || !parseSemver(metadata.latest)) {
       throw new Error('Registry returned an invalid latest version.');
     }
@@ -242,11 +244,11 @@ export async function resolveUpdateNotice(
 
 function isEarlyExitInvocation(argv: readonly string[]): boolean {
   return (
-    argv.includes('--help') ||
-    argv.includes('-h') ||
-    argv.includes('--version') ||
-    argv.includes('-V') ||
-    argv[0] === 'help'
+    argv.includes('--help')
+    || argv.includes('-h')
+    || argv.includes('--version')
+    || argv.includes('-V')
+    || argv[0] === 'help'
   );
 }
 

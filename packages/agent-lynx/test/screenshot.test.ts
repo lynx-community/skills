@@ -7,6 +7,7 @@ import { mkdtemp, readdir, readFile, rm } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import { test } from 'node:test';
+
 import type {
   CommandClient,
   ScreenshotAnnotation,
@@ -19,7 +20,7 @@ import {
 } from '../src/commands/screenshot.ts';
 
 interface ClientState {
-  calls: Array<{ action: string; params: unknown }>;
+  calls: Array<{ action: string; params: unknown; }>;
   response: unknown;
 }
 
@@ -179,7 +180,7 @@ test('screenshot rejects an incomplete annotation response before writing a file
 
   const result = JSON.parse(output.at(-1) ?? 'null') as {
     ok: false;
-    error: { reason?: string };
+    error: { reason?: string; };
   };
   assert.equal(result.ok, false);
   assert.equal(result.error.reason, 'invalid-response');

@@ -21,11 +21,11 @@
     "test": "rstest"
   },
   "devDependencies": {
-    "@microsoft/api-extractor": "^7.56.2",
+    "@microsoft/api-extractor": "^7.59.4",
     "@rslib/core": "catalog:rstack",
-    "@rstest/adapter-rslib": "^0.10.6",
+    "@rstest/adapter-rslib": "^0.12.3",
     "@rstest/core": "catalog:rstack",
-    "@types/node": "^24.10.4",
+    "@types/node": "^24.19.2",
     "typescript": "^5.9.3"
   }
 }
