@@ -3,7 +3,7 @@ name: Release
 on:
   push:
     branches:
-      - main
+      - codex/publish-connector-0.16.3-20261014
 
 permissions: {}
 
@@ -37,13 +37,10 @@ jobs:
           npm i -g corepack
           npm --version
           corepack enable
-          pnpm install
+          pnpm install --frozen-lockfile --ignore-scripts
 
-      - name: Create Release Pull Request or Publish to npm
-        id: changesets
-        uses: changesets/action@v1
-        with:
-          publish: pnpm run release
-          version: pnpm changeset version
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build public Connector
+        run: pnpm --filter @lynx-js/devtool-connector run build
+
+      - name: Publish public Connector
+        run: pnpm --filter @lynx-js/devtool-connector publish --access public --no-git-checks
