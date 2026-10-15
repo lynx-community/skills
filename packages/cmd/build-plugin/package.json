@@ -16,7 +16,7 @@
   },
   "scripts": {
     "build": "rslib build",
-    "test": "node --test 'test/**/*.test.mjs'"
+    "test": "node --test \"test/**/*.test.mjs\""
   },
   "dependencies": {
     "npm-packlist": "^5.1.3"
