@@ -88,7 +88,7 @@
   },
   "scripts": {
     "build": "rslib build",
-    "test": "node --test --test-concurrency=1 'test/**/*.test.ts'",
+    "test": "node --test --test-concurrency=1 \"test/**/*.test.ts\"",
     "test:e2e": "node --test --test-concurrency=1 'e2e/**/*.test.ts'",
     "test:e2e:public": "node --test --test-concurrency=1 'e2e/public/**/*.test.ts'",
     "format:check": "dprint check --config dprint.jsonc",
