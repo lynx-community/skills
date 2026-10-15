@@ -43,12 +43,11 @@ async function checkMetadata(directory, entry) {
 test(
   'source, built, and packed CLIs load their own metadata outside the workspace',
   options,
-  async t => {
-    const cleanup = new AsyncDisposableStack();
-    t.after(() => cleanup.disposeAsync());
-    const { path: directory } = cleanup.use(
-      await mkdtempDisposable(join(tmpdir(), 'oss-docs-mcp-test-')),
+  async () => {
+    await using temporaryDirectory = await mkdtempDisposable(
+      join(tmpdir(), 'oss-docs-mcp-test-'),
     );
+    const directory = temporaryDirectory.path;
     await checkMetadata(directory, join(packageRoot, 'main.ts'));
     await checkMetadata(directory, join(packageRoot, 'dist/main.js'));
     const pnpm = process.env.npm_execpath;
@@ -90,12 +89,12 @@ test(
 test(
   'native fetch serves documentation and obug diagnostics stay on stderr',
   options,
-  async t => {
-    const cleanup = new AsyncDisposableStack();
-    t.after(() => cleanup.disposeAsync());
-    const { path: directory } = cleanup.use(
-      await mkdtempDisposable(join(tmpdir(), 'oss-docs-mcp-test-')),
+  async () => {
+    await using temporaryDirectory = await mkdtempDisposable(
+      join(tmpdir(), 'oss-docs-mcp-test-'),
     );
+    const directory = temporaryDirectory.path;
+    await using cleanup = new AsyncDisposableStack();
     const requests = [];
     let origin;
     const server = createServer((request, response) => {
