@@ -7,10 +7,9 @@ import assert from 'node:assert/strict';
 import { execFile } from 'node:child_process';
 import {
   mkdir,
-  mkdtemp,
+  mkdtempDisposable,
   readdir,
   readFile,
-  rm,
   symlink,
 } from 'node:fs/promises';
 import { createServer } from 'node:http';
@@ -23,12 +22,6 @@ import { promisify } from 'node:util';
 const exec = promisify(execFile);
 const packageRoot = fileURLToPath(new URL('..', import.meta.url));
 const options = { timeout: 30_000 };
-
-async function temporaryDirectory(t) {
-  const directory = await mkdtemp(join(tmpdir(), 'oss-docs-mcp-test-'));
-  t.after(() => rm(directory, { recursive: true, force: true }));
-  return directory;
-}
 
 async function checkMetadata(directory, entry) {
   const manifest = JSON.parse(
@@ -50,11 +43,19 @@ async function checkMetadata(directory, entry) {
 test(
   'source, built, and packed CLIs load their own metadata outside the workspace',
   options,
-  async t => {
-    const directory = await temporaryDirectory(t);
+  async () => {
+    await using temporaryDirectory = await mkdtempDisposable(
+      join(tmpdir(), 'oss-docs-mcp-test-'),
+    );
+    const directory = temporaryDirectory.path;
     await checkMetadata(directory, join(packageRoot, 'main.ts'));
     await checkMetadata(directory, join(packageRoot, 'dist/main.js'));
-    await exec('pnpm', ['pack', '--pack-destination', directory], {
+    const pnpm = process.env.npm_execpath;
+    assert.ok(pnpm, 'Run this test through pnpm test');
+    const [command, ...args] = /\.[cm]?js$/u.test(pnpm)
+      ? [process.execPath, pnpm]
+      : [pnpm];
+    await exec(command, [...args, 'pack', '--pack-destination', directory], {
       cwd: packageRoot,
       timeout: 15_000,
     });
@@ -88,8 +89,12 @@ test(
 test(
   'native fetch serves documentation and obug diagnostics stay on stderr',
   options,
-  async t => {
-    const directory = await temporaryDirectory(t);
+  async () => {
+    await using temporaryDirectory = await mkdtempDisposable(
+      join(tmpdir(), 'oss-docs-mcp-test-'),
+    );
+    const directory = temporaryDirectory.path;
+    await using cleanup = new AsyncDisposableStack();
     const requests = [];
     let origin;
     const server = createServer((request, response) => {
@@ -105,11 +110,11 @@ test(
         response.end('Unavailable');
       }
     });
-    await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
-    t.after(async () => {
+    cleanup.defer(async () => {
       server.closeAllConnections();
       await new Promise(resolve => server.close(resolve));
     });
+    await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
     const address = server.address();
     assert(address && typeof address === 'object');
     origin = `http://127.0.0.1:${address.port}`;
@@ -133,10 +138,8 @@ test(
       diagnostics += String(chunk);
     });
     const client = new Client({ name: 'native-docs-test', version: '1.0.0' });
-    t.after(async () => {
-      await client.close();
-      await transport.close();
-    });
+    cleanup.defer(() => transport.close());
+    cleanup.defer(() => client.close());
     await client.connect(transport, { timeout: 5000 });
     const resources = (await client.listResources()).resources;
     assert.deepEqual(resources.map(resource => resource.uri).sort(), [
