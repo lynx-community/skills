@@ -1,21 +1,20 @@
-// Copyright 2025 The Lynx Authors. All rights reserved.
+// Copyright 2026 The Lynx Authors. All rights reserved.
 // Licensed under the Apache License Version 2.0 that can be found in the
 // LICENSE file in the root directory of this source tree.
 
+import {
+  type CDPResponseMessage,
+  CDPResponseTransformStream,
+} from '@lynx-js/devtool-connector';
 import { randomInt } from 'node:crypto';
 import { createWriteStream } from 'node:fs';
 import fs from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { pipeline } from 'node:stream/promises';
-import { ReadableStream } from 'node:stream/web';
-
-import {
-  type CDPResponseMessage,
-  CDPResponseTransformStream,
-} from '@lynx-js/devtool-connector';
 import { clientId, sessionId, thread } from '../../schema/index.ts';
 import { raceWithTimeout } from '../../utils/raceWithTimeout.ts';
+import { readableFromIterable } from '../../utils/readableFromIterable.ts';
 import { defineTool } from '../defineTool.ts';
 
 export const TakeHeapSnapshot = /*#__PURE__*/ defineTool({
@@ -45,47 +44,46 @@ export const TakeHeapSnapshot = /*#__PURE__*/ defineTool({
 
     await using stream = await connector.sendStream(
       params.clientId,
-      ReadableStream.from([
-        {
-          event: 'Customized',
+      readableFromIterable([{
+        event: 'Customized',
+        data: {
+          type: 'CDP',
           data: {
-            type: 'CDP',
-            data: {
-              session_id: params.sessionId,
-              message: {
-                id: requestId - 1,
-                method: 'HeapProfiler.enable',
-                params: {},
-                ...extraParams,
-              },
+            session_id: params.sessionId,
+            message: {
+              id: requestId - 1,
+              method: 'HeapProfiler.enable',
+              params: {},
+              ...extraParams,
             },
           },
         },
-        {
-          event: 'Customized',
+      }, {
+        event: 'Customized',
+        data: {
+          type: 'CDP',
           data: {
-            type: 'CDP',
-            data: {
-              session_id: params.sessionId,
-              message: {
-                id: requestId,
-                method: 'HeapProfiler.takeHeapSnapshot',
-                params: {
-                  reportProgress: true,
-                  treatGlobalObjectsAsRoots: true,
-                  captureNumericValue: false,
-                },
-                ...extraParams,
+            session_id: params.sessionId,
+            message: {
+              id: requestId,
+              method: 'HeapProfiler.takeHeapSnapshot',
+              params: {
+                reportProgress: true,
+                treatGlobalObjectsAsRoots: true,
+                captureNumericValue: false,
               },
+              ...extraParams,
             },
           },
         },
-      ]),
+      }]),
       {
         signal,
         pipeline: {
           input: [],
-          output: [new CDPResponseTransformStream()],
+          output: [
+            new CDPResponseTransformStream(),
+          ],
         },
       },
     );
@@ -122,19 +120,16 @@ export const TakeHeapSnapshot = /*#__PURE__*/ defineTool({
           const { done, value } = result;
           if (done) break;
 
-          const {
-            method,
-            params: eventParams,
-            id,
-            sessionId,
-          } = value as CDPResponseMessage & {
-            method?: string;
-            params?: {
-              chunk?: string;
-              finished?: boolean;
+          const { method, params: eventParams, id, sessionId } = value as
+            & CDPResponseMessage
+            & {
+              method?: string;
+              params?: {
+                chunk?: string;
+                finished?: boolean;
+              };
+              sessionId?: string;
             };
-            sessionId?: string;
-          };
 
           if (method === 'HeapProfiler.addHeapSnapshotChunk') {
             if (sessionId !== expectedSessionId) {
@@ -152,7 +147,9 @@ export const TakeHeapSnapshot = /*#__PURE__*/ defineTool({
               break;
             }
           } else if (method === 'HeapProfiler.reportHeapSnapshotProgress') {
-            // Progress notifications do not contain snapshot chunks.
+            if (sessionId !== expectedSessionId) {
+              continue;
+            }
           } else if (id === requestId) {
             didReceiveSnapshotResponse = true;
             if (didWriteSnapshotChunk) {

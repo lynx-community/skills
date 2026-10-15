@@ -1,11 +1,10 @@
-// Copyright 2025 The Lynx Authors. All rights reserved.
+// Copyright 2026 The Lynx Authors. All rights reserved.
 // Licensed under the Apache License Version 2.0 that can be found in the
 // LICENSE file in the root directory of this source tree.
 
+import type { Connector } from '@lynx-js/devtool-connector';
 import assert from 'node:assert';
 import { describe, test } from 'node:test';
-
-import type { Connector } from '@lynx-js/devtool-connector';
 import { OpenPage } from '../../src/tools/Device/OpenPage.ts';
 import { createToolContext } from '../utils/testTool.ts';
 

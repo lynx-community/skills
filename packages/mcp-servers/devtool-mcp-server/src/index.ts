@@ -1,20 +1,17 @@
-// Copyright 2025 The Lynx Authors. All rights reserved.
+// Copyright 2026 The Lynx Authors. All rights reserved.
 // Licensed under the Apache License Version 2.0 that can be found in the
 // LICENSE file in the root directory of this source tree.
 
 import 'core-js/modules/es.promise.with-resolvers.js';
-import { Connector } from '@lynx-js/devtool-connector';
-import type { Transport } from '@lynx-js/devtool-connector/transport';
 import {
   AndroidTransport,
   DaemonTransport,
   DesktopTransport,
+  HDTTransport,
   iOSTransport,
 } from '@lynx-js/devtool-connector/transport';
+import type { Transport } from '@lynx-js/devtool-connector/transport';
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
-import type { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
-import { McpContext } from './McpContext.ts';
-import { McpResponse } from './McpResponse.ts';
 import { GetGlobalSwitch } from './tools/App/GetGlobalSwitch.ts';
 import { ListGlobalSwitch } from './tools/App/ListGlobalSwitch.ts';
 import { SetGlobalSwitch } from './tools/App/SetGlobalSwitch.ts';
@@ -38,6 +35,7 @@ import { GetDocument } from './tools/DOM/GetDocument.ts';
 import { GetDocumentWithBoxModel } from './tools/DOM/GetDocumentWithBoxModel.ts';
 import { GetNodeForLocation } from './tools/DOM/GetNodeForLocation.ts';
 import { GetOriginalNodeIndex } from './tools/DOM/GetOriginalNodeIndex.ts';
+import { GetOriginalNodeSourceInfo } from './tools/DOM/GetOriginalNodeSourceInfo.ts';
 import { GetSearchResults } from './tools/DOM/GetSearchResults.ts';
 import { InnerText } from './tools/DOM/InnerText.ts';
 import { PerformSearch } from './tools/DOM/PerformSearch.ts';
@@ -63,7 +61,7 @@ import { GetProperties } from './tools/Runtime/GetProperties.ts';
 import { ListConsole } from './tools/Runtime/ListConsole.ts';
 import { GetLynxUITree } from './tools/UITree/GetLynxUITree.ts';
 
-const TOOLS = [
+export const coreTools: readonly ToolDefinition[] = [
   // App
   ListGlobalSwitch,
   GetGlobalSwitch,
@@ -95,6 +93,7 @@ const TOOLS = [
   GetDocumentWithBoxModel,
   GetNodeForLocation,
   GetOriginalNodeIndex,
+  GetOriginalNodeSourceInfo,
   GetSearchResults,
   InnerText,
   PerformSearch,
@@ -137,68 +136,114 @@ const TOOLS = [
   GetLynxUITree,
 ] as unknown as ToolDefinition[];
 
-export function registerTool(
-  mcpServer: McpServer,
-  tool: ToolDefinition,
-  transports: Transport[],
-): void {
-  if (!tool.schema) {
-    throw new Error('Tool schema is required');
-  }
-  mcpServer.registerTool(
-    tool.name,
-    {
-      description: tool.description,
-      inputSchema: tool.schema,
-      annotations: tool.annotations,
-    },
-    async (params, extra): Promise<CallToolResult> => {
-      const response = new McpResponse();
-      const connector = new Connector(transports);
-      const context = await McpContext.withConnector(connector);
-      try {
-        await tool.handler({ params, extra }, response, context);
-        const content = await response.handle(tool.name, context);
+export { registerTool, registerToolWithContext } from './registerTool.ts';
+import { registerTool } from './registerTool.ts';
 
-        return { content };
-      } catch (error) {
-        const errorText = error instanceof Error
-          ? error.message
-          : String(error);
-
-        return {
-          isError: true,
-          content: [{ type: 'text', text: errorText }],
-        };
-      }
-    },
-  );
-}
-
-export function setupServer(
+export function setupCoreServer(
   mcpServer: McpServer,
   transports?: Transport[],
 ): void {
   transports ??= createDefaultTransports();
-  for (const tool of TOOLS) {
+  for (const tool of coreTools) {
     registerTool(mcpServer, tool, transports);
   }
+}
 
-  return;
+export interface SetupServerOptions {
+  transports?: Transport[];
+}
+
+/** Register the public Lynx tools with the shared daemon by default. */
+export function setupServer(
+  mcpServer: McpServer,
+  transportsOrOptions?: Transport[] | SetupServerOptions,
+): void {
+  const transports = Array.isArray(transportsOrOptions)
+    ? transportsOrOptions
+    : transportsOrOptions?.transports ?? [new DaemonTransport()];
+  setupCoreServer(mcpServer, transports);
 }
 
 function createDefaultTransports(): Transport[] {
   return [
+    ...HDTTransport.createTransports(),
     new DaemonTransport(),
     new iOSTransport(),
-    new AndroidTransport({
-      host: '127.0.0.1',
-      port: 5037,
-    }),
+    new AndroidTransport({ host: '127.0.0.1', port: 5037 }),
     new DesktopTransport(),
   ];
 }
 
 export type { Transport } from './connector.ts';
+export { McpContext } from './McpContext.ts';
+export { McpResponse } from './McpResponse.ts';
+export type { ToolContextFactory } from './registerTool.ts';
 export * as Schema from './schema/index.ts';
-export { defineTool, type ToolDefinition } from './tools/defineTool.ts';
+export { GetGlobalSwitch } from './tools/App/GetGlobalSwitch.ts';
+export {
+  GLOBAL_SWITCH_KEYS,
+  globalSwitchKeySchema,
+} from './tools/App/globalSwitch.ts';
+export { ListGlobalSwitch } from './tools/App/ListGlobalSwitch.ts';
+export { SetGlobalSwitch } from './tools/App/SetGlobalSwitch.ts';
+export { GetBackgroundColors } from './tools/CSS/GetBackgroundColors.ts';
+export { GetComputedStyleForNode } from './tools/CSS/GetComputedStyleForNode.ts';
+export { GetInlineStylesForNode } from './tools/CSS/GetInlineStylesForNode.ts';
+export { GetMatchedStylesForNode } from './tools/CSS/GetMatchedStylesForNode.ts';
+export { GetStyleSheetText } from './tools/CSS/GetStyleSheetText.ts';
+export { GetScriptSource } from './tools/Debugger/GetScriptSource.ts';
+export { ListScripts } from './tools/Debugger/ListScripts.ts';
+export {
+  type Context,
+  defineTool,
+  type ImageContentData,
+  type Request,
+  type Response,
+  type ToolDefinition,
+} from './tools/defineTool.ts';
+export { ClosePage } from './tools/Device/ClosePage.ts';
+export { ListClients } from './tools/Device/ListClients.ts';
+export { ListDevices } from './tools/Device/ListDevices.ts';
+export { ListSessions } from './tools/Device/ListSessions.ts';
+export { OpenPage } from './tools/Device/OpenPage.ts';
+export { DescribeNode } from './tools/DOM/DescribeNode.ts';
+export { GetAttributes } from './tools/DOM/GetAttributes.ts';
+export { GetBoxModel } from './tools/DOM/GetBoxModel.ts';
+export { GetDocument } from './tools/DOM/GetDocument.ts';
+export { GetDocumentWithBoxModel } from './tools/DOM/GetDocumentWithBoxModel.ts';
+export { GetNodeForLocation } from './tools/DOM/GetNodeForLocation.ts';
+export { GetOriginalNodeIndex } from './tools/DOM/GetOriginalNodeIndex.ts';
+export { GetOriginalNodeSourceInfo } from './tools/DOM/GetOriginalNodeSourceInfo.ts';
+export { GetSearchResults } from './tools/DOM/GetSearchResults.ts';
+export { InnerText } from './tools/DOM/InnerText.ts';
+export { PerformSearch } from './tools/DOM/PerformSearch.ts';
+export { PushNodesByBackendIdsToFrontend } from './tools/DOM/PushNodesByBackendIdsToFrontend.ts';
+export { QuerySelector } from './tools/DOM/QuerySelector.ts';
+export { QuerySelectorAll } from './tools/DOM/QuerySelectorAll.ts';
+export { RequestChildNodes } from './tools/DOM/RequestChildNodes.ts';
+export { ScrollIntoViewIfNeeded } from './tools/DOM/ScrollIntoViewIfNeeded.ts';
+export { SetAttributesAsText } from './tools/DOM/SetAttributesAsText.ts';
+export { TakeHeapSnapshot } from './tools/HeapProfiler/TakeHeapSnapshot.ts';
+export { EmulateTouchFromMouseEvent } from './tools/Input/EmulateTouchFromMouseEvent.ts';
+export { GetVersion } from './tools/Lynx/GetVersion.ts';
+export { GetAllMemoryUsage } from './tools/Memory/GetAllMemoryUsage.ts';
+export { GetResourceContent } from './tools/Page/GetResourceContent.ts';
+export { GetResourceTree } from './tools/Page/GetResourceTree.ts';
+export { Reload } from './tools/Page/Reload.ts';
+export { TakeScreenshot } from './tools/Page/TakeScreenshot.ts';
+export { GetAllPerformanceEntries } from './tools/Performance/GetAllPerformanceEntries.ts';
+export { GetAllTimingInfo } from './tools/Performance/GetAllTimingInfo.ts';
+export { Evaluate } from './tools/Runtime/Evaluate.ts';
+export { GetHeapUsage } from './tools/Runtime/GetHeapUsage.ts';
+export { GetProperties } from './tools/Runtime/GetProperties.ts';
+export { ListConsole } from './tools/Runtime/ListConsole.ts';
+export { GetLynxUITree } from './tools/UITree/GetLynxUITree.ts';
+export {
+  AbortRetryError,
+  expBackoff,
+  type ExpBackoffOptions,
+} from './utils/backoff.ts';
+export { attachMcpServerCleanup } from './utils/mcp_cleanup.ts';
+export { raceWithTimeout } from './utils/raceWithTimeout.ts';
+export { readableFromIterable } from './utils/readableFromIterable.ts';
+export { parseSocketSpec } from './utils/socket_spec.ts';

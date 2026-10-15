@@ -1,4 +1,4 @@
-// Copyright 2025 The Lynx Authors. All rights reserved.
+// Copyright 2026 The Lynx Authors. All rights reserved.
 // Licensed under the Apache License Version 2.0 that can be found in the
 // LICENSE file in the root directory of this source tree.
 
@@ -11,11 +11,9 @@ export const QuerySelector = /*#__PURE__*/ defineTool({
   schema: {
     clientId,
     sessionId,
-    nodeId: nodeId
-      .optional()
-      .describe(
-        'Identifier of the node. Unique DOM node identifier. Defaults to root node if not specified.',
-      ),
+    nodeId: nodeId.optional().describe(
+      'Identifier of the node. Unique DOM node identifier. Defaults to root node if not specified.',
+    ),
     selector,
   },
   annotations: {

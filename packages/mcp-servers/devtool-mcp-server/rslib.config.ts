@@ -1,42 +1,28 @@
 // Copyright 2026 The Lynx Authors. All rights reserved.
 // Licensed under the Apache License Version 2.0 that can be found in the
 // LICENSE file in the root directory of this source tree.
+
 import { defineConfig } from '@rslib/core';
 import { pluginPublint } from 'rsbuild-plugin-publint';
 
 export default defineConfig({
   plugins: [pluginPublint({ throwOn: 'suggestion' })],
+  syntax: 'es2022',
   lib: [
     {
-      format: 'esm',
-      syntax: 'es2022',
       source: {
         entry: {
           connector: './src/connector.ts',
           index: './src/index.ts',
+          'schema/index': './src/schema/index.ts',
         },
       },
-      dts: {
-        bundle: {
-          bundledPackages: [],
-        },
-      },
+      dts: { bundle: { bundledPackages: [] } },
     },
     {
-      format: 'esm',
-      syntax: 'es2022',
+      source: { entry: { main: './src/main.ts' } },
       dts: false,
-      source: {
-        entry: {
-          main: './src/main.ts',
-        },
-      },
-      output: {
-        autoExternal: {
-          // Bundle @modelcontextprotocol/sdk in CLI.
-          peerDependencies: false,
-        },
-      },
+      output: { autoExternal: { peerDependencies: false } },
     },
   ],
 });

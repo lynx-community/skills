@@ -1,4 +1,4 @@
-// Copyright 2025 The Lynx Authors. All rights reserved.
+// Copyright 2026 The Lynx Authors. All rights reserved.
 // Licensed under the Apache License Version 2.0 that can be found in the
 // LICENSE file in the root directory of this source tree.
 
@@ -60,12 +60,14 @@ describe('Performance.getAllPerformanceEntries', () => {
       'test-client-id:9999',
     );
     const result = await call<{
-      entries: Array<{
-        entryType: string;
-        name: string;
-        startTime: number;
-        instanceId: number;
-      }>;
+      entries: Array<
+        {
+          entryType: string;
+          name: string;
+          startTime: number;
+          instanceId: number;
+        }
+      >;
     }>({});
 
     assert.deepStrictEqual(sentMessages, [
