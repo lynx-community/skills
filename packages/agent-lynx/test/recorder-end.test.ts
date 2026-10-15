@@ -2,6 +2,7 @@
 // Licensed under the Apache License Version 2.0 that can be found in the
 // LICENSE file in the root directory of this source tree.
 
+import path from 'node:path';
 import { describe, test } from 'node:test';
 import {
   analyzeRecordingBuffer,
@@ -94,36 +95,36 @@ describe('recordingOutputPath', () => {
   test('adds session suffix for positive sessionId', (t) => {
     t.assert.equal(
       recordingOutputPath('/tmp/rec.json', 1, 0),
-      '/tmp/rec-session1.json',
+      path.join('/tmp', 'rec-session1.json'),
     );
     t.assert.equal(
       recordingOutputPath('/tmp/rec.json', 42, 0),
-      '/tmp/rec-session42.json',
+      path.join('/tmp', 'rec-session42.json'),
     );
   });
 
   test('adds index suffix for non-positive sessionId when index > 0', (t) => {
     t.assert.equal(
       recordingOutputPath('/tmp/rec.json', 0, 1),
-      '/tmp/rec-1.json',
+      path.join('/tmp', 'rec-1.json'),
     );
     t.assert.equal(
       recordingOutputPath('/tmp/rec.json', 0, 2),
-      '/tmp/rec-2.json',
+      path.join('/tmp', 'rec-2.json'),
     );
   });
 
   test('preserves extension', (t) => {
     t.assert.equal(
       recordingOutputPath('/tmp/rec.recording', 3, 0),
-      '/tmp/rec-session3.recording',
+      path.join('/tmp', 'rec-session3.recording'),
     );
   });
 
   test('adds .json when no extension', (t) => {
     t.assert.equal(
       recordingOutputPath('/tmp/rec', 1, 0),
-      '/tmp/rec-session1.json',
+      path.join('/tmp', 'rec-session1.json'),
     );
   });
 });
