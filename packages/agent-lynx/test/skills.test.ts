@@ -274,11 +274,18 @@ test('default discovery includes every supported skill dependency without hardco
     '@lynx-js/skill-alpha',
     '@lynx-js/skill-beta',
   ]);
-  assert.deepEqual(resolveSkillRootsFromPackageRoot(packageRoot), [
-    packageRoot,
-    resolvedAlphaRoot,
-    resolvedBetaRoot,
-  ]);
+  assert.deepEqual(
+    await Promise.all(
+      resolveSkillRootsFromPackageRoot(packageRoot).map(root =>
+        fs.realpath(root)
+      ),
+    ),
+    [
+      await fs.realpath(packageRoot),
+      resolvedAlphaRoot,
+      resolvedBetaRoot,
+    ],
+  );
   assert.deepEqual(
     (
       await readSkillDocuments(resolveSkillRootsFromPackageRoot(packageRoot))
@@ -310,16 +317,16 @@ test('duplicate canonical skill names fail with both source locations', async (t
 
   await assert.rejects(
     readSkillDocuments([firstSkillRoot, secondSkillRoot]),
-    new RegExp(
-      `Duplicate skill name "duplicate" in ${
+    {
+      message: `Duplicate skill name "duplicate" in ${
         path.join(firstSkillRoot, 'SKILL.md')
       } and ${
         path.join(
           secondSkillRoot,
           'SKILL.md',
         )
-      }\\.`,
-    ),
+      }.`,
+    },
   );
 });
 
