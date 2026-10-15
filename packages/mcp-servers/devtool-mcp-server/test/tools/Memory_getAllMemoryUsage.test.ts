@@ -1,4 +1,4 @@
-// Copyright 2025 The Lynx Authors. All rights reserved.
+// Copyright 2026 The Lynx Authors. All rights reserved.
 // Licensed under the Apache License Version 2.0 that can be found in the
 // LICENSE file in the root directory of this source tree.
 
@@ -45,11 +45,9 @@ describe('Memory.getAllMemoryUsage', () => {
       connector as never,
       'test-client-id:9999',
     );
-    const result = await call<{
-      collectionStatus: string;
-      totalBytes: number;
-      instances: unknown[];
-    }>({
+    const result = await call<
+      { collectionStatus: string; totalBytes: number; instances: unknown[]; }
+    >({
       timeoutMs: 50_000,
     });
 
@@ -94,11 +92,9 @@ describe('Memory.getAllMemoryUsage', () => {
       connector as never,
       'test-client-id:9999',
     );
-    const result = await call<{
-      collectionStatus: string;
-      totalBytes: number;
-      instances: unknown[];
-    }>({
+    const result = await call<
+      { collectionStatus: string; totalBytes: number; instances: unknown[]; }
+    >({
       sessionId: 7,
     });
 

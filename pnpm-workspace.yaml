@@ -8,6 +8,8 @@ packages:
   - packages/mcp-servers/*
 
 catalogs:
+  mcp_sdk:
+    "@modelcontextprotocol/sdk": ^1.32.1
   rstack:
     "@rslib/core": 1.0.3
     "@rsbuild/core": 2.2.13

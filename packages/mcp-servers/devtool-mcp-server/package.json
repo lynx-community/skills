@@ -1,9 +1,11 @@
 {
   "name": "@lynx-js/devtool-mcp-server",
-  "version": "0.13.15",
+  "version": "0.16.2",
   "description": "A mcp server that lets coding agents to control, operate and preview Lynx pages.",
   "repository": {
-    "url": "https://github.com/lynx-community/skills"
+    "type": "git",
+    "url": "git+https://github.com/lynx-community/skills.git",
+    "directory": "packages/mcp-servers/devtool-mcp-server"
   },
   "license": "Apache-2.0",
   "type": "module",
@@ -18,14 +20,17 @@
       "import": "./src/connector.ts",
       "default": "./src/connector.ts"
     },
+    "./schema": {
+      "types": "./src/schema/index.ts",
+      "import": "./src/schema/index.ts",
+      "default": "./src/schema/index.ts"
+    },
     "./package.json": "./package.json"
   },
   "main": "./src/index.ts",
   "types": "./src/index.ts",
   "bin": "./src/main.ts",
-  "files": [
-    "dist"
-  ],
+  "files": ["dist", "CHANGELOG.md"],
   "scripts": {
     "build": "rslib build",
     "test": "node --test --test-concurrency=1 \"test/**/*.test.ts\"",
@@ -35,26 +40,19 @@
     "@lynx-js/devtool-connector": "workspace:*"
   },
   "devDependencies": {
-    "@modelcontextprotocol/sdk": "^1.32.1",
+    "@modelcontextprotocol/sdk": "catalog:mcp_sdk",
     "@rslib/core": "catalog:rstack",
+    "@types/node": "^24.19.2",
     "core-js": "^3.50.0",
-    "obug": "^2.2.1",
     "rsbuild-plugin-publint": "^1.0.0",
     "typescript": "5.9.3",
-    "zod": "^3.25.76"
+    "zod": "4.6.5"
   },
-  "peerDependencies": {
-    "@modelcontextprotocol/sdk": "*"
-  },
-  "peerDependenciesMeta": {
-    "@modelcontextprotocol/sdk": {
-      "optional": true
-    }
-  },
-  "engines": {
-    "node": ">=18.19"
-  },
+  "peerDependencies": { "@modelcontextprotocol/sdk": "*", "zod": "^4.6.5" },
+  "peerDependenciesMeta": { "@modelcontextprotocol/sdk": { "optional": true } },
+  "engines": { "node": ">=18.19" },
   "publishConfig": {
+    "access": "public",
     "bin": "./dist/main.js",
     "exports": {
       ".": {
@@ -66,6 +64,11 @@
         "types": "./dist/connector.d.ts",
         "import": "./dist/connector.js",
         "default": "./dist/connector.js"
+      },
+      "./schema": {
+        "types": "./dist/schema/index.d.ts",
+        "import": "./dist/schema/index.js",
+        "default": "./dist/schema/index.js"
       },
       "./package.json": "./package.json"
     },

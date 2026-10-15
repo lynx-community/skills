@@ -1,13 +1,12 @@
-// Copyright 2025 The Lynx Authors. All rights reserved.
+// Copyright 2026 The Lynx Authors. All rights reserved.
 // Licensed under the Apache License Version 2.0 that can be found in the
 // LICENSE file in the root directory of this source tree.
 
+import { ClientId } from '@lynx-js/devtool-connector';
 import assert from 'node:assert';
 import fs from 'node:fs/promises';
 import { ReadableStream } from 'node:stream/web';
 import { describe, test } from 'node:test';
-
-import { ClientId } from '@lynx-js/devtool-connector';
 import { TakeHeapSnapshot } from '../../src/tools/HeapProfiler/TakeHeapSnapshot.ts';
 import { createToolContext } from '../utils/testTool.ts';
 
@@ -57,7 +56,7 @@ const createMockConnector = (
     _clientId: string,
     inputStream: ReadableStream<unknown>,
   ) => {
-    const requests = (await collectMessages(inputStream)) as Array<{
+    const requests = await collectMessages(inputStream) as Array<{
       data: {
         data: {
           message: {
@@ -68,9 +67,8 @@ const createMockConnector = (
       };
     }>;
 
-    const request = requests.find(
-      (message) =>
-        message.data.data.message.method === 'HeapProfiler.takeHeapSnapshot',
+    const request = requests.find((message) =>
+      message.data.data.message.method === 'HeapProfiler.takeHeapSnapshot'
     );
 
     assert.ok(
@@ -92,9 +90,10 @@ describe('HeapProfiler.takeHeapSnapshot', () => {
       },
       { id: requestId, result: {} },
     ]);
-    const timeoutCountBefore = process
-      .getActiveResourcesInfo()
-      .filter((resource) => resource === 'Timeout').length;
+    const timeoutCountBefore =
+      process.getActiveResourcesInfo().filter((resource) =>
+        resource === 'Timeout'
+      ).length;
     const { call } = createToolContext(
       TakeHeapSnapshot,
       connector as never,
@@ -104,9 +103,10 @@ describe('HeapProfiler.takeHeapSnapshot', () => {
     const filePath = result.replace('Heap snapshot saved to ', '');
 
     try {
-      const timeoutCountAfter = process
-        .getActiveResourcesInfo()
-        .filter((resource) => resource === 'Timeout').length;
+      const timeoutCountAfter =
+        process.getActiveResourcesInfo().filter((resource) =>
+          resource === 'Timeout'
+        ).length;
       assert.equal(timeoutCountAfter, timeoutCountBefore);
     } finally {
       await fs.unlink(filePath).catch(() => {});
@@ -185,7 +185,10 @@ describe('HeapProfiler.takeHeapSnapshot', () => {
     let result: string;
 
     try {
-      Array.prototype.join = function patchedJoin(separator?: string) {
+      Array.prototype.join = function patchedJoin(
+        this: unknown[],
+        separator?: string,
+      ) {
         if (
           Array.isArray(this)
           && this.some((value) => value === firstChunk || value === secondChunk)

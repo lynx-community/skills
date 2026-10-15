@@ -1,4 +1,4 @@
-// Copyright 2025 The Lynx Authors. All rights reserved.
+// Copyright 2026 The Lynx Authors. All rights reserved.
 // Licensed under the Apache License Version 2.0 that can be found in the
 // LICENSE file in the root directory of this source tree.
 
@@ -12,19 +12,15 @@ export const GetResourceContent = /*#__PURE__*/ defineTool({
   schema: {
     clientId,
     sessionId,
-    url: z
-      .string()
-      .optional()
-      .describe('Resource URL returned by Page_getResourceTree.'),
-    frameId: z
-      .string()
-      .optional()
-      .describe('Frame id returned by Page_getResourceTree, when present.'),
-    nodeId: nodeId
-      .optional()
-      .describe(
-        'Lynx node id for engines that resolve resource content by node.',
-      ),
+    url: z.string().optional().describe(
+      'Resource URL returned by Page_getResourceTree.',
+    ),
+    frameId: z.string().optional().describe(
+      'Frame id returned by Page_getResourceTree, when present.',
+    ),
+    nodeId: nodeId.optional().describe(
+      'Lynx node id for engines that resolve resource content by node.',
+    ),
   },
   annotations: {
     readOnlyHint: true,

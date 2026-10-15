@@ -1,11 +1,10 @@
-// Copyright 2025 The Lynx Authors. All rights reserved.
+// Copyright 2026 The Lynx Authors. All rights reserved.
 // Licensed under the Apache License Version 2.0 that can be found in the
 // LICENSE file in the root directory of this source tree.
 
 import fs from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
-
 import * as z from 'zod';
 import { clientId, scriptId, sessionId } from '../../schema/index.ts';
 import { defineTool } from '../defineTool.ts';
@@ -19,8 +18,7 @@ export const GetScriptSource = /*#__PURE__*/ defineTool({
     sessionId,
 
     scriptId,
-    saveToTmp: z
-      .boolean()
+    saveToTmp: z.boolean()
       .optional()
       .describe(
         'Whether to save the script source to a temporary file if it is large.',
@@ -36,13 +34,19 @@ export const GetScriptSource = /*#__PURE__*/ defineTool({
     const { scriptSource } = await connector.sendCDPMessage<
       { scriptSource: string; },
       { scriptId: string; }
-    >(params.clientId, params.sessionId, 'Debugger.getScriptSource', {
-      scriptId: params.scriptId,
-    });
+    >(
+      params.clientId,
+      params.sessionId,
+      'Debugger.getScriptSource',
+      { scriptId: params.scriptId },
+    );
 
     if (params.saveToTmp) {
       const tmp = await fs.mkdtemp(path.join(tmpdir(), 'lynx-devtool-mcp-'));
-      await fs.writeFile(path.join(tmp, `${params.scriptId}.js`), scriptSource);
+      await fs.writeFile(
+        path.join(tmp, `${params.scriptId}.js`),
+        scriptSource,
+      );
       response.appendLines(`Script saved to ${tmp}/${params.scriptId}.js`);
     } else {
       response.appendLines('```javascript');

@@ -1,4 +1,4 @@
-// Copyright 2025 The Lynx Authors. All rights reserved.
+// Copyright 2026 The Lynx Authors. All rights reserved.
 // Licensed under the Apache License Version 2.0 that can be found in the
 // LICENSE file in the root directory of this source tree.
 
@@ -13,11 +13,9 @@ export const ScrollIntoViewIfNeeded = /*#__PURE__*/ defineTool({
     clientId,
     sessionId,
     nodeId,
-    rect: rect
-      .describe(
-        "The rect to be scrolled into view, relative to the node's border box, in CSS pixels. When omitted, center of the node will be used.",
-      )
-      .optional(),
+    rect: rect.describe(
+      "The rect to be scrolled into view, relative to the node's border box, in CSS pixels. When omitted, center of the node will be used.",
+    ).optional(),
   },
   annotations: {
     readOnlyHint: false,

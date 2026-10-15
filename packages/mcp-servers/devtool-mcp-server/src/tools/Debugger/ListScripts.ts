@@ -1,10 +1,10 @@
-// Copyright 2025 The Lynx Authors. All rights reserved.
+// Copyright 2026 The Lynx Authors. All rights reserved.
 // Licensed under the Apache License Version 2.0 that can be found in the
 // LICENSE file in the root directory of this source tree.
 
-import { ReadableStream } from 'node:stream/web';
 import { clientId, sessionId } from '../../schema/index.ts';
 import { raceWithTimeout } from '../../utils/raceWithTimeout.ts';
+import { readableFromIterable } from '../../utils/readableFromIterable.ts';
 import { defineTool } from '../defineTool.ts';
 
 export const ListScripts = /*#__PURE__*/ defineTool({
@@ -24,11 +24,9 @@ export const ListScripts = /*#__PURE__*/ defineTool({
     await using stream = await connector.sendCDPStream(
       params.clientId,
       params.sessionId,
-      ReadableStream.from([
-        {
-          method: 'Debugger.enable',
-        },
-      ]),
+      readableFromIterable([{
+        method: 'Debugger.enable',
+      }]),
       { signal: extra.signal },
     );
 
@@ -63,8 +61,8 @@ export const ListScripts = /*#__PURE__*/ defineTool({
     }
 
     response.appendLines(
-      ...scripts.map(
-        ({ scriptId, url }) => `- scriptId: ${scriptId}, url: ${url}`,
+      ...scripts.map(({ scriptId, url }) =>
+        `- scriptId: ${scriptId}, url: ${url}`
       ),
     );
   },

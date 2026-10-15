@@ -1,4 +1,4 @@
-// Copyright 2025 The Lynx Authors. All rights reserved.
+// Copyright 2026 The Lynx Authors. All rights reserved.
 // Licensed under the Apache License Version 2.0 that can be found in the
 // LICENSE file in the root directory of this source tree.
 
@@ -12,14 +12,12 @@ export const Reload = /*#__PURE__*/ defineTool({
   schema: {
     clientId,
     sessionId,
-    url: z
-      .string()
+    url: z.string()
       .describe(
         'The URL to reload, if different from the current page. Optional.',
       )
       .optional(),
-    ignoreCache: z
-      .boolean()
+    ignoreCache: z.boolean()
       .describe(
         'Whether to ignore the cache when reloading the page. Defaults to `true`',
       )

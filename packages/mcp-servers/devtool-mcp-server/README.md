@@ -1,5 +1,22 @@
 # @lynx-js/devtool-mcp-server
 
+## Reusable tool layer
+
+The public package provides `coreTools`, `Schema`, `McpContext`, `McpResponse`
+and `registerToolWithContext`. Integrations can register the shared tools with
+their own per-request context while preserving the same schemas, results and
+error handling. Product-specific transports, tools and telemetry remain in the
+integration package; a server can wrap its own `registerTool` method for telemetry.
+
+The context factory is invoked once for each tool call, including concurrent
+calls. Its `connector()` must return a Connector-compatible instance. Existing
+`registerTool(server, tool, transports)` remains available for default contexts.
+
+The MCP SDK is an optional peer for programmatic consumers, and Zod 4 is a
+required peer so tool schemas use the caller's dependency instance. The stdio
+command bundles the SDK. `setupServer` uses the shared daemon by default;
+`setupCoreServer` also accepts explicit transports.
+
 > The Lynx DevTool for coding agents.
 
 `@lynx-js/devtool-mcp-server` lets your coding agent (such as Gemini, Claude, Cursor or Copilot)
@@ -67,7 +84,7 @@ code --add-mcp '{"name":"lynx-devtool","command":"npx","args":["@lynx-js/devtool
 
 **Click the button to install:**
 
-[<img src="https://cursor.com/deeplink/mcp-install-dark.svg" alt="Install in Cursor">](https://cursor.com/en/install-mcp?name=lynx-devtool&config=eyJjb21tYW5kIjoibnB4IiwiYXJncyI6WyIteSIsIi0tcmVnaXN0cnkiLCJodHRwczovL2JucG0uYnl0ZWQub3JnIiwiQGJ5dGVkLWx5bngvZGV2dG9vbC1tY3Atc2VydmVyQGxhdGVzdCJdfQ==%3D)
+[<img src="https://cursor.com/deeplink/mcp-install-dark.svg" alt="Install in Cursor">](https://cursor.com/en/install-mcp?name=lynx-devtool&config=eyJjb21tYW5kIjoibnB4IiwiYXJncyI6WyIteSIsIkBseW54LWpzL2RldnRvb2wtbWNwLXNlcnZlckBsYXRlc3QiXX0%3D)
 
 **Or install manually:**
 

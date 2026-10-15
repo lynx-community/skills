@@ -1,4 +1,4 @@
-// Copyright 2025 The Lynx Authors. All rights reserved.
+// Copyright 2026 The Lynx Authors. All rights reserved.
 // Licensed under the Apache License Version 2.0 that can be found in the
 // LICENSE file in the root directory of this source tree.
 
@@ -19,39 +19,30 @@ export const Evaluate = /*#__PURE__*/ defineTool({
     sessionId,
     thread,
     expression: z.string().describe('JavaScript expression to evaluate.'),
-    silent: z
-      .boolean()
-      .optional()
-      .describe('Do not report or pause on exceptions during evaluation.'),
-    contextId: z
-      .number()
-      .int()
-      .optional()
-      .describe('Execution context id to evaluate in.'),
-    throwOnSideEffect: z
-      .boolean()
-      .optional()
-      .describe('Throw if side effects cannot be ruled out.'),
-    generatePreview: z
-      .boolean()
-      .optional()
-      .describe('Whether to generate a preview for the result.'),
-    objectGroup: z
-      .string()
-      .optional()
-      .describe('Symbolic group name for released remote objects.'),
-    returnByValue: z
-      .boolean()
-      .optional()
-      .describe('Return the result by value when supported by the engine.'),
-    awaitPromise: z
-      .boolean()
-      .optional()
-      .describe('Await the resulting promise when supported by the engine.'),
-    includeCommandLineAPI: z
-      .boolean()
-      .optional()
-      .describe('Expose command line API during evaluation when supported.'),
+    silent: z.boolean().optional().describe(
+      'Do not report or pause on exceptions during evaluation.',
+    ),
+    contextId: z.number().int().optional().describe(
+      'Execution context id to evaluate in.',
+    ),
+    throwOnSideEffect: z.boolean().optional().describe(
+      'Throw if side effects cannot be ruled out.',
+    ),
+    generatePreview: z.boolean().optional().describe(
+      'Whether to generate a preview for the result.',
+    ),
+    objectGroup: z.string().optional().describe(
+      'Symbolic group name for released remote objects.',
+    ),
+    returnByValue: z.boolean().optional().describe(
+      'Return the result by value when supported by the engine.',
+    ),
+    awaitPromise: z.boolean().optional().describe(
+      'Await the resulting promise when supported by the engine.',
+    ),
+    includeCommandLineAPI: z.boolean().optional().describe(
+      'Expose command line API during evaluation when supported.',
+    ),
   },
   annotations: {
     readOnlyHint: false,
@@ -76,6 +67,16 @@ export const Evaluate = /*#__PURE__*/ defineTool({
         ['includeCommandLineAPI', params.includeCommandLineAPI],
       ].filter(([, value]) => value !== undefined),
     );
+
+    if (!isMainThread) {
+      // Lynx selects currentDebugAppId when Debugger.enable completes for this view.
+      await connector.sendCDPMessage(
+        params.clientId,
+        params.sessionId,
+        'Debugger.enable',
+        {},
+      );
+    }
 
     const result = await connector.sendCDPMessage(
       params.clientId,

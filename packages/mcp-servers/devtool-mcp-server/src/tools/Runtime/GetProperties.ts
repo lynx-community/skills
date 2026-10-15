@@ -1,4 +1,4 @@
-// Copyright 2025 The Lynx Authors. All rights reserved.
+// Copyright 2026 The Lynx Authors. All rights reserved.
 // Licensed under the Apache License Version 2.0 that can be found in the
 // LICENSE file in the root directory of this source tree.
 
@@ -13,27 +13,21 @@ export const GetProperties = /*#__PURE__*/ defineTool({
     clientId,
     sessionId,
     thread,
-    objectId: z
-      .string()
-      .describe(
-        'Remote object id returned by Runtime.evaluate or console output.',
-      ),
-    ownProperties: z
-      .boolean()
-      .optional()
-      .describe('Return only properties owned by the object.'),
-    accessorPropertiesOnly: z
-      .boolean()
-      .optional()
-      .describe('Return accessor properties only when supported.'),
-    generatePreview: z
-      .boolean()
-      .optional()
-      .describe('Whether to generate previews for property values.'),
-    nonIndexedPropertiesOnly: z
-      .boolean()
-      .optional()
-      .describe('Return non-indexed properties only when supported.'),
+    objectId: z.string().describe(
+      'Remote object id returned by Runtime.evaluate or console output.',
+    ),
+    ownProperties: z.boolean().optional().describe(
+      'Return only properties owned by the object.',
+    ),
+    accessorPropertiesOnly: z.boolean().optional().describe(
+      'Return accessor properties only when supported.',
+    ),
+    generatePreview: z.boolean().optional().describe(
+      'Whether to generate previews for property values.',
+    ),
+    nonIndexedPropertiesOnly: z.boolean().optional().describe(
+      'Return non-indexed properties only when supported.',
+    ),
   },
   annotations: {
     readOnlyHint: true,

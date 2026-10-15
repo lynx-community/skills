@@ -1,4 +1,4 @@
-// Copyright 2025 The Lynx Authors. All rights reserved.
+// Copyright 2026 The Lynx Authors. All rights reserved.
 // Licensed under the Apache License Version 2.0 that can be found in the
 // LICENSE file in the root directory of this source tree.
 
@@ -13,9 +13,9 @@ export const SetAttributesAsText = /*#__PURE__*/ defineTool({
     clientId,
     sessionId,
     nodeId,
-    text: z
-      .string()
-      .describe("Attribute text, for example `style='color: pink;'`."),
+    text: z.string().describe(
+      "Attribute text, for example `style='color: pink;'`.",
+    ),
     name: z.string().optional().describe('Optional attribute name to replace.'),
   },
   annotations: {

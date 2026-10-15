@@ -1,4 +1,4 @@
-// Copyright 2025 The Lynx Authors. All rights reserved.
+// Copyright 2026 The Lynx Authors. All rights reserved.
 // Licensed under the Apache License Version 2.0 that can be found in the
 // LICENSE file in the root directory of this source tree.
 
@@ -86,17 +86,17 @@ describe('App global switch tools', () => {
       mockConnector as never,
       testClientId,
     );
-    const result = await call<{
-      switches: Array<{ key: string; value?: boolean; error?: string; }>;
-    }>({});
+    const result = await call<
+      { switches: Array<{ key: string; value?: boolean; error?: string; }>; }
+    >({});
 
     assert.equal(result.switches.length, 15);
     assert.deepStrictEqual(
-      result.switches.find((item) => item.key === 'enable_devtool'),
+      result.switches.find(item => item.key === 'enable_devtool'),
       { key: 'enable_devtool', value: true },
     );
     assert.deepStrictEqual(
-      result.switches.find((item) => item.key === 'enable_logbox'),
+      result.switches.find(item => item.key === 'enable_logbox'),
       { key: 'enable_logbox', value: false },
     );
   });
@@ -117,10 +117,10 @@ describe('App global switch tools', () => {
       mockConnector as never,
       testClientId,
     );
-    const result = await call<{
-      switches: Array<{ key: string; value?: boolean; error?: string; }>;
-    }>({});
-    const failed = result.switches.find((item) => item.key === 'enable_v8');
+    const result = await call<
+      { switches: Array<{ key: string; value?: boolean; error?: string; }>; }
+    >({});
+    const failed = result.switches.find(item => item.key === 'enable_v8');
 
     assert.equal(typeof failed?.error, 'string');
   });

@@ -1,4 +1,4 @@
-// Copyright 2025 The Lynx Authors. All rights reserved.
+// Copyright 2026 The Lynx Authors. All rights reserved.
 // Licensed under the Apache License Version 2.0 that can be found in the
 // LICENSE file in the root directory of this source tree.
 
@@ -10,12 +10,12 @@ type SentCDPMessage = {
   clientId: string;
   sessionId: number;
   method: string;
-  params?: Record<string, unknown>;
+  params: Record<string, unknown> | undefined;
 };
 
 async function loadDescribeNodeTool() {
-  const module = await import('../../src/tools/DOM/DescribeNode.ts').catch(
-    () => undefined,
+  const module = await import('../../src/tools/DOM/DescribeNode.ts').catch(() =>
+    undefined
   );
 
   assert.ok(
@@ -54,10 +54,9 @@ describe('DOM.describeNode', () => {
       connector as never,
       'test-client-id:9999',
     );
-    const result = await call<{
-      node: { nodeId: number; nodeName: string; };
-      compress: boolean;
-    }>({
+    const result = await call<
+      { node: { nodeId: number; nodeName: string; }; compress: boolean; }
+    >({
       nodeId: 7,
     });
 
@@ -116,10 +115,12 @@ describe('DOM.describeNode', () => {
       connector as never,
       'test-client-id:9999',
     );
-    const result = await call<{
-      node: { backendNodeId: number; childNodeCount: number; };
-      compress: boolean;
-    }>({
+    const result = await call<
+      {
+        node: { backendNodeId: number; childNodeCount: number; };
+        compress: boolean;
+      }
+    >({
       backendNodeId: 9,
       depth: -1,
       pierce: true,
@@ -151,7 +152,7 @@ describe('DOM.describeNode', () => {
 
         assert.strictEqual(method, 'DOM.describeNode');
 
-        if (params?.depth === 0) {
+        if (params?.['depth'] === 0) {
           return { node: { nodeId: 3, childNodeCount: 1 }, compress: false };
         }
 
@@ -173,15 +174,19 @@ describe('DOM.describeNode', () => {
       connector as never,
       'test-client-id:9999',
     );
-    const depthZero = await call<{
-      node: { nodeId: number; childNodeCount: number; children?: unknown[]; };
-    }>({
+    const depthZero = await call<
+      {
+        node: { nodeId: number; childNodeCount: number; children?: unknown[]; };
+      }
+    >({
       nodeId: 3,
       depth: 0,
     });
-    const depthOne = await call<{
-      node: { nodeId: number; children?: Array<{ children?: unknown[]; }>; };
-    }>({
+    const depthOne = await call<
+      {
+        node: { nodeId: number; children?: Array<{ children?: unknown[]; }>; };
+      }
+    >({
       nodeId: 3,
       depth: 1,
     });

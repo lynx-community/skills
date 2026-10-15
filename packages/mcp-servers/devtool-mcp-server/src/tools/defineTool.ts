@@ -1,4 +1,4 @@
-// Copyright 2025 The Lynx Authors. All rights reserved.
+// Copyright 2026 The Lynx Authors. All rights reserved.
 // Licensed under the Apache License Version 2.0 that can be found in the
 // LICENSE file in the root directory of this source tree.
 
@@ -30,7 +30,10 @@ export interface ImageContentData {
   mimeType: string;
 }
 
-export interface ToolDefinition<Schema extends z.ZodRawShape = z.ZodRawShape> {
+export interface ToolDefinition<
+  Schema extends z.ZodRawShape = z.ZodRawShape,
+  ToolContext extends Context = Context,
+> {
   name: string;
   description: string;
   annotations: {
@@ -44,12 +47,15 @@ export interface ToolDefinition<Schema extends z.ZodRawShape = z.ZodRawShape> {
   handler: (
     request: Request<Schema>,
     response: Response,
-    context: Context,
+    context: ToolContext,
   ) => Promise<void>;
 }
 
-export function defineTool<Schema extends z.ZodRawShape>(
-  definition: ToolDefinition<Schema>,
-): ToolDefinition<Schema> {
+export function defineTool<
+  Schema extends z.ZodRawShape,
+  ToolContext extends Context = Context,
+>(
+  definition: ToolDefinition<Schema, ToolContext>,
+): ToolDefinition<Schema, ToolContext> {
   return definition;
 }
