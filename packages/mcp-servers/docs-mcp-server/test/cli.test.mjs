@@ -7,10 +7,9 @@ import assert from 'node:assert/strict';
 import { execFile } from 'node:child_process';
 import {
   mkdir,
-  mkdtemp,
+  mkdtempDisposable,
   readdir,
   readFile,
-  rm,
   symlink,
 } from 'node:fs/promises';
 import { createServer } from 'node:http';
@@ -23,12 +22,6 @@ import { promisify } from 'node:util';
 const exec = promisify(execFile);
 const packageRoot = fileURLToPath(new URL('..', import.meta.url));
 const options = { timeout: 30_000 };
-
-async function temporaryDirectory(cleanup) {
-  const directory = await mkdtemp(join(tmpdir(), 'oss-docs-mcp-test-'));
-  cleanup.defer(() => rm(directory, { recursive: true, force: true }));
-  return directory;
-}
 
 async function checkMetadata(directory, entry) {
   const manifest = JSON.parse(
@@ -50,10 +43,11 @@ async function checkMetadata(directory, entry) {
 test(
   'source, built, and packed CLIs load their own metadata outside the workspace',
   options,
-  async t => {
-    const cleanup = new AsyncDisposableStack();
-    t.after(() => cleanup.disposeAsync());
-    const directory = await temporaryDirectory(cleanup);
+  async () => {
+    await using temporaryDirectory = await mkdtempDisposable(
+      join(tmpdir(), 'oss-docs-mcp-test-'),
+    );
+    const directory = temporaryDirectory.path;
     await checkMetadata(directory, join(packageRoot, 'main.ts'));
     await checkMetadata(directory, join(packageRoot, 'dist/main.js'));
     const pnpm = process.env.npm_execpath;
@@ -95,10 +89,12 @@ test(
 test(
   'native fetch serves documentation and obug diagnostics stay on stderr',
   options,
-  async t => {
-    const cleanup = new AsyncDisposableStack();
-    t.after(() => cleanup.disposeAsync());
-    const directory = await temporaryDirectory(cleanup);
+  async () => {
+    await using temporaryDirectory = await mkdtempDisposable(
+      join(tmpdir(), 'oss-docs-mcp-test-'),
+    );
+    const directory = temporaryDirectory.path;
+    await using cleanup = new AsyncDisposableStack();
     const requests = [];
     let origin;
     const server = createServer((request, response) => {
