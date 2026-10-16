@@ -119,40 +119,6 @@ importers:
         specifier: ^2.9.1
         version: 2.9.1
 
-  packages/agent-lynx:
-    dependencies:
-      '@lynx-js/devtool-connector':
-        specifier: workspace:*
-        version: link:../mcp-servers/devtool-connector
-      '@lynx-js/skill-lynx-devtool':
-        specifier: workspace:*
-        version: link:../skills/lynx-devtool
-      '@lynx-js/trace-processor':
-        specifier: 0.0.1
-        version: 0.0.1
-    devDependencies:
-      '@rslib/core':
-        specifier: catalog:rstack
-        version: 1.0.3(@microsoft/api-extractor@7.59.4(@types/node@24.19.2))(core-js@3.50.0)(typescript@5.9.3)
-      '@types/node':
-        specifier: ^24.19.2
-        version: 24.19.2
-      commander:
-        specifier: ^14.0.3
-        version: 14.0.3
-      core-js:
-        specifier: ^3.50.0
-        version: 3.50.0
-      obug:
-        specifier: ^2.2.1
-        version: 2.2.1
-      typescript:
-        specifier: ^5.9.3
-        version: 5.9.3
-      yaml:
-        specifier: ^2.9.1
-        version: 2.9.1
-
   packages/cmd/build-marketplace:
     dependencies:
       npm-packlist:
@@ -254,7 +220,7 @@ importers:
     devDependencies:
       '@modelcontextprotocol/sdk':
         specifier: catalog:mcp_sdk
-        version: 1.32.1(supports-color@8.1.1)(zod@4.6.5)
+        version: 1.32.1(supports-color@8.1.1)(zod@4.6.7)
       '@rslib/core':
         specifier: catalog:rstack
         version: 1.0.3(@microsoft/api-extractor@7.59.4(@types/node@24.19.2))(core-js@3.50.0)(typescript@5.9.3)
@@ -271,14 +237,14 @@ importers:
         specifier: 5.9.3
         version: 5.9.3
       zod:
-        specifier: 4.6.5
-        version: 4.6.5
+        specifier: 4.6.7
+        version: 4.6.7
 
   packages/mcp-servers/docs-mcp-server:
     dependencies:
       '@modelcontextprotocol/sdk':
         specifier: 1.32.1
-        version: 1.32.1(supports-color@8.1.1)(zod@4.4.3)
+        version: 1.32.1(supports-color@8.1.1)(zod@4.6.7)
       commander:
         specifier: ^15.0.0
         version: 15.0.0
@@ -364,8 +330,8 @@ importers:
         specifier: ^5.9.3
         version: 5.9.3
       zod:
-        specifier: ^4.3.5
-        version: 4.4.3
+        specifier: ^4.6.7
+        version: 4.6.7
 
   packages/skills/lynx-debug-info-remapping:
     devDependencies:
@@ -933,10 +899,6 @@ packages:
 
   '@lynx-js/skill-lynx-ui@3.133.9':
     resolution: {integrity: sha512-mvlNeMJ+o7nOn9UNOo2w0IpQk/dv+LN5zOQyUCX3ezWdUPejurgAKdu0A1r1T54hlWYVDYa52ur77UNkfTCnaA==}
-
-  '@lynx-js/trace-processor@0.0.1':
-    resolution: {integrity: sha512-Zyl74cKi+BDggeXroLQG4frbBuiQ0DB0yH0C3pMkUHWv17abWTdJ2mw/H9Cd1QiIr+aQHn1U2SRtsrbkmWMtJw==}
-    engines: {node: '>=18'}
 
   '@manypkg/find-root@1.1.0':
     resolution: {integrity: sha512-mki5uBvhHzO8kYYix/WRy2WX8S3B5wdVSc9D6KcU5lQNglP2yt58/VfLuAK49glRXChosY8ap2oJ1qgma3GUVA==}
@@ -2683,11 +2645,8 @@ packages:
     peerDependencies:
       zod: ^3.25.28 || ^4
 
-  zod@4.4.3:
-    resolution: {integrity: sha512-ytENFjIJFl2UwYglde2jchW2Hwm4GJFLDiSXWdTrJQBIN9Fcyp7n4DhxJEiWNAJMV1/BqWfW/kkg71UDcHJyTQ==}
-
-  zod@4.6.5:
-    resolution: {integrity: sha512-v5l/aFXZQeai4awLbOpSoHecE9UiMrnfx75tEXLjNonXVARxQ5mOeipTjROUchszUNCqnE+hqAMujRsRHsut2Q==}
+  zod@4.6.7:
+    resolution: {integrity: sha512-g8W2D2kU6a8untc053fX1uVBKzM7yqAxW/3zwk83+6RyF2+SKOuV+c0wBDhUwzV1PaGapmZH+rmcUzPf+3CGwg==}
 
   zwitch@2.0.4:
     resolution: {integrity: sha512-bXE4cR/kVZhKZX/RjPEflHaKVhUVl85noU3v6b8apfQEc1x4A+zBxjZ4lN8LqGd6WZ3dl98pY4o717VFmoPp+A==}
@@ -3128,10 +3087,6 @@ snapshots:
 
   '@lynx-js/skill-lynx-ui@3.133.9': {}
 
-  '@lynx-js/trace-processor@0.0.1':
-    dependencies:
-      immer: 10.2.0
-
   '@manypkg/find-root@1.1.0':
     dependencies:
       '@babel/runtime': 7.28.6
@@ -3183,7 +3138,7 @@ snapshots:
 
   '@microsoft/tsdoc@0.17.1': {}
 
-  '@modelcontextprotocol/sdk@1.32.1(supports-color@8.1.1)(zod@4.4.3)':
+  '@modelcontextprotocol/sdk@1.32.1(supports-color@8.1.1)(zod@4.6.7)':
     dependencies:
       '@hono/node-server': 1.19.14(hono@4.13.0)
       ajv: 8.20.0
@@ -3200,30 +3155,8 @@ snapshots:
       json-schema-typed: 8.0.2
       pkce-challenge: 5.0.1
       raw-body: 3.0.2
-      zod: 4.4.3
-      zod-to-json-schema: 3.25.2(zod@4.4.3)
-    transitivePeerDependencies:
-      - supports-color
-
-  '@modelcontextprotocol/sdk@1.32.1(supports-color@8.1.1)(zod@4.6.5)':
-    dependencies:
-      '@hono/node-server': 1.19.14(hono@4.13.0)
-      ajv: 8.20.0
-      ajv-formats: 3.0.1
-      content-type: 1.0.5
-      cors: 2.8.6
-      cross-spawn: 7.0.6
-      eventsource: 3.0.7
-      eventsource-parser: 3.1.0
-      express: 5.2.1(supports-color@8.1.1)
-      express-rate-limit: 8.6.0(express@5.2.1(supports-color@8.1.1))(supports-color@8.1.1)
-      hono: 4.13.0
-      jose: 6.2.10
-      json-schema-typed: 8.0.2
-      pkce-challenge: 5.0.1
-      raw-body: 3.0.2
-      zod: 4.6.5
-      zod-to-json-schema: 3.25.2(zod@4.6.5)
+      zod: 4.6.7
+      zod-to-json-schema: 3.25.2(zod@4.6.7)
     transitivePeerDependencies:
       - supports-color
 
@@ -4984,16 +4917,10 @@ snapshots:
   yocto-queue@0.1.0:
     optional: true
 
-  zod-to-json-schema@3.25.2(zod@4.4.3):
+  zod-to-json-schema@3.25.2(zod@4.6.7):
     dependencies:
-      zod: 4.4.3
+      zod: 4.6.7
 
-  zod-to-json-schema@3.25.2(zod@4.6.5):
-    dependencies:
-      zod: 4.6.5
-
-  zod@4.4.3: {}
-
-  zod@4.6.5: {}
+  zod@4.6.7: {}
 
   zwitch@2.0.4: {}
