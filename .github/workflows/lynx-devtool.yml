@@ -4,6 +4,7 @@ on:
   pull_request:
     branches: [main]
     paths:
+      - "packages/agent-lynx/**"
       - "packages/mcp-servers/devtool-connector/**"
       - "packages/mcp-servers/devtool-mcp-server/**"
       - "packages/skills/lynx-devtool/**"
@@ -11,6 +12,7 @@ on:
   push:
     branches: [main]
     paths:
+      - "packages/agent-lynx/**"
       - "packages/mcp-servers/devtool-connector/**"
       - "packages/mcp-servers/devtool-mcp-server/**"
       - "packages/skills/lynx-devtool/**"
@@ -24,6 +26,8 @@ env:
   LYNX_DEVTOOL_MCP_TESTING_APP_PACKAGE: EmbeddedLynx
   # Generic Lynx page for connector / mcp-server tools.
   SWIPER_BUNDLE_URL: https://lynxjs.org/lynx-examples/swiper/dist/Swiper.lynx.bundle
+  # ReactLynx page bundled with @lynx-js/preact-devtools for reactlynx tooling.
+  REACT_DEVTOOL_BUNDLE_URL: https://unpkg.com/@lynx-example/react-devtool@0.2.0/dist/main.lynx.bundle
 
 jobs:
   e2e:
@@ -78,6 +82,27 @@ jobs:
       - name: Stop EmbeddedLynx (Swiper bundle)
         if: always()
         run: kill "${EMBEDDED_LYNX_PID}" 2>/dev/null || true
+
+      # --- ReactLynx: skill against the preact-devtools-enabled bundle ---
+
+      - name: Start EmbeddedLynx (ReactLynx bundle)
+        run: |
+          set -euo pipefail
+          setsid "$EMBEDDED_LYNX_BINARY" --url "$REACT_DEVTOOL_BUNDLE_URL" \
+            < /dev/null > /tmp/embedded-lynx-reactlynx.log 2>&1 &
+          echo "EMBEDDED_LYNX_REACT_PID=$!" >> "$GITHUB_ENV"
+          ./.github/scripts/wait-debug-router.sh /tmp/embedded-lynx-reactlynx.log
+
+      - name: E2E (agent-lynx reactlynx)
+        working-directory: packages/agent-lynx
+        env:
+          LYNX_DEVTOOL_MCP_TESTING_PAGE_URL: ${{ env.REACT_DEVTOOL_BUNDLE_URL }}
+          LYNX_DEVTOOL_MCP_TESTING_OPEN_URL: ${{ env.REACT_DEVTOOL_BUNDLE_URL }}
+        run: pnpm run test:e2e:public
+
+      - name: Stop EmbeddedLynx (ReactLynx bundle)
+        if: always()
+        run: kill "${EMBEDDED_LYNX_REACT_PID}" 2>/dev/null || true
 
       - name: Upload EmbeddedLynx logs
         if: failure()

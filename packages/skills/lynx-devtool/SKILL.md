@@ -19,8 +19,7 @@ The programmatic API is exported from `agent-lynx/connector`. This entry re-expo
 
 Online CLI commands follow the same daemon-only default. `--no-daemon` is an
 explicit escape hatch that replaces the daemon with direct Android, iOS,
-OpenHarmony, and Desktop transports for that invocation. The built-in headless
-runtime remains daemon-only. `ADB_SERVER_HOST` and `ADB_SERVER_PORT` configure
+and Desktop transports for that invocation. `ADB_SERVER_HOST` and `ADB_SERVER_PORT` configure
 only this direct mode. Daemon mode ignores them with a stderr warning.
 
 The `agent-lynx` CLI is normally available on `PATH`. If
@@ -156,7 +155,7 @@ Wait until a client is available.
 agent-lynx wait-for-client --client-name com.lynx.uiapp
 ```
 
-- `--client-name <name>`: Optional package/app name to wait for. Matches `AppProcessName`, `bundleId`, `bundleName`, or `App`. If multiple clients match, all matching clients are returned. If omitted, the first non-headless client is returned. Output is always a JSON array.
+- `--client-name <name>`: Optional package/app name to wait for. Matches `AppProcessName`, `bundleId`, `bundleName`, or `App`. If multiple clients match, all matching clients are returned. If omitted, the first available client is returned. Output is always a JSON array.
 - `--timeout <seconds>`: Maximum seconds to wait. Defaults to `30`.
 - `--interval <seconds>`: Seconds between discovery attempts. Defaults to `1`.
 
