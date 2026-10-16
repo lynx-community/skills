@@ -1,5 +1,18 @@
 # @lynx-js/devtool-mcp-server
 
+## 0.16.3
+
+### Patch Changes
+
+- Updated dependency `zod` to `4.6.7`.
+  Updated dependency `zod` to `^4.6.7`.
+- Share MCP tool definitions, request execution, response formatting, schemas and stream helpers between the public and internal distributions. Align the public implementation with version 0.16.2 and expose a tool-context factory for distribution-specific integrations.
+  
+  Preserve existing tool names, schemas, results and command-line behavior in the internal distribution while keeping product-specific tools and infrastructure out of the public package.
+- Preserve concrete tool schemas when registering a custom context, and correct the public Cursor installation link.
+- Updated dependencies
+  - @lynx-js/devtool-connector@0.16.4
+
 ## 0.13.15
 
 ### Patch Changes
