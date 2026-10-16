@@ -1,5 +1,13 @@
 # agent-lynx
 
+## 0.14.17
+
+### Patch Changes
+
+- c238976: Preserve the original error cause when resolving a declared Skill dependency fails.
+- Updated dependencies [c238976]
+  - @lynx-js/skill-lynx-devtool@0.14.17
+
 ## 0.14.16
 
 ### Patch Changes
