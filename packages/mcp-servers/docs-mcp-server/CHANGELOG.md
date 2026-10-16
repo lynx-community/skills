@@ -1,5 +1,15 @@
 # @lynx-js/docs-mcp-server
 
+## 0.3.0
+
+### Minor Changes
+
+- c238976: Require Node.js ^22.18.0 or >=24.0.0, replace undici with native fetch, discover package metadata using node:module, and use obug for DEBUG-compatible diagnostics.
+
+### Patch Changes
+
+- c238976: Move the docs MCP server from `lynx-family/lynx-stack` to `lynx-community/skills`, preserving the npm package name, MCP configuration, recursive documentation index crawling, and Codex startup compatibility.
+
 ## 0.2.6
 
 ### Patch Changes
