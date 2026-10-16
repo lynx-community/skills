@@ -86,7 +86,7 @@ script:
 
 Options:
 
-- `-c, --client <clientId>`: Client ID. The first available non-headless client
+- `-c, --client <clientId>`: Client ID. The first available client
   is used when omitted.
 - `--no-systrace`: Disable systrace. Systrace is enabled by default.
 - `--include-categories <categories>`: Comma-separated trace categories to

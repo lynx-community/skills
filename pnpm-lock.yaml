@@ -119,6 +119,49 @@ importers:
         specifier: ^2.9.1
         version: 2.9.1
 
+  packages/agent-lynx:
+    dependencies:
+      '@lynx-js/devtool-connector':
+        specifier: workspace:*
+        version: link:../mcp-servers/devtool-connector
+      '@lynx-js/skill-lynx-devtool':
+        specifier: workspace:*
+        version: link:../skills/lynx-devtool
+      '@lynx-js/skill-lynx-trace-analysis':
+        specifier: 0.0.12
+        version: 0.0.12
+      '@lynx-js/skill-lynx-trace-record':
+        specifier: 0.0.6
+        version: 0.0.6
+      '@lynx-js/trace-processor':
+        specifier: 0.0.1
+        version: 0.0.1
+    devDependencies:
+      '@microsoft/api-extractor':
+        specifier: ^7.59.4
+        version: 7.59.4(@types/node@24.19.2)
+      '@rslib/core':
+        specifier: catalog:rstack
+        version: 1.0.3(@microsoft/api-extractor@7.59.4(@types/node@24.19.2))(core-js@3.50.0)(typescript@7.0.2)
+      '@types/node':
+        specifier: ^24.19.2
+        version: 24.19.2
+      commander:
+        specifier: ^14.0.3
+        version: 14.0.3
+      core-js:
+        specifier: ^3.50.0
+        version: 3.50.0
+      obug:
+        specifier: ^2.2.1
+        version: 2.2.1
+      typescript:
+        specifier: ^7.0.2
+        version: 7.0.2
+      yaml:
+        specifier: ^2.9.1
+        version: 2.9.1
+
   packages/cmd/build-marketplace:
     dependencies:
       npm-packlist:
@@ -899,6 +942,10 @@ packages:
 
   '@lynx-js/skill-lynx-ui@3.133.9':
     resolution: {integrity: sha512-mvlNeMJ+o7nOn9UNOo2w0IpQk/dv+LN5zOQyUCX3ezWdUPejurgAKdu0A1r1T54hlWYVDYa52ur77UNkfTCnaA==}
+
+  '@lynx-js/trace-processor@0.0.1':
+    resolution: {integrity: sha512-Zyl74cKi+BDggeXroLQG4frbBuiQ0DB0yH0C3pMkUHWv17abWTdJ2mw/H9Cd1QiIr+aQHn1U2SRtsrbkmWMtJw==}
+    engines: {node: '>=18'}
 
   '@manypkg/find-root@1.1.0':
     resolution: {integrity: sha512-mki5uBvhHzO8kYYix/WRy2WX8S3B5wdVSc9D6KcU5lQNglP2yt58/VfLuAK49glRXChosY8ap2oJ1qgma3GUVA==}
@@ -3086,6 +3133,10 @@ snapshots:
   '@lynx-js/skill-lynx-trace-record@0.0.6': {}
 
   '@lynx-js/skill-lynx-ui@3.133.9': {}
+
+  '@lynx-js/trace-processor@0.0.1':
+    dependencies:
+      immer: 10.2.0
 
   '@manypkg/find-root@1.1.0':
     dependencies:
