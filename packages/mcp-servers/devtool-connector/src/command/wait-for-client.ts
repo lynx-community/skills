@@ -11,8 +11,8 @@ const DEFAULT_TIMEOUT_MS = 30_000;
 const DEFAULT_INTERVAL_MS = 1_000;
 const DISCOVERY_DEADLINE = Symbol("discoveryDeadline");
 
-function isHeadlessClientId(clientId: string): boolean {
-  return clientId.startsWith("headless:");
+function requiresExplicitClientId(clientId: string): boolean {
+  return clientId.startsWith("headless:") || clientId.startsWith("simulator:");
 }
 
 function finiteNumber(value: unknown): number | undefined {
@@ -51,7 +51,7 @@ function formatClientForError(client: Client): string {
 }
 
 function selectClients(clients: Client[], clientName: string | undefined): Client[] {
-  const realClients = clients.filter(client => !isHeadlessClientId(client.id));
+  const realClients = clients.filter(client => !requiresExplicitClientId(client.id));
   if (clientName === undefined) return realClients.slice(0, 1);
   return realClients.filter(client => getClientNames(client).includes(clientName));
 }
@@ -59,13 +59,16 @@ function selectClients(clients: Client[], clientName: string | undefined): Clien
 function timeoutMessage(clientName: string | undefined, clients: Client[]): string {
   if (clientName !== undefined) {
     const availableClients = clients
-      .filter(client => !isHeadlessClientId(client.id))
+      .filter(client => !requiresExplicitClientId(client.id))
       .map(formatClientForError)
       .join("\n");
     return `No client found matching --client-name "${clientName}".`
       + (availableClients ? `\nAvailable clients:\n${availableClients}` : "\nNo real-device clients are available.");
   }
-  if (clients.some(client => isHeadlessClientId(client.id))) {
+  if (clients.some(client => client.id.startsWith("simulator:"))) {
+    return "Simulator clients require an explicit --client; waiting for a real-device client.";
+  }
+  if (clients.some(client => requiresExplicitClientId(client.id))) {
     return "Only headless Lynx DevTool clients were found before timeout; "
       + "waiting without --client-name requires a non-headless client.";
   }
@@ -138,7 +141,7 @@ export async function* waitForClientStream(
 
     lastClients = discovery;
     attempts += 1;
-    const availableClients = lastClients.filter(client => !isHeadlessClientId(client.id));
+    const availableClients = lastClients.filter(client => !requiresExplicitClientId(client.id));
     const clients = selectClients(lastClients, clientName);
     const elapsedMs = Date.now() - startedAt;
     if (clients.length > 0) {

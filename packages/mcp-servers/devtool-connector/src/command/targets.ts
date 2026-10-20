@@ -56,7 +56,7 @@ export async function resolveTarget(
   }
   if (!clientId) {
     const clients = await connector.listClients();
-    const firstClient = clients.find(client => !isHeadlessClientId(client.id));
+    const firstClient = clients.find(client => !isHeadlessClientId(client.id) && !client.id.startsWith("simulator:"));
     if (!firstClient) {
       const headlessAvailable = clients.some(client => isHeadlessClientId(client.id));
       return {
