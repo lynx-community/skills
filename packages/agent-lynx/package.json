@@ -1,6 +1,6 @@
 {
   "name": "agent-lynx",
-  "version": "0.14.17",
+  "version": "0.14.18",
   "description": "Agent-friendly Lynx DevTool CLI for inspecting and operating Lynx applications.",
   "bin": {
     "agent-lynx": "./dist/index.mjs"

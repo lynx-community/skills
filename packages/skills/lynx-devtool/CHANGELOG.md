@@ -1,5 +1,11 @@
 # @lynx-js/skill-lynx-devtool
 
+## 0.14.18
+
+### Patch Changes
+
+- c238976: Preserve the original error cause when resolving a declared Skill dependency fails.
+
 ## 0.14.17
 
 No changes in this release.
