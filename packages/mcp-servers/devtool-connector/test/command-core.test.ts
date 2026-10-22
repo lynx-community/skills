@@ -475,6 +475,72 @@ describe("ActionCore", () => {
     });
   });
 
+  test("screenshots refresh cached coordinates without relabeling existing refs", async () => {
+    for (const fullscreen of [true, false]) {
+      const before = page();
+      const after = page({ buttonNodeId: 40 });
+      before.children![2]!.backendNodeId = 400;
+      after.children![2]!.backendNodeId = 400;
+      const offset = fullscreen ? 80 : -80;
+      const shift = (node: DomNode): void => {
+        const content = node.box_model?.content;
+        if (content) {
+          for (let index = 1; index < content.length; index += 2) content[index]! += offset;
+        }
+        for (const child of node.children ?? []) shift(child);
+      };
+      shift(after);
+      // A new node must not steal a cached label when the geometry is refreshed.
+      after.children!.unshift({
+        nodeId: 99,
+        localName: "view",
+        attributes: ["bindtap", "tap"],
+        box_model: { content: quad(200, 100 + offset, 20, 20) },
+      });
+      const calls: CdpCall[] = [];
+      const connector = screenshotConnector(
+        fakeConnector({ roots: [before, after], calls, hitNodeId: 40 }),
+        whiteJpeg(300, 500).toString("base64"),
+        [],
+      );
+      const core = new ActionCore();
+      const target = { clientId: "device:8901", sessionId: 3 };
+      assert.equal((await core.execute("snapshot", target, { connector })).ok, true);
+      const result = await core.execute("screenshot", { ...target, fullscreen }, { connector });
+      assert.equal(result.ok, true, result.error?.message);
+      const cached = core.getSnapshot(target.clientId, target.sessionId);
+      assert.deepEqual(cached?.viewport, { x: 0, y: offset, width: 300, height: 500 });
+      assert.deepEqual(cached?.refs.map(ref => [ref.ref, ref.nodeId]), [["@e1", 2], ["@e2", 3], ["@e3", 40]]);
+      const tap = await core.execute("tap", { ...target, ref: "@e3" }, { connector });
+      assert.equal(tap.ok, true, tap.error?.message);
+      const press = calls.find(call => call.method === "Input.emulateTouchFromMouseEvent");
+      assert.deepEqual((press?.params as { x: number; y: number }).x, 60);
+      assert.deepEqual((press?.params as { x: number; y: number }).y, 320 + offset);
+    }
+  });
+
+  test("a failed screenshot invalidates only the affected host's cached coordinates", async () => {
+    const connector = fakeConnector();
+    connector.sendCDPStream = async () => {
+      throw new Error("capture failed after changing mode");
+    };
+    const core = new ActionCore();
+    const target = { clientId: "device:8901", sessionId: 3 };
+    const sameHost = { ...target, sessionId: 4 };
+    const otherHost = { ...target, clientId: "other:8901" };
+    for (const params of [target, sameHost, otherHost]) {
+      assert.equal((await core.execute("snapshot", params, { connector })).ok, true);
+    }
+
+    const result = await core.execute("screenshot", { ...target, fullscreen: true }, { connector });
+    assert.equal(result.ok, false);
+    assert.equal(core.getSnapshot(target.clientId, target.sessionId), undefined);
+    assert.equal(core.getSnapshot(sameHost.clientId, sameHost.sessionId), undefined);
+    assert.ok(core.getSnapshot(otherHost.clientId, otherHost.sessionId));
+    const tap = await core.execute("tap", { ...target, ref: "@e3" }, { connector });
+    assert.equal(tap.error?.reason, "no-snapshot");
+  });
+
   test("screenshot capture remains compatible when Promise.withResolvers is unavailable", async () => {
     const descriptor = Object.getOwnPropertyDescriptor(Promise, "withResolvers");
     assert.ok(descriptor);

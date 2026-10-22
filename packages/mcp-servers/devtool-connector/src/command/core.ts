@@ -712,6 +712,12 @@ export class ActionCore {
       });
     }
 
+    const snapshotKey = this.#key(clientId, sessionId);
+    const cached = this.#snapshots.get(snapshotKey);
+    // Screencast mode affects every session in this host, including failed captures.
+    for (const key of this.#snapshots.keys()) {
+      if (key.startsWith(`${clientId}:`)) this.#snapshots.delete(key);
+    }
     try {
       const capturedFrame = await captureScreenshotFrame(ctx.connector, clientId, sessionId, {
         fullscreen,
@@ -749,6 +755,29 @@ export class ActionCore {
         }
         snapshot = { clientId, sessionId, viewport, refs };
         this.#snapshots.set(this.#key(clientId, sessionId), { createdAt: Date.now(), viewport, refs });
+      } else if (cached) {
+        const { viewport, refs } = await buildSnapshotStructure(ctx.connector, clientId, sessionId, signal);
+        const byNode = new Map(refs.map(ref => [ref.nodeId, ref]));
+        const byBackend = new Map(
+          refs.filter(ref => ref.backendNodeId !== undefined).map(ref => [ref.backendNodeId, ref]),
+        );
+        const updated = cached.refs.flatMap(ref => {
+          const live = (ref.backendNodeId === undefined ? undefined : byBackend.get(ref.backendNodeId))
+            ?? byNode.get(ref.nodeId);
+          if (!live || !sameSnapshotNode(ref, live)) return [];
+          const refreshed = {
+            ...ref,
+            ...live,
+            ref: ref.ref,
+            text: ref.text,
+            attributes: ref.attributes,
+            flags: { ...ref.flags, visible: ref.flags.visible && live.flags.visible, offscreen: live.flags.offscreen },
+          };
+          if (ref.parentRef === undefined) delete refreshed.parentRef;
+          else refreshed.parentRef = ref.parentRef;
+          return [refreshed];
+        });
+        this.#snapshots.set(snapshotKey, { createdAt: Date.now(), viewport, refs: updated });
       }
       let annotated: ReturnType<typeof annotateScreenshot> | undefined;
       if (snapshot?.viewport && frameBounds) {
