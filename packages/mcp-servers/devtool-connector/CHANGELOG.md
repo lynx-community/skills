@@ -1,5 +1,11 @@
 # @lynx-js/devtool-connector
 
+## 0.16.5
+
+### Patch Changes
+
+- Refresh cached ref coordinates after unannotated screenshots change the host coordinate mode, preserving node identities and invalidating stale coordinates when capture fails.
+
 ## 0.16.4
 
 ### Patch Changes
