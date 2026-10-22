@@ -25,7 +25,7 @@
     "eval:skill:trigger:online:all": "node scripts/skill-eval/run_trigger_online_all.mjs",
     "lint": "rslint --config rslint.config.mjs . && pnpm --filter @lynx-js/devtool-connector run format:check",
     "prepare": "husky && turbo build",
-    "release": "turbo build && pnpm run build && pnpm changeset publish",
+    "release": "turbo build && pnpm run build && pnpm -r publish --access public --no-git-checks",
     "test": "pnpm -r --if-present test"
   },
   "dependencies": {
@@ -47,7 +47,6 @@
     "@lynx-js/skill-vanilla-lynx": "workspace:*"
   },
   "devDependencies": {
-    "@changesets/cli": "^2.31.1",
     "@rslint/core": "0.9.5",
     "build-marketplace": "workspace:*",
     "build-plugin": "workspace:*",
