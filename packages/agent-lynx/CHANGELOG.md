@@ -1,5 +1,13 @@
 # agent-lynx
 
+## 0.14.19
+
+### Patch Changes
+
+- Updated dependencies
+  - @lynx-js/skill-lynx-devtool@0.14.19
+  - @lynx-js/devtool-connector@0.16.6
+
 ## 0.14.18
 
 ### Patch Changes
