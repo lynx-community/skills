@@ -58,8 +58,8 @@ importers:
         specifier: workspace:*
         version: link:packages/skills/lynx-devtool
       '@lynx-js/skill-lynx-openui':
-        specifier: 0.0.2
-        version: 0.0.2
+        specifier: 0.0.3
+        version: 0.0.3
       '@lynx-js/skill-lynx-trace-analysis':
         specifier: 0.0.12
         version: 0.0.12
@@ -70,8 +70,8 @@ importers:
         specifier: workspace:*
         version: link:packages/skills/lynx-typescript
       '@lynx-js/skill-lynx-ui':
-        specifier: 3.133.9
-        version: 3.133.9
+        specifier: 3.133.10
+        version: 3.133.10
       '@lynx-js/skill-reactlynx-best-practices':
         specifier: workspace:*
         version: link:packages/skills/reactlynx-best-practices
@@ -928,8 +928,8 @@ packages:
     engines: {node: '>=14'}
     hasBin: true
 
-  '@lynx-js/skill-lynx-openui@0.0.2':
-    resolution: {integrity: sha512-+dzKKO2cb6Yrq3iWkvPsvrBTDXQhge9QTbvvs+96j5pvVY8y3LTO512sK2QMtm7HvxW0aeoDotNyhqybmIxykQ==}
+  '@lynx-js/skill-lynx-openui@0.0.3':
+    resolution: {integrity: sha512-KBc8mCI0LseL8pxcYWntMkUuGd9A6Wm03sXiFFUjRenX8U2KmB1yo+e36grvV3/iAQzzLbdaxeFTZv/HGorsQQ==}
     engines: {node: '>=18'}
 
   '@lynx-js/skill-lynx-trace-analysis@0.0.12':
@@ -940,8 +940,8 @@ packages:
     resolution: {integrity: sha512-dM5Ev+2oz8pjKxaCFilWtwUEv+p0jLlcMSjgqgXSx/4ebPWEeNzB07zvno/uHBw+2S4JNnJ1rT4TFioT6YAo1Q==}
     engines: {node: '>=18'}
 
-  '@lynx-js/skill-lynx-ui@3.133.9':
-    resolution: {integrity: sha512-mvlNeMJ+o7nOn9UNOo2w0IpQk/dv+LN5zOQyUCX3ezWdUPejurgAKdu0A1r1T54hlWYVDYa52ur77UNkfTCnaA==}
+  '@lynx-js/skill-lynx-ui@3.133.10':
+    resolution: {integrity: sha512-w898sxDbWB5nY0DkivZKwZqP0XT5sWO6LWpPw8JQQ4TZy4sLMOomwNse48UePw2JKFN3/SxfkgGDWM48nRcTDg==}
 
   '@lynx-js/trace-processor@0.0.1':
     resolution: {integrity: sha512-Zyl74cKi+BDggeXroLQG4frbBuiQ0DB0yH0C3pMkUHWv17abWTdJ2mw/H9Cd1QiIr+aQHn1U2SRtsrbkmWMtJw==}
@@ -3126,13 +3126,13 @@ snapshots:
 
   '@lynx-js/lynx-api-docs@0.3.9': {}
 
-  '@lynx-js/skill-lynx-openui@0.0.2': {}
+  '@lynx-js/skill-lynx-openui@0.0.3': {}
 
   '@lynx-js/skill-lynx-trace-analysis@0.0.12': {}
 
   '@lynx-js/skill-lynx-trace-record@0.0.6': {}
 
-  '@lynx-js/skill-lynx-ui@3.133.9': {}
+  '@lynx-js/skill-lynx-ui@3.133.10': {}
 
   '@lynx-js/trace-processor@0.0.1':
     dependencies:
