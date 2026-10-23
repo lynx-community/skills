@@ -31,3 +31,6 @@ packageExtensions:
     peerDependenciesMeta:
       eslint:
         optional: true
+
+minimumReleaseAgeExclude:
+  - "@lynx-js/*"
