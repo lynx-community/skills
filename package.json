@@ -51,7 +51,7 @@
     "@rslint/core": "0.9.5",
     "build-marketplace": "workspace:*",
     "build-plugin": "workspace:*",
-    "dprint": "0.63.0",
+    "dprint": "0.64.0",
     "eslint-plugin-headers": "^1.3.4",
     "husky": "^9.1.7",
     "nano-staged": "^1.0.2",
