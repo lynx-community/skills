@@ -60,7 +60,7 @@
     "turbo": "^2.11.9",
     "yaml": "^2.9.1"
   },
-  "packageManager": "pnpm@11.28.5",
+  "packageManager": "pnpm@11.28.6",
   "nano-staged": {
     "*.{ts,tsx,mts,cts,js,jsx,cjs,mjs}": [
       "rslint --config rslint.config.mjs --fix",
