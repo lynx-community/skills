@@ -5,7 +5,7 @@
 // Licensed under the Apache License Version 2.0 that can be found in the
 // LICENSE file in the root directory of this source tree.
 
-import type { ForwardedRef, ReactElement, ReactNode } from '@lynx-js/react'
+import type { ForwardedRef, ReactNode } from '@lynx-js/react'
 
 import type { BaseGesture } from '@lynx-js/gesture-runtime'
 import type {
@@ -23,8 +23,6 @@ import type {
   ListProps as elementListProps,
 } from '@lynx-js/types'
 
-export type List = (props: ListProps) => ReactElement
-
 export interface ListItemInfo {
   width: number
   height: number
@@ -35,7 +33,7 @@ export interface ListItemInfo {
   updated: boolean
 }
 
-export interface diffResultDetails {
+export interface DiffResultDetails {
   insertions: number[]
 
   move_from: number[]
@@ -77,7 +75,7 @@ type ScrollPropagationBehavior =
   // | 'propagateAtEdge' // @todo Child scrolls first; parent scrolls on next touch at edge
   | 'preventPropagate' // Never allow scroll propagation
 
-export interface layoutCompleteEventDetail {
+export interface LayoutCompleteEventDetail {
   /**
    * Connected to a setState.
    * @zh 与 setState 连接。
@@ -86,7 +84,7 @@ export interface layoutCompleteEventDetail {
    * @Harmony
    */
   'layout-id': number
-  diffResult?: diffResultDetails
+  diffResult?: DiffResultDetails
   visibleCellsAfterLayout?: ListItemInfo[]
   visibleCellsBeforeLayout?: ListItemInfo[]
 }
@@ -99,7 +97,7 @@ export interface LayoutCompleteEvent {
    * @Android
    * @Harmony
    */
-  detail: layoutCompleteEventDetail
+  detail: LayoutCompleteEventDetail
 }
 
 export interface ListRef {

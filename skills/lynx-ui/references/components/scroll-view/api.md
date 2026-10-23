@@ -19,7 +19,7 @@ import type {
 } from '@lynx-js/lynx-ui-common'
 import type { CSSProperties, CommonEvent } from '@lynx-js/types'
 
-export type ScrollView = (props: ScrollViewProps) => ReactElement
+export type { BounceHandlers } from '../hooks/useBounce'
 
 type ScrollPropagationBehaviorOption =
   | 'native' // Follows platform default behavior
@@ -27,7 +27,7 @@ type ScrollPropagationBehaviorOption =
   // | 'propagateAtEdge' // @todo Child scrolls first; parent scrolls on next touch at edge
   | 'preventPropagate' // Never allow scroll propagation
 
-// biome-ignore lint/suspicious/noEmptyInterface: <explanation>
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type -- expected empty interface
 export interface ScrollViewRef {}
 
 export interface ScrollViewProps
@@ -330,7 +330,7 @@ export interface ScrollViewProps
   onWheel?: (e: CommonEvent) => void
 }
 
-export interface scrollToBouncesInfo {
+export interface ScrollToBouncesInfo {
   direction: 'upper' | 'lower'
 }
 
@@ -377,7 +377,7 @@ export interface BounceableBasicProps {
    * @Android
    * @Harmony
    */
-  // biome-ignore lint/suspicious/noExplicitAny: expected
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- expected dynamic value
   upperBounceItem?: any
   /**
    * Content of lower bounces view, which will be displayed during the lower bouncing effect.
@@ -386,7 +386,7 @@ export interface BounceableBasicProps {
    * @Android
    * @Harmony
    */
-  // biome-ignore lint/suspicious/noExplicitAny: expected
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- expected dynamic value
   lowerBounceItem?: any
   /**
    * Whether the scrollable container can bounce when the content area of the scrollable container is smaller than the viewport area.
@@ -440,7 +440,7 @@ export interface BounceableBasicProps {
    * @Android
    * @Harmony
    */
-  onScrollToBounces?: (e: scrollToBouncesInfo) => void
+  onScrollToBounces?: (e: ScrollToBouncesInfo) => void
 }
 
 export const ScrollEventMapping: Record<string, string> = {

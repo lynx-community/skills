@@ -185,7 +185,7 @@ export interface TabsBarProps<T>
   renderTabItem?: (tabItem: T, index: number) => ReactNode
 }
 
-export interface TabItemProps extends
+export interface TabsItemProps extends
   Omit<
     StandardProps,
     'bindtap' | 'main-thread:bindlayoutchange' | 'main-thread:ref'
@@ -201,6 +201,11 @@ export interface TabItemProps extends
    */
   tabKey?: string
 }
+
+/**
+ * @deprecated Use `TabsItemProps` instead.
+ */
+export type TabItemProps = TabsItemProps
 
 export type TabsPanelRef = ViewPagerRef
 

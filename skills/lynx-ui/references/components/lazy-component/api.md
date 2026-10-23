@@ -9,9 +9,7 @@ import type { ReactNode } from '@lynx-js/react'
 
 import type { CSSProperties } from '@lynx-js/types'
 
-export type LazyComponent = (props: LazyComponentProps) => ReactNode
-
-// biome-ignore lint/suspicious/noEmptyInterface: expect empty
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type -- expected empty interface
 export interface LazyComponentRef {}
 
 export interface LazyComponentProps {

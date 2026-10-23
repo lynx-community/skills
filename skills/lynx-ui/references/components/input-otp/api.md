@@ -5,7 +5,7 @@
 // Licensed under the Apache License Version 2.0 that can be found in the
 // LICENSE file in the root directory of this source tree.
 
-import type { ForwardedRef, ReactElement, ReactNode } from '@lynx-js/react'
+import type { ForwardedRef, ReactNode } from '@lynx-js/react'
 
 import type { ComponentBasicProps } from '@lynx-js/lynx-ui-common'
 
@@ -307,9 +307,9 @@ export interface InputOTPProps extends ComponentBasicProps {
   disabled?: boolean
 
   /**
-   * Expose the invalid state to render props and the ui-invalid variant.
+   * Expose the invalid state to render props and the `ui-invalid` UI variant.
    * @defaultValue false
-   * @zh 通过渲染属性和 ui-invalid variant 暴露无效状态。
+   * @zh 通过渲染属性和 `ui-invalid` UI variant 暴露无效状态。
    * @Android
    * @iOS
    * @Harmony
@@ -395,7 +395,4 @@ export interface InputOTPSlotProps extends ComponentBasicProps {
     | ReactNode
     | ((state: InputOTPSlotRenderProps) => ReactNode)
 }
-
-export type InputOTP = (props: InputOTPProps) => ReactElement
-export type InputOTPSlot = (props: InputOTPSlotProps) => ReactElement
 ```

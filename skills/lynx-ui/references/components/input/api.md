@@ -5,7 +5,7 @@
 // Licensed under the Apache License Version 2.0 that can be found in the
 // LICENSE file in the root directory of this source tree.
 
-import type { ForwardedRef, ReactElement, ReactNode } from '@lynx-js/react'
+import type { ForwardedRef, ReactNode } from '@lynx-js/react'
 
 import type { ComponentBasicProps } from '@lynx-js/lynx-ui-common'
 import type {
@@ -13,8 +13,6 @@ import type {
   ScrollViewRef,
 } from '@lynx-js/lynx-ui-scroll-view'
 import type { CSSProperties } from '@lynx-js/types'
-
-export type Input = (props: InputProps) => ReactElement
 
 export interface InputRef {
   /**
@@ -348,8 +346,6 @@ export interface InputProps extends ComponentBasicProps {
   ) => void
 }
 
-export type TextArea = (props: TextAreaProps) => ReactElement
-
 export interface TextAreaRef extends InputRef {}
 
 export interface TextAreaProps extends Omit<InputProps, 'ref'> {
@@ -382,10 +378,6 @@ export interface TextAreaProps extends Omit<InputProps, 'ref'> {
   lineSpacing?: number | `${number}px` | `${number}rpx`
 }
 
-export type KeyboardAwareTrigger = (
-  props: KeyboardAwareTriggerProps,
-) => ReactElement
-
 export interface KeyboardAwareTriggerProps extends ComponentBasicProps {
   /**
    * Children
@@ -410,10 +402,6 @@ export interface KeyboardAwareResponderRef extends ScrollViewRef {
   as: () => 'View' | 'ScrollView'
 }
 
-export type KeyboardAwareResponder = (
-  props: KeyboardAwareResponderProps,
-) => ReactElement
-
 export interface KeyboardAwareResponderProps
   extends Omit<ScrollViewProps, 'ref' | 'horizontal' | 'style'>
 {
@@ -435,8 +423,6 @@ export interface KeyboardAwareResponderProps
    */
   style?: CSSProperties
 }
-
-export type KeyboardAwareRoot = (props: KeyboardAwareRootProps) => ReactElement
 
 export interface KeyboardAwareRootProps {
   /**
