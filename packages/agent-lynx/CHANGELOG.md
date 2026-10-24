@@ -1,5 +1,14 @@
 # agent-lynx
 
+## 0.14.20
+
+### Patch Changes
+
+- Updated dependency `core-js` to `^3.51.0`.
+- Updated dependencies
+  - @lynx-js/devtool-connector@0.17.0
+  - @lynx-js/skill-lynx-devtool@0.14.20
+
 ## 0.14.19
 
 ### Patch Changes

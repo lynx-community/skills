@@ -1,5 +1,13 @@
 # @lynx-js/devtool-mcp-server
 
+## 0.16.6
+
+### Patch Changes
+
+- Updated dependency `core-js` to `^3.51.0`.
+- Updated dependencies
+  - @lynx-js/devtool-connector@0.17.0
+
 ## 0.16.5
 
 ### Patch Changes
