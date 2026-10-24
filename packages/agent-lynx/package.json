@@ -2,15 +2,12 @@
   "name": "agent-lynx",
   "version": "0.14.19",
   "description": "Agent-friendly Lynx DevTool CLI for inspecting and operating Lynx applications.",
-  "bin": {
-    "agent-lynx": "./dist/index.mjs"
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/lynx-community/skills.git",
+    "directory": "packages/agent-lynx"
   },
-  "files": [
-    "CHANGELOG.md",
-    "README.md",
-    "package.json",
-    "dist"
-  ],
+  "license": "Apache-2.0",
   "type": "module",
   "exports": {
     "./connector": {
@@ -26,6 +23,15 @@
     "./bin": "./dist/index.mjs",
     "./package.json": "./package.json"
   },
+  "bin": {
+    "agent-lynx": "./dist/index.mjs"
+  },
+  "files": [
+    "CHANGELOG.md",
+    "README.md",
+    "package.json",
+    "dist"
+  ],
   "scripts": {
     "build": "rslib build",
     "test": "node --test 'test/**/*.test.ts'",
@@ -46,18 +52,12 @@
     "commander": "^14.0.3",
     "core-js": "^3.51.0",
     "obug": "^2.2.1",
-    "yaml": "^2.9.1",
-    "typescript": "^7.0.2"
+    "typescript": "^7.0.2",
+    "yaml": "^2.9.1"
   },
   "engines": {
     "node": ">=18.19"
   },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/lynx-community/skills.git",
-    "directory": "packages/agent-lynx"
-  },
-  "license": "Apache-2.0",
   "publishConfig": {
     "access": "public",
     "exports": {

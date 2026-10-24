@@ -3,10 +3,10 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
+  "bin": "./bin/build-marketplace.js",
   "files": [
     "bin"
   ],
-  "bin": "./bin/build-marketplace.js",
   "scripts": {
     "build": "rslib build"
   },
@@ -14,8 +14,8 @@
     "npm-packlist": "^5.1.3"
   },
   "devDependencies": {
-    "@types/node": "24.19.2",
     "@rslib/core": "catalog:rstack",
+    "@types/node": "24.19.2",
     "build-plugin": "workspace:*",
     "commander": "14.0.3",
     "typescript": "5.9.3"
