@@ -1,217 +1,35 @@
 # Contributing to Lynx Agent Skills
 
-Thank you for your interest in contributing! This guide will help you get started.
+Submit changes against `main`. The `release` branch contains installable Marketplace output.
 
-## Prerequisites
+## Setup
 
-- Node.js 24 (repository tooling and tests)
-- pnpm 10+
+Use Node 24 and the pnpm version pinned in [package.json](package.json):
 
 ```bash
 corepack enable
-corepack prepare pnpm@latest --activate
+pnpm install --frozen-lockfile
+pnpm turbo build
+pnpm run build
 ```
 
-## Getting Started
+`turbo build` builds workspace packages; the root build exports the Marketplace. For a focused change, use the affected package's build and test scripts.
 
-```bash
-# Clone the repository
-git clone <repository-url>
-cd skills
+## Skills and Plugins
 
-# Install dependencies
-pnpm install
+- Skills live in `packages/skills/` and use `@lynx-js/skill-*` names. Declare the payload in the package's `files`; agents need `SKILL.md` and any referenced resources, not a checkout of this repository.
+- Plugins live in `packages/plugins/` and use `@lynx-js/ai-plugin-*` names. Declare Skill dependencies and use the existing builder for generated manifests and aggregated payloads.
+- Root [dependencies](package.json) select the Skills and Plugins exported to `release`. Use an existing package with the same delivery mode as a starting point, then inspect the [Plugin builder](packages/cmd/build-plugin/src/main.ts), [Marketplace builder](packages/cmd/build-marketplace/src/main.ts) and [Skill exporter](export-skills.mjs) for current behavior.
+- Keep eval definitions outside the exported agent instructions. See [scripts/skill-eval](scripts/skill-eval) and the affected Skill's eval fixtures for the supported layout and checks.
 
-# Build all packages
-pnpm build
-```
+Keep README files brief. Follow [AGENTS.md](AGENTS.md) for writing guidance, local constraints and validation. Do not hand-edit generated files or copy a full manifest/tool inventory into documentation.
 
-## Project Structure
+## MCP integrations
 
-```
-├── packages/
-│   ├── cmd/                    # Build tools
-│   │   ├── build-plugin/
-│   │   └── build-marketplace/
-│   ├── tools/
-│   ├── skills/                 # Skill packages
-│   └── plugins/                # Plugin packages
-├── package.json                # Marketplace root
-└── pnpm-workspace.yaml
-```
+For programmatic DevTool MCP integration, start with the [public exports](packages/mcp-servers/devtool-mcp-server/src/index.ts) and [tool registration](packages/mcp-servers/devtool-mcp-server/src/registerTool.ts). Reuse `coreTools` with `registerToolWithContext` for a custom context, or `setupServer` for the shared daemon. Context factories run once per call, including concurrent calls; keep product-specific transports and telemetry in the integration. The [package manifest](packages/mcp-servers/devtool-mcp-server/package.json) defines peers: Zod 4 is required, while the MCP SDK is optional for programmatic consumers and bundled by the stdio command.
 
-## Creating a Skill
+## Validation and release
 
-1. Create a directory under `packages/skills/`:
+Run affected package tests, `pnpm lint` and `pnpm exec dprint check`. Check [package scripts](package.json) and the affected package's manifest for runner and build choices. Device and online evals require a configured environment; report what actually ran.
 
-```bash
-mkdir -p packages/skills/my-skill
-```
-
-2. Add `package.json`:
-
-```json
-{
-  "name": "@lynx-js/skill-my-skill",
-  "version": "1.0.0",
-  "type": "module",
-  "files": [
-    "SKILL.md",
-    "scripts",
-    "references",
-    "examples",
-    "reference.md",
-    "examples.md"
-  ],
-  "scripts": {
-    "build": "rslib build"
-  },
-  "devDependencies": {
-    "@rslib/core": "catalog:rstack"
-  }
-}
-```
-
-3. Create `SKILL.md` describing what the skill does.
-
-4. (Optional) Add scripts in `src/` with `rslib.config.ts` for TypeScript compilation.
-
-5. (Optional, recommended) Add the skill to root `package.json` if you need this skill in the release branch (final artifact):
-
-```json
-{
-  "dependencies": {
-    "@lynx-js/skill-my-skill": "workspace:*"
-  }
-}
-```
-
-## Creating a Plugin
-
-1. Create a directory under `packages/plugins/`:
-
-```bash
-mkdir -p packages/plugins/my-plugin
-```
-
-2. Add `package.json`:
-
-```json
-{
-  "name": "@lynx-js/ai-plugin-my-plugin",
-  "private": true,
-  "version": "0.1.0",
-  "description": "My Plugin",
-  "type": "module",
-  "files": [
-    ".claude-plugin",
-    "commands",
-    "agents",
-    "skills",
-    "scripts",
-    "hooks",
-    ".mcp.json",
-    ".lsp.json"
-  ],
-  "scripts": {
-    "build": "build-plugin"
-  },
-  "dependencies": {
-    "@lynx-js/skill-my-skill": "workspace:*"
-  },
-  "devDependencies": {
-    "build-plugin": "workspace:*"
-  },
-  "claudePlugin": {
-    "category": "development"
-  }
-}
-```
-
-3. (Optional, recommended) Add the plugin to root `package.json` if you need this plugin in the release branch (final artifact):
-
-```json
-{
-  "dependencies": {
-    "@lynx-js/ai-plugin-my-plugin": "workspace:*"
-  }
-}
-```
-
-## Build Commands
-
-```bash
-# Build everything
-pnpm build
-
-# Build a specific package
-pnpm -F @lynx-js/skill-reactlynx-best-practices build
-
-# Run tests
-pnpm -F @lynx-js/skill-reactlynx-best-practices test
-```
-
-## Naming Conventions
-
-| Type   | Pattern                | Example                                   |
-| ------ | ---------------------- | ----------------------------------------- |
-| Skill  | `@lynx-js/skill-*`     | `@lynx-js/skill-reactlynx-best-practices` |
-| Plugin | `@lynx-js/ai-plugin-*` | `@lynx-js/ai-plugin-reactlynx`            |
-
-## How It Works
-
-This project uses pnpm workspaces to manage Skills and Plugins:
-
-- **Skills** are reusable packages containing `SKILL.md` and optional scripts
-- **Plugins** depend on Skills and bundle them during build
-- **Build tools** (`build-plugin`, `build-marketplace`) handle metadata generation and file aggregation
-
-The build process:
-
-1. Compiles TypeScript scripts via rslib
-2. Copies dependent Skills into the plugin's `skills/` directory
-3. Generates `.claude-plugin/plugin.json` metadata
-
-## Release Process
-
-> [!IMPORTANT]
-> Pull requests must target the `main` branch, not the `release` branch.
-
-When code is merged to `main`:
-
-1. CI builds all packages
-2. Artifacts are pushed to the `release` branch
-3. Only `plugins/`, `skills/`, `.claude-plugin/`, and `README.md` are kept on `release`
-
-## Escape Hatch
-
-For simple cases without TypeScript, you can bypass the build system:
-
-```bash
-# Force-add ignored build artifacts
-git add -f packages/plugins/my-plugin/.claude-plugin/
-git add -f packages/skills/my-skill/scripts/
-```
-
-> **Note**: Don't mix manual and build-managed files in the same package.
-
-## Questions?
-
-Open an issue or reach out to the maintainers.
-
-## Code quality
-
-Run `pnpm lint` for Rslint recommended rules and copyright headers through
-`eslint-plugin-headers`, and `pnpm exec dprint check` for formatting.
-Use `pnpm exec rslint --config rslint.config.mjs --fix .` to fix lint issues and
-`pnpm exec dprint fmt` to format files. Keep `node:*` imports in the first group,
-separated from other imports by a blank line so dprint sorts each group separately.
-Husky runs nano-staged on changed files, including package manifest sorting.
-
-The ESLint migration retains the TypeScript recommended preset, copyright rule
-options, existing `eslint-disable` directives, and lint-specific exclusions.
-Rslint reads `.gitignore` directly and provides the Node globals used by the config.
-dprint handles formatting for the other file types; it does not replace Biome's
-CSS or JSON lint rules.
-The Connector keeps its package-local dprint configuration; `pnpm lint` also
-runs its `format:check`, and staged Connector files use that configuration.
+For changes to published packages, record release intent through the project's Changesets workflow. Read [.changeset/config.json](.changeset/config.json) and the [GitHub workflows](.github/workflows) for current versioning, synchronization and release behavior. Do not publish packages as part of validation.
