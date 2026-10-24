@@ -14,11 +14,14 @@ import { Connector } from "../index.ts";
 import { DaemonTransport } from "../transport/daemon.ts";
 import { HDTTransport } from "../transport/hdt.ts";
 import type { Device, Transport } from "../transport/transport.ts";
+import { CdpGateway } from "./cdp-gateway.ts";
 import { DeviceConnection, type DeviceConnectionSubscriber } from "./device-connection.ts";
 import {
   type ClientListEntry,
   type ControlRequest,
   type CustomizedMessage,
+  DAEMON_CDP_HOST_PATH,
+  DAEMON_CDP_PATH,
   DAEMON_COMMAND_PATH_PREFIX,
   DAEMON_COMMAND_PROTOCOL_VERSION,
   DAEMON_LIFECYCLE_PROTOCOL_VERSION,
@@ -40,6 +43,8 @@ import { CONNECTOR_VERSION } from "./version.ts";
 const debug = createDebug("devtool-mcp-server:daemon:server");
 
 const IDLE_TIMEOUT_MS = 300_000;
+/** Origin of the DevTools frontend bundled with Chrome (`devtools://devtools/bundled/…`). */
+const CHROME_DEVTOOLS_ORIGIN = "devtools://devtools";
 /** Grace period before disposing an unsubscribed device connection. */
 const DEVICE_CONN_GRACE_MS = 10_000;
 const DEVICE_DISCOVERY_TIMEOUT_MS = 2_500;
@@ -61,6 +66,7 @@ interface WsClientSession extends DeviceConnectionSubscriber {
 export class DevtoolDaemon {
   #httpServer: http.Server;
   #wss: WebSocketServer | null = null;
+  #gateway: CdpGateway | null = null;
   #transports: Transport[];
   #hdtTransports: HDTTransport[];
   #deviceConnections = new Map<string, DeviceConnection>();
@@ -170,10 +176,17 @@ export class DevtoolDaemon {
     this.#wss = wss;
 
     this.#httpServer.on("upgrade", (request, socket, head) => {
+      // A path that starts with the daemon prefix cannot be a scheme-relative URL that fails to parse.
+      const url = request.url?.startsWith(DAEMON_WS_PATH) ? new URL(request.url, "http://127.0.0.1") : null;
+      const isCdp = url?.pathname === DAEMON_CDP_PATH;
+      const isGateway = isCdp || url?.pathname === DAEMON_CDP_HOST_PATH;
+      const gateway = isGateway ? this.#gateway : null;
       if (
         this.#closed
-        || !request.url?.startsWith(DAEMON_WS_PATH)
-        || !this.#isTrustedLocalRequest(request)
+        || !url
+        || (isGateway && !gateway)
+        // Chrome's bundled DevTools may attach to a Lynx session; it never speaks the daemon protocol.
+        || !this.#isTrustedLocalRequest(request, isCdp ? [CHROME_DEVTOOLS_ORIGIN] : [])
       ) {
         socket.destroy();
         return;
@@ -183,7 +196,8 @@ export class DevtoolDaemon {
           ws.terminate();
           return;
         }
-        this.#handleConnection(ws);
+        if (gateway) gateway.accept(ws, url);
+        else this.#handleConnection(ws);
       });
     });
 
@@ -193,6 +207,7 @@ export class DevtoolDaemon {
         this.#httpServer.removeListener("error", reject);
         this.#resetIdleTimer();
         const address = this.#httpServer.address() as AddressInfo;
+        this.#gateway = new CdpGateway(`ws://127.0.0.1:${address.port}${DAEMON_WS_PATH}`);
         // ActionCore must use the daemon transport too. Routing back through
         // the loopback WebSocket adds a short-lived local subscriber while the
         // server reuses its pooled DeviceConnection, instead of opening a
@@ -220,6 +235,7 @@ export class DevtoolDaemon {
     }
     this.#commandControllers.clear();
 
+    this.#gateway?.close();
     for (const [, client] of this.#wsClients) {
       client.close();
     }
@@ -280,7 +296,7 @@ export class DevtoolDaemon {
     res.setHeader("access-control-allow-private-network", "true");
   }
 
-  #isTrustedLocalRequest(req: http.IncomingMessage): boolean {
+  #isTrustedLocalRequest(req: http.IncomingMessage, trustedOrigins: readonly string[] = []): boolean {
     const host = req.headers.host;
     if (!host) return false;
 
@@ -295,7 +311,7 @@ export class DevtoolDaemon {
     }
 
     const origin = req.headers.origin;
-    if (!origin) return true;
+    if (!origin || trustedOrigins.includes(origin)) return true;
     try {
       const originUrl = new URL(origin);
       return originUrl.protocol === "http:"

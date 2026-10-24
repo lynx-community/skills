@@ -21,11 +21,15 @@ The daemon owns physical connections; requests subscribe to them rather than ope
 
 ## Product adapters
 
-The public exports include `DaemonLifecycle`, `DevtoolDaemon`, `StaticServer`, `InspectorAssetProvider` and `DebugMetadataLoader`. A product may subclass the lifecycle to resolve its own entry and environment, bind its own daemon identity/command core/assets, and override the command client's and daemon transport's protected lifecycle method. HDT uses the shared implementation directly; it needs no discovery policy injection.
+The public exports include `DaemonLifecycle`, `DevtoolDaemon`, `StaticServer`, `InspectorAssetProvider` and `DebugMetadataLoader`. A product may subclass the lifecycle to resolve its own entry and environment, bind its own daemon identity/command core/assets, and override the command client's and daemon transport's protected lifecycle method. An asset provider that implements the optional `createDevtoolsFrontendResponse` serves a Chrome DevTools frontend under `/chrome-devtools-frontend/`; `TarballCache` takes the tar path prefix of the files to keep. HDT uses the shared implementation directly; it needs no discovery policy injection.
 
 `ActionCore` accepts a metadata loader; source-info acquisition, caching and remapping remain shared. Android adapters may override `getKnownApp` for product-specific labels and activity names. Private integrations are not required to install or run this package.
 
-The GET/OPTIONS version endpoint allows arbitrary origins (`*`) for discovery. Command, shutdown and WebSocket control remain restricted to same-origin loopback requests. The public Inspector uses the public Lynx DevTool frontend; it does not advertise the internal browser Preview protocol.
+The GET/OPTIONS version endpoint allows arbitrary origins (`*`) for discovery. Command, shutdown and WebSocket control remain restricted to same-origin loopback requests; the one exception is that `/devtool/connector/cdp` also accepts the `devtools://devtools` origin of the DevTools bundled with Chrome. The public Inspector uses the public Lynx DevTool frontend; it does not advertise the internal browser Preview protocol.
+
+## CDP gateway
+
+`/devtool/connector/cdp?clientId=<id>&sessionId=<n>` speaks standard CDP for one Lynx session, so an unmodified Chrome DevTools frontend attaches when its `ws` query parameter is the URL-encoded `127.0.0.1:21783/devtool/connector/cdp?clientId=…&sessionId=…`. A page that shows the device screen opens `/devtool/connector/cdp-host?clientId=<id>&view=<id>` and adds the same random `view` to its frontend's CDP URL. It then sends `pick`, `clear-highlight`, `cancel-inspect` and `video-size` messages in video pixels, and receives `inspect-mode`, `highlight` and `open-session`, so elements are picked and highlighted on its video instead of on the App.
 
 ## Migration from 0.13.2
 

@@ -9,8 +9,6 @@ import { createDebug } from "obug";
 
 const debug = createDebug("devtool-mcp-server:daemon:tarball-cache");
 
-const TAR_FILTER_PREFIX = "package/static-resources/devtool/lynx/";
-
 export interface TarballEntry {
   gzipped: Buffer;
   rawSize: number;
@@ -22,11 +20,17 @@ export interface TarballEntry {
  * Files become available for serving as soon as each entry is fully read.
  */
 export class TarballCache {
+  readonly #prefix: string;
   #files = new Map<string, TarballEntry>();
   #pending = new Map<string, Array<{ resolve: (entry: TarballEntry | null) => void; reject: (err: Error) => void }>>();
   #done = false;
   #error: Error | null = null;
   #loading: Promise<void> | null = null;
+
+  /** Only entries under `prefix` are kept. */
+  constructor(prefix: string = "package/static-resources/devtool/lynx/") {
+    this.#prefix = prefix;
+  }
 
   get(filePath: string): TarballEntry | undefined {
     return this.#files.get(filePath);
@@ -108,7 +112,7 @@ export class TarballCache {
 
       if (buf.length < 512 + paddedSize) break;
 
-      if ((typeFlag === 48 || typeFlag === 0) && name.startsWith(TAR_FILTER_PREFIX)) {
+      if ((typeFlag === 48 || typeFlag === 0) && name.startsWith(this.#prefix)) {
         const fileData = buf.subarray(512, 512 + size);
         const ext = path.extname(name).toLowerCase();
         if (ext !== ".map") {
