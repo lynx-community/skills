@@ -292,9 +292,14 @@ export class Connector {
   }
 
   /**
-   * Open a page on the given client by sending an `OpenCard` Customized event.
+   * Open through the transport when supported, otherwise send `OpenCard`.
    */
   async openPage(clientId: string, url: string): Promise<ListSessionResponse> {
+    const { deviceId } = this.#resolveClientId(clientId);
+    const transport = await this.#findTransportWithDeviceId(deviceId);
+    if (await transport.openPage?.(clientId, url)) {
+      return { event: "Customized", data: { type: "SessionList", data: await this.sendListSessionMessage(clientId) } };
+    }
     return await this.#sendMessage<Record<string, unknown>, ListSessionResponse>(clientId, {
       event: "Customized",
       data: {
