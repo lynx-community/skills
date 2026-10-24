@@ -29,6 +29,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
+          # pnpm 11 requires Node >=22.13; use the workspace Node 24 toolchain.
           node-version: 24
           cache: "pnpm"
 
