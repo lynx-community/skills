@@ -19,8 +19,9 @@ const debug = createDebug("devtool-mcp-server:connector:desktop");
 export class DesktopTransport implements Transport {
   async connect<TInput = unknown, TOutput = unknown>(
     options: TransportConnectOptions,
+    takeoverHDT: boolean = true,
   ): Promise<Connection<TOutput, TInput>> {
-    return connectWithPeertalk<TInput, TOutput>(opts => this.#connectRaw(opts), options);
+    return connectWithPeertalk<TInput, TOutput>(opts => this.#connectRaw(opts), options, takeoverHDT);
   }
 
   async close(): Promise<void> {

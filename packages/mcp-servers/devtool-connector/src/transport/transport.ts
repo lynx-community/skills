@@ -39,9 +39,13 @@ export interface Transport {
 
   openApp(deviceId: string, packageName: string, options?: OpenAppOptions): Promise<void>;
 
+  /** Return true when this transport handles opening the page itself. */
+  openPage?(clientId: string, url: string): Promise<boolean>;
+
   connect<TInput = unknown, TOutput = unknown>(options: TransportConnectOptions): Promise<Connection<TOutput, TInput>>;
 
   readonly persistent?: boolean;
+  readonly active?: boolean;
 }
 
 export interface Device {

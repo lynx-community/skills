@@ -65,6 +65,10 @@ export class DaemonTransport implements Transport {
     await this.#controlRequest("openApp", { deviceId, packageName, withDataCleared: options?.withDataCleared });
   }
 
+  async openPage(clientId: string, url: string): Promise<boolean> {
+    return this.#controlRequest<boolean>("openPage", { clientId, url });
+  }
+
   async listClients(): Promise<Client[]> {
     const entries = await this.#controlRequest<ClientListEntry[]>("listClients");
     debug("received ClientList with %d entries", entries.length);
