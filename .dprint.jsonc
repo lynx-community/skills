@@ -5,7 +5,9 @@
     "quoteStyle": "preferSingle",
     "semiColons": "always",
   },
-  "json": {},
+  "json": {
+    "packageJson.applyConventions": true,
+  },
   "malva": {},
   "markup": {},
   "yaml": {},
@@ -33,7 +35,7 @@
   ],
   "plugins": [
     "npm:@dprint/typescript@0.95.11",
-    "npm:@dprint/json@0.20.0",
+    "npm:@dprint/json@0.25.2",
     "npm:dprint-plugin-malva@0.14.3",
     "npm:dprint-plugin-markup@0.24.0",
     "npm:dprint-plugin-yaml@0.5.1",

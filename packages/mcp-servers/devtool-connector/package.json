@@ -6,14 +6,8 @@
     "url": "git+https://github.com/lynx-community/skills.git",
     "directory": "packages/mcp-servers/devtool-connector"
   },
-  "files": [
-    "CHANGELOG.md",
-    "dist",
-    "public"
-  ],
+  "license": "Apache-2.0",
   "type": "module",
-  "main": "./src/index.ts",
-  "types": "./src/index.ts",
   "imports": {
     "#daemon-entry": "./src/daemon/entry.ts"
   },
@@ -50,6 +44,44 @@
     },
     "./package.json": "./package.json"
   },
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "files": [
+    "CHANGELOG.md",
+    "dist",
+    "public"
+  ],
+  "scripts": {
+    "build": "rslib build",
+    "test": "node --test --test-concurrency=1 \"test/**/*.test.ts\"",
+    "test:e2e": "node --test --test-concurrency=1 'e2e/**/*.test.ts'",
+    "test:e2e:public": "node --test --test-concurrency=1 'e2e/public/**/*.test.ts'",
+    "format:check": "dprint check --config dprint.jsonc",
+    "format": "dprint fmt --config dprint.jsonc"
+  },
+  "dependencies": {
+    "@lynx-js/debug-metadata": "0.1.0",
+    "@yume-chan/adb": "catalog:adb"
+  },
+  "devDependencies": {
+    "@rslib/core": "catalog:rstack",
+    "@types/node": "^24.19.2",
+    "@types/semver": "^7.8.0",
+    "@types/ws": "^8.18.2",
+    "@yume-chan/adb-server-node-tcp": "catalog:adb",
+    "@yume-chan/stream-extra": "catalog:adb",
+    "dprint": "^0.64.0",
+    "jpeg-js": "^0.4.4",
+    "obug": "^2.2.1",
+    "plist": "^5.0.0",
+    "rsbuild-plugin-publint": "^1.0.0",
+    "semver": "^7.8.5",
+    "typescript": "^7.0.2",
+    "ws": "^8.22.0"
+  },
+  "engines": {
+    "node": ">=18.19"
+  },
   "publishConfig": {
     "access": "public",
     "main": "./dist/index.js",
@@ -85,37 +117,5 @@
       },
       "./package.json": "./package.json"
     }
-  },
-  "scripts": {
-    "build": "rslib build",
-    "test": "node --test --test-concurrency=1 \"test/**/*.test.ts\"",
-    "test:e2e": "node --test --test-concurrency=1 'e2e/**/*.test.ts'",
-    "test:e2e:public": "node --test --test-concurrency=1 'e2e/public/**/*.test.ts'",
-    "format:check": "dprint check --config dprint.jsonc",
-    "format": "dprint fmt --config dprint.jsonc"
-  },
-  "dependencies": {
-    "@lynx-js/debug-metadata": "0.1.0",
-    "@yume-chan/adb": "catalog:adb"
-  },
-  "devDependencies": {
-    "@rslib/core": "catalog:rstack",
-    "@types/node": "^24.19.2",
-    "@types/semver": "^7.8.0",
-    "@types/ws": "^8.18.2",
-    "@yume-chan/adb-server-node-tcp": "catalog:adb",
-    "@yume-chan/stream-extra": "catalog:adb",
-    "dprint": "^0.64.0",
-    "jpeg-js": "^0.4.4",
-    "obug": "^2.2.1",
-    "plist": "^5.0.0",
-    "rsbuild-plugin-publint": "^1.0.0",
-    "semver": "^7.8.5",
-    "typescript": "^7.0.2",
-    "ws": "^8.22.0"
-  },
-  "engines": {
-    "node": ">=18.19"
-  },
-  "license": "Apache-2.0"
+  }
 }
