@@ -13,6 +13,8 @@ const debug = createDebug("devtool-mcp-server:daemon:inspector-assets");
 const HDT_RES_TARBALL_URL =
   "https://github.com/lynx-family/lynx-devtool/releases/download/devtools-frontend-lynx-7/devtool.frontend.lynx_1.0.1779085629.tar.gz";
 export const HDT_RES_PATH_PREFIX = "/devtool-frontend/";
+/** Upstream Chrome DevTools frontend, served same-origin with the CDP gateway. */
+export const DEVTOOLS_FRONTEND_PATH_PREFIX = "/chrome-devtools-frontend/";
 
 const MIME_TYPES: Record<string, string> = {
   ".html": "text/html; charset=utf-8",
@@ -30,6 +32,8 @@ const MIME_TYPES: Record<string, string> = {
 export interface InspectorAssetProvider {
   createInspectorResponse(): Promise<Response>;
   createHdtResourceResponse(pathname: string, acceptEncoding?: string): Promise<Response>;
+  /** Files under {@link DEVTOOLS_FRONTEND_PATH_PREFIX}, for flavors that ship the upstream frontend. */
+  createDevtoolsFrontendResponse?(pathname: string, acceptEncoding?: string): Promise<Response>;
 }
 
 /** Shared Inspector wrapper and HDT assets used by every daemon HTTP surface. */

@@ -145,5 +145,9 @@ export const DAEMON_WS_PATH = "/devtool/connector";
 export const DAEMON_VERSION_PATH: string = `${DAEMON_WS_PATH}/version`;
 export const DAEMON_SHUTDOWN_PATH: string = `${DAEMON_WS_PATH}/shutdown`;
 export const DAEMON_INSPECTOR_PATH: string = `${DAEMON_WS_PATH}/inspector`;
+/** Standard CDP WebSocket for one Lynx session, for Chrome DevTools frontends. */
+export const DAEMON_CDP_PATH: string = `${DAEMON_WS_PATH}/cdp`;
+/** JSON WebSocket for a page that shows the device screen and picks elements on it. */
+export const DAEMON_CDP_HOST_PATH: string = `${DAEMON_WS_PATH}/cdp-host`;
 /** HTTP command endpoint shared with the WebSocket daemon on port 21783. */
 export const DAEMON_COMMAND_PATH_PREFIX = "/command/";
