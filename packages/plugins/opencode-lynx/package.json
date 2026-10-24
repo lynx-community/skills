@@ -1,0 +1,27 @@
+{
+  "name": "@lynx-js/opencode-plugin-lynx",
+  "version": "0.1.0",
+  "description": "OpenCode plugin for Lynx development",
+  "keywords": [
+    "lynx",
+    "reactlynx",
+    "lynx-js",
+    "mobile",
+    "opencode"
+  ],
+  "repository": {
+    "url": "https://github.com/lynx-community/skills"
+  },
+  "type": "module",
+  "main": "./index.mjs",
+  "files": [
+    "index.mjs",
+    "README.md"
+  ],
+  "dependencies": {
+    "@lynx-js/ai-plugin-lynx": "workspace:*"
+  },
+  "engines": {
+    "node": ">=18.17"
+  }
+}
