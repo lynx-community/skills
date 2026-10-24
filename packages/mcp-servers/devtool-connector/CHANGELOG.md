@@ -1,5 +1,11 @@
 # @lynx-js/devtool-connector
 
+## 0.17.0
+
+### Patch Changes
+
+- Updated dependency `dprint` to `^0.64.1`.
+
 ## 0.16.6
 
 No changes in this release.
