@@ -903,11 +903,21 @@ export class DevtoolDaemon {
     const hdtClients = fulfilledHDTClientResults.flatMap((r) => r.value);
     if (fulfilledHDTClientResults.length > 0) {
       debug("Using clients from HDT transport: %o", hdtClients);
-      return hdtClients.map(({ id, info }) => ({
-        id,
-        info,
-        type: "runtime",
+      const managed = [...this.#deviceConnections.values()].filter(conn =>
+        conn.transport.listClients && conn.appInfo && !conn.isDisposed
+      ).map(conn => ({
+        id: ClientId.serialize(conn.deviceId, conn.port),
+        info: conn.appInfo!,
+        type: "runtime" as const,
       }));
+      return [
+        ...hdtClients.map(({ id, info }) => ({
+          id,
+          info,
+          type: "runtime" as const,
+        })),
+        ...managed,
+      ];
     }
 
     // A failed HDT discovery does not release its physical device connection.
@@ -1169,6 +1179,10 @@ export class DevtoolDaemon {
       debug("no clients connected, starting idle timer (%dms)", this.#idleTimeoutMs);
       this.#idleTimer = setTimeout(() => {
         if (this.#wsClients.size === 0 && this.#activeCommandRequests === 0) {
+          if (this.#transports.some(transport => transport.active)) {
+            this.#resetIdleTimer();
+            return;
+          }
           debug("idle timeout reached, shutting down daemon");
           this.#onIdle?.();
         }
