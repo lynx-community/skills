@@ -53,7 +53,15 @@ export function createRootCommand(
 
 export function getAndroidTransportSpec(
   env: NodeJS.ProcessEnv,
-): { host: string; port: number; } {
+): { host: string; port: number; } | { path: string; } {
+  const socket = env['ADB_SERVER_SOCKET'];
+  if (socket !== undefined) {
+    const prefix = 'localfilesystem:';
+    if (!socket.startsWith(prefix) || socket.length === prefix.length) {
+      throw new Error('ADB_SERVER_SOCKET must be localfilesystem:<path>.');
+    }
+    return { path: socket.slice(prefix.length) };
+  }
   const portText = env['ADB_SERVER_PORT'] ?? '5037';
   const port = /^\d+$/u.test(portText) ? Number(portText) : Number.NaN;
   return {
