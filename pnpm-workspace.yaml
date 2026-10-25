@@ -11,7 +11,7 @@ catalogs:
   mcp_sdk:
     "@modelcontextprotocol/sdk": ^1.32.1
   rstack:
-    "@rslib/core": 1.0.3
+    "@rslib/core": 1.0.4
     "@rsbuild/core": 2.2.14
     "@rspack/core": 2.2.9
     "@rstest/core": 0.12.4
