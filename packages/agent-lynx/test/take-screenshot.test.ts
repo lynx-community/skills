@@ -77,7 +77,10 @@ class FakeTransport implements Transport {
               },
             },
           });
-        } else if (request.data.data.message.method === 'Page.stopScreencast') {
+        } else if (
+          request.data.data.message.method === 'Page.screencastFrameAck'
+          || request.data.data.message.method === 'Page.stopScreencast'
+        ) {
           outputController?.enqueue({
             event: 'Customized',
             data: {

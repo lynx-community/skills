@@ -139,18 +139,28 @@ function screenshotConnector(
       _sessionId: number,
       input: ReadableStream<unknown>,
     ) {
+      let outputController!: ReadableStreamDefaultController<unknown>;
+      const output = new ReadableStream<unknown>({
+        start(controller) {
+          outputController = controller;
+          controller.enqueue({
+            method: "Page.screencastFrame",
+            params: { data: jpegBase64, ...(metadata ? { metadata } : {}) },
+          });
+        },
+      }) as ReadableStream<unknown> & AsyncDisposable & { inputClosed: Promise<void> };
       const inputClosed = (async () => {
         for await (const message of input) {
           inputMessages.push(message);
-          timeline?.push((message as { method: string }).method);
+          const request = message as { id?: number; method: string };
+          timeline?.push(request.method);
+          if (request.method === "Page.screencastFrameAck") {
+            assert.ok(Number.isInteger(request.id), "screencast acknowledgements need a CDP request ID");
+            outputController.enqueue({ id: request.id, result: {} });
+            outputController.close();
+          }
         }
       })();
-      const output = ReadableStream.from([
-        {
-          method: "Page.screencastFrame",
-          params: { data: jpegBase64, ...(metadata ? { metadata } : {}) },
-        },
-      ]) as ReadableStream<unknown> & AsyncDisposable & { inputClosed: Promise<void> };
       Object.assign(output, {
         inputClosed,
         async [Symbol.asyncDispose]() {

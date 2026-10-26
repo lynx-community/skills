@@ -3,6 +3,7 @@
 // LICENSE file in the root directory of this source tree.
 import { ReadableStream } from "node:stream/web";
 import type { Connector } from "../index.ts";
+import { nextRequestId } from "../request-id.ts";
 
 interface Deferred<T> {
   promise: Promise<T>;
@@ -74,7 +75,7 @@ export class ScreenshotTimeoutError extends Error {
     super(
       phase === "frame"
         ? `Failed to capture screenshot, no Page.screencastFrame event received within ${timeoutMs / 1_000} seconds.`
-        : `Failed to capture screenshot, the Page.screencastFrame acknowledgement was not flushed within ${
+        : `Failed to capture screenshot, the Page.screencastFrame acknowledgement was not confirmed within ${
           timeoutMs / 1_000
         } seconds.`,
     );
@@ -102,7 +103,9 @@ export async function captureScreenshotFrame(
   timeout.unref();
 
   let frame = deferred<boolean>();
-  let ack = deferred<void>();
+  let ack = deferred<number | undefined>();
+  const acknowledgements = new Map<number, CapturedScreenshot | undefined>();
+  let usableFrameReceived = false;
   let result: CapturedScreenshot | undefined;
   let screencastStarted = false;
   let primaryFailed = false;
@@ -131,15 +134,16 @@ export async function captureScreenshotFrame(
             screencastStarted = true;
             while (true) {
               const usable = await Promise.race([frame.promise, aborted]);
-              controller.enqueue({ method: "Page.screencastFrameAck" });
-              ack.resolve();
+              const id = nextRequestId();
+              controller.enqueue({ id, method: "Page.screencastFrameAck" });
+              ack.resolve(id);
               if (usable) break;
               frame = deferred<boolean>();
-              ack = deferred<void>();
+              ack = deferred<number | undefined>();
             }
           } finally {
             controller.close();
-            ack.resolve();
+            ack.resolve(undefined);
           }
         },
       }),
@@ -147,21 +151,40 @@ export async function captureScreenshotFrame(
     );
 
     try {
-      for await (const { method, params } of stream) {
-        if (method !== "Page.screencastFrame") continue;
-        const { data, metadata } = params as { data?: unknown; metadata?: unknown };
-        const usable = typeof data === "string" && data.length > 0;
-        if (usable) timeoutPhase = "acknowledgement";
-        frame.resolve(usable);
-        await ack.promise;
-        if (!usable) continue;
-        // Enqueuing the acknowledgement does not mean it has reached the transport.
-        // Finish the write before leaving this loop cancels and closes the stream.
-        await stream.inputClosed;
-        result = metadata !== null && typeof metadata === "object"
-          ? { data, metadata: metadata as ScreencastFrameMetadata }
-          : { data };
-        break;
+      for await (const message of stream) {
+        const { method, params } = message;
+        if (method === "Page.screencastFrame") {
+          if (usableFrameReceived) continue;
+          const { data, metadata } = params as { data?: unknown; metadata?: unknown };
+          const usable = typeof data === "string" && data.length > 0;
+          if (usable) timeoutPhase = "acknowledgement";
+          frame.resolve(usable);
+          const acknowledgementId = await ack.promise;
+          if (acknowledgementId === undefined) continue;
+          const captured = usable
+            ? metadata !== null && typeof metadata === "object"
+              ? { data, metadata: metadata as ScreencastFrameMetadata }
+              : { data }
+            : undefined;
+          acknowledgements.set(acknowledgementId, captured);
+          if (usable) {
+            await stream.inputClosed;
+            usableFrameReceived = true;
+          }
+          continue;
+        }
+
+        const response = message as { id?: number; error?: { message?: string } };
+        if (response.id === undefined || !acknowledgements.has(response.id)) continue;
+        const captured = acknowledgements.get(response.id);
+        acknowledgements.delete(response.id);
+        if (response.error) {
+          throw new Error(`CDP request error: ${response.error.message ?? "Unknown error"}`, { cause: message });
+        }
+        if (captured !== undefined) {
+          result = captured;
+          break;
+        }
       }
 
       if (result === undefined) {
