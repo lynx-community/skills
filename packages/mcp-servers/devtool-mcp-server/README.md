@@ -1,117 +1,33 @@
 # @lynx-js/devtool-mcp-server
 
-## Reusable tool layer
-
-The public package provides `coreTools`, `Schema`, `McpContext`, `McpResponse`
-and `registerToolWithContext`. Integrations can register the shared tools with
-their own per-request context while preserving the same schemas, results and
-error handling. Product-specific transports, tools and telemetry remain in the
-integration package; a server can wrap its own `registerTool` method for telemetry.
-
-The context factory is invoked once for each tool call, including concurrent
-calls. Its `connector()` must return a Connector-compatible instance. Existing
-`registerTool(server, tool, transports)` remains available for default contexts.
-
-The MCP SDK is an optional peer for programmatic consumers, and Zod 4 is a
-required peer so tool schemas use the caller's dependency instance. The stdio
-command bundles the SDK. `setupServer` uses the shared daemon by default;
-`setupCoreServer` also accepts explicit transports.
-
-> The Lynx DevTool for coding agents.
-
-`@lynx-js/devtool-mcp-server` lets your coding agent (such as Gemini, Claude, Cursor or Copilot)
-control and inspect a live Lynx Engine. It acts as a Model-Context-Protocol
-(MCP) server, giving your AI coding assistant access to the full power of
-Lynx DevTools for reliable automation.
+Inspect and control running Lynx apps from an MCP-compatible AI assistant.
 
 ## Requirements
 
-- [Node.js](https://nodejs.org/) v18.19 or a newer [latest maintenance LTS](https://github.com/nodejs/Release#release-schedule) version.
-- A device or simulator opened with [Lynx Engine](https://lynxjs.org/) opened and connected.
+- Node.js 18.19 or later.
+- A reachable Lynx app with DevTool enabled.
 
-## Getting started
+## Setup
 
-Add the following config to your MCP client:
+Add this configuration to your MCP client:
 
 ```json
 {
   "mcpServers": {
     "lynx-devtool": {
       "command": "npx",
-      "args": [
-        "-y",
-        "@lynx-js/devtool-mcp-server@latest"
-      ]
+      "args": ["-y", "@lynx-js/devtool-mcp-server@latest"]
     }
   }
 }
 ```
 
-<details>
-  <summary>Claude Code</summary>
-    Use the Claude Code CLI to add the Lynx DevTool MCP server (<a href="https://docs.anthropic.com/en/docs/claude-code/mcp">guide</a>):
+Then ask your assistant:
 
-```bash
-claude mcp add lynx-devtool npx @lynx-js/devtool-mcp-server@latest
-```
+> List the connected Lynx pages and inspect the current page.
 
-</details>
+[Install in Cursor](https://cursor.com/en/install-mcp?name=lynx-devtool&config=eyJjb21tYW5kIjoibnB4IiwiYXJncyI6WyIteSIsIkBseW54LWpzL2RldnRvb2wtbWNwLXNlcnZlckBsYXRlc3QiXX0%3D).
 
-<details>
-  <summary>Codex</summary>
-  Follow the <a href="https://github.com/openai/codex/blob/main/docs/advanced.md#model-context-protocol-mcp">configure MCP guide</a>
-  using the standard config from above. You can also install the Lynx DevTool MCP server using the Codex CLI:
+For programmatic integration, see the [contributor guide](https://github.com/lynx-community/skills/blob/main/CONTRIBUTING.md#mcp-integrations).
 
-```bash
-codex mcp add lynx-devtool -- npx @lynx-js/devtool-mcp-server@latest
-```
-
-</details>
-
-<details>
-  <summary>Copilot / VS Code</summary>
-  Follow the MCP install <a href="https://code.visualstudio.com/docs/copilot/chat/mcp-servers#_add-an-mcp-server">guide</a>,
-  with the standard config from above. You can also install the Lynx DevTool MCP server using the VS Code CLI:
-
-```bash
-code --add-mcp '{"name":"lynx-devtool","command":"npx","args":["@lynx-js/devtool-mcp-server@latest"]}'
-```
-
-</details>
-
-<details>
-  <summary>Cursor</summary>
-
-**Click the button to install:**
-
-[<img src="https://cursor.com/deeplink/mcp-install-dark.svg" alt="Install in Cursor">](https://cursor.com/en/install-mcp?name=lynx-devtool&config=eyJjb21tYW5kIjoibnB4IiwiYXJncyI6WyIteSIsIkBseW54LWpzL2RldnRvb2wtbWNwLXNlcnZlckBsYXRlc3QiXX0%3D)
-
-**Or install manually:**
-
-Go to `Cursor Settings` -> `MCP` -> `New MCP Server`. Use the config provided above.
-
-</details>
-
-<details>
-  <summary>Gemini CLI</summary>
-Install the Lynx DevTool MCP server using the Gemini CLI.
-
-**Project wide:**
-
-```bash
-gemini mcp add lynx-devtool npx @lynx-js/devtool-mcp-server@latest
-```
-
-**Globally:**
-
-```bash
-gemini mcp add -s user lynx-devtool npx @lynx-js/devtool-mcp-server@latest
-```
-
-Alternatively, follow the <a href="https://github.com/google-gemini/gemini-cli/blob/main/docs/tools/mcp-server.md#how-to-set-up-your-mcp-server">MCP guide</a> and use the standard config from above.
-
-</details>
-
-## Credits
-
-This project is inspired by [chrome-devtool-mcp](https://github.com/ChromeDevTools/chrome-devtools-mcp). Both the implementation and documentation have been adapted and referenced from the original MCP server.
+Inspired by [Chrome DevTools MCP](https://github.com/ChromeDevTools/chrome-devtools-mcp).

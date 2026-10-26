@@ -1,6 +1,6 @@
 # Connector 架构与开发约束
 
-Connector 为上层 MCP Server 和 Agent Lynx 提供设备发现、CDP、App 和会话请求接口。初始化和调用示例见 [包 README](../README.md)。
+Connector 为上层 MCP Server 和 Agent Lynx 提供设备发现、CDP、App 和会话请求接口。初始化和调用示例见 [包 README](../README.md)。修改产品适配层时按 [package.json](../package.json) 的导出定位源码；daemon 生命周期和服务边界由 `daemon/manager.ts`、`daemon/server.ts` 定义。
 
 ## 默认连接模型
 
