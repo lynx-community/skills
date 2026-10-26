@@ -70,7 +70,7 @@
     "@types/ws": "^8.18.2",
     "@yume-chan/adb-server-node-tcp": "catalog:adb",
     "@yume-chan/stream-extra": "catalog:adb",
-    "dprint": "^0.64.2",
+    "dprint": "^0.64.3",
     "jpeg-js": "^0.4.4",
     "obug": "^2.2.1",
     "plist": "^5.0.0",
