@@ -5,7 +5,36 @@ import assert from "node:assert/strict";
 import http from "node:http";
 import { test } from "node:test";
 import { setTimeout as delay } from "node:timers/promises";
+import { ClientId } from "../src/client-id.ts";
+import { HttpCommandClient } from "../src/command/client.ts";
 import { DevtoolDaemon } from "../src/daemon/server.ts";
+import type { App, Connection, Device, Transport, TransportConnectOptions } from "../src/transport/transport.ts";
+
+class BlockedListDevicesTransport implements Transport {
+  readonly listDevicesStarted = Promise.withResolvers<void>();
+  readonly #listDevices = Promise.withResolvers<Device[]>();
+
+  async close(): Promise<void> {
+    this.#listDevices.resolve([]);
+  }
+
+  async listDevices(): Promise<Device[]> {
+    this.listDevicesStarted.resolve();
+    return await this.#listDevices.promise;
+  }
+
+  async listAvailableApps(_deviceId: string): Promise<App[]> {
+    return [];
+  }
+
+  async openApp(_deviceId: string, _packageName: string): Promise<void> {}
+
+  async connect<TInput = unknown, TOutput = unknown>(
+    _options: TransportConnectOptions,
+  ): Promise<Connection<TOutput, TInput>> {
+    throw new Error("Unexpected device connection in blocked listDevices test");
+  }
+}
 
 test("daemon serves unary commands and SSE actions on the WebSocket port", async (t) => {
   const daemon = new DevtoolDaemon([]);
@@ -160,4 +189,44 @@ test("daemon shutdown aborts an incomplete chunked SSE body", async () => {
   ]);
   request.destroy();
   assert.equal(closed, true, "an incomplete SSE body must not hold daemon shutdown open");
+});
+
+test("daemon shutdown closes an aborted unary command response", async (t) => {
+  const transport = new BlockedListDevicesTransport();
+  const daemon = new DevtoolDaemon([transport]);
+  const port = await daemon.start(0);
+  let closing: Promise<void> | undefined;
+  t.after(async () => {
+    await (closing ?? daemon.close());
+  });
+
+  const command = new HttpCommandClient({ port, ensureDaemon: false }).executeRaw("snapshot", {
+    clientId: ClientId.serialize("blocked-device", 8901),
+    sessionId: 1,
+  }, { timeoutMs: 2_000 });
+
+  try {
+    let startupTimeout: ReturnType<typeof setTimeout> | undefined;
+    try {
+      await Promise.race([
+        transport.listDevicesStarted.promise,
+        new Promise<never>((_resolve, reject) => {
+          startupTimeout = setTimeout(
+            () => reject(new Error("snapshot did not reach the blocked daemon listDevices call")),
+            1_000,
+          );
+        }),
+      ]);
+    } finally {
+      if (startupTimeout) clearTimeout(startupTimeout);
+    }
+    closing = daemon.close();
+
+    const result = await command;
+    assert.equal(result.ok, false);
+    if (!result.ok) assert.equal(result.error.reason, "daemon-unavailable");
+  } finally {
+    closing ??= daemon.close();
+    await Promise.allSettled([command, closing]);
+  }
 });

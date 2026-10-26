@@ -444,6 +444,7 @@ export class DevtoolDaemon {
       req.off("aborted", onDisconnect);
       res.off("close", onDisconnect);
       this.#commandControllers.delete(controller);
+      if (controller.signal.aborted && !res.destroyed && !res.writableEnded) res.destroy();
     }
   }
 
