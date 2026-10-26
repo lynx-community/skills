@@ -54,7 +54,7 @@ export type AppResponseMessage = {
   /** JSON string */
   result: string;
 };
-export type CDPRequestMessage<T = unknown> = { method: string; params?: T | undefined };
+export type CDPRequestMessage<T = unknown> = { id?: number | undefined; method: string; params?: T | undefined };
 export type CDPRequest = CustomizedEvent<"CDP", {
   client_id: number;
   session_id: number;

@@ -64,6 +64,9 @@ function createScreenshotStreamHarness(
             if (method === "Page.screencastFrameAck") {
               acknowledgementStarted.resolve();
               if (harnessOptions.blockAcknowledgement) await acknowledgementReleased.promise;
+              if (!signal.aborted && !outputClosed) {
+                outputController.enqueue({ id: (message as { id: number }).id, result: {} });
+              }
             }
           }
         } finally {
@@ -116,7 +119,7 @@ function createScreenshotStreamHarness(
   };
 }
 
-test("screenshot returns a normal frame after its acknowledgement is flushed", async () => {
+test("screenshot returns a normal frame after its CDP acknowledgement response", async () => {
   const harness = createScreenshotStreamHarness();
   const capture = captureScreenshotFrame(harness.connector, "device:8901", 5, { timeoutMs: 200 });
   await harness.opened;
@@ -168,7 +171,7 @@ test("screenshot reports its acknowledgement phase when the original deadline ex
 
   await assert.rejects(
     capture,
-    error => error instanceof ScreenshotTimeoutError && /acknowledgement was not flushed/u.test(error.message),
+    error => error instanceof ScreenshotTimeoutError && /acknowledgement was not confirmed/u.test(error.message),
   );
   assert.equal(harness.streamSignal().aborted, true);
   await harness.inputClosed;
@@ -181,12 +184,14 @@ test("screenshot reports its acknowledgement phase when the original deadline ex
 
 test("screenshot acknowledges empty frames and waits for screencast cleanup", async () => {
   const inputMessages: unknown[] = [];
+  const acknowledgementResponses: number[] = [];
   const cleanupMessages: string[] = [];
   const lifecycle: string[] = [];
   const firstFrameAcknowledged = deferred<void>();
   const inputClosed = deferred<void>();
   const cleanupStarted = deferred<void>();
   const cleanupReleased = deferred<void>();
+  let outputController!: ReadableStreamDefaultController<unknown>;
   const connector = {
     async sendCDPMessage(_clientId: string, _sessionId: number, method: string) {
       lifecycle.push("stop");
@@ -208,7 +213,18 @@ test("screenshot acknowledges empty frames and waits for screencast cleanup", as
             const acknowledgements = inputMessages.filter(
               entry => (entry as { method?: unknown }).method === "Page.screencastFrameAck",
             );
-            if (acknowledgements.length === 1) firstFrameAcknowledged.resolve();
+            if ((message as { method?: unknown }).method === "Page.screencastFrameAck") {
+              const id = (message as { id: number }).id;
+              if (acknowledgements.length === 1) {
+                firstFrameAcknowledged.resolve();
+              } else {
+                const emptyFrameAckId = (acknowledgements[0] as { id: number }).id;
+                acknowledgementResponses.push(emptyFrameAckId, id);
+                outputController.enqueue({ id: emptyFrameAckId, result: {} });
+                outputController.enqueue({ id, result: {} });
+                outputController.close();
+              }
+            }
           }
         } finally {
           inputClosed.resolve();
@@ -217,6 +233,7 @@ test("screenshot acknowledges empty frames and waits for screencast cleanup", as
 
       const output = new ReadableStream<unknown>({
         start(controller) {
+          outputController = controller;
           signal.addEventListener("abort", () => controller.error(signal.reason), { once: true });
           controller.enqueue({
             method: "Page.screencastFrame",
@@ -227,7 +244,6 @@ test("screenshot acknowledges empty frames and waits for screencast cleanup", as
               method: "Page.screencastFrame",
               params: { data: "usable-frame" },
             });
-            controller.close();
           });
         },
       }) as ReadableStream<unknown> & AsyncDisposable & { inputClosed: Promise<void> };
@@ -258,6 +274,10 @@ test("screenshot acknowledges empty frames and waits for screencast cleanup", as
     inputMessages.map(message => (message as { method: string }).method),
     ["Page.startScreencast", "Page.screencastFrameAck", "Page.screencastFrameAck"],
   );
+  const acknowledgementIds = inputMessages
+    .filter(message => (message as { method: string }).method === "Page.screencastFrameAck")
+    .map(message => (message as { id: number }).id);
+  assert.deepEqual(acknowledgementResponses, [acknowledgementIds[0], acknowledgementIds[1]]);
   assert.deepEqual(cleanupMessages, ["Page.stopScreencast"]);
   assert.deepEqual(lifecycle, ["stream-dispose", "stop"]);
 });
@@ -265,8 +285,16 @@ test("screenshot acknowledges empty frames and waits for screencast cleanup", as
 class DelayedScreenshotTransport implements Transport {
   readonly acknowledgement = deferred<Error | undefined>();
   readonly acknowledgementStarted = deferred<void>();
+  readonly acknowledgementWritten = deferred<void>();
   readonly events: string[] = [];
   readonly methods: string[] = [];
+  #acknowledgementResponse: ((error?: { code: number; message: string }) => void) | undefined;
+
+  respondToAcknowledgement(error?: { code: number; message: string }): void {
+    const respond = this.#acknowledgementResponse;
+    this.#acknowledgementResponse = undefined;
+    respond?.(error);
+  }
 
   async close(): Promise<void> {}
 
@@ -320,6 +348,11 @@ class DelayedScreenshotTransport implements Transport {
           const error = await Promise.race([this.acknowledgement.promise, closed]);
           if (error) throw error;
           this.events.push("ack-written");
+          this.acknowledgementWritten.resolve();
+          this.#acknowledgementResponse = (error) => {
+            this.events.push("ack-response");
+            respond(error ? { id, error } : { id, result: {} });
+          };
         } else if (method === "Page.stopScreencast") {
           this.events.push("stop");
           respond({ id, result: {} });
@@ -341,7 +374,7 @@ class DelayedScreenshotTransport implements Transport {
 const screenshotClientId = ClientId.serialize("screenshot-device", 8901);
 
 test(
-  "screenshot finishes writing the frame acknowledgement before closing the connection",
+  "screenshot waits for a CDP frame acknowledgement response before closing the connection",
   { timeout: 2_000 },
   async () => {
     const transport = new DelayedScreenshotTransport();
@@ -352,10 +385,15 @@ test(
       await nextTurn();
       assert.deepEqual(transport.events, ["ack-started"]);
       transport.acknowledgement.resolve(undefined);
+      await transport.acknowledgementWritten.promise;
+      await nextTurn();
+      assert.equal(transport.events.includes("dispose"), false);
+      transport.respondToAcknowledgement();
       assert.equal((await capture).data, "captured-frame");
       assert.deepEqual(transport.events.filter(event => event !== "cancel"), [
         "ack-started",
         "ack-written",
+        "ack-response",
         "dispose",
         "stop",
         "dispose",
@@ -363,6 +401,7 @@ test(
       assert.deepEqual(transport.methods, ["Page.startScreencast", "Page.screencastFrameAck", "Page.stopScreencast"]);
     } finally {
       transport.acknowledgement.resolve(undefined);
+      if (!transport.events.includes("dispose")) transport.respondToAcknowledgement();
       await capture.catch(() => {});
     }
   },
@@ -379,6 +418,37 @@ test("screenshot preserves an acknowledgement write failure after receiving a fr
   assert.equal(transport.events.includes("stop"), true);
   assert.equal(transport.events.filter(event => event === "dispose").length, 2);
 });
+
+test("screenshot reports a CDP frame acknowledgement error", { timeout: 2_000 }, async () => {
+  const transport = new DelayedScreenshotTransport();
+  const capture = captureScreenshotFrame(new Connector([transport]), screenshotClientId, 5);
+  await transport.acknowledgementStarted.promise;
+  transport.acknowledgement.resolve(undefined);
+  await transport.acknowledgementWritten.promise;
+  transport.respondToAcknowledgement({ code: -32000, message: "ack rejected" });
+
+  await assert.rejects(capture, error => error instanceof Error && error.message === "CDP request error: ack rejected");
+  assert.equal(transport.events.includes("stop"), true);
+});
+
+test(
+  "screenshot times out when the runtime does not respond to the frame acknowledgement",
+  { timeout: 2_000 },
+  async () => {
+    const transport = new DelayedScreenshotTransport();
+    const capture = captureScreenshotFrame(new Connector([transport]), screenshotClientId, 5, { timeoutMs: 50 });
+    await transport.acknowledgementStarted.promise;
+    transport.acknowledgement.resolve(undefined);
+    await transport.acknowledgementWritten.promise;
+
+    await assert.rejects(
+      capture,
+      error => error instanceof ScreenshotTimeoutError && /acknowledgement was not confirmed/u.test(error.message),
+    );
+    assert.equal(transport.events.includes("ack-response"), false);
+    assert.equal(transport.events.includes("stop"), true);
+  },
+);
 
 test("screenshot cancellation interrupts a pending acknowledgement and stops casting", { timeout: 2_000 }, async () => {
   const transport = new DelayedScreenshotTransport();
@@ -401,7 +471,7 @@ test("screenshot timeout interrupts a pending acknowledgement with its phase", {
   const capture = captureScreenshotFrame(new Connector([transport]), screenshotClientId, 5, { timeoutMs: 50 });
   await assert.rejects(
     capture,
-    error => error instanceof ScreenshotTimeoutError && /acknowledgement was not flushed/u.test(error.message),
+    error => error instanceof ScreenshotTimeoutError && /acknowledgement was not confirmed/u.test(error.message),
   );
   assert.equal(transport.events.includes("ack-written"), false);
   assert.equal(transport.events.includes("stop"), true);

@@ -11,7 +11,9 @@ import { TakeScreenshot } from '../../src/tools/Page/TakeScreenshot.ts';
 import { createToolContext } from '../utils/testTool.ts';
 
 test('Page.takeScreenshot acknowledges an empty frame before accepting the next frame', async (t) => {
-  const requests: Array<{ method: string; params?: unknown; }> = [];
+  const requests: Array<{ id?: number; method: string; params?: unknown; }> =
+    [];
+  const acknowledgementResponses: number[] = [];
   const stops: Array<{ clientId: string; sessionId: number; }> = [];
   const frameData = Buffer.from('second frame').toString('base64');
 
@@ -19,7 +21,7 @@ test('Page.takeScreenshot acknowledges an empty frame before accepting the next 
     async sendCDPStream(
       _clientId: string,
       _sessionId: number,
-      input: ReadableStream<{ method: string; params?: unknown; }>,
+      input: ReadableStream<{ id?: number; method: string; params?: unknown; }>,
     ) {
       let outputController!: ReadableStreamDefaultController<unknown>;
       const output = new ReadableStream({
@@ -36,6 +38,11 @@ test('Page.takeScreenshot acknowledges an empty frame before accepting the next 
               params: { data: '' },
             });
           } else if (request.method === 'Page.screencastFrameAck') {
+            const id = request.id;
+            assert.ok(
+              typeof id === 'number' && Number.isInteger(id),
+              'screencast acknowledgements need a CDP request ID',
+            );
             const ackCount = requests.filter(({ method }) =>
               method === 'Page.screencastFrameAck'
             ).length;
@@ -44,12 +51,25 @@ test('Page.takeScreenshot acknowledges an empty frame before accepting the next 
                 method: 'Page.screencastFrame',
                 params: { data: frameData },
               });
+            } else {
+              const emptyFrameAckId = requests.find(({ method }) =>
+                method === 'Page.screencastFrameAck'
+              )?.id;
+              assert.ok(
+                typeof emptyFrameAckId === 'number'
+                  && Number.isInteger(emptyFrameAckId),
+              );
+              acknowledgementResponses.push(emptyFrameAckId, id);
+              outputController.enqueue({ id: emptyFrameAckId, result: {} });
+              outputController.enqueue({ id, result: {} });
+              outputController.close();
             }
           }
         }
       })();
 
       return Object.assign(output, {
+        inputClosed: inputPump,
         async [Symbol.asyncDispose]() {
           await inputPump;
           await output.cancel().catch(() => {});
@@ -79,6 +99,13 @@ test('Page.takeScreenshot acknowledges an empty frame before accepting the next 
     'Page.startScreencast',
     'Page.screencastFrameAck',
     'Page.screencastFrameAck',
+  ]);
+  const acknowledgementIds = requests
+    .filter(({ method }) => method === 'Page.screencastFrameAck')
+    .map(({ id }) => id);
+  assert.deepEqual(acknowledgementResponses, [
+    acknowledgementIds[0],
+    acknowledgementIds[1],
   ]);
   assert.deepEqual(stops, [{ clientId: 'device:8901', sessionId: 7 }]);
   assert.equal(await fs.readFile(outputPath, 'utf8'), 'second frame');
