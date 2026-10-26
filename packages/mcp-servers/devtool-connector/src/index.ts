@@ -659,6 +659,7 @@ export class Connector {
       if (!response.done) {
         result = response.value;
       } else {
+        options.signal?.throwIfAborted();
         const clientId = ClientId.serialize(options.deviceId, options.port);
         throw new Error(`No response found for clientId: ${clientId}`);
       }
