@@ -213,7 +213,11 @@ testWithClient("Connector", async (t, connector, client) => {
         t.assert.equal(response, false);
       } catch (error) {
         t.assert.ok(error instanceof Error);
-        t.assert.match(error.message, /No response found for clientId/);
+        t.assert.ok(
+          error.name === "TimeoutError"
+            || error.cause instanceof Error && error.cause.name === "TimeoutError",
+          `An unsupported key should return false or time out: ${error.message}`,
+        );
       }
     });
   });

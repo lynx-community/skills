@@ -6,6 +6,7 @@ import { ReadableStream, WritableStream } from "node:stream/web";
 import { test } from "node:test";
 import { setTimeout as sleep } from "node:timers/promises";
 import { WebSocketServer } from "ws";
+import { ClientId, Connector } from "../src/index.ts";
 import { HDTTransport } from "../src/transport/hdt.ts";
 import { wsStreams } from "../src/transport/ws-stream.ts";
 import { raceWithTimeout } from "./raceWithTimeout.ts";
@@ -157,6 +158,63 @@ test("HDTTransport preserves an abnormal websocket close across disposal", async
   assert.equal((primaryError as Error & { code?: number }).code, 1011);
   assert.equal((primaryError as Error & { reason?: string }).reason, reason);
   await conn[Symbol.asyncDispose]();
+});
+
+test("Connector preserves the request timeout when an HDT socket closes without a response", async (t) => {
+  const server = new WebSocketServer({ port: 0, path: "/mdevices/page/android" });
+  t.after(() => {
+    for (const socket of server.clients) socket.terminate();
+    server.close();
+  });
+
+  const address = server.address();
+  assert(address && typeof address !== "string");
+  const cdpRequestReceived = deferred<void>();
+
+  server.on("connection", (socket) => {
+    socket.send(JSON.stringify({ event: "Initialize", data: 123 }));
+    socket.on("message", (raw) => {
+      const message = JSON.parse(raw.toString()) as { event?: string; data?: { type?: string } };
+      if (message.event === "Register") {
+        socket.send(JSON.stringify({ event: "RoomJoined", data: { room: "", id: 123 } }));
+        socket.send(JSON.stringify({
+          event: "ClientList",
+          data: [{ id: 4, info: { App: "TestApp", debugRouterId: "router-uuid" } }],
+        }));
+      } else if (message.event === "ListClients") {
+        socket.send(JSON.stringify({
+          event: "ClientList",
+          data: [{ id: 4, info: { App: "TestApp", debugRouterId: "router-uuid" } }],
+        }));
+      } else if (message.event === "Customized") {
+        if (message.data?.type === "CDP") cdpRequestReceived.resolve();
+      }
+    });
+  });
+
+  const connector = new Connector([
+    new HDTTransport(`ws://127.0.0.1:${address.port}/mdevices/page/android`),
+  ]);
+  const clientId = ClientId.serialize(`HDT-${address.port}`, "router-uuid");
+
+  const controller = new AbortController();
+  const timeout = new DOMException("The operation timed out", "TimeoutError");
+  t.mock.method(AbortSignal, "timeout", () => controller.signal);
+
+  const request = connector.sendCDPMessage(clientId, 2, "Runtime.evaluate", { expression: "1 + 1" });
+  try {
+    const timedOut = Symbol("timed out waiting for CDP request");
+    const sent = await raceWithTimeout(cdpRequestReceived.promise, 2_000, timedOut);
+    if (sent === timedOut) throw new Error("Timed out waiting for the CDP request to reach the HDT service");
+
+    await new Promise<void>(resolve => setImmediate(resolve));
+    controller.abort(timeout);
+
+    await assert.rejects(request, error => error === timeout);
+  } finally {
+    if (!controller.signal.aborted) controller.abort(new Error("Test cleanup"));
+    await request.catch(() => {});
+  }
 });
 
 test("HDTTransport exposes debugRouterId as the client target", async (t) => {
