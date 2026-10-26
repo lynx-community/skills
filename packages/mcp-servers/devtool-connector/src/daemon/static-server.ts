@@ -3,7 +3,12 @@
 // LICENSE file in the root directory of this source tree.
 import type http from "node:http";
 import { createDebug } from "obug";
-import { HDT_RES_PATH_PREFIX, type InspectorAssetProvider, InspectorAssets } from "./inspector-assets.ts";
+import {
+  DEVTOOLS_FRONTEND_PATH_PREFIX,
+  HDT_RES_PATH_PREFIX,
+  type InspectorAssetProvider,
+  InspectorAssets,
+} from "./inspector-assets.ts";
 import { DAEMON_INSPECTOR_PATH } from "./protocol.ts";
 
 const debug = createDebug("devtool-mcp-server:daemon:static-server");
@@ -23,6 +28,14 @@ export class StaticServer {
 
     if (pathname === DAEMON_INSPECTOR_PATH) {
       void this.#serveResponse(res, this.#assets.createInspectorResponse());
+      return true;
+    }
+
+    if (pathname.startsWith(DEVTOOLS_FRONTEND_PATH_PREFIX) && this.#assets.createDevtoolsFrontendResponse) {
+      void this.#serveResponse(
+        res,
+        this.#assets.createDevtoolsFrontendResponse(pathname, req.headers["accept-encoding"]),
+      );
       return true;
     }
 
