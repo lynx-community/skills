@@ -25,6 +25,8 @@ export function requireNumericPort(port: ClientTarget): number {
 
 export interface OpenAppOptions {
   signal?: AbortSignal;
+  schema?: string | undefined;
+  timeoutMs?: number | undefined;
   withDataCleared?: boolean | undefined;
 }
 
@@ -37,7 +39,7 @@ export interface Transport {
 
   listAvailableApps(deviceId: string): Promise<App[]>;
 
-  openApp(deviceId: string, packageName: string, options?: OpenAppOptions): Promise<void>;
+  openApp(deviceId: string, packageName: string, options?: OpenAppOptions): Promise<void | string>;
 
   connect<TInput = unknown, TOutput = unknown>(options: TransportConnectOptions): Promise<Connection<TOutput, TInput>>;
 

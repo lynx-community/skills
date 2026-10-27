@@ -1,7 +1,7 @@
 // Copyright 2026 The Lynx Authors. All rights reserved.
 // Licensed under the Apache License Version 2.0 that can be found in the
 // LICENSE file in the root directory of this source tree.
-import { type Adb, AdbServerClient } from "@yume-chan/adb";
+import { type Adb, AdbServerClient, escapeArg } from "@yume-chan/adb";
 import { AdbServerNodeJsTcpConnector } from "@yume-chan/adb-server-node-tcp";
 import { ReadableStream } from "@yume-chan/stream-extra";
 import type { SocketConnectOpts } from "node:net";
@@ -66,8 +66,30 @@ function createOpenAppCommandArgs(componentName: string): string[] {
   ];
 }
 
-function spawnWaitText(adb: Adb, command: string | readonly string[]): Promise<string> {
-  return adb.subprocess.noneProtocol.spawn(command).wait().toString();
+function createOpenSchemaCommandArgs(packageName: string, schema: string): string[] {
+  return [
+    "am",
+    "start",
+    "-W",
+    "-S",
+    "-a",
+    "android.intent.action.VIEW",
+    "-d",
+    schema,
+    "-p",
+    packageName,
+  ];
+}
+
+async function spawnWaitText(
+  adb: Adb,
+  command: string | readonly string[],
+  signal?: AbortSignal,
+): Promise<string> {
+  const adbCommand = typeof command === "string" ? command : command.map(escapeArg).join(" ");
+  const output = await adb.subprocess.noneProtocol.spawn(adbCommand, signal).wait().toString();
+  signal?.throwIfAborted();
+  return output;
 }
 
 export interface AppIcon {
@@ -97,8 +119,27 @@ export class AndroidTransport implements Transport {
     return connectWithPeertalk<TInput, TOutput>(opts => this.#connectRaw(opts), options);
   }
 
-  async #createAdb(deviceId: string): Promise<Adb & AsyncDisposable> {
-    const adb = await this.client.createAdb({ serial: deviceId });
+  async #createAdb(deviceId: string, signal?: AbortSignal): Promise<Adb & AsyncDisposable> {
+    const connector = this.client.connector;
+    const client = signal
+      ? new AdbServerClient({
+        connect: options =>
+          connector.connect({
+            ...options,
+            signal: options?.signal ? AbortSignal.any([options.signal, signal]) : signal,
+          }),
+        addReverseTunnel: connector.addReverseTunnel.bind(connector),
+        removeReverseTunnel: connector.removeReverseTunnel.bind(connector),
+        clearReverseTunnels: connector.clearReverseTunnels.bind(connector),
+      })
+      : this.client;
+    let adb: Adb;
+    try {
+      adb = await client.createAdb({ serial: deviceId });
+    } catch (error) {
+      signal?.throwIfAborted();
+      throw error;
+    }
     return Object.assign(adb, {
       async [Symbol.asyncDispose]() {
         await adb.close();
@@ -297,16 +338,18 @@ export class AndroidTransport implements Transport {
   async openApp(
     deviceId: string,
     packageName: string,
-    { withDataCleared }: OpenAppOptions = {},
-  ): Promise<void> {
-    await using adb = await this.#createAdb(deviceId);
+    { schema, signal, withDataCleared }: OpenAppOptions = {},
+  ): Promise<void | string> {
+    signal?.throwIfAborted();
+    await using adb = await this.#createAdb(deviceId, signal);
+    signal?.throwIfAborted();
 
     const pmOutput = await spawnWaitText(adb, [
       "pm",
       "list",
       "packages",
       packageName,
-    ]);
+    ], signal);
     const installed = pmOutput
       .split("\n")
       .some((line) => line.trim() === `package:${packageName}`);
@@ -320,8 +363,26 @@ export class AndroidTransport implements Transport {
         "pm",
         "clear",
         packageName,
-      ]);
+      ], signal);
       debug(`openApp clear data output ${output}`);
+    }
+
+    if (schema !== undefined) {
+      const output = await spawnWaitText(
+        adb,
+        createOpenSchemaCommandArgs(packageName, schema),
+        signal,
+      );
+      debug(`openApp VIEW output ${output}`);
+      if (
+        !/^Status: ok\r?$/mu.test(output)
+        || output.includes("Error: Activity not started")
+        || output.includes("unable to resolve Intent")
+        || /Error type \d+/u.test(output)
+      ) {
+        throw new Error(`Failed to open app ${packageName} with schema ${schema}: ${output.trim()}`);
+      }
+      return output;
     }
 
     const knownActivity = this.getKnownApp(packageName)?.activityName;
@@ -330,6 +391,7 @@ export class AndroidTransport implements Transport {
       const queryOutput = await spawnWaitText(
         adb,
         createQueryLauncherActivitiesCommandArgs(packageName),
+        signal,
       );
       debug(`openApp launcher activities output ${queryOutput}`);
       [componentName] = parseLauncherActivityComponents(queryOutput);
@@ -338,7 +400,7 @@ export class AndroidTransport implements Transport {
       throw new Error(`No launchable activity found for package ${packageName}.`);
     }
 
-    const output = await spawnWaitText(adb, createOpenAppCommandArgs(componentName));
+    const output = await spawnWaitText(adb, createOpenAppCommandArgs(componentName), signal);
     debug(`openApp LAUNCHER output ${output}`);
     if (
       output.includes("Error: Activity not started")
