@@ -1,5 +1,16 @@
 # @lynx-js/devtool-connector
 
+## 0.17.0
+
+### Patch Changes
+
+- Close aborted unary command responses during daemon shutdown so callers do not wait for their own timeout.
+- Updated dependency `dprint` to `^0.64.3`.
+- Updated dependency `@rslib/core` to `^1.0.4`.
+- Scope HDT transport responses to the selected app for both direct and daemon connections, so another app's session list cannot close its streams or supply its CDP responses.
+- Preserve the request timeout when its transport closes without a response instead of reporting a generic missing response.
+- Wait for the runtime to confirm the screenshot frame acknowledgement before closing its connection, so the next capture is not blocked by an unprocessed acknowledgement.
+
 ## 0.16.6
 
 No changes in this release.
