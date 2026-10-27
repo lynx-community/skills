@@ -1,5 +1,11 @@
 # @lynx-js/devtool-connector
 
+## 0.18.0
+
+### Minor Changes
+
+- Add an optional `schema` to `Connector.openApp`, including daemon forwarding. Android opens the schema directly in the requested app, with shell-safe URL handling, instead of launching its default activity. Other transports ignore the option unless supported.
+
 ## 0.17.0
 
 ### Patch Changes
