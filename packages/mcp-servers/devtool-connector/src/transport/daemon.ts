@@ -70,6 +70,10 @@ export class DaemonTransport implements Transport {
     });
   }
 
+  async openPage(clientId: string, url: string): Promise<boolean> {
+    return this.#controlRequest<boolean>("openPage", { clientId, url });
+  }
+
   async listClients(): Promise<Client[]> {
     const entries = await this.#controlRequest<ClientListEntry[]>("listClients");
     debug("received ClientList with %d entries", entries.length);
