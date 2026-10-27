@@ -62,7 +62,12 @@ export class DaemonTransport implements Transport {
   }
 
   async openApp(deviceId: string, packageName: string, options?: OpenAppOptions): Promise<void> {
-    await this.#controlRequest("openApp", { deviceId, packageName, withDataCleared: options?.withDataCleared });
+    await this.#controlRequest("openApp", {
+      deviceId,
+      packageName,
+      withDataCleared: options?.withDataCleared,
+      schema: options?.schema,
+    });
   }
 
   async listClients(): Promise<Client[]> {

@@ -3,12 +3,15 @@
 // LICENSE file in the root directory of this source tree.
 import assert from "node:assert/strict";
 import { test } from "node:test";
+import { DevtoolDaemon } from "../src/daemon/server.ts";
 import { Connector } from "../src/index.ts";
-import type { App, Client, Connection, Device, Transport } from "../src/transport/transport.ts";
+import { DaemonTransport } from "../src/transport/daemon.ts";
+import type { App, Client, Connection, Device, OpenAppOptions, Transport } from "../src/transport/transport.ts";
 
 class ClientListTransport implements Transport {
   #openedPackageName: string | null = null;
   listClientsCalls = 0;
+  openedOptions: OpenAppOptions | undefined;
 
   async close(): Promise<void> {
   }
@@ -21,7 +24,8 @@ class ClientListTransport implements Transport {
     return [];
   }
 
-  async openApp(_: string, packageName: string): Promise<void> {
+  async openApp(_: string, packageName: string, options?: OpenAppOptions): Promise<void> {
+    this.openedOptions = options;
     this.#openedPackageName = packageName;
   }
 
@@ -85,9 +89,11 @@ test("Connector.openApp waits for clients through transport.listClients when ava
 
   const clientId = await connector.openApp("device", "com.lynx.uiapp", {
     signal: AbortSignal.timeout(50),
+    schema: "example://page",
   });
 
   assert.equal(clientId, "device:8902");
+  assert.equal(transport.openedOptions?.schema, "example://page");
   assert.equal(transport.listClientsCalls, 1);
 });
 
@@ -104,4 +110,20 @@ test("Connector.openApp rejects when the opened app never registers a client", a
   );
 
   assert.equal(transport.listClientsCalls, 1);
+});
+
+test("DaemonTransport forwards schema and data clearing options to the device transport", async (t) => {
+  const deviceTransport = new ClientListTransport();
+  const daemon = new DevtoolDaemon([deviceTransport]);
+  const port = await daemon.start(0);
+  t.after(() => daemon.close());
+  const transport = new DaemonTransport(`ws://127.0.0.1:${port}/devtool/connector`);
+  await transport.openApp("device", "com.lynx.uiapp", {
+    schema: "example://page?url=https%3A%2F%2Fexample.com&flag=1",
+    withDataCleared: true,
+  });
+  assert.deepEqual(deviceTransport.openedOptions, {
+    schema: "example://page?url=https%3A%2F%2Fexample.com&flag=1",
+    withDataCleared: true,
+  });
 });
