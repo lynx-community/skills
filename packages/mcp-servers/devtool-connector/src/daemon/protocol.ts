@@ -72,7 +72,7 @@ export interface ControlRequest {
   event: "Control";
   data: {
     id: number;
-    method: "listClients" | "listDevices" | "listAvailableApps" | "openApp" | "subscribe";
+    method: "listClients" | "listDevices" | "listAvailableApps" | "openApp" | "openPage" | "subscribe";
     params?: Record<string, unknown>;
   };
 }

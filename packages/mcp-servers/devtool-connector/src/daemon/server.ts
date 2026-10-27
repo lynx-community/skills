@@ -846,6 +846,15 @@ export class DevtoolDaemon {
           break;
         }
 
+        case "openPage": {
+          const p = (params ?? {}) as { clientId?: string; url?: string };
+          const target = p.clientId && ClientId.deserialize(p.clientId);
+          if (!target || typeof p.url !== "string") throw new Error("clientId and url are required");
+          const transport = await this.#findTransportWithDeviceId(target.deviceId);
+          result = await transport.openPage?.(p.clientId!, p.url) ?? false;
+          break;
+        }
+
         case "subscribe": {
           const s = (params ?? {}) as { deviceId?: string; port?: ClientTarget };
           if (!s.deviceId || s.port === undefined) throw new Error("deviceId and port are required");
@@ -909,7 +918,10 @@ export class DevtoolDaemon {
     const hdtClients = fulfilledHDTClientResults.flatMap((r) => r.value);
     if (fulfilledHDTClientResults.length > 0) {
       debug("Using clients from HDT transport: %o", hdtClients);
-      return hdtClients.map(({ id, info }) => ({
+      const managed = [...this.#deviceConnections.values()].filter(conn =>
+        conn.transport.listClients && !(conn.transport instanceof HDTTransport) && conn.appInfo && !conn.isDisposed
+      ).map(conn => ({ id: ClientId.serialize(conn.deviceId, conn.port), info: conn.appInfo! }));
+      return hdtClients.concat(managed).map(({ id, info }) => ({
         id,
         info,
         type: "runtime",
@@ -1175,6 +1187,10 @@ export class DevtoolDaemon {
       debug("no clients connected, starting idle timer (%dms)", this.#idleTimeoutMs);
       this.#idleTimer = setTimeout(() => {
         if (this.#wsClients.size === 0 && this.#activeCommandRequests === 0) {
+          if (this.#transports.some(transport => transport.active)) {
+            this.#resetIdleTimer();
+            return;
+          }
           debug("idle timeout reached, shutting down daemon");
           this.#onIdle?.();
         }
