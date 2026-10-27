@@ -294,6 +294,14 @@ class JSONStringToObjectStream extends TransformStream<string, unknown> {
               obj["data"] = { ...data, sender: debugRouterId };
             }
           }
+          if (isRecord(obj) && obj["event"] === "Customized" && isRecord(obj["data"])) {
+            const sender = obj["data"]["sender"];
+            // shortcut: legacy unassigned senders cannot be isolated until the peer supplies an App route.
+            if (
+              sender !== undefined && String(sender) !== "-1" && String(sender) !== "4294967295"
+              && String(sender) !== String(debugRouterId ?? targetPort)
+            ) return;
+          }
           if (debugRouterId !== undefined && isRecord(obj) && obj["event"] === "RouteRejected") {
             const data = isRecord(obj["data"]) ? obj["data"] : {};
             const rejectedId = typeof data["debugRouterId"] === "string"
