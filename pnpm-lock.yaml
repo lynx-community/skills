@@ -143,6 +143,9 @@ importers:
       '@types/node':
         specifier: ^24.19.2
         version: 24.19.2
+      '@yume-chan/adb-server-node-tcp':
+        specifier: catalog:adb
+        version: 3.0.0-beta.4
       commander:
         specifier: ^14.0.3
         version: 14.0.3

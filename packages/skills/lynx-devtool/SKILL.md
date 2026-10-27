@@ -19,8 +19,10 @@ The programmatic API is exported from `agent-lynx/connector`. This entry re-expo
 
 Online CLI commands follow the same daemon-only default. `--no-daemon` is an
 explicit escape hatch that replaces the daemon with direct Android, iOS,
-and Desktop transports for that invocation. `ADB_SERVER_HOST` and `ADB_SERVER_PORT` configure
-only this direct mode. Daemon mode ignores them with a stderr warning.
+and Desktop transports for that invocation. `ADB_SERVER_SOCKET` overrides
+`ANDROID_ADB_SERVER_ADDRESS` and `ANDROID_ADB_SERVER_PORT` in direct mode.
+`ADB_SERVER_HOST` and `ADB_SERVER_PORT` are deprecated address/port fallbacks.
+Daemon mode ignores these variables with a stderr warning.
 
 The `agent-lynx` CLI is normally available on `PATH`. If
 `command -v agent-lynx` fails, use `npx` instead:
