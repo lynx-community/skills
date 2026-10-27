@@ -60,6 +60,9 @@ test('daemon mode warns when direct transport environment is ignored', async (t)
   const closed = trackCloses(t);
   const program = createProgram({
     env: {
+      ADB_SERVER_SOCKET: 'tcp:localhost:5039',
+      ANDROID_ADB_SERVER_ADDRESS: '10.0.0.2',
+      ANDROID_ADB_SERVER_PORT: '5039',
       ADB_SERVER_HOST: '10.0.0.1',
       ADB_SERVER_PORT: '5038',
     },
@@ -70,7 +73,7 @@ test('daemon mode warns when direct transport environment is ignored', async (t)
 
   assert.equal(
     stderr,
-    'Warning: ADB_SERVER_HOST, ADB_SERVER_PORT are ignored in daemon mode. Pass --no-daemon to apply direct transport configuration.\n',
+    'Warning: ADB_SERVER_SOCKET, ANDROID_ADB_SERVER_ADDRESS, ANDROID_ADB_SERVER_PORT, ADB_SERVER_HOST, ADB_SERVER_PORT are ignored in daemon mode. Pass --no-daemon to apply direct transport configuration.\n',
   );
   assert.deepEqual(closed, zeroCloses({ daemon: 1 }));
 });
@@ -84,8 +87,8 @@ test('direct mode consumes transport environment without warning', async (t) => 
   const closed = trackCloses(t);
   const program = createProgram({
     env: {
-      ADB_SERVER_HOST: '127.0.0.1',
-      ADB_SERVER_PORT: '5038',
+      ANDROID_ADB_SERVER_ADDRESS: '127.0.0.1',
+      ANDROID_ADB_SERVER_PORT: '5038',
     },
   });
   program.command('succeed').action(() => undefined);

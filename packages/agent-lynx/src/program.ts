@@ -2,7 +2,9 @@
 // Licensed under the Apache License Version 2.0 that can be found in the
 // LICENSE file in the root directory of this source tree.
 
+import { AdbServerNodeJsTcpConnector } from '@yume-chan/adb-server-node-tcp';
 import { Command, type ParseOptions } from 'commander';
+import type { SocketConnectOpts } from 'node:net';
 import {
   cliPlaceholder,
   replaceCliPlaceholderInError,
@@ -53,12 +55,25 @@ export function createRootCommand(
 
 export function getAndroidTransportSpec(
   env: NodeJS.ProcessEnv,
-): { host: string; port: number; } {
-  const portText = env['ADB_SERVER_PORT'] ?? '5037';
+): SocketConnectOpts {
+  const socket = env['ADB_SERVER_SOCKET'];
+  if (socket !== undefined) {
+    if (!socket.trim()) throw new Error('ADB_SERVER_SOCKET must not be empty.');
+    return new AdbServerNodeJsTcpConnector(socket).spec;
+  }
+  const nativePort = env['ANDROID_ADB_SERVER_PORT'];
+  const portText = (nativePort ?? env['ADB_SERVER_PORT']) || '5037';
   const port = /^\d+$/u.test(portText) ? Number(portText) : Number.NaN;
+  const validPort = Number.isInteger(port) && port > 0 && port <= 65535;
+  if (nativePort !== undefined && !validPort) {
+    throw new Error(
+      `Invalid ANDROID_ADB_SERVER_PORT: ${nativePort}. Use an integer from 1 to 65535.`,
+    );
+  }
   return {
-    host: env['ADB_SERVER_HOST'] ?? '127.0.0.1',
-    port: Number.isInteger(port) && port > 0 && port <= 65535 ? port : 5037,
+    host: env['ANDROID_ADB_SERVER_ADDRESS'] ?? env['ADB_SERVER_HOST']
+      ?? '127.0.0.1',
+    port: validPort ? port : 5037,
   };
 }
 

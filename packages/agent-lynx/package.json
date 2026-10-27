@@ -49,6 +49,7 @@
     "@microsoft/api-extractor": "^7.59.4",
     "@rslib/core": "catalog:rstack",
     "@types/node": "^24.19.2",
+    "@yume-chan/adb-server-node-tcp": "catalog:adb",
     "commander": "^14.0.3",
     "core-js": "^3.51.0",
     "obug": "^2.2.1",
