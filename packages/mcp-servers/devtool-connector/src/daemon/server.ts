@@ -833,10 +833,15 @@ export class DevtoolDaemon {
         }
 
         case "openApp": {
-          const p = (params ?? {}) as { deviceId?: string; packageName?: string; withDataCleared?: boolean };
+          const p = (params ?? {}) as {
+            deviceId?: string;
+            packageName?: string;
+            withDataCleared?: boolean;
+            schema?: string;
+          };
           if (!p.deviceId || !p.packageName) throw new Error("deviceId and packageName are required");
           const transport = await this.#findTransportWithDeviceId(p.deviceId);
-          await transport.openApp(p.deviceId, p.packageName, { withDataCleared: p.withDataCleared });
+          await transport.openApp(p.deviceId, p.packageName, { withDataCleared: p.withDataCleared, schema: p.schema });
           result = null;
           break;
         }

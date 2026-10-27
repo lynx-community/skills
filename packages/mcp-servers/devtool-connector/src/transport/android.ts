@@ -1,7 +1,7 @@
 // Copyright 2026 The Lynx Authors. All rights reserved.
 // Licensed under the Apache License Version 2.0 that can be found in the
 // LICENSE file in the root directory of this source tree.
-import { type Adb, AdbServerClient } from "@yume-chan/adb";
+import { type Adb, AdbServerClient, escapeArg } from "@yume-chan/adb";
 import { AdbServerNodeJsTcpConnector } from "@yume-chan/adb-server-node-tcp";
 import { ReadableStream } from "@yume-chan/stream-extra";
 import type { SocketConnectOpts } from "node:net";
@@ -297,7 +297,7 @@ export class AndroidTransport implements Transport {
   async openApp(
     deviceId: string,
     packageName: string,
-    { withDataCleared }: OpenAppOptions = {},
+    { withDataCleared, schema }: OpenAppOptions = {},
   ): Promise<void> {
     await using adb = await this.#createAdb(deviceId);
 
@@ -324,24 +324,41 @@ export class AndroidTransport implements Transport {
       debug(`openApp clear data output ${output}`);
     }
 
-    const knownActivity = this.getKnownApp(packageName)?.activityName;
-    let componentName = knownActivity ? `${packageName}/${knownActivity}` : undefined;
-    if (!componentName) {
-      const queryOutput = await spawnWaitText(
-        adb,
-        createQueryLauncherActivitiesCommandArgs(packageName),
-      );
-      debug(`openApp launcher activities output ${queryOutput}`);
-      [componentName] = parseLauncherActivityComponents(queryOutput);
-    }
-    if (!componentName) {
-      throw new Error(`No launchable activity found for package ${packageName}.`);
+    let command: string[];
+    if (schema) {
+      command = [
+        "am",
+        "start",
+        "-W",
+        "-S",
+        "-a",
+        "android.intent.action.VIEW",
+        "-d",
+        escapeArg(schema),
+        "-p",
+        packageName,
+      ];
+    } else {
+      const knownActivity = this.getKnownApp(packageName)?.activityName;
+      let componentName = knownActivity ? `${packageName}/${knownActivity}` : undefined;
+      if (!componentName) {
+        const queryOutput = await spawnWaitText(
+          adb,
+          createQueryLauncherActivitiesCommandArgs(packageName),
+        );
+        debug(`openApp launcher activities output ${queryOutput}`);
+        [componentName] = parseLauncherActivityComponents(queryOutput);
+      }
+      if (!componentName) {
+        throw new Error(`No launchable activity found for package ${packageName}.`);
+      }
+      command = createOpenAppCommandArgs(componentName);
     }
 
-    const output = await spawnWaitText(adb, createOpenAppCommandArgs(componentName));
-    debug(`openApp LAUNCHER output ${output}`);
+    const output = await spawnWaitText(adb, command);
+    debug(`openApp output ${output}`);
     if (
-      output.includes("Error: Activity not started")
+      output.includes("Error:")
       || output.includes("unable to resolve Intent")
       || /Error type \d+/u.test(output)
     ) {

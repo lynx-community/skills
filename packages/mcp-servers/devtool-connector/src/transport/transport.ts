@@ -26,6 +26,8 @@ export function requireNumericPort(port: ClientTarget): number {
 export interface OpenAppOptions {
   signal?: AbortSignal;
   withDataCleared?: boolean | undefined;
+  /** Open a deep link instead of the launcher on supported transports; ignored otherwise. */
+  schema?: string | undefined;
 }
 
 export interface Transport {
