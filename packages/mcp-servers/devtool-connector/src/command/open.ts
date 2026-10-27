@@ -29,6 +29,6 @@ export async function openAction(
   }
   signal?.throwIfAborted();
 
-  const response = await connector.openPage(clientId, params.url);
+  const response = await connector.openPage(clientId, params.url, signal);
   return ok("open", { clientId, response });
 }
