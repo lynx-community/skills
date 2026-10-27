@@ -45,8 +45,8 @@
     "@types/node": "^24.19.2",
     "core-js": "^3.51.0",
     "rsbuild-plugin-publint": "^1.0.0",
-    "typescript": "5.9.3",
-    "zod": "4.6.7"
+    "typescript": "^5.9.3",
+    "zod": "^4.6.7"
   },
   "peerDependencies": { "@modelcontextprotocol/sdk": "*", "zod": "^4.6.5" },
   "peerDependenciesMeta": { "@modelcontextprotocol/sdk": { "optional": true } },
