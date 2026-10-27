@@ -265,7 +265,7 @@ test("HDTTransport exposes debugRouterId as the client target", async (t) => {
   assert.equal(clients[0]?.id, `HDT-${address.port}:router-uuid`);
 });
 
-test("HDTTransport normalizes the selected sender and follows ClientList updates", async (t) => {
+test("HDTTransport isolates the selected sender and follows ClientList updates", async (t) => {
   const server = new WebSocketServer({ port: 0, path: "/mdevices/page/android" });
   t.after(() => {
     for (const socket of server.clients) socket.terminate();
@@ -321,27 +321,32 @@ test("HDTTransport normalizes the selected sender and follows ClientList updates
     });
     const reader = connection.readable.getReader();
     const writer = connection.writable.getWriter();
-    const readReplies = async () => {
+    const readReplies = async (expected: unknown[]) => {
       await writer.write({ event: "Customized", data: { type: "ListSession", data: {} } });
       const received = [];
-      for (const _reply of replies()) {
-        void _reply;
+      for (let i = 0; i < expected.length; i++) {
         const result = await reader.read();
         assert.equal(result.done, false);
         received.push(result.value);
       }
       return received;
     };
+    const scopedReplies = () =>
+      replies().filter(reply =>
+        String(reply.data.sender) === String(selectedSender) || reply.data.sender === -1
+        || reply.data.sender === 0xffffffff
+      );
     const normalizedReplies = () =>
-      replies().map(reply =>
+      scopedReplies().map(reply =>
         String(reply.data.sender) === String(selectedSender)
           ? { ...reply, data: { ...reply.data, sender: port } }
           : reply
       );
     try {
-      // A numeric target keeps the legacy wire format, including discovery messages.
+      // Discovery messages remain visible on a numeric connection.
       if (typeof port === "number") assert.deepEqual((await reader.read()).value, clientList());
-      assert.deepEqual(await readReplies(), typeof port === "string" ? normalizedReplies() : replies());
+      const expected = typeof port === "string" ? normalizedReplies() : scopedReplies();
+      assert.deepEqual(await readReplies(expected), expected);
       if (typeof port === "number") continue;
 
       // HDT can reuse the old numeric ID for another App while this socket stays open.
@@ -349,12 +354,17 @@ test("HDTTransport normalizes the selected sender and follows ClientList updates
       otherSender = 9;
       broadcast(clientList());
       assert.deepEqual((await reader.read()).value, clientList());
-      assert.deepEqual(await readReplies(), normalizedReplies());
+      assert.deepEqual(await readReplies(normalizedReplies()), normalizedReplies());
 
       for (const data of [[], [{ id: "invalid", info: { debugRouterId: "selected-router" } }]]) {
         broadcast({ event: "ClientList", data });
         assert.deepEqual((await reader.read()).value, { event: "ClientList", data });
-        assert.deepEqual(await readReplies(), replies(), "an absent or invalid mapping must not normalize senders");
+        const legacyReplies = replies().filter(reply => reply.data.sender === -1 || reply.data.sender === 0xffffffff);
+        assert.deepEqual(
+          await readReplies(legacyReplies),
+          legacyReplies,
+          "an absent or invalid mapping must not admit routed replies",
+        );
       }
     } finally {
       reader.releaseLock();
