@@ -62,6 +62,9 @@ export class DaemonTransport implements Transport {
   }
 
   async openApp(deviceId: string, packageName: string, options?: OpenAppOptions): Promise<void> {
+    if (options?.schema !== undefined) {
+      throw new Error("DaemonTransport does not support schema launches.");
+    }
     await this.#controlRequest("openApp", { deviceId, packageName, withDataCleared: options?.withDataCleared });
   }
 
