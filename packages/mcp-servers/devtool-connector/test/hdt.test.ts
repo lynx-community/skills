@@ -5,7 +5,7 @@ import assert from "node:assert/strict";
 import { ReadableStream, WritableStream } from "node:stream/web";
 import { test } from "node:test";
 import { setTimeout as sleep } from "node:timers/promises";
-import { WebSocketServer } from "ws";
+import { WebSocket, WebSocketServer } from "ws";
 import { ClientId, Connector } from "../src/index.ts";
 import { HDTTransport } from "../src/transport/hdt.ts";
 import { wsStreams } from "../src/transport/ws-stream.ts";
@@ -263,6 +263,51 @@ test("HDTTransport exposes debugRouterId as the client target", async (t) => {
 
   assert.equal(listClientsRequests, 1);
   assert.equal(clients[0]?.id, `HDT-${address.port}:router-uuid`);
+});
+
+test("HDTTransport lists clients when the fresh ClientList is delayed", async (t) => {
+  const server = new WebSocketServer({ port: 0, path: "/mdevices/page/android" });
+  t.after(() => {
+    for (const socket of server.clients) socket.terminate();
+    server.close();
+  });
+
+  const address = server.address();
+  assert(address && typeof address !== "string");
+  let connectionCount = 0;
+  let listClientsRequests = 0;
+  let responseTimer: ReturnType<typeof setTimeout> | undefined;
+  t.after(() => clearTimeout(responseTimer));
+
+  const target = {
+    id: 4,
+    info: { App: "TestApp", debugRouterId: "router-uuid" },
+  };
+  server.on("connection", socket => {
+    connectionCount++;
+    socket.send(JSON.stringify({ event: "Initialize", data: 123 }));
+    socket.on("message", raw => {
+      const message = JSON.parse(raw.toString()) as { event?: string };
+      if (message.event === "Register") {
+        socket.send(JSON.stringify({ event: "RoomJoined", data: { room: "", id: 123 } }));
+        socket.send(JSON.stringify({ event: "ClientList", data: [] }));
+      } else if (message.event === "ListClients") {
+        listClientsRequests++;
+        responseTimer = setTimeout(() => {
+          if (socket.readyState === WebSocket.OPEN) {
+            socket.send(JSON.stringify({ event: "ClientList", data: [target] }));
+          }
+        }, 600);
+      }
+    });
+  });
+
+  const transport = new HDTTransport(`ws://127.0.0.1:${address.port}/mdevices/page/android`);
+  const clients = await transport.listClients();
+
+  assert.equal(connectionCount, 1);
+  assert.equal(listClientsRequests, 1);
+  assert.deepEqual(clients.map(client => client.id), [`HDT-${address.port}:router-uuid`]);
 });
 
 test("HDTTransport isolates the selected sender and follows ClientList updates", async (t) => {
@@ -668,6 +713,7 @@ test("HDTTransport listClients rejects when the server never sends ClientList", 
   });
 
   const websocketClosed = deferred<void>();
+  let wasClosed = false;
   let enqueueReadable: ((chunk: string) => void) | undefined;
 
   const readable = new ReadableStream<string>({
@@ -694,6 +740,7 @@ test("HDTTransport listClients rejects when the server never sends ClientList", 
       opened: Promise.resolve({ readable, writable }),
       closed: websocketClosed.promise,
       close() {
+        wasClosed = true;
         websocketClosed.resolve();
       },
     }) as never;
@@ -704,6 +751,7 @@ test("HDTTransport listClients rejects when the server never sends ClientList", 
     () => transport.listClients(),
     /Timed out waiting for ClientList from HDT transport/,
   );
+  assert.equal(wasClosed, true);
 });
 
 function deferred<T>() {
