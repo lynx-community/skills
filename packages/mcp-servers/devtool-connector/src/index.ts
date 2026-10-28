@@ -294,7 +294,7 @@ export class Connector {
   /**
    * Open a page on the given client by sending an `OpenCard` Customized event.
    */
-  async openPage(clientId: string, url: string): Promise<ListSessionResponse> {
+  async openPage(clientId: string, url: string, signal?: AbortSignal): Promise<ListSessionResponse> {
     return await this.#sendMessage<Record<string, unknown>, ListSessionResponse>(clientId, {
       event: "Customized",
       data: {
@@ -313,7 +313,7 @@ export class Connector {
         // uncorrelated SessionList. An empty list cannot mean OpenCard succeeded.
         new FilterTransformStream(isNonEmptyListSessionResponse),
       ],
-    });
+    }, signal);
   }
 
   async sendCDPMessage<Output, Params = never>(
@@ -620,15 +620,14 @@ export class Connector {
     clientId: string,
     input: I,
     pipeline: Pipeline = { input: [], output: [] },
+    signal?: AbortSignal,
   ): Promise<O> {
     const { deviceId, port } = this.#resolveClientId(clientId);
     const transport = await this.#findTransportWithDeviceId(deviceId);
 
-    const signal = AbortSignal.timeout(10_000);
-
     return this.#sendMessageWithTransport(
       transport,
-      { deviceId, port, signal },
+      { deviceId, port, signal: signal ?? AbortSignal.timeout(10_000) },
       input,
       pipeline,
     );

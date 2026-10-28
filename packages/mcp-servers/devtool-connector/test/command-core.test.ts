@@ -355,9 +355,10 @@ describe("ActionCore", () => {
         assert.equal(clientId, "headless:0");
         assert.strictEqual(options.signal, controller.signal);
       },
-      async openPage(clientId: string, url: string) {
+      async openPage(clientId: string, url: string, signal?: AbortSignal) {
         timeline.push("open");
         assert.deepEqual({ clientId, url }, { clientId: "headless:0", url: "lynx://headless/page" });
+        assert.strictEqual(signal, controller.signal);
         return response;
       },
     } as unknown as Connector;
