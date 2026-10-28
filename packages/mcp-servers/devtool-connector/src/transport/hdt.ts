@@ -55,7 +55,7 @@ export class HDTTransport implements Transport {
   }
 
   async listClients(): Promise<Client[]> {
-    const signal = AbortSignal.timeout(500);
+    const signal = AbortSignal.timeout(3_000);
     await using conn = await this.#createWebSocketStream(signal);
 
     if (this.#url !== "ws://127.0.0.1:3005/ws") {
