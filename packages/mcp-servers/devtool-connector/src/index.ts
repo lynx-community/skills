@@ -84,6 +84,19 @@ function hasClientList(transport: Transport): transport is ClientListTransport {
   return typeof transport.listClients === "function";
 }
 
+function describeRequest(input: unknown): string {
+  if (typeof input !== "object" || input === null) return "request";
+  const message = input as Record<string, unknown>;
+  if (typeof message["method"] === "string") return `method ${message["method"]}`;
+  if (typeof message["event"] !== "string") return "request";
+
+  const data = typeof message["data"] === "object" && message["data"] !== null
+    ? message["data"] as Record<string, unknown>
+    : undefined;
+  if (typeof data?.["type"] === "string") return `${message["event"]} ${data["type"]}`;
+  return `${message["event"]} event`;
+}
+
 function isNonEmptyListSessionResponse(response: Response): response is ListSessionResponse {
   return isListSessionResponse(response) && response.data.data.length > 0;
 }
@@ -630,6 +643,7 @@ export class Connector {
       { deviceId, port, signal: signal ?? AbortSignal.timeout(10_000) },
       input,
       pipeline,
+      describeRequest(input),
     );
   }
 
@@ -638,6 +652,7 @@ export class Connector {
     options: TransportConnectOptions,
     input: I,
     pipeline: Pipeline,
+    request = "request",
   ): Promise<O> {
     const outputStream = await this.#connect<I, O>(
       transport,
@@ -660,7 +675,9 @@ export class Connector {
       } else {
         options.signal?.throwIfAborted();
         const clientId = ClientId.serialize(options.deviceId, options.port);
-        throw new Error(`No response found for clientId: ${clientId}`);
+        throw new Error(
+          `Transport ${transport.constructor.name} ended cleanly (EOF) while waiting for a response to ${request} on clientId: ${clientId}.`,
+        );
       }
     } catch (err) {
       failed = true;
