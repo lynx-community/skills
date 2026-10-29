@@ -11,7 +11,7 @@ const debug = createDebug("devtool-mcp-server:daemon:device-connection");
 export interface DeviceConnectionSubscriber {
   readonly id: number;
   send(message: unknown): void;
-  close(): void;
+  close(cause?: unknown): void;
 }
 
 /**
@@ -186,6 +186,7 @@ export class DeviceConnection {
     if (!this.#conn) return;
 
     let terminalCause: unknown;
+    let readFailed = false;
     try {
       for await (const message of this.#conn.readable) {
         if (this.appInfo === null) {
@@ -206,6 +207,7 @@ export class DeviceConnection {
         this.#broadcast(message);
       }
     } catch (err) {
+      readFailed = true;
       terminalCause = err;
       if (!this.#disposed) {
         debug("read loop error on %s: %O", this.key, err);
@@ -222,17 +224,18 @@ export class DeviceConnection {
               : `Device connection ${this.key} closed by remote`,
           ),
         true,
+        !readFailed,
       );
     }
   }
 
-  #terminate(cause: unknown, readLoopEnded: boolean): void {
+  #terminate(cause: unknown, readLoopEnded: boolean, cleanEof = false): void {
     if (this.#disposed) return;
     this.#disposed = true;
     this.#terminalCause = cause;
     this.#rejectRegistration(cause);
     void this.#startDisposal(!readLoopEnded);
-    this.#closeAllSubscribers();
+    this.#closeAllSubscribers(cleanEof ? undefined : cause);
   }
 
   #resolveRegistration(appInfo: AppInfo): void {
@@ -248,10 +251,10 @@ export class DeviceConnection {
     this.#rejectRegistered(reason);
   }
 
-  #closeAllSubscribers(): void {
+  #closeAllSubscribers(cause: unknown): void {
     for (const [, subscriber] of this.#subscribers) {
       try {
-        subscriber.close();
+        subscriber.close(cause);
       } catch (err) {
         debug("failed to close subscriber %d: %O", subscriber.id, err);
       }
