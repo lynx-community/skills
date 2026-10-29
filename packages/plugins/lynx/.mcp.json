@@ -1,0 +1,14 @@
+{
+  "mcpServers": {
+    "lynx-docs": {
+      "transport": "stdio",
+      "command": "npx",
+      "args": ["-y", "@lynx-js/docs-mcp-server@latest"]
+    },
+    "lynx-devtool": {
+      "transport": "stdio",
+      "command": "npx",
+      "args": ["-y", "@lynx-js/devtool-mcp-server@latest"]
+    }
+  }
+}
