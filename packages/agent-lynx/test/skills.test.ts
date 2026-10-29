@@ -338,6 +338,8 @@ test('default public Agent skill discovery resolves the existing public skills',
   const discovered = discoverSkillDependencyNames(packageRoot);
   assert.deepEqual(discovered, [
     '@lynx-js/skill-lynx-devtool',
+    '@lynx-js/skill-lynx-recorder',
+    '@lynx-js/skill-lynx-recorder-fixture',
     '@lynx-js/skill-lynx-trace-analysis',
     '@lynx-js/skill-lynx-trace-record',
   ]);

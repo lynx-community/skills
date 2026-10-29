@@ -1,0 +1,22 @@
+{
+  "name": "@lynx-js/skill-lynx-recorder",
+  "version": "0.1.0",
+  "description": "Record Lynx page interactions for replay and diagnosis via the agent-lynx CLI",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/lynx-community/skills.git",
+    "directory": "packages/skills/lynx-recorder"
+  },
+  "license": "Apache-2.0",
+  "type": "module",
+  "files": [
+    "SKILL.md"
+  ],
+  "scripts": {},
+  "engines": {
+    "node": ">=18"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

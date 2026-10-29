@@ -151,6 +151,8 @@ dist
 
 # auto-generated skill and plugin files
 packages/skills/*/scripts
+# Handwritten fixture tools are source files.
+!packages/skills/lynx-recorder-fixture/scripts/
 packages/skills/*/public
 packages/plugins/*/skills
 packages/plugins/*/scripts

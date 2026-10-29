@@ -1,0 +1,49 @@
+{
+  "skill_name": "lynx-recorder-fixture",
+  "description": "Portable fixture inspection, callback editing and optional replay without private storage services.",
+  "evals": [
+    {
+      "id": 1,
+      "name": "edit-callback-locally",
+      "prompt": "Edit the attached Lynx TestBench fixture. Find the DemoModule.request call to https://example.com/api/items and change data.list to [] and data.hasMore to false in its callback response, preserving all other data. Save the re-encoded file as edited.fixture in the current working directory and report its absolute path. Do not upload or replay it.",
+      "expected_output": "A local edited.fixture whose decoded callback 31 has an empty list and hasMore false, with all other fixture fields preserved.",
+      "expectations": [
+        "Uses the bundled fixture_tool.py to decode and re-encode the supplied fixture.",
+        "Finds callback 31 through the target invoked method and changes only the requested response fields.",
+        "Preserves callback IDs, code/msg, Config and the other fixture sections.",
+        "Reports the output file path without uploading or attempting device replay."
+      ],
+      "files": [
+        "evals/fixtures/input.fixture"
+      ]
+    },
+    {
+      "id": 2,
+      "name": "inspect-without-editing",
+      "prompt": "Read the attached Lynx TestBench fixture. Summarize its main sections and the associations between native calls and callbacks, and determine whether it contains loadTemplate. Analyze only: do not modify files or connect to a device.",
+      "expected_output": "An inspection identifying an empty Action List, one DemoModule.request call paired to callback 31, and no loadTemplate.",
+      "expectations": [
+        "Uses local fixture tooling to inspect the supplied encoded data.",
+        "Reports DemoModule.request paired with callback 31.",
+        "Identifies that Action List is empty and lacks loadTemplate.",
+        "Does not upload, modify the supplied fixture or claim a successful replay."
+      ],
+      "files": [
+        "evals/fixtures/input.fixture"
+      ]
+    },
+    {
+      "id": 3,
+      "name": "replay-public-url",
+      "prompt": "I have put the edited fixture at https://example.com/replay.fixture?version=2&mode=demo. The device has a replay-capable Lynx Explorer, and its client ID is demo-client. Give me only the replay command and necessary prerequisites; do not execute it.",
+      "expected_output": "A public agent-lynx open command with the complete fixture URL encoded as the arkview url query parameter and the selected client.",
+      "expectations": [
+        "Uses sslocal://arkview with a URL-encoded complete fixture URL, preserving both query parameters.",
+        "Uses agent-lynx open with --client demo-client or its public npx equivalent.",
+        "Requires a replay-capable host and a device-accessible fixture URL, without requiring an internal uploader.",
+        "Does not claim to have executed the replay."
+      ],
+      "files": []
+    }
+  ]
+}

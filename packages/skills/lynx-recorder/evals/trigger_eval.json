@@ -1,0 +1,34 @@
+[
+  {
+    "query": "Record taps on a Lynx page and generate a TestBench replay file.",
+    "should_trigger": true
+  },
+  {
+    "query": "agent-lynx recorder start returned restartRequired. How do I continue recording?",
+    "should_trigger": true
+  },
+  {
+    "query": "The file saved by Lynx recorder end has no loadTemplate. How do I capture a complete recording?",
+    "should_trigger": true
+  },
+  {
+    "query": "I want to start and stop a Lynx Recorder recording. Give me the command sequence.",
+    "should_trigger": true
+  },
+  {
+    "query": "Edit the Callback mock in an existing Lynx TestBench fixture to return an empty list.",
+    "should_trigger": false
+  },
+  {
+    "query": "Decode this existing Lynx fixture file and summarize its Action List.",
+    "should_trigger": false
+  },
+  {
+    "query": "Record a Lynx first-frame performance trace and save a pftrace file.",
+    "should_trigger": false
+  },
+  {
+    "query": "Take a screenshot of the current Lynx page.",
+    "should_trigger": false
+  }
+]

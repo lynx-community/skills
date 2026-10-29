@@ -1,0 +1,27 @@
+{
+  "name": "@lynx-js/skill-lynx-recorder-fixture",
+  "version": "0.1.0",
+  "description": "Inspect, decode, edit and re-encode Lynx Recorder / TestBench fixtures",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/lynx-community/skills.git",
+    "directory": "packages/skills/lynx-recorder-fixture"
+  },
+  "license": "Apache-2.0",
+  "type": "module",
+  "files": [
+    "SKILL.md",
+    "scripts",
+    "references",
+    "examples"
+  ],
+  "scripts": {
+    "test": "node --test 'test/*.test.mjs'"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

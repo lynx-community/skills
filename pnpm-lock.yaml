@@ -60,6 +60,12 @@ importers:
       '@lynx-js/skill-lynx-openui':
         specifier: 0.0.3
         version: 0.0.3
+      '@lynx-js/skill-lynx-recorder':
+        specifier: workspace:*
+        version: link:packages/skills/lynx-recorder
+      '@lynx-js/skill-lynx-recorder-fixture':
+        specifier: workspace:*
+        version: link:packages/skills/lynx-recorder-fixture
       '@lynx-js/skill-lynx-trace-analysis':
         specifier: 0.0.12
         version: 0.0.12
@@ -124,6 +130,12 @@ importers:
       '@lynx-js/skill-lynx-devtool':
         specifier: workspace:*
         version: link:../skills/lynx-devtool
+      '@lynx-js/skill-lynx-recorder':
+        specifier: workspace:*
+        version: link:../skills/lynx-recorder
+      '@lynx-js/skill-lynx-recorder-fixture':
+        specifier: workspace:*
+        version: link:../skills/lynx-recorder-fixture
       '@lynx-js/skill-lynx-trace-analysis':
         specifier: 0.0.12
         version: 0.0.12
@@ -386,6 +398,10 @@ importers:
         version: 5.9.3
 
   packages/skills/lynx-devtool: {}
+
+  packages/skills/lynx-recorder: {}
+
+  packages/skills/lynx-recorder-fixture: {}
 
   packages/skills/lynx-typescript: {}
 
