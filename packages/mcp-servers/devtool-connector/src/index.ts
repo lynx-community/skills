@@ -542,6 +542,12 @@ export class Connector {
   }
 
   async #findTransportWithDeviceId(deviceId: string): Promise<Transport> {
+    const [onlyTransport] = this.#transports;
+    if (this.#transports.length === 1 && onlyTransport instanceof DaemonTransport) {
+      // The daemon can reuse its pooled target before requiring a fresh device scan.
+      return onlyTransport;
+    }
+
     // Keep the same preference as listClients(): if a daemon transport can see
     // this device, stick to it for follow-up requests. Otherwise a faster direct
     // transport can win the race here and bypass the stable daemon path that was
