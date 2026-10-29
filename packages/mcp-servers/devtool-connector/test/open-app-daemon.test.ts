@@ -90,10 +90,12 @@ test("Connector.openApp waits for clients through transport.listClients when ava
   const clientId = await connector.openApp("device", "com.lynx.uiapp", {
     signal: AbortSignal.timeout(50),
     schema: "example://page",
+    restart: true,
   });
 
   assert.equal(clientId, "device:8902");
   assert.equal(transport.openedOptions?.schema, "example://page");
+  assert.equal(transport.openedOptions?.restart, true);
   assert.equal(transport.listClientsCalls, 1);
 });
 
@@ -112,7 +114,7 @@ test("Connector.openApp rejects when the opened app never registers a client", a
   assert.equal(transport.listClientsCalls, 1);
 });
 
-test("DaemonTransport forwards schema and data clearing options to the device transport", async (t) => {
+test("DaemonTransport forwards restart, schema and data clearing options to the device transport", async (t) => {
   const deviceTransport = new ClientListTransport();
   const daemon = new DevtoolDaemon([deviceTransport]);
   const port = await daemon.start(0);
@@ -121,9 +123,11 @@ test("DaemonTransport forwards schema and data clearing options to the device tr
   await transport.openApp("device", "com.lynx.uiapp", {
     schema: "example://page?url=https%3A%2F%2Fexample.com&flag=1",
     withDataCleared: true,
+    restart: true,
   });
   assert.deepEqual(deviceTransport.openedOptions, {
     schema: "example://page?url=https%3A%2F%2Fexample.com&flag=1",
     withDataCleared: true,
+    restart: true,
   });
 });
