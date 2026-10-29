@@ -46,6 +46,7 @@ export interface Transport {
   connect<TInput = unknown, TOutput = unknown>(options: TransportConnectOptions): Promise<Connection<TOutput, TInput>>;
 
   readonly persistent?: boolean;
+  readonly active?: boolean;
 }
 
 export interface Device {
