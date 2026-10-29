@@ -1,5 +1,11 @@
 # @lynx-js/skill-lynx-devtool
 
+## 0.14.22
+
+### Patch Changes
+
+- Add sandbox apps open -S/--restart to stop the target app before launching its page through the shared Transport restart option.
+
 ## 0.14.21
 
 No changes in this release.
