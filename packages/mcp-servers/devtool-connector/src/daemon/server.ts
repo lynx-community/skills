@@ -51,7 +51,7 @@ interface WsClientSession extends DeviceConnectionSubscriber {
   /** Which device connections this client is subscribed to. */
   readonly subscriptions: Set<DeviceConnection>;
   send(message: unknown): void;
-  close(): void;
+  close(cause?: unknown): void;
 }
 
 /**
@@ -683,11 +683,15 @@ export class DevtoolDaemon {
           ws.send(JSON.stringify(message));
         }
       },
-      close: () => {
+      close: (cause?: unknown) => {
         if (closing) return;
         closing = true;
         this.#wsClients.delete(clientId);
-        ws.close(1001, "device disconnected");
+        if (cause === undefined) {
+          ws.close(1001, "device disconnected");
+        } else {
+          ws.close(1011, websocketCloseReason(cause));
+        }
       },
     };
 
@@ -1188,6 +1192,30 @@ export class DevtoolDaemon {
       this.#idleTimer = null;
     }
   }
+}
+
+function websocketCloseReason(cause: unknown): string {
+  let summary: string;
+  if (cause instanceof Error) {
+    const code = (cause as Error & { code?: unknown }).code;
+    const codeText = typeof code === "string" || typeof code === "number" ? ` (${code})` : "";
+    summary = `${cause.name}${codeText}: ${cause.message}`;
+  } else {
+    summary = String(cause);
+  }
+
+  const truncated = Buffer.byteLength(summary) > 123;
+  const suffix = truncated ? "…" : "";
+  const maxBytes = 123 - Buffer.byteLength(suffix);
+  let reason = "";
+  let byteLength = 0;
+  for (const character of summary) {
+    const characterBytes = Buffer.byteLength(character);
+    if (byteLength + characterBytes > maxBytes) break;
+    reason += character;
+    byteLength += characterBytes;
+  }
+  return reason + suffix;
 }
 
 function createDeviceConnectionSetupTimeoutError(key: string): Error {
