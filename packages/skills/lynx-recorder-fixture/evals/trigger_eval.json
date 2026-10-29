@@ -1,0 +1,34 @@
+[
+  {
+    "query": "Decode this existing Lynx Recorder fixture and inspect what it contains.",
+    "should_trigger": true
+  },
+  {
+    "query": "Edit the Callback mock in a TestBench fixture to create an empty-list replay scenario.",
+    "should_trigger": true
+  },
+  {
+    "query": "I want to adjust the screen dimensions and Action List in a Lynx fixture.",
+    "should_trigger": true
+  },
+  {
+    "query": "An existing Lynx replay file renders incorrectly. Check the associations between calls and callbacks.",
+    "should_trigger": true
+  },
+  {
+    "query": "Start a new Lynx page interaction recording and save it when finished.",
+    "should_trigger": false
+  },
+  {
+    "query": "agent-lynx recorder start says Recording.start is not implemented.",
+    "should_trigger": false
+  },
+  {
+    "query": "Analyze first-frame duration and slow frames in this existing pftrace.",
+    "should_trigger": false
+  },
+  {
+    "query": "Create a Jest unit test fixture for a ReactLynx component.",
+    "should_trigger": false
+  }
+]

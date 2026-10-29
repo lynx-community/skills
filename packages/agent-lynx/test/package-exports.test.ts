@@ -188,11 +188,24 @@ test('the built package starts its bin and exposes the typed connector API', asy
   assert.match(list.stdout, /<available_skills>/);
   assert.deepEqual(
     [...list.stdout.matchAll(/<name>([^<]+)<\/name>/gu)].map(match => match[1]),
-    ['lynx-devtool', 'lynx-trace-analysis', 'lynx-trace-record'],
+    [
+      'lynx-devtool',
+      'lynx-recorder',
+      'lynx-recorder-fixture',
+      'lynx-trace-analysis',
+      'lynx-trace-record',
+    ],
   );
   assert.match(list.stdout, /\/SKILL\.md<\/location>/);
 
-  for (const skill of ['lynx-trace-analysis', 'lynx-trace-record']) {
+  for (
+    const skill of [
+      'lynx-recorder',
+      'lynx-recorder-fixture',
+      'lynx-trace-analysis',
+      'lynx-trace-record',
+    ]
+  ) {
     const result = await execFileAsync(
       process.execPath,
       [fileURLToPath(builtBin), 'skills', 'get', skill],
@@ -200,6 +213,10 @@ test('the built package starts its bin and exposes the typed connector API', asy
     );
     assert.ok(result.stdout.startsWith(`<skill_content name="${skill}">`));
     assert.match(result.stdout, /Skill directory:/u);
+    if (skill === 'lynx-recorder-fixture') {
+      assert.match(result.stdout, /<file>scripts\/fixture_tool\.py<\/file>/u);
+      assert.match(result.stdout, /<file>references\/replay\.md<\/file>/u);
+    }
   }
 
   const get = await execFileAsync(

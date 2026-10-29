@@ -1,0 +1,43 @@
+{
+  "skill_name": "lynx-recorder",
+  "description": "Recording command order, restart handling and incomplete capture diagnosis using the public CLI.",
+  "evals": [
+    {
+      "id": 1,
+      "name": "record-before-page-load",
+      "prompt": "I want to record page interactions in the public Lynx Explorer for replay. The client ID is demo-client. Give me the command sequence and save the result to ./recording.json. Provide instructions only; do not connect to a device.",
+      "expected_output": "Public agent-lynx commands that start recording before opening or reloading the page, keep the selected client, then end and save the recording.",
+      "expectations": [
+        "Uses agent-lynx or npx --yes agent-lynx without a private package or registry.",
+        "Starts recording before opening or reloading the page so loadTemplate is captured.",
+        "Passes --client demo-client to recorder start and end, and --output ./recording.json to end.",
+        "Does not claim to have run commands or recorded the page."
+      ],
+      "files": []
+    },
+    {
+      "id": 2,
+      "name": "restart-required",
+      "prompt": "agent-lynx recorder start returned success:false and restartRequired:true, saying that enable_debug_mode was enabled. What should I do next to capture a replayable file? Explain the steps only.",
+      "expected_output": "Restart the target app, start recording again, open or reload the target page, interact, then stop and save.",
+      "expectations": [
+        "Explains that recording has not started successfully.",
+        "Restarts the app and reruns recorder start before opening or reloading the target page.",
+        "Ends and saves only after the page activity has been captured."
+      ],
+      "files": []
+    },
+    {
+      "id": 3,
+      "name": "missing-template",
+      "prompt": "recorder end saved a file, but diagnostics shows actions:12 and hasTemplate:false, with only SendTouchEvent entries. Can this file be replayed? How should I record it again to capture everything?",
+      "expected_output": "The recording can help inspect interactions but lacks the template load required for replay; start a new recording before opening or reloading the page.",
+      "expectations": [
+        "Distinguishes saved interaction data from a replayable page recording.",
+        "Identifies the missing loadTemplate action.",
+        "Gives the sequence recorder start, open/reload the page, interact, recorder end."
+      ],
+      "files": []
+    }
+  ]
+}
