@@ -17,10 +17,15 @@ import {
 const debug = createDebug("devtool-mcp-server:connector:desktop");
 
 export class DesktopTransport implements Transport {
+  #takeoverHDT: boolean;
+  constructor(takeoverHDT = true) {
+    this.#takeoverHDT = takeoverHDT;
+  }
+
   async connect<TInput = unknown, TOutput = unknown>(
     options: TransportConnectOptions,
   ): Promise<Connection<TOutput, TInput>> {
-    return connectWithPeertalk<TInput, TOutput>(opts => this.#connectRaw(opts), options);
+    return connectWithPeertalk<TInput, TOutput>(opts => this.#connectRaw(opts), options, this.#takeoverHDT);
   }
 
   async close(): Promise<void> {

@@ -1184,6 +1184,10 @@ export class DevtoolDaemon {
       debug("no clients connected, starting idle timer (%dms)", this.#idleTimeoutMs);
       this.#idleTimer = setTimeout(() => {
         if (this.#wsClients.size === 0 && this.#activeCommandRequests === 0) {
+          if (this.#transports.some(transport => transport.active)) {
+            this.#resetIdleTimer();
+            return;
+          }
           debug("idle timeout reached, shutting down daemon");
           this.#onIdle?.();
         }
