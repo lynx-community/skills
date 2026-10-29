@@ -841,11 +841,16 @@ export class DevtoolDaemon {
             deviceId?: string;
             packageName?: string;
             withDataCleared?: boolean;
+            restart?: boolean;
             schema?: string;
           };
           if (!p.deviceId || !p.packageName) throw new Error("deviceId and packageName are required");
           const transport = await this.#findTransportWithDeviceId(p.deviceId);
-          await transport.openApp(p.deviceId, p.packageName, { withDataCleared: p.withDataCleared, schema: p.schema });
+          await transport.openApp(p.deviceId, p.packageName, {
+            withDataCleared: p.withDataCleared,
+            schema: p.schema,
+            restart: p.restart,
+          });
           result = null;
           break;
         }

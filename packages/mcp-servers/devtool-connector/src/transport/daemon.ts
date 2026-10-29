@@ -66,6 +66,7 @@ export class DaemonTransport implements Transport {
       deviceId,
       packageName,
       withDataCleared: options?.withDataCleared,
+      restart: options?.restart,
       schema: options?.schema,
     });
   }

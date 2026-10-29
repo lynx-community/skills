@@ -51,12 +51,12 @@ function parseLauncherActivityComponents(output: string): string[] {
     });
 }
 
-function createOpenAppCommandArgs(componentName: string): string[] {
+function createOpenAppCommandArgs(componentName: string, restart: boolean): string[] {
   return [
     "am",
     "start",
     "-W",
-    "-S",
+    ...(restart ? ["-S"] : []),
     "-a",
     "android.intent.action.MAIN",
     "-c",
@@ -297,7 +297,7 @@ export class AndroidTransport implements Transport {
   async openApp(
     deviceId: string,
     packageName: string,
-    { withDataCleared, schema }: OpenAppOptions = {},
+    { withDataCleared, schema, restart = true }: OpenAppOptions = {},
   ): Promise<void> {
     await using adb = await this.#createAdb(deviceId);
 
@@ -330,7 +330,7 @@ export class AndroidTransport implements Transport {
         "am",
         "start",
         "-W",
-        "-S",
+        ...(restart ? ["-S"] : []),
         "-a",
         "android.intent.action.VIEW",
         "-d",
@@ -352,7 +352,7 @@ export class AndroidTransport implements Transport {
       if (!componentName) {
         throw new Error(`No launchable activity found for package ${packageName}.`);
       }
-      command = createOpenAppCommandArgs(componentName);
+      command = createOpenAppCommandArgs(componentName, restart);
     }
 
     const output = await spawnWaitText(adb, command);
