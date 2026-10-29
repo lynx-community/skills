@@ -1,5 +1,15 @@
 # @lynx-js/devtool-connector
 
+## 0.18.1
+
+### Patch Changes
+
+- Include transport and request context when a connection ends before a response.
+- Add sandbox apps open -S/--restart to stop the target app before launching its page through the shared Transport restart option.
+- Use the open command's deadline while waiting for the page SessionList, while keeping the 10-second default for direct library calls.
+- Preserve device transport error names, codes and messages in daemon WebSocket close reasons.
+- Allow HDT client discovery three seconds to complete its handshake and fresh ClientList exchange.
+
 ## 0.18.0
 
 ### Minor Changes

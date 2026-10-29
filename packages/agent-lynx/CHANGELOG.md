@@ -1,5 +1,14 @@
 # agent-lynx
 
+## 0.14.22
+
+### Patch Changes
+
+- Add sandbox apps open -S/--restart to stop the target app before launching its page through the shared Transport restart option.
+- Updated dependencies
+  - @lynx-js/devtool-connector@0.18.1
+  - @lynx-js/skill-lynx-devtool@0.14.22
+
 ## 0.14.21
 
 ### Patch Changes
