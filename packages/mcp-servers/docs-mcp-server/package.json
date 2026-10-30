@@ -23,7 +23,7 @@
     "@modelcontextprotocol/sdk": "^1.32.2",
     "commander": "^15.0.0",
     "mdast-util-from-markdown": "^2.1.0",
-    "mdast-util-to-markdown": "^2.2.0",
+    "mdast-util-to-markdown": "^2.2.1",
     "obug": "^2.2.1"
   },
   "devDependencies": {
