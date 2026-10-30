@@ -73,5 +73,5 @@
     "turbo": "^2.11.10",
     "yaml": "^2.9.1"
   },
-  "packageManager": "pnpm@11.28.8"
+  "packageManager": "pnpm@11.28.9"
 }
