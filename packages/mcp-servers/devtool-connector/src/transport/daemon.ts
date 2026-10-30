@@ -62,13 +62,17 @@ export class DaemonTransport implements Transport {
   }
 
   async openApp(deviceId: string, packageName: string, options?: OpenAppOptions): Promise<void> {
-    await this.#controlRequest("openApp", {
-      deviceId,
-      packageName,
-      withDataCleared: options?.withDataCleared,
-      restart: options?.restart,
-      schema: options?.schema,
-    });
+    await this.#controlRequest(
+      "openApp",
+      {
+        deviceId,
+        packageName,
+        withDataCleared: options?.withDataCleared,
+        restart: options?.restart,
+        schema: options?.schema,
+      },
+      options?.signal,
+    );
   }
 
   async listClients(): Promise<Client[]> {
@@ -125,10 +129,11 @@ export class DaemonTransport implements Transport {
   async #controlRequest<T>(
     method: string,
     params?: Record<string, unknown>,
+    signal?: AbortSignal,
   ): Promise<T> {
-    const conn = await this.#createWebSocketConnection();
+    const conn = await this.#createWebSocketConnection(signal);
     try {
-      return await this.#controlRequestOnConn<T>(conn, method, params);
+      return await this.#controlRequestOnConn<T>(conn, method, params, signal);
     } finally {
       await conn[Symbol.asyncDispose]();
     }

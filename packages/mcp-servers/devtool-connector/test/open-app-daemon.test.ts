@@ -125,9 +125,65 @@ test("DaemonTransport forwards restart, schema and data clearing options to the 
     withDataCleared: true,
     restart: true,
   });
+  assert(deviceTransport.openedOptions?.signal instanceof AbortSignal);
+  assert.equal(deviceTransport.openedOptions.signal.aborted, false);
   assert.deepEqual(deviceTransport.openedOptions, {
     schema: "example://page?url=https%3A%2F%2Fexample.com&flag=1",
     withDataCleared: true,
     restart: true,
+    signal: deviceTransport.openedOptions.signal,
   });
+});
+
+test("DaemonTransport.openApp aborts with the caller signal reason and cancels the daemon openApp request", async (t) => {
+  let resolveStarted!: () => void;
+  const started = new Promise<void>((resolve) => {
+    resolveStarted = resolve;
+  });
+  let resolveDaemonAborted!: (reason: unknown) => void;
+  const daemonAborted = new Promise<unknown>((resolve) => {
+    resolveDaemonAborted = resolve;
+  });
+
+  class HangingOpenAppTransport extends ClientListTransport {
+    override async openApp(_: string, packageName: string, options?: OpenAppOptions): Promise<void> {
+      this.openedOptions = options;
+      resolveStarted();
+      await new Promise<void>((_resolve, reject) => {
+        const signal = options?.signal;
+        if (!signal) return;
+        const onAbort = () => {
+          resolveDaemonAborted(signal.reason);
+          reject(signal.reason);
+        };
+        if (signal.aborted) {
+          onAbort();
+          return;
+        }
+        signal.addEventListener("abort", onAbort, { once: true });
+      });
+      return super.openApp(_, packageName, options);
+    }
+  }
+
+  const deviceTransport = new HangingOpenAppTransport();
+  const daemon = new DevtoolDaemon([deviceTransport]);
+  const port = await daemon.start(0);
+  t.after(() => daemon.close());
+
+  const transport = new DaemonTransport(`ws://127.0.0.1:${port}/devtool/connector`);
+  const controller = new AbortController();
+  const reason = new Error("caller canceled openApp");
+  const opening = transport.openApp("device", "com.lynx.uiapp", {
+    signal: controller.signal,
+  });
+
+  await started;
+  controller.abort(reason);
+
+  await assert.rejects(opening, (error: unknown) => error === reason);
+  const daemonAbortReason = await daemonAborted;
+  assert.equal(deviceTransport.openedOptions?.signal?.aborted, true);
+  assert(daemonAbortReason instanceof Error);
+  assert.match(daemonAbortReason.message, /disconnected before openApp completed/u);
 });
