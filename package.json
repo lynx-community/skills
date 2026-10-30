@@ -55,7 +55,7 @@
     "@lynx-js/skill-lynx-trace-analysis": "0.0.12",
     "@lynx-js/skill-lynx-trace-record": "0.0.6",
     "@lynx-js/skill-lynx-typescript": "workspace:*",
-    "@lynx-js/skill-lynx-ui": "3.133.10",
+    "@lynx-js/skill-lynx-ui": "3.133.11",
     "@lynx-js/skill-reactlynx-best-practices": "workspace:*",
     "@lynx-js/skill-rspeedy-bundle-size": "workspace:*",
     "@lynx-js/skill-vanilla-lynx": "workspace:*"
