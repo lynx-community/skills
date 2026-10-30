@@ -1,5 +1,12 @@
 # @lynx-js/devtool-connector
 
+## 0.18.2
+
+### Patch Changes
+
+- Route requests through a sole daemon without requiring a fresh device scan, so it can reuse a healthy pooled connection and validate unknown targets itself.
+- Add a daemon-managed Simulator with a lazily prepared Core/native host, window options, and JSON/JavaScript page environments on `open`.
+
 ## 0.18.1
 
 ### Patch Changes
