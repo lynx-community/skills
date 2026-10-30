@@ -1,5 +1,17 @@
 # agent-lynx
 
+## 0.14.23
+
+### Patch Changes
+
+- Updated dependency `@microsoft/api-extractor` to `^7.60.0`.
+- Export independently maintained public recorder and fixture Skills, with public CLI instructions, portable fixture editing tools, and synthetic examples. Expose both Skills through Agent Lynx skill discovery.
+- Updated dependencies
+  - @lynx-js/devtool-connector@0.18.2
+  - @lynx-js/skill-lynx-recorder@0.2.0
+  - @lynx-js/skill-lynx-recorder-fixture@0.2.0
+  - @lynx-js/skill-lynx-devtool@0.14.23
+
 ## 0.14.22
 
 ### Patch Changes
