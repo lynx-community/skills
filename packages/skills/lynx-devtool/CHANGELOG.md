@@ -1,5 +1,9 @@
 # @lynx-js/skill-lynx-devtool
 
+## 0.14.25
+
+No changes in this release.
+
 ## 0.14.24
 
 No changes in this release.
