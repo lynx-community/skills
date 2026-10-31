@@ -246,6 +246,8 @@ agent-lynx open "lynx://example/page"
 
 #### 8. Get Console
 
+For asynchronous Host Script observer messages, use [`logs --follow --json`](references/logs.md).
+
 Capture console logs from the device.
 
 ```bash

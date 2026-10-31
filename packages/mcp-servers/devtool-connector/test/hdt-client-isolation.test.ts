@@ -192,6 +192,54 @@ function makeSession(sessionId: number): Session {
 }
 
 for (const viaDaemon of [false, true]) {
+  test(`${viaDaemon ? "daemon" : "direct"}: global CDP event streams survive page removal and exclude page events`, async t => {
+    const harness = await createHdtClientHarness(t, TARGET_ROUTER_ID, viaDaemon);
+    await using stream = await harness.connector.sendCDPStream(
+      harness.clientId,
+      -1,
+      ReadableStream.from<CDPRequestMessage>([]),
+    );
+    await stream.inputClosed;
+    const reader = stream.getReader();
+    try {
+      harness.broadcast(sessionList(TARGET_PORT, []));
+      harness.broadcast(cdpMessage(TARGET_PORT, SESSION_ID, {
+        method: "HSR.messageReceived",
+        params: { message: "unrelated page event" },
+      }));
+      const expected = {
+        method: "HSR.messageReceived",
+        params: { message: "observer error after operation returned" },
+      };
+      harness.broadcast(cdpMessage(TARGET_PORT, -1, expected));
+      assert.deepEqual(await within(reader.read(), "unsolicited global event"), { value: expected, done: false });
+    } finally {
+      await reader.cancel();
+      reader.releaseLock();
+    }
+  });
+
+  test(`${viaDaemon ? "daemon" : "direct"}: page CDP streams retain legacy events without session metadata`, async t => {
+    const harness = await createHdtClientHarness(t, TARGET_ROUTER_ID, viaDaemon);
+    await using stream = await harness.connector.sendCDPStream(
+      harness.clientId,
+      SESSION_ID,
+      ReadableStream.from<CDPRequestMessage>([]),
+    );
+    const reader = stream.getReader();
+    try {
+      const expected = { method: "Runtime.consoleAPICalled", params: { message: "selected page" } };
+      harness.broadcast({
+        event: "Customized",
+        data: { type: "CDP", sender: TARGET_PORT, data: { message: JSON.stringify(expected) } },
+      });
+      assert.deepEqual(await within(reader.read(), "selected page event"), { value: expected, done: false });
+    } finally {
+      await reader.cancel();
+      reader.releaseLock();
+    }
+  });
+
   test(`${viaDaemon ? "daemon" : "direct"}: stable HDT target follows an updated numeric route and ignores sibling broadcasts`, async t => {
     const harness = await createHdtClientHarness(t, TARGET_ROUTER_ID, viaDaemon);
 
@@ -336,3 +384,29 @@ for (const viaDaemon of [false, true]) {
     }
   });
 }
+
+test("canceling one daemon global subscription leaves a peer subscription alive", async t => {
+  const harness = await createHdtClientHarness(t, TARGET_ROUTER_ID, true);
+  const first = await harness.connector.sendCDPStream(harness.clientId, -1, ReadableStream.from<CDPRequestMessage>([]));
+  await using second = await harness.connector.sendCDPStream(
+    harness.clientId,
+    -1,
+    ReadableStream.from<CDPRequestMessage>([]),
+  );
+  const firstReader = first.getReader();
+  const secondReader = second.getReader();
+  try {
+    await firstReader.cancel();
+    firstReader.releaseLock();
+    await first[Symbol.asyncDispose]();
+    const expected = { method: "HSR.messageReceived", params: { message: "surviving observer" } };
+    harness.broadcast(cdpMessage(TARGET_PORT, -1, expected));
+    assert.deepEqual(await within(secondReader.read(), "peer event after cancellation"), {
+      value: expected,
+      done: false,
+    });
+  } finally {
+    await secondReader.cancel();
+    secondReader.releaseLock();
+  }
+});

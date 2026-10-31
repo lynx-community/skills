@@ -65,10 +65,19 @@ export class CustomizedResponseTransformStream<
   Output = T extends keyof CustomizedResponseMessageMap ? CustomizedResponseMessageMap[T] : unknown,
   Input extends Response | CustomizedResponse = Response | CustomizedResponse,
 > extends TransformStream<Input, Output> {
-  constructor(type: T, id?: number) {
+  constructor(type: T, id?: number, sessionId?: number) {
     super({
       transform(response, controller) {
         if (!isCustomizedResponseWithType(response, type)) {
+          return;
+        }
+
+        // Keep the routing envelope until the selected session is checked.
+        // Unsolicited events do not have a request id to isolate consumers.
+        if (
+          sessionId !== undefined
+          && (!("session_id" in response.data.data) || response.data.data.session_id !== sessionId)
+        ) {
           return;
         }
 

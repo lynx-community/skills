@@ -41,7 +41,8 @@ export class SessionGuardTransformStream<Input extends Response | CustomizedResp
   constructor(sessionId: number) {
     super({
       transform(chunk, controller) {
-        if (isListSessionResponse(chunk)) {
+        // The global channel is owned by the client, not by a listed page.
+        if (sessionId !== -1 && isListSessionResponse(chunk)) {
           const sessions = chunk.data.data as Session[];
           if (!Array.isArray(sessions)) {
             controller.enqueue(chunk);
