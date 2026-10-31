@@ -15,8 +15,13 @@ import {
 
 export { fail, ok };
 
-export function renderJson(result: CommandResult): string {
-  return JSON.stringify(result, null, 2);
+type JsonFormatting = 'pretty' | 'compact';
+
+export function renderJson(
+  result: CommandResult,
+  formatting: JsonFormatting = 'pretty',
+): string {
+  return JSON.stringify(result, null, formatting === 'pretty' ? 2 : undefined);
 }
 
 function rootCommandName(command: Command): string {
@@ -94,6 +99,7 @@ export async function runCommand<T>(
   renderText: (data: T) => string,
   renderJsonData?: (data: T) => unknown,
   cliPlaceholder = DEFAULT_CLI_PLACEHOLDER,
+  jsonFormatting: JsonFormatting = 'pretty',
 ): Promise<void> {
   let result: CommandResult<T>;
   try {
@@ -118,8 +124,12 @@ export async function runCommand<T>(
   if (options.json) {
     console.log(
       result.ok && renderJsonData
-        ? JSON.stringify(renderJsonData(result.data), null, 2)
-        : renderJson(result),
+        ? JSON.stringify(
+          renderJsonData(result.data),
+          null,
+          jsonFormatting === 'pretty' ? 2 : undefined,
+        )
+        : renderJson(result, jsonFormatting),
     );
   } else if (result.ok) {
     console.log(renderText(result.data));
@@ -159,7 +169,7 @@ function validateDaemonInvocation(
 export async function runSnapshotCommand<T>(
   action: string,
   command: Command,
-  options: { json?: boolean; },
+  options: { json?: boolean; snapshot?: boolean; },
   handler: () => Promise<CommandResult<T>>,
   renderText: (data: T) => string,
 ): Promise<void> {
@@ -175,6 +185,7 @@ export async function runSnapshotCommand<T>(
     renderText,
     undefined,
     rootCommandName(command),
+    action === 'snapshot' || options.snapshot === true ? 'compact' : 'pretty',
   );
 }
 
