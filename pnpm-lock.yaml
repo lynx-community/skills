@@ -375,9 +375,6 @@ importers:
       commander:
         specifier: ^13.1.0
         version: 13.1.0
-      ky:
-        specifier: ^1.14.3
-        version: 1.14.3
       typescript:
         specifier: ^5.9.3
         version: 5.9.3
@@ -2157,10 +2154,6 @@ packages:
 
   keyv@4.5.4:
     resolution: {integrity: sha512-oxVHkHR/EJf2CNXnWxRLW6mg7JyCCUcG0DtEGmL2ctUo1PNTin1PUil+r/+4r5MpVgC/fn1kjsx7mjSujKqIpw==}
-
-  ky@1.14.3:
-    resolution: {integrity: sha512-9zy9lkjac+TR1c2tG+mkNSVlyOpInnWdSMiue4F+kq8TwJSgv6o8jhLRg8Ho6SnZ9wOYUq/yozts9qQCfk7bIw==}
-    engines: {node: '>=18'}
 
   levn@0.4.1:
     resolution: {integrity: sha512-+bT2uH4E5LGE7h/n3evcS/sQlJXCpIp6ym8OWJ5eV6+67Dsql/LaaT7qJBAt2rzfoa/5QBGBhxDix1dMt2kQKQ==}
@@ -4425,8 +4418,6 @@ snapshots:
     dependencies:
       json-buffer: 3.0.1
     optional: true
-
-  ky@1.14.3: {}
 
   levn@0.4.1:
     dependencies:
