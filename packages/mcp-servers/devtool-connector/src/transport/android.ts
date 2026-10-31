@@ -359,7 +359,10 @@ export class AndroidTransport implements Transport {
     debug(`openApp output ${output}`);
     if (
       output.includes("Error:")
+      || output.includes("Security exception:")
+      || output.includes("Permission Denial:")
       || output.includes("unable to resolve Intent")
+      || /\b[A-Za-z0-9_$.]*Exception:/u.test(output)
       || /Error type \d+/u.test(output)
     ) {
       throw new Error(`Failed to open app ${packageName}: ${output.trim()}`);
