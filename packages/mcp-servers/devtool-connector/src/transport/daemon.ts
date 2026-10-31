@@ -62,13 +62,17 @@ export class DaemonTransport implements Transport {
   }
 
   async openApp(deviceId: string, packageName: string, options?: OpenAppOptions): Promise<void> {
-    await this.#controlRequest("openApp", {
-      deviceId,
-      packageName,
-      withDataCleared: options?.withDataCleared,
-      restart: options?.restart,
-      schema: options?.schema,
-    });
+    await this.#controlRequest(
+      "openApp",
+      {
+        deviceId,
+        packageName,
+        withDataCleared: options?.withDataCleared,
+        restart: options?.restart,
+        schema: options?.schema,
+      },
+      options?.signal,
+    );
   }
 
   async listClients(): Promise<Client[]> {
@@ -88,7 +92,10 @@ export class DaemonTransport implements Transport {
 
     try {
       // Subscribe this WS session to the target device:port on the daemon
-      await this.#controlRequestOnConn(conn, "subscribe", { deviceId, port }, signal);
+      const subscribeSignal = signal
+        ? AbortSignal.any([signal, AbortSignal.timeout(10_000)])
+        : undefined;
+      await this.#controlRequestOnConn(conn, "subscribe", { deviceId, port }, subscribeSignal);
     } catch (error) {
       await conn[Symbol.asyncDispose]();
       throw new Error(
@@ -125,10 +132,11 @@ export class DaemonTransport implements Transport {
   async #controlRequest<T>(
     method: string,
     params?: Record<string, unknown>,
+    signal?: AbortSignal,
   ): Promise<T> {
-    const conn = await this.#createWebSocketConnection();
+    const conn = await this.#createWebSocketConnection(signal);
     try {
-      return await this.#controlRequestOnConn<T>(conn, method, params);
+      return await this.#controlRequestOnConn<T>(conn, method, params, signal);
     } finally {
       await conn[Symbol.asyncDispose]();
     }
@@ -146,10 +154,7 @@ export class DaemonTransport implements Transport {
   ): Promise<T> {
     const id = randomInt(10_000, 50_000);
 
-    const timeoutSignal = AbortSignal.timeout(10_000);
-    const signal = callerSignal
-      ? AbortSignal.any([callerSignal, timeoutSignal])
-      : timeoutSignal;
+    const signal = callerSignal ?? AbortSignal.timeout(10_000);
 
     try {
       await this.#writeMessage(
