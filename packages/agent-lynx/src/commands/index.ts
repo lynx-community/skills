@@ -15,6 +15,7 @@ export * from './global-switch.ts';
 export * from './inspect.ts';
 export * from './list-clients.ts';
 export * from './list-sessions.ts';
+export * from './logs.ts';
 export * from './open.ts';
 export * from './reactlynx/find.ts';
 export * from './reactlynx/index.ts';

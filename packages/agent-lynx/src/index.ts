@@ -4,6 +4,7 @@
 // LICENSE file in the root directory of this source tree.
 import 'core-js/modules/es.promise.with-resolvers.js';
 import pkg from '../package.json' with { type: 'json' };
+import { InterruptedLogOutputError } from './commands/logs.ts';
 import { createProgram } from './devtool.ts';
 import { resolveUpdateNotice, withUpdateNotice } from './update-notice.ts';
 
@@ -14,6 +15,15 @@ await withUpdateNotice(
       resolveUpdateNotice({ currentVersion: pkg.version, env: process.env }),
   },
   async () => {
-    await createProgram({ env: process.env }).parseAsync(process.argv);
+    await createProgram({ env: process.env }).parseAsync(process.argv).catch(
+      error => {
+        // parseAsync has released transports. Do not wait forever for a cancelled
+        // stdout write when its downstream consumer is no longer reading.
+        if (error instanceof InterruptedLogOutputError) {
+          process.exit(process.exitCode ?? 0);
+        }
+        throw error;
+      },
+    );
   },
 );

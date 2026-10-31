@@ -527,7 +527,9 @@ export class Connector {
         ],
         output: [
           new SessionGuardTransformStream(sessionId),
-          new CDPResponseTransformStream<CDPRequestMessage>(),
+          // Global observers must not consume page events. Preserve page
+          // streams' compatibility with older responses lacking session_id.
+          new CDPResponseTransformStream<CDPRequestMessage>(undefined, sessionId === -1 ? -1 : undefined),
         ],
       },
     });

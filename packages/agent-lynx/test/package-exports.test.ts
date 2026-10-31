@@ -83,6 +83,7 @@ test('the built package starts its bin and exposes the typed connector API', asy
     'inspect',
     'list-clients',
     'list-sessions',
+    'logs',
     'open',
     'recorder-analysis',
     'recorder-end',
