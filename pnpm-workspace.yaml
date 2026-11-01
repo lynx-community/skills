@@ -13,7 +13,7 @@ catalogs:
   rstack:
     "@rslib/core": ^1.0.4
     "@rsbuild/core": ^2.3.0
-    "@rspack/core": 2.2.9
+    "@rspack/core": 2.3.0
     "@rstest/core": 0.12.5
   adb:
     "@yume-chan/adb": 3.0.0-beta.4
