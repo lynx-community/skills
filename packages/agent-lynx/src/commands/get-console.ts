@@ -161,10 +161,16 @@ export function registerGetConsoleCommand(program: Command, context: Context) {
             method: 'Debugger.enable',
             sessionId: t === 'main' ? 'Main' : undefined,
           })),
-          ...thread.map((t: string) => ({
-            method: 'Runtime.enable',
-            sessionId: t === 'main' ? 'Main' : undefined,
-          })),
+          ...thread.flatMap((t: string) => [
+            {
+              method: 'Runtime.disable',
+              sessionId: t === 'main' ? 'Main' : undefined,
+            },
+            {
+              method: 'Runtime.enable',
+              sessionId: t === 'main' ? 'Main' : undefined,
+            },
+          ]),
         ]),
       );
 
