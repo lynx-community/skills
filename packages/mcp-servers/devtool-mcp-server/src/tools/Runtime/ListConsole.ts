@@ -83,12 +83,22 @@ export const ListConsole = /*#__PURE__*/ defineTool({
     const requestId = randomInt(10_000, 50_000);
     const requests = [
       { method: 'Page.enable' },
-      ...threads.map(t => ({
-        method: 'Runtime.enable',
-        sessionId: t === 'main' ? 'Main' : undefined,
-      })),
+      ...threads.flatMap(t => [
+        {
+          method: 'Runtime.disable',
+          sessionId: t === 'main' ? 'Main' : undefined,
+        },
+        {
+          method: 'Runtime.enable',
+          sessionId: t === 'main' ? 'Main' : undefined,
+        },
+      ]),
     ].map((request, index) => ({ id: requestId + index, ...request }));
-    const pendingRequests = new Set(requests.map(request => request.id));
+    const pendingRequests = new Set(
+      requests
+        .filter(request => request.method !== 'Runtime.disable')
+        .map(request => request.id),
+    );
 
     await using stream = await connector.sendCDPStream(
       params.clientId,
