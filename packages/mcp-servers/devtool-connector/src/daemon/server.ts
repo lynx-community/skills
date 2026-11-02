@@ -41,7 +41,7 @@ const debug = createDebug("devtool-mcp-server:daemon:server");
 
 const IDLE_TIMEOUT_MS = 300_000;
 /** Grace period before disposing an unsubscribed device connection. */
-const DEVICE_CONN_GRACE_MS = 10_000;
+const DEVICE_CONN_GRACE_MS = 30_000;
 const DEVICE_DISCOVERY_TIMEOUT_MS = 2_500;
 const DEVICE_CONN_SETUP_TIMEOUT_MS = 5_000;
 
