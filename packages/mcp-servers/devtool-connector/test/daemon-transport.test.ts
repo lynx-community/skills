@@ -646,6 +646,91 @@ test("DaemonTransport writable waits for the websocket write to finish", async (
   }
 });
 
+test("DaemonTransport connect keeps the WebSocket open for asynchronous CDP events after subscribe", async (t) => {
+  const server = new WebSocketServer({ port: 0, path: "/devtool/connector" });
+  t.after(() => {
+    for (const client of server.clients) {
+      client.terminate();
+    }
+    server.close();
+  });
+
+  server.on("connection", (ws) => {
+    ws.send(JSON.stringify({ event: "Initialize", data: 1 }));
+    ws.on("message", (raw) => {
+      const msg = JSON.parse(String(raw)) as {
+        event?: string;
+        data?: { id?: number; method?: string };
+      };
+      if (msg.event === "Control" && msg.data?.method === "subscribe") {
+        ws.send(JSON.stringify({
+          event: "ControlResponse",
+          data: { id: msg.data.id, result: null },
+        }));
+        return;
+      }
+
+      if (msg.event === "Customized") {
+        setTimeout(() => {
+          ws.send(JSON.stringify({
+            event: "Customized",
+            data: {
+              type: "CDP",
+              data: {
+                client_id: 8901,
+                session_id: 1,
+                message: JSON.stringify({
+                  method: "Lynx.screenshotCaptured",
+                  params: { data: "base64-screenshot" },
+                }),
+              },
+              sender: 8901,
+            },
+          }));
+        }, 50);
+      }
+    });
+  });
+
+  const address = server.address();
+  assert(address && typeof address !== "string");
+  t.mock.method(
+    DaemonManager,
+    "ensureRunning",
+    async () => `ws://127.0.0.1:${address.port}/devtool/connector`,
+  );
+
+  const transport = new DaemonTransport(address.port);
+  await using conn = await transport.connect<unknown, Record<string, unknown>>({
+    deviceId: "device",
+    port: 8901,
+    signal: AbortSignal.timeout(1_000),
+  });
+
+  const writer = conn.writable.getWriter();
+  await writer.write({
+    event: "Customized",
+    data: {
+      type: "CDP",
+      data: {
+        client_id: 8901,
+        session_id: 1,
+        message: { id: 1, method: "Lynx.getScreenshot" },
+      },
+    },
+  });
+  writer.releaseLock();
+
+  const reader = conn.readable.getReader();
+  try {
+    const first = await reader.read();
+    assert.equal(first.done, false);
+    assert.equal(first.value?.["event"], "Customized");
+  } finally {
+    reader.releaseLock();
+  }
+});
+
 function deferred<T>() {
   let resolve!: (value: T | PromiseLike<T>) => void;
   let reject!: (reason?: unknown) => void;
