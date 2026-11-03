@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "sections": [
+    {
+      "route": "ai/agent-lynx",
+      "label": "agent-lynx",
+      "content": {
+        "en": "content/en/ai/agent-lynx",
+        "zh": "content/zh/ai/agent-lynx"
+      }
+    }
+  ],
+  "sharedContent": [
+    {
+      "source": "content/_agent-lynx",
+      "destination": "_agent-lynx"
+    }
+  ],
+  "publicAssets": [
+    {
+      "source": "public/ai/agent-lynx",
+      "destination": "ai/agent-lynx"
+    }
+  ],
+  "sourceRepository": "https://github.com/lynx-community/skills",
+  "editBaseUrl": "https://github.com/lynx-community/skills/edit/main/packages/agent-lynx-docs/content",
+  "documentedCliVersion": "0.14.23",
+  "importedFrom": {
+    "url": "https://github.com/lynx-family/lynx-website/pull/1748",
+    "commit": "67c2d8e6227950f6eab5b0910f9e603210bcc7ab"
+  }
+}
