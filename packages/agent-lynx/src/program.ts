@@ -51,17 +51,6 @@ export function createRootCommand(
   return new TransportClosingCommand(context, telemetry);
 }
 
-export function getAndroidTransportSpec(
-  env: NodeJS.ProcessEnv,
-): { host: string; port: number; } {
-  const portText = env['ADB_SERVER_PORT'] ?? '5037';
-  const port = /^\d+$/u.test(portText) ? Number(portText) : Number.NaN;
-  return {
-    host: env['ADB_SERVER_HOST'] ?? '127.0.0.1',
-    port: Number.isInteger(port) && port > 0 && port <= 65535 ? port : 5037,
-  };
-}
-
 export function isCommandAction(
   command: Command,
   commandName: string,
