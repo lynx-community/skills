@@ -4,30 +4,19 @@
 
 import type { NetConnectOpts } from 'node:net';
 
+import { parseTcpSocketSpec } from '@yume-chan/adb-server-node-tcp';
+
+const DEFAULT_HOST = '127.0.0.1';
+const DEFAULT_PORT = 5037;
+
 /**
  * @param socketSpec Socket Spec in https://android.googlesource.com/platform/system/adb/+/refs/heads/main/socket_spec.cpp
  */
 export function parseSocketSpec(socketSpec: string): NetConnectOpts {
   if (socketSpec.startsWith('tcp:')) {
-    const rest = socketSpec.slice(4);
-    const port = parseInt(rest, 10);
-    if (!Number.isNaN(port) && String(port) === rest) {
-      // tcp:<port>
-      return { host: '127.0.0.1', port };
-    }
-    // tcp:[host]:port or tcp:host:port
-    const lastColon = rest.lastIndexOf(':');
-    if (lastColon === -1) {
-      throw new Error(`Invalid tcp socket spec: ${socketSpec}`);
-    }
-    const host = rest.slice(0, lastColon).replace(/^\[|\]$/g, '')
-      || '127.0.0.1';
-    const portStr = rest.slice(lastColon + 1);
-    const parsedPort = parseInt(portStr, 10);
-    if (Number.isNaN(parsedPort)) {
-      throw new Error(`Invalid port in socket spec: ${socketSpec}`);
-    }
-    return { host, port: parsedPort };
+    const address = socketSpec.slice(4);
+    const { host, port } = parseTcpSocketSpec(address);
+    return { host: host ?? DEFAULT_HOST, port: port ?? DEFAULT_PORT };
   }
 
   if (

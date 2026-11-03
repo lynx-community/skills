@@ -1,8 +1,8 @@
 // Copyright 2026 The Lynx Authors. All rights reserved.
 // Licensed under the Apache License Version 2.0 that can be found in the
 // LICENSE file in the root directory of this source tree.
-import { type Adb, AdbServerClient, escapeArg } from "@yume-chan/adb";
-import { AdbServerNodeJsTcpConnector } from "@yume-chan/adb-server-node-tcp";
+import { type Adb, type AdbServerClient, escapeArg } from "@yume-chan/adb";
+import { AdbServerNodeJsClient } from "@yume-chan/adb-server-node-tcp";
 import { ReadableStream } from "@yume-chan/stream-extra";
 import type { SocketConnectOpts } from "node:net";
 import { createDebug } from "obug";
@@ -79,16 +79,20 @@ export class AndroidTransport implements Transport {
   protected readonly client: AdbServerClient;
   readonly #appIconHelperDeployments = new Map<string, Promise<void>>();
 
-  constructor(spec: SocketConnectOpts = { port: 5037 }) {
-    const resolvedSpec: SocketConnectOpts = "port" in spec
-      ? { ...spec, host: spec.host ?? "127.0.0.1" }
-      : spec;
-    // Narrow Node's socket option union so TypeScript can select the matching
-    // TCP or IPC overload added by @yume-chan/adb-server-node-tcp v3.
-    const connector = "path" in resolvedSpec
-      ? new AdbServerNodeJsTcpConnector(resolvedSpec)
-      : new AdbServerNodeJsTcpConnector(resolvedSpec);
-    this.client = new AdbServerClient(connector);
+  constructor(spec?: SocketConnectOpts) {
+    // ADB's server always listens on IPv4 loopback, while `localhost` can
+    // resolve to ::1 first on IPv6-only hosts, so the default host is explicit.
+    if (spec === undefined) {
+      this.client = process.env["ADB_SERVER_SOCKET"]
+        ? new AdbServerNodeJsClient()
+        : new AdbServerNodeJsClient({
+          host: process.env["ANDROID_ADB_SERVER_ADDRESS"] ?? "127.0.0.1",
+        });
+    } else if ("path" in spec) {
+      this.client = new AdbServerNodeJsClient(spec);
+    } else {
+      this.client = new AdbServerNodeJsClient({ ...spec, host: spec.host ?? "127.0.0.1" });
+    }
   }
 
   async connect<TInput = unknown, TOutput = unknown>(
