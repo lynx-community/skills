@@ -4,7 +4,7 @@
 
 import assert from 'node:assert/strict';
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
-import { dirname, extname, join, resolve } from 'node:path';
+import { dirname, extname, join, resolve, sep } from 'node:path';
 import { test } from 'node:test';
 import { fileURLToPath } from 'node:url';
 
@@ -99,7 +99,7 @@ test('MDX imports and local links resolve within the package without website ali
       );
       const target = resolve(dirname(file), url.split(/[?#]/)[0]);
       assert.ok(
-        target.startsWith(join(root, 'content') + '/'),
+        target.startsWith(join(root, 'content') + sep),
         `${name}: link escapes the package`,
       );
       assert.ok(existsSync(target), `${name}: ${url}`);
