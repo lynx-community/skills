@@ -8,7 +8,7 @@ import { setTimeout as sleep } from "node:timers/promises";
 import { createDebug } from "obug";
 import { DAEMON_CONVERGENCE_TIMEOUT_MS, DaemonManager, DEFAULT_DAEMON_PORT } from "../daemon/manager.ts";
 import type { ClientListEntry, ControlResponse } from "../daemon/protocol.ts";
-import { readMessages, writeOnce } from "./stream-lifecycle.ts";
+import { readOnce, writeOnce } from "./stream-lifecycle.ts";
 import type {
   App,
   Client,
@@ -161,8 +161,16 @@ export class DaemonTransport implements Transport {
         signal,
       );
 
-      for await (const value of this.#readMessages(conn.readable, signal)) {
-        const msg = value as { event: string; data: unknown };
+      while (!signal.aborted) {
+        const { value, done } = await readOnce(conn.readable, signal);
+        if (done) break;
+
+        let msg: { event: string; data: unknown };
+        try {
+          msg = JSON.parse(value) as { event: string; data: unknown };
+        } catch {
+          continue;
+        }
 
         if (msg.event === "ControlResponse") {
           const resp = msg.data as ControlResponse["data"];
@@ -292,16 +300,6 @@ export class DaemonTransport implements Transport {
         await wss.closed;
       } catch { /* ignore */ }
       throw err;
-    }
-  }
-
-  async *#readMessages(readable: ReadableStream<string>, signal: AbortSignal): AsyncGenerator<unknown> {
-    for await (const value of readMessages(readable, signal)) {
-      try {
-        yield JSON.parse(value as string);
-      } catch {
-        // skip unparseable messages
-      }
     }
   }
 

@@ -1097,6 +1097,9 @@ export class DevtoolDaemon {
           throw new Error(`DevTool daemon closed while acquiring device connection ${key}`);
         }
         this.#deviceConnections.set(key, conn);
+        if (conn.subscriberCount === 0) {
+          this.#scheduleDeviceConnectionCleanup(conn);
+        }
         return conn;
       } catch (err) {
         debug("failed to connect to %s: %O", key, err);
