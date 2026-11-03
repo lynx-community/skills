@@ -62,7 +62,7 @@
   },
   "devDependencies": {
     "@changesets/cli": "^2.31.1",
-    "@rslint/core": "^0.9.5",
+    "@rslint/core": "^0.10.0",
     "build-marketplace": "workspace:*",
     "build-plugin": "workspace:*",
     "dprint": "^0.64.3",
