@@ -132,12 +132,14 @@ export class HDTTransport implements Transport {
       throw error;
     }
 
+    const target = { port: targetPort, resolved: true };
+
     const writable = new WritableStream<TInput>({
       async write(chunk) {
         const message = routeDriverMessage(
           chunk,
           conn.id,
-          targetPort,
+          target.port,
           typeof port === "string" ? port : undefined,
         );
         debug("Transformed chunk for HDT transport: %o", message);
@@ -150,7 +152,7 @@ export class HDTTransport implements Transport {
 
     return {
       readable: [
-        new JSONStringToObjectStream(typeof port === "string" ? port : undefined, targetPort),
+        new JSONStringToObjectStream(typeof port === "string" ? port : undefined, target),
       ].reduce(
         (stream, transform) => stream.pipeThrough(transform),
         conn.readable,
@@ -272,7 +274,7 @@ async function requestFreshClientList(
 }
 
 class JSONStringToObjectStream extends TransformStream<string, unknown> {
-  constructor(debugRouterId?: string, targetPort?: number) {
+  constructor(debugRouterId: string | undefined, target: { port: number; resolved: boolean }) {
     super({
       transform(chunk, controller) {
         try {
@@ -283,13 +285,18 @@ class JSONStringToObjectStream extends TransformStream<string, unknown> {
                 isRecord(client) && isRecord(client["info"]) && client["info"]["debugRouterId"] === debugRouterId
               );
               const nextPort = isRecord(client) ? Number(client["id"]) : NaN;
-              targetPort = Number.isSafeInteger(nextPort) ? nextPort : undefined;
+              if (Number.isSafeInteger(nextPort)) {
+                target.port = nextPort;
+                target.resolved = true;
+              } else {
+                target.resolved = false;
+              }
             }
             const data = obj["data"];
             // HDT broadcasts replies from every App. Normalize only this client's sender.
             if (
-              obj["event"] === "Customized" && targetPort !== undefined && isRecord(data)
-              && String(data["sender"]) === String(targetPort)
+              obj["event"] === "Customized" && target.resolved && isRecord(data)
+              && String(data["sender"]) === String(target.port)
             ) {
               obj["data"] = { ...data, sender: debugRouterId };
             }
@@ -299,7 +306,7 @@ class JSONStringToObjectStream extends TransformStream<string, unknown> {
             // shortcut: legacy unassigned senders cannot be isolated until the peer supplies an App route.
             if (
               sender !== undefined && String(sender) !== "-1" && String(sender) !== "4294967295"
-              && String(sender) !== String(debugRouterId ?? targetPort)
+              && String(sender) !== String(debugRouterId ?? (target.resolved ? target.port : undefined))
             ) return;
           }
           if (debugRouterId !== undefined && isRecord(obj) && obj["event"] === "RouteRejected") {

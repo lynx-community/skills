@@ -320,6 +320,7 @@ test("HDTTransport isolates the selected sender and follows ClientList updates",
   assert.ok(address && typeof address !== "string");
   let selectedSender = 9;
   let otherSender = 10;
+  const customizedTargets: Array<{ to?: unknown; clientId?: unknown }> = [];
   const clientList = () => ({
     event: "ClientList",
     data: [
@@ -351,6 +352,14 @@ test("HDTTransport isolates the selected sender and follows ClientList updates",
         send(clientList());
       } else if (message.event === "ListClients") send(clientList());
       else if (message.event === "Customized") {
+        const customized = message as {
+          to?: unknown;
+          data?: { data?: { client_id?: unknown } };
+        };
+        customizedTargets.push({
+          to: customized.to,
+          clientId: customized.data?.data?.client_id,
+        });
         for (const reply of replies()) send(reply);
       }
     });
@@ -400,6 +409,7 @@ test("HDTTransport isolates the selected sender and follows ClientList updates",
       broadcast(clientList());
       assert.deepEqual((await reader.read()).value, clientList());
       assert.deepEqual(await readReplies(normalizedReplies()), normalizedReplies());
+      assert.deepEqual(customizedTargets.at(-1), { to: 11, clientId: 11 });
 
       for (const data of [[], [{ id: "invalid", info: { debugRouterId: "selected-router" } }]]) {
         broadcast({ event: "ClientList", data });
