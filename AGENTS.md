@@ -21,6 +21,6 @@ For Connector changes, follow its scoped [architecture guide](packages/mcp-serve
 
 ## Contribution boundaries
 
-Submit PRs against `main`; `release` is the installation branch. Use Conventional Commits. Consult [.changeset/config.json](.changeset/config.json) and the owning release workflow for versioning; do not publish or change remote state merely to validate a local change.
+Submit PRs against `main`; `release` is the installation branch. Use Conventional Commits. Do not publish or change remote state merely to validate a local change.
 
 Keep public source, documentation and package artifacts usable without private services or internal registry access. Preserve the existing hooks and the package-specific build/export paths.

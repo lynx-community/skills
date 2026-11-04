@@ -32,4 +32,4 @@ For programmatic DevTool MCP integration, start with the [public exports](packag
 
 Run affected package tests, `pnpm lint` and `pnpm exec dprint check`. Check [package scripts](package.json) and the affected package's manifest for runner and build choices. Device and online evals require a configured environment; report what actually ran.
 
-For changes to published packages, record release intent through the project's Changesets workflow. Read [.changeset/config.json](.changeset/config.json) and the [GitHub workflows](.github/workflows) for current versioning, synchronization and release behavior. Do not publish packages as part of validation.
+Do not publish packages as part of validation.

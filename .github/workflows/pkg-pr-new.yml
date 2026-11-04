@@ -5,6 +5,10 @@ on:
     branches: [main]
     paths:
       - "packages/**"
+      - "package.json"
+      - "pnpm-lock.yaml"
+      - "pnpm-workspace.yaml"
+      - ".github/scripts/list-preview-packages.mjs"
       - ".github/workflows/pkg-pr-new.yml"
 
 permissions: {}
@@ -37,24 +41,15 @@ jobs:
       - name: Install Dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Collect packages with changesets
-        id: changeset
+      - name: Collect changed public packages and dependents
+        id: packages
         env:
-          CHANGESET_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          PREVIEW_BASE_SHA: ${{ github.event.pull_request.base.sha }}
         run: |
-          CHANGESET_FILES=$(git diff --no-renames --name-only --diff-filter=AM "$CHANGESET_BASE_SHA"...HEAD -- ':(glob).changeset/*.md' ':(exclude).changeset/README.md')
-
-          if [ -z "$CHANGESET_FILES" ]; then
-            echo "No new or modified changesets; skipping pkg.pr.new publish."
-            echo "skip=true" >> "$GITHUB_OUTPUT"
-            exit 0
-          fi
-
-          pnpm changeset status --since "$CHANGESET_BASE_SHA" --output .changeset-status.json
-          PACKAGE_DIRS=$(node .github/scripts/list-changeset-packages.mjs .changeset-status.json | tr '\n' ' ')
+          PACKAGE_DIRS=$(node .github/scripts/list-preview-packages.mjs "$PREVIEW_BASE_SHA" | tr '\n' ' ')
 
           if [ -z "$(echo "$PACKAGE_DIRS" | tr -d '[:space:]')" ]; then
-            echo "No publishable @lynx-js packages affected by changesets; skipping pkg.pr.new publish."
+            echo "No changed public packages; skipping pkg.pr.new publish."
             echo "skip=true" >> "$GITHUB_OUTPUT"
             exit 0
           fi
@@ -69,9 +64,9 @@ jobs:
           } >> "$GITHUB_OUTPUT"
 
       - name: Publish to pkg.pr.new
-        if: steps.changeset.outputs.skip == 'false'
+        if: steps.packages.outputs.skip == 'false'
         env:
-          PACKAGE_DIRS: ${{ steps.changeset.outputs.package-dirs }}
+          PACKAGE_DIRS: ${{ steps.packages.outputs.package-dirs }}
         run: |
           read -r -a package_dirs <<< "$PACKAGE_DIRS"
           build_filters=()
