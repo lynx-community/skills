@@ -1,5 +1,15 @@
 # @lynx-js/devtool-mcp-server
 
+## 0.16.11
+
+### Patch Changes
+
+- Parse `tcp:` socket specs with `parseTcpSocketSpec` from `@yume-chan/adb-server-node-tcp`, so ADB server specs get strict port validation and bare IPv6 hosts. Host-less specs (`tcp:` and `tcp::<port>`) are now rejected; `tcp:<port>` falls back to `127.0.0.1`, and host-only specs fall back to port `5037`.
+- Updated dependency `@rslib/core` to `^1.0.5`.
+- Reset `Runtime` before enabling console capture so V8 Inspector replays cached console events on persistent connections.
+- Updated dependencies
+  - @lynx-js/devtool-connector@0.18.4
+
 ## 0.16.10
 
 ### Patch Changes

@@ -1,5 +1,17 @@
 # @lynx-js/devtool-connector
 
+## 0.18.4
+
+### Patch Changes
+
+- Updated dependency `@rslib/core` to `^1.0.5`.
+- Updated dependency `ws` to `^8.22.1`.
+- Schedule idle cleanup for unsubscribed daemon device connections discovered by `listClients` and use `readOnce` for daemon control responses.
+- Keep an idle DevTool device connection open for 30 seconds after the last subscriber leaves.
+- Remove `getAndroidTransportSpec` and delegate default Android ADB server configuration to `AdbServerNodeJsTcpConnector`. Direct mode now uses `ADB_SERVER_SOCKET` first, then `ANDROID_ADB_SERVER_ADDRESS` and `ANDROID_ADB_SERVER_PORT`, with the IPv4 loopback default (`127.0.0.1:5037`), because the ADB server always binds IPv4 loopback while `localhost` can resolve to ::1 first, and upstream errors for invalid ports instead of silently falling back. Replace the nonstandard `ADB_SERVER_HOST` / `ADB_SERVER_PORT` variables with the standard names.
+  
+  ADB configuration is read from `process.env` at transport construction, not the product entrypoint's injected `env` object. Explicit socket options still override the environment. Strip the standard ADB configuration variables from daemon child processes to retain direct/daemon isolation.
+
 ## 0.18.3
 
 No changes in this release.
