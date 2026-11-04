@@ -1,4 +1,4 @@
-# Agent Lynx
+# agent-lynx
 
 Agent-friendly CLI and typed Connector API for inspecting Lynx applications.
 

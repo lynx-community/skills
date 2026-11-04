@@ -3,7 +3,7 @@ name: lynx-devtool
 description: Use when working with Lynx DevTool or debugging a Lynx app, page, or device, especially when the task mentions clients or sessions, CDP or App commands, DOM/CSS inspection, runtime or console logs, evaluating JavaScript on a device, screenshots, heap snapshots, performance traces, Page.reload or App.openPage, global switches, interactive snapshot refs and taps/fills/scrolls, inspecting or searching a ReactLynx component tree, linking DOM Snapshot refs to ReactLynx components (`reactlynx link`), or mutating ReactLynx props/state/context on Android, iOS, or Desktop.
 ---
 
-# Agent Lynx DevTool Skill
+# agent-lynx DevTool Skill
 
 This skill allows you to interact with Lynx applications running on connected devices (Android, iOS, Desktop) using the `agent-lynx` CLI.
 
