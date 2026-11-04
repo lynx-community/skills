@@ -38,6 +38,7 @@ import {
   registerInspectCommand,
   registerListClientsCommand,
   registerListSessionsCommand,
+  registerLogsCommand,
   registerOpenCommand,
   registerReactLynxCommand,
   registerScreenshotCommand,
@@ -215,6 +216,7 @@ Examples:
   registerGetCommand(program, context);
   registerGetSourceInfoCommand(program, context);
   registerGetConsoleCommand(program, context);
+  registerLogsCommand(program, context);
   registerEvaluateCommand(program, context);
   registerInspectCommand(program, context);
   registerGlobalSwitchCommand(program, context);

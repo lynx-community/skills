@@ -4,6 +4,7 @@
 import assert from "node:assert/strict";
 import { ReadableStream } from "node:stream/web";
 import { test } from "node:test";
+import { CDPResponseTransformStream } from "../src/streams/cdp.ts";
 import { CustomizedResponseTransformStream } from "../src/streams/customized.ts";
 import {
   createCorrelatedFilter,
@@ -15,6 +16,29 @@ import {
 function response(type: string, message: string): CustomizedResponse {
   return { event: "Customized", data: { type, data: { message } } };
 }
+
+test("CDP streams filter the routing session before parsing events and still correlate responses", async () => {
+  const scoped = (sessionId: number, message: string) => ({
+    event: "Customized" as const,
+    data: { type: "CDP", data: { session_id: sessionId, message } },
+  });
+  const messages = [
+    response("CDP", JSON.stringify({ id: 9, result: "unscoped" })),
+    scoped(7, "malformed JSON from another session"),
+    scoped(-1, JSON.stringify({ id: 8, result: "other request" })),
+    scoped(-1, JSON.stringify({ method: "HSR.messageReceived", params: { message: "event" } })),
+    scoped(-1, JSON.stringify({ id: 9, result: "ours" })),
+  ];
+  const parsed = ReadableStream.from(messages).pipeThrough(new CDPResponseTransformStream(9, -1));
+  assert.deepEqual(await Array.fromAsync(parsed), [{ id: 9, result: "ours" }]);
+});
+
+test("CDP streams without a session filter retain legacy request response behavior", async () => {
+  const parsed = ReadableStream.from([
+    response("CDP", JSON.stringify({ id: 9, result: "unscoped" })),
+  ]).pipeThrough(new CDPResponseTransformStream(9));
+  assert.deepEqual(await Array.fromAsync(parsed), [{ id: 9, result: "unscoped" }]);
+});
 
 test("Customized response streams parse host-defined protocols and ignore other message types", async () => {
   const messages = [

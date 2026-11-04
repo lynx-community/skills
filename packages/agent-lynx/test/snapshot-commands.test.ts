@@ -72,11 +72,12 @@ test('registers snapshot, trace, source-info, daemon, and skill discovery withou
       'get-source-info',
       'daemon',
       'skills',
+      'logs',
     ]
   ) {
     assert.ok(commandNames.includes(name), `${name} must be registered`);
   }
-  for (const deferred of ['doctor', 'devices', 'logs']) {
+  for (const deferred of ['doctor', 'devices']) {
     assert.ok(
       !commandNames.includes(deferred),
       `${deferred} must remain outside phase one`,
