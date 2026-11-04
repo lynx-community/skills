@@ -1,5 +1,14 @@
 # agent-lynx
 
+## 0.14.26
+
+### Patch Changes
+
+- Wait for `Runtime.enable` acknowledgment before applying the one-shot idle timeout in `get-console`.
+- Updated dependencies
+  - @lynx-js/skill-lynx-devtool@0.14.26
+  - @lynx-js/devtool-connector@0.18.5
+
 ## 0.14.25
 
 ### Patch Changes
