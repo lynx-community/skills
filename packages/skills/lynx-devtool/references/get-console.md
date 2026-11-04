@@ -2,6 +2,8 @@
 
 Capture console logs from the device. This command connects to a Lynx session and streams console logs (Runtime.consoleAPICalled events) for a short duration or until a limit is reached.
 
+For asynchronous Host Script observer messages, use [logs --follow](logs.md).
+
 ## Usage
 
 ```bash
