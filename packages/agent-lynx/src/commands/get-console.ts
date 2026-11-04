@@ -4,6 +4,7 @@
 
 /* eslint-disable */
 import { Command } from 'commander';
+import { randomInt } from 'node:crypto';
 import { ReadableStream } from 'node:stream/web';
 import { logMonitor, MonitorCode } from '../telemetry.ts';
 import {
@@ -151,27 +152,35 @@ export function registerGetConsoleCommand(program: Command, context: Context) {
         m2: offset,
       });
 
+      const requestId = randomInt(10_000, 50_000);
+      const requests = [
+        { method: 'Page.enable' },
+        { method: 'Page.getResourceTree' },
+        ...thread.map((t: string) => ({
+          method: 'Debugger.enable',
+          sessionId: t === 'main' ? 'Main' : undefined,
+        })),
+        ...thread.flatMap((t: string) => [
+          {
+            method: 'Runtime.disable',
+            sessionId: t === 'main' ? 'Main' : undefined,
+          },
+          {
+            method: 'Runtime.enable',
+            sessionId: t === 'main' ? 'Main' : undefined,
+          },
+        ]),
+      ].map((request, index) => ({ id: requestId + index, ...request }));
+      const pendingRequests = new Set(
+        requests
+          .filter((request) => request.method === 'Runtime.enable')
+          .map((request) => request.id),
+      );
+
       await using stream = await connector.sendCDPStream(
         clientId,
         Number(sessionId),
-        ReadableStream.from([
-          { method: 'Page.enable' },
-          { method: 'Page.getResourceTree' },
-          ...thread.map((t: string) => ({
-            method: 'Debugger.enable',
-            sessionId: t === 'main' ? 'Main' : undefined,
-          })),
-          ...thread.flatMap((t: string) => [
-            {
-              method: 'Runtime.disable',
-              sessionId: t === 'main' ? 'Main' : undefined,
-            },
-            {
-              method: 'Runtime.enable',
-              sessionId: t === 'main' ? 'Main' : undefined,
-            },
-          ]),
-        ]),
+        ReadableStream.from(requests),
       );
 
       const defaultLevels = ['info', 'log', 'warning', 'error'];
@@ -228,8 +237,15 @@ export function registerGetConsoleCommand(program: Command, context: Context) {
       const messages: ConsoleMessage[] = [];
 
       for await (
-        const value of readUntilIdle(stream, { idleMs: 500, maxMs: 5000 })
+        const value of readUntilIdle(stream, {
+          idleMs: 500,
+          maxMs: 5000,
+          onIdle: () => pendingRequests.size > 0,
+        })
       ) {
+        if ('id' in value && typeof value.id === 'number') {
+          pendingRequests.delete(value.id);
+        }
         if (value.method !== 'Runtime.consoleAPICalled') continue;
         const params = value.params as ConsoleMessage;
         if (!allowedLevels.includes(params.type)) continue;
