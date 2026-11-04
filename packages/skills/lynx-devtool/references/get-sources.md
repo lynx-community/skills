@@ -12,6 +12,7 @@ agent-lynx get-sources [options]
 
 - `-c, --client <clientId>`: Client ID. If not provided, the command will attempt to discover the first available client.
 - `-s, --session <sessionId>`: Session ID. If not provided, the command will attempt to discover the latest session (with the largest session ID).
+- `--completion-mode <idle|barrier>`: Defaults to `idle`. Experimental `barrier` sends a second `Debugger.enable` and stops on its successful response after at least one script.
 
 ## Behavior
 
@@ -19,6 +20,8 @@ agent-lynx get-sources [options]
 2. **Refresh Scripts**: Sends `Debugger.disable` followed by `Debugger.enable` to trigger the re-emission of `Debugger.scriptParsed` events for all existing scripts.
 3. **Collection**: Listens for `Debugger.scriptParsed` events.
 4. **Timeout**: The command runs for a maximum of 5 seconds. It also stops early if no new scripts are received for 2 seconds (idle timeout).
+
+Use `barrier` only on SDK/host combinations whose initial script events have been verified to precede the second enable response. CDP does not guarantee this ordering: a response after only some scripts can produce an incomplete list. An early, missing, or failed barrier falls back to the normal timeout. The command enumerates initially loaded scripts; neither mode guarantees discovery of future dynamically loaded scripts.
 
 ## Output
 
