@@ -157,6 +157,70 @@ for (const watch of [false, true]) {
     assert.equal(output, watch ? '' : '[]');
   });
 
+  if (!watch) {
+    test('get-console one-shot waits past idleMs until Runtime.enable is acknowledged', async (t) => {
+      let disposed = 0;
+      t.mock.method(
+        Connector.prototype,
+        'sendCDPStream',
+        async (
+          _clientId: string,
+          _sessionId: number,
+          inputStream: ReadableStream<{ id?: number; method?: string; }>,
+        ) => {
+          const requests: Array<{ id?: number; method?: string; }> = [];
+          for await (const req of inputStream) {
+            requests.push(req);
+          }
+          const pageEnable = requests.find((r) => r.method === 'Page.enable');
+          const runtimeEnable = requests.find(
+            (r) => r.method === 'Runtime.enable',
+          );
+          const stream = new ReadableStream({
+            async start(controller) {
+              controller.enqueue({ id: pageEnable?.id, result: {} });
+              await new Promise((resolve) => setTimeout(resolve, 650));
+              controller.enqueue(
+                consoleEvent({
+                  type: 'log',
+                  timestamp: 1_700_000_000_123,
+                  args: [{ type: 'string', value: 'delayed cached log' }],
+                }),
+              );
+              controller.enqueue({ id: runtimeEnable?.id, result: {} });
+              controller.close();
+            },
+          });
+          return Object.assign(stream, {
+            async [Symbol.asyncDispose]() {
+              disposed++;
+            },
+          });
+        },
+      );
+      const output: string[] = [];
+      t.mock.method(console, 'log', (line: string) => output.push(line));
+      const program = new Command().exitOverride();
+      registerGetConsoleCommand(program, { transports: [] });
+      await program.parseAsync([
+        'node',
+        'test',
+        'get-console',
+        '--client',
+        'test-device:8901',
+        '--session',
+        '7',
+        '--thread',
+        'background',
+      ]);
+      assert.equal(disposed, 1);
+      assert.equal(
+        output.join('\n'),
+        '[22:13:20.123Z] [log/background] delayed cached log',
+      );
+    });
+  }
+
   test(`get-console ${mode} prints event timestamps for both threads and preserves error details`, async (t) => {
     const output = await captureConsole(t, [
       consoleEvent({
