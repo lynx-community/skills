@@ -324,7 +324,9 @@ export function registerSkillsCommand(
   const skillRoots = options.skillRoots
     ?? (options.skillRoot ? [options.skillRoot] : resolveBuiltInSkillRoots());
   const skills = program.command('skills')
-    .description('Discover and read the Agent Skills shipped with Agent Lynx');
+    .description(
+      'Discover and read the Agent Skills shipped with the agent-lynx CLI',
+    );
 
   skills.command('list')
     .description('List available skills as agent-readable XML')
