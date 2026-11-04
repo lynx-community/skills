@@ -1,5 +1,12 @@
 # @lynx-js/skill-lynx-devtool
 
+## 0.14.25
+
+### Patch Changes
+
+- Schedule idle cleanup for unsubscribed daemon device connections discovered by `listClients` and use `readOnce` for daemon control responses.
+- Keep an idle DevTool device connection open for 30 seconds after the last subscriber leaves.
+
 ## 0.14.24
 
 No changes in this release.
