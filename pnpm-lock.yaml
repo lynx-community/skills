@@ -127,6 +127,10 @@ importers:
       '@lynx-js/devtool-connector':
         specifier: workspace:*
         version: link:../mcp-servers/devtool-connector
+      '@lynx-js/trace-processor':
+        specifier: 0.0.1
+        version: 0.0.1
+    devDependencies:
       '@lynx-js/skill-lynx-devtool':
         specifier: workspace:*
         version: link:../skills/lynx-devtool
@@ -145,10 +149,6 @@ importers:
       '@lynx-js/skill-lynx-trace-record':
         specifier: 0.0.6
         version: 0.0.6
-      '@lynx-js/trace-processor':
-        specifier: 0.0.1
-        version: 0.0.1
-    devDependencies:
       '@microsoft/api-extractor':
         specifier: ^7.60.1
         version: 7.60.1(@types/node@24.19.2)

@@ -18,6 +18,7 @@ export default defineConfig([
     '**/rspack-expected/**',
     '**/__swc_snapshots__/**',
     '**/__snapshots__/**',
+    'packages/agent-lynx/skills/**',
     'packages/tools/perfetto-trace-processor/vendor/**',
   ]),
   js.configs.recommended,

@@ -30,7 +30,8 @@
     "CHANGELOG.md",
     "README.md",
     "package.json",
-    "dist"
+    "dist",
+    "skills"
   ],
   "scripts": {
     "build": "rslib build",
@@ -40,15 +41,15 @@
   },
   "dependencies": {
     "@lynx-js/devtool-connector": "workspace:*",
+    "@lynx-js/trace-processor": "0.0.1"
+  },
+  "devDependencies": {
     "@lynx-js/skill-lynx-devtool": "workspace:*",
     "@lynx-js/skill-lynx-recorder": "workspace:*",
     "@lynx-js/skill-lynx-recorder-fixture": "workspace:*",
     "@lynx-js/skill-lynx-tasm-codec": "workspace:*",
     "@lynx-js/skill-lynx-trace-analysis": "0.0.12",
     "@lynx-js/skill-lynx-trace-record": "0.0.6",
-    "@lynx-js/trace-processor": "0.0.1"
-  },
-  "devDependencies": {
     "@microsoft/api-extractor": "^7.60.1",
     "@rslib/core": "catalog:rstack",
     "@types/node": "^24.19.2",

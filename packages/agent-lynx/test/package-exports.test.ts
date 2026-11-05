@@ -5,6 +5,7 @@
 import assert from 'node:assert/strict';
 import { execFile } from 'node:child_process';
 import fs from 'node:fs/promises';
+import os from 'node:os';
 import path from 'node:path';
 import { test } from 'node:test';
 import { fileURLToPath } from 'node:url';
@@ -248,6 +249,58 @@ test('the built package starts its bin and exposes the typed connector API', asy
   assert.match(get.stdout, /<file>examples\//);
   assert.match(get.stdout, /<file>references\//);
   assert.doesNotMatch(get.stdout, /<file>dist\//);
+
+  const packDirectory = await fs.mkdtemp(
+    path.join(os.tmpdir(), 'agent-lynx-public-pack-'),
+  );
+  t.after(() => fs.rm(packDirectory, { recursive: true, force: true }));
+  const archive = path.join(packDirectory, 'agent-lynx.tgz');
+  await execFileAsync(
+    'pnpm',
+    ['pack', '--config.ignore-scripts=true', '--out', archive],
+    {
+      cwd: fileURLToPath(new URL('..', import.meta.url)),
+      env: localOnlyEnvironment,
+    },
+  );
+  const { stdout: packedManifestText } = await execFileAsync('tar', [
+    '-xOf',
+    archive,
+    'package/package.json',
+  ]);
+  const packedManifest = JSON.parse(packedManifestText) as {
+    dependencies?: Record<string, string>;
+  };
+  assert.deepEqual(
+    Object.keys(packedManifest.dependencies ?? {}).sort(),
+    ['@lynx-js/devtool-connector', '@lynx-js/trace-processor'],
+  );
+  const { stdout: archiveEntriesText } = await execFileAsync('tar', [
+    '-tzf',
+    archive,
+  ]);
+  const archiveEntries = new Set(
+    archiveEntriesText.trim().split('\n').map(entry => entry.trim()),
+  );
+  for (
+    const skill of [
+      'lynx-devtool',
+      'lynx-recorder',
+      'lynx-recorder-fixture',
+      'lynx-tasm-codec',
+      'lynx-trace-analysis',
+      'lynx-trace-record',
+    ]
+  ) {
+    assert.ok(
+      archiveEntries.has(`package/skills/${skill}/SKILL.md`),
+      `packed archive must ship skills/${skill}/SKILL.md`,
+    );
+    assert.ok(
+      !archiveEntries.has(`package/skills/${skill}/package.json`),
+      `packed archive must not ship skills/${skill}/package.json`,
+    );
+  }
 });
 
 test('the built bin runs offline trace analysis without a device', async (t) => {
