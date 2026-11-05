@@ -26,6 +26,7 @@ function createEofTransport(upstreamError?: Error): Transport {
   const appWriter = appToDaemon.writable.getWriter();
 
   return {
+    id: "eof",
     async close() {
       await appWriter.close().catch(() => {});
     },
@@ -82,7 +83,7 @@ test("daemon read failures preserve the transport close reason", async t => {
   const connector = new Connector([
     new DaemonTransport(`ws://127.0.0.1:${port}${DAEMON_WS_PATH}`),
   ]);
-  const clientId = ClientId.serialize("fake-device", 8901);
+  const clientId = ClientId.serialize("eof", "fake-device", 8901);
 
   await assert.rejects(
     connector.sendCDPMessage(clientId, 7, "Runtime.evaluate", { expression: "1 + 1" }),
@@ -109,7 +110,7 @@ test("daemon close reasons remain valid when a transport error is long UTF-8", a
   const connector = new Connector([
     new DaemonTransport(`ws://127.0.0.1:${port}${DAEMON_WS_PATH}`),
   ]);
-  const clientId = ClientId.serialize("fake-device", 8901);
+  const clientId = ClientId.serialize("eof", "fake-device", 8901);
 
   await assert.rejects(
     connector.sendCDPMessage(clientId, 7, "Runtime.evaluate", { expression: "1 + 1" }),

@@ -17,6 +17,7 @@ import {
 const debug = createDebug("devtool-mcp-server:connector:desktop");
 
 export class DesktopTransport implements Transport {
+  readonly id: string = "desktop";
   #takeoverHDT: boolean;
   constructor(takeoverHDT = true) {
     this.#takeoverHDT = takeoverHDT;

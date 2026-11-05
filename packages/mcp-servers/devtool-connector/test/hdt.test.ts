@@ -195,7 +195,7 @@ test("Connector preserves the request timeout when an HDT socket closes without 
   const connector = new Connector([
     new HDTTransport(`ws://127.0.0.1:${address.port}/mdevices/page/android`),
   ]);
-  const clientId = ClientId.serialize(`HDT-${address.port}`, "router-uuid");
+  const clientId = ClientId.serialize(`HDT-${address.port}`, `HDT-${address.port}`, "router-uuid");
 
   const controller = new AbortController();
   const timeout = new DOMException("The operation timed out", "TimeoutError");
@@ -262,7 +262,7 @@ test("HDTTransport exposes debugRouterId as the client target", async (t) => {
   const clients = await transport.listClients();
 
   assert.equal(listClientsRequests, 1);
-  assert.equal(clients[0]?.id, `HDT-${address.port}:router-uuid`);
+  assert.equal(clients[0]?.id, `HDT-${address.port}:HDT-${address.port}:router-uuid`);
 });
 
 test("HDTTransport lists clients when the fresh ClientList is delayed", async (t) => {
@@ -307,7 +307,7 @@ test("HDTTransport lists clients when the fresh ClientList is delayed", async (t
 
   assert.equal(connectionCount, 1);
   assert.equal(listClientsRequests, 1);
-  assert.deepEqual(clients.map(client => client.id), [`HDT-${address.port}:router-uuid`]);
+  assert.deepEqual(clients.map(client => client.id), [`HDT-${address.port}:HDT-${address.port}:router-uuid`]);
 });
 
 test("HDTTransport isolates the selected sender and follows ClientList updates", async (t) => {

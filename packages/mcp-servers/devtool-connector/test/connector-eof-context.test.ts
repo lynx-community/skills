@@ -9,6 +9,7 @@ import { ClientId, Connector } from "../src/index.ts";
 import type { Connection, Device, Transport } from "../src/transport/transport.ts";
 
 class EofTransport implements Transport {
+  readonly id = "eof";
   async close(): Promise<void> {}
   async listDevices(): Promise<Device[]> {
     return [{ id: "fake-device", os: "Android" }];
@@ -36,14 +37,14 @@ class EofTransport implements Transport {
 
 test("Connector identifies the request when a transport ends before its response", async () => {
   const connector = new Connector([new EofTransport()]);
-  const clientId = ClientId.serialize("fake-device", 8901);
+  const clientId = ClientId.serialize("eof", "fake-device", 8901);
   await assert.rejects(
     connector.sendCDPMessage(clientId, 7, "Runtime.evaluate", { expression: "private payload" }),
     error => {
       assert(error instanceof Error);
       assert.equal(
         error.message,
-        "Transport EofTransport ended cleanly (EOF) while waiting for a response to method Runtime.evaluate on clientId: fake-device:8901.",
+        "Transport EofTransport ended cleanly (EOF) while waiting for a response to method Runtime.evaluate on clientId: eof:fake-device:8901.",
       );
       assert.doesNotMatch(error.message, /private payload/u);
       return true;

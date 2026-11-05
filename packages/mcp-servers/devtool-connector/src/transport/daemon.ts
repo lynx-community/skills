@@ -21,6 +21,10 @@ import type {
 
 const debug = createDebug("devtool-mcp-server:daemon:transport");
 
+export interface DaemonConnectOptions extends TransportConnectOptions {
+  transportId: string;
+}
+
 /**
  * A Transport implementation that communicates with devices through the
  * daemon process over WebSocket.
@@ -31,6 +35,7 @@ const debug = createDebug("devtool-mcp-server:daemon:transport");
  * Initialize/Register/Customized protocol as HDT.
  */
 export class DaemonTransport implements Transport {
+  readonly id = "daemon";
   #endpoint: number | string;
 
   constructor(endpoint: number | string = DEFAULT_DAEMON_PORT) {
@@ -78,9 +83,9 @@ export class DaemonTransport implements Transport {
   }
 
   async connect<TInput = unknown, TOutput = unknown>(
-    options: TransportConnectOptions,
+    options: DaemonConnectOptions,
   ): Promise<Connection<TOutput, TInput>> {
-    const { deviceId, signal } = options;
+    const { transportId, deviceId, signal } = options;
     const { port } = options;
     debug("connect to %s:%o via daemon", deviceId, port);
 
@@ -88,7 +93,16 @@ export class DaemonTransport implements Transport {
 
     try {
       // Subscribe this WS session to the target device:port on the daemon
-      await this.#controlRequestOnConn(conn, "subscribe", { deviceId, port }, signal);
+      await this.#controlRequestOnConn(
+        conn,
+        "subscribe",
+        {
+          transportId,
+          deviceId,
+          port,
+        },
+        signal,
+      );
     } catch (error) {
       await conn[Symbol.asyncDispose]();
       throw new Error(

@@ -283,6 +283,7 @@ test("screenshot acknowledges empty frames and waits for screencast cleanup", as
 });
 
 class DelayedScreenshotTransport implements Transport {
+  readonly id = "delayed-screenshot";
   readonly acknowledgement = deferred<Error | undefined>();
   readonly acknowledgementStarted = deferred<void>();
   readonly acknowledgementWritten = deferred<void>();
@@ -371,7 +372,7 @@ class DelayedScreenshotTransport implements Transport {
   }
 }
 
-const screenshotClientId = ClientId.serialize("screenshot-device", 8901);
+const screenshotClientId = ClientId.serialize("delayed-screenshot", "screenshot-device", 8901);
 
 test(
   "screenshot waits for a CDP frame acknowledgement response before closing the connection",

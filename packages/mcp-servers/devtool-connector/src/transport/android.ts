@@ -76,6 +76,7 @@ export interface AppIcon {
 }
 
 export class AndroidTransport implements Transport {
+  readonly id = "android";
   protected readonly client: AdbServerClient;
   readonly #appIconHelperDeployments = new Map<string, Promise<void>>();
 

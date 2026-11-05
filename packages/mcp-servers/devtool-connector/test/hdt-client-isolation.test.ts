@@ -133,7 +133,7 @@ async function createHdtClientHarness(
   }
 
   return {
-    clientId: ClientId.serialize(deviceId, target),
+    clientId: ClientId.serialize(deviceId, deviceId, target),
     connector,
     broadcast(message) {
       const serialized = JSON.stringify(message);

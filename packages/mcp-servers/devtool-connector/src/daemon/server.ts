@@ -856,15 +856,16 @@ export class DevtoolDaemon {
         }
 
         case "subscribe": {
-          const s = (params ?? {}) as { deviceId?: string; port?: ClientTarget };
-          if (!s.deviceId || s.port === undefined) throw new Error("deviceId and port are required");
-          const key = `${s.deviceId}:${s.port}`;
-          let conn = this.#deviceConnections.get(key);
-          if (!conn || conn.isDisposed) {
-            const transport = await this.#findTransportWithDeviceId(s.deviceId);
+          const s = (params ?? {}) as { transportId?: string; deviceId?: string; port?: ClientTarget };
+          if (!s.transportId || !s.deviceId || s.port === undefined) {
+            throw new Error("transportId, deviceId, and port are required");
+          }
+          let conn = this.#findActiveDeviceConnection(s.transportId, s.deviceId, s.port);
+          if (!conn) {
+            const transport = await this.#findTransportWithDeviceId(s.deviceId, s.transportId);
             conn = await this.#getOrCreateDeviceConnection(transport, s.deviceId, s.port);
           } else {
-            this.#clearDeviceConnectionCleanup(key);
+            this.#clearDeviceConnectionCleanup(conn.key);
           }
           if (session.isClosing || this.#wsClients.get(session.id) !== session) {
             if (conn.subscriberCount === 0) this.#scheduleDeviceConnectionCleanup(conn);
@@ -957,7 +958,7 @@ export class DevtoolDaemon {
     // 1. Report already-connected device connections that completed handshake
     for (const [, conn] of this.#deviceConnections) {
       if (conn.appInfo && !conn.isDisposed) {
-        const id = ClientId.serialize(conn.deviceId, conn.port);
+        const id = ClientId.serialize(conn.transport.id, conn.deviceId, conn.port);
         if (entries.some((e) => e.id === id)) continue;
         entries.push({
           id,
@@ -971,7 +972,7 @@ export class DevtoolDaemon {
     const allDevices: { transport: Transport; devices: Device[] }[] = [];
     const transportResults = await Promise.allSettled(
       this.#transports
-        .filter(transport => !(transport instanceof HDTTransport) && typeof transport.listClients !== "function")
+        .filter(transport => typeof transport.listClients !== "function")
         .map(async (transport) => ({
           transport,
           devices: await transport.listDevices(),
@@ -998,7 +999,7 @@ export class DevtoolDaemon {
       allDevices.flatMap(({ transport, devices }) =>
         devices.flatMap((device) =>
           PORTS
-            .filter((port) => !existingKeys.has(`${device.id}:${port}`))
+            .filter((port) => !existingKeys.has(this.#deviceConnectionKey(transport, device.id, port)))
             .map((port) => this.#getOrCreateDeviceConnection(transport, device.id, port))
         )
       ),
@@ -1008,7 +1009,7 @@ export class DevtoolDaemon {
       if (r.status === "fulfilled") {
         const conn = r.value;
         if (conn.appInfo && !conn.isDisposed) {
-          const clientId = ClientId.serialize(conn.deviceId, conn.port);
+          const clientId = ClientId.serialize(conn.transport.id, conn.deviceId, conn.port);
           if (!entries.some((e) => e.id === clientId)) {
             entries.push({ id: clientId, info: conn.appInfo, type: "runtime" });
           }
@@ -1027,12 +1028,25 @@ export class DevtoolDaemon {
   // Device connection pool
   // ---------------------------------------------------------------------------
 
+  #deviceConnectionKey(transport: Transport, deviceId: string, port: ClientTarget): string {
+    return `${transport.id}:${deviceId}:${port}`;
+  }
+
+  #findActiveDeviceConnection(
+    transportId: string,
+    deviceId: string,
+    port: ClientTarget,
+  ): DeviceConnection | undefined {
+    const conn = this.#deviceConnections.get(`${transportId}:${deviceId}:${port}`);
+    return conn && !conn.isDisposed ? conn : undefined;
+  }
+
   async #getOrCreateDeviceConnection(
     transport: Transport,
     deviceId: string,
     port: ClientTarget,
   ): Promise<DeviceConnection> {
-    const key = `${deviceId}:${port}`;
+    const key = this.#deviceConnectionKey(transport, deviceId, port);
     if (this.#closed) {
       throw new Error(`DevTool daemon closed while acquiring device connection ${key}`);
     }
@@ -1165,7 +1179,13 @@ export class DevtoolDaemon {
     this.#deviceConnectionCleanupTimers.delete(key);
   }
 
-  async #findTransportWithDeviceId(deviceId: string): Promise<Transport> {
+  async #findTransportWithDeviceId(deviceId: string, transportId?: string): Promise<Transport> {
+    if (transportId !== undefined) {
+      const matchedById = this.#transports.find(t => t.id === transportId);
+      if (matchedById) return matchedById;
+      throw new Error(`Transport with id: ${transportId} not found`);
+    }
+
     for (const transport of this.#transports) {
       try {
         const devices = await transport.listDevices();

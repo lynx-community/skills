@@ -28,6 +28,7 @@ type CustomizedCDPRequest = {
 };
 
 class FakeHeapSnapshotTransport implements Transport {
+  readonly id = 'fake-heap-snapshot';
   readonly #chunks: readonly string[];
   readonly #failureAfterChunks: Error | undefined;
   readonly methods: string[] = [];
@@ -145,7 +146,7 @@ test('take-heap-snapshot streams chunks to an atomically published file', async 
       'test',
       'take-heap-snapshot',
       '--client',
-      'device:8901',
+      'fake-heap-snapshot:device:8901',
       '--session',
       '7',
       '--output',
@@ -189,7 +190,7 @@ test('take-heap-snapshot preserves the previous output when streaming fails', as
       'test',
       'take-heap-snapshot',
       '--client',
-      'device:8901',
+      'fake-heap-snapshot:device:8901',
       '--session',
       '7',
       '--output',
