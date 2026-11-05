@@ -18,6 +18,7 @@ import { Usbmux } from "./usbmux.ts";
 const debug = createDebug("devtool-mcp-server:connector:ios");
 
 export class iOSTransport implements Transport {
+  readonly id = "ios";
   #client: Usbmux;
 
   constructor(options?: NetConnectOpts) {

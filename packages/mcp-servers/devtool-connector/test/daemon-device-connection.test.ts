@@ -49,6 +49,7 @@ function createFakeTransport(options: {
   });
 
   const transport: Transport = {
+    id: "fake",
     async close() {},
     async listDevices() {
       return [{ id: "fake-device", os: "Android" }];
@@ -98,7 +99,7 @@ describe("DeviceConnection", () => {
     await conn.connect();
     t.after(() => conn.dispose());
 
-    t.assert.equal(conn.key, "fake-device:8901");
+    t.assert.equal(conn.key, "fake:fake-device:8901");
     t.assert.equal(conn.deviceId, "fake-device");
     t.assert.equal(conn.port, 8901);
   });

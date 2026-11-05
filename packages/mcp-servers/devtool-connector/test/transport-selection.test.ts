@@ -90,6 +90,7 @@ class SlowDaemonSessionTransport extends DaemonTransport {
 }
 
 class FastDirectNoResponseTransport implements Transport {
+  readonly id = "fast-direct";
   readonly #deviceId = "device under:test";
   connectCalls = 0;
 
@@ -134,6 +135,7 @@ class FastDirectNoResponseTransport implements Transport {
 }
 
 class PooledTargetTransport implements Transport {
+  readonly id: string = "pooled-target";
   readonly #deviceId = "device under:test";
   discovery: "visible" | "empty" | "throws" = "visible";
   listDevicesCalls = 0;
@@ -219,7 +221,9 @@ describe("Connector transport selection", () => {
     const directTransport = new FastDirectNoResponseTransport();
     const connector = new Connector([directTransport, daemonTransport]);
 
-    const sessions = await connector.sendListSessionMessage(ClientId.serialize("device under:test", 8901));
+    const sessions = await connector.sendListSessionMessage(
+      ClientId.serialize(directTransport.id, "device under:test", 8901),
+    );
 
     t.assert.deepStrictEqual(sessions, [{
       session_id: 101,
@@ -235,10 +239,11 @@ describe("Connector transport selection", () => {
     const daemon = new DevtoolDaemon([physicalTransport]);
     const port = await daemon.start(0);
     const endpoint = `ws://127.0.0.1:${port}${DAEMON_WS_PATH}`;
-    const clientId = ClientId.serialize("device under:test", 8901);
+    const clientId = ClientId.serialize(physicalTransport.id, "device under:test", 8901);
 
     try {
       const keepAlive = await new DaemonTransport(endpoint).connect({
+        transportId: physicalTransport.id,
         deviceId: "device under:test",
         port: 8901,
       });
@@ -255,23 +260,58 @@ describe("Connector transport selection", () => {
         physicalTransport.discovery = "throws";
         assert.deepEqual(await connector.sendListSessionMessage(clientId), expectedSessions);
 
-        assert.equal(physicalTransport.listDevicesCalls, 1);
+        assert.equal(physicalTransport.listDevicesCalls, 0);
         assert.equal(physicalTransport.connectCalls, 1);
         assert.equal(physicalTransport.disposeCalls, 0);
 
         physicalTransport.discovery = "empty";
         await assert.rejects(
-          connector.sendListSessionMessage(ClientId.serialize("unknown device", 8901)),
+          connector.sendListSessionMessage(ClientId.serialize("unknown-transport", "unknown device", 8901)),
           error =>
             error instanceof Error
             && error.message.includes("Failed to subscribe to unknown device:8901")
             && error.cause instanceof Error
-            && error.cause.message === "Device with id: unknown device not found",
+            && error.cause.message === "Transport with id: unknown-transport not found",
         );
         assert.equal(physicalTransport.connectCalls, 1);
       } finally {
         await keepAlive[Symbol.asyncDispose]();
       }
+    } finally {
+      await daemon.close();
+    }
+  });
+
+  test("routes by transportId without calling listDevices when transportId is encoded in clientId", async () => {
+    class NamedTransport extends PooledTargetTransport {
+      override readonly id: string;
+      constructor(id: string) {
+        super();
+        this.id = id;
+      }
+    }
+
+    const transportA = new NamedTransport("transport-a");
+    const transportB = new NamedTransport("transport-b");
+    transportB.discovery = "throws";
+
+    const daemon = new DevtoolDaemon([transportA, transportB]);
+    const port = await daemon.start(0);
+    const endpoint = `ws://127.0.0.1:${port}${DAEMON_WS_PATH}`;
+    const clientId = ClientId.serialize("transport-b", "device under:test", 8901);
+
+    try {
+      const connector = new Connector([new DaemonTransport(endpoint)]);
+      const sessions = await connector.sendListSessionMessage(clientId);
+      assert.deepEqual(sessions, [{
+        session_id: 101,
+        type: "lynx",
+        url: "https://example.test/session/101",
+      }]);
+      assert.equal(transportA.listDevicesCalls, 0);
+      assert.equal(transportB.listDevicesCalls, 0);
+      assert.equal(transportA.connectCalls, 0);
+      assert.equal(transportB.connectCalls, 1);
     } finally {
       await daemon.close();
     }

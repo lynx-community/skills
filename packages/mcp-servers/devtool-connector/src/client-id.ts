@@ -4,26 +4,39 @@
 export type ClientTarget = number | string;
 
 export class ClientId {
-  static serialize(deviceId: string, target: ClientTarget): string {
-    const encodedTarget = typeof target === "string" ? encodeURIComponent(target) : target;
-    return `${encodeURIComponent(deviceId)}:${encodedTarget}`;
+  readonly transportId: string;
+  readonly deviceId: string;
+  readonly port: ClientTarget;
+
+  constructor(transportId: string, deviceId: string, port: ClientTarget) {
+    this.transportId = transportId;
+    this.deviceId = deviceId;
+    this.port = port;
   }
 
-  static deserialize(clientId: string): { deviceId: string; port: ClientTarget } | null {
-    try {
-      const lastColonIndex = clientId.lastIndexOf(":");
-      if (lastColonIndex === -1) return null;
+  static serialize(transportId: string, deviceId: string, target: ClientTarget): string {
+    const encodedTransportId = encodeURIComponent(transportId);
+    const encodedDeviceId = encodeURIComponent(deviceId);
+    const encodedTarget = typeof target === "string" ? encodeURIComponent(target) : target;
+    return `${encodedTransportId}:${encodedDeviceId}:${encodedTarget}`;
+  }
 
-      const target = decodeURIComponent(clientId.substring(lastColonIndex + 1));
-      if (!target) return null;
+  static deserialize(clientId: string): ClientId | null {
+    try {
+      const [rawTransportId, rawDeviceId, rawTarget, ...rest] = clientId.split(":");
+      if (rawTransportId === undefined || rawDeviceId === undefined || rawTarget === undefined || rest.length > 0) {
+        return null;
+      }
+
+      const transportId = decodeURIComponent(rawTransportId);
+      const deviceId = decodeURIComponent(rawDeviceId);
+      const target = decodeURIComponent(rawTarget);
+      if (!transportId || !deviceId || !target) return null;
 
       const port = /^-?\d+$/.test(target) ? Number(target) : target;
       if (typeof port === "number" && !Number.isSafeInteger(port)) return null;
 
-      return {
-        deviceId: decodeURIComponent(clientId.substring(0, lastColonIndex)),
-        port,
-      };
+      return new ClientId(transportId, deviceId, port);
     } catch {
       return null;
     }

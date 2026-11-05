@@ -9,6 +9,7 @@ import { DaemonTransport } from "../src/transport/daemon.ts";
 import type { App, Client, Connection, Device, OpenAppOptions, Transport } from "../src/transport/transport.ts";
 
 class ClientListTransport implements Transport {
+  readonly id = "client-list";
   #openedPackageName: string | null = null;
   listClientsCalls = 0;
   openedOptions: OpenAppOptions | undefined;
@@ -36,7 +37,7 @@ class ClientListTransport implements Transport {
     }
 
     return [{
-      id: "device:8902",
+      id: "client-list:device:8902",
       info: {
         App: "LynxPlayground",
         AppProcessName: this.#openedPackageName,
@@ -57,6 +58,7 @@ class ClientListTransport implements Transport {
 }
 
 class EmptyClientListTransport implements Transport {
+  readonly id = "empty-client-list";
   listClientsCalls = 0;
 
   async close(): Promise<void> {
@@ -93,7 +95,7 @@ test("Connector.openApp waits for clients through transport.listClients when ava
     restart: true,
   });
 
-  assert.equal(clientId, "device:8902");
+  assert.equal(clientId, "client-list:device:8902");
   assert.equal(transport.openedOptions?.schema, "example://page");
   assert.equal(transport.openedOptions?.restart, true);
   assert.equal(transport.listClientsCalls, 1);

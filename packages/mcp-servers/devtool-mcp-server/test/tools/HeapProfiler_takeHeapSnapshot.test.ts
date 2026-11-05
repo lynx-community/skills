@@ -46,7 +46,7 @@ async function collectMessages(
   return messages;
 }
 
-const testClientId = ClientId.serialize('test-device', 8901);
+const testClientId = ClientId.serialize('android', 'test-device', 8901);
 
 const createMockConnector = (
   buildMessages: (requestId: number) => ParsedCdpMessage[],

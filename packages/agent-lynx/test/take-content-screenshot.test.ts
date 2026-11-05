@@ -33,6 +33,7 @@ type CustomizedCDPRequest = {
 };
 
 class FakeRuntimeTransport implements Transport {
+  readonly id = 'fake-runtime';
   readonly requests: CustomizedCDPRequest[] = [];
 
   async close(): Promise<void> {}
@@ -147,7 +148,7 @@ test('take-content-screenshot captures scroll content through Runtime.evaluate',
     'test',
     'take-content-screenshot',
     '--client',
-    'device:1234',
+    'fake-runtime:device:1234',
     '--session',
     '7',
     '--selector',

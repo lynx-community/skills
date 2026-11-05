@@ -11,6 +11,7 @@ import { DevtoolDaemon } from "../src/daemon/server.ts";
 import type { App, Connection, Device, Transport, TransportConnectOptions } from "../src/transport/transport.ts";
 
 class BlockedListDevicesTransport implements Transport {
+  readonly id = "blocked-list-devices";
   readonly listDevicesStarted = Promise.withResolvers<void>();
   readonly #listDevices = Promise.withResolvers<Device[]>();
 
@@ -200,10 +201,9 @@ test("daemon shutdown closes an aborted unary command response", async (t) => {
     await (closing ?? daemon.close());
   });
 
-  const command = new HttpCommandClient({ port, ensureDaemon: false }).executeRaw("snapshot", {
-    clientId: ClientId.serialize("blocked-device", 8901),
-    sessionId: 1,
-  }, { timeoutMs: 2_000 });
+  const command = new HttpCommandClient({ port, ensureDaemon: false }).executeRaw("list-clients", {}, {
+    timeoutMs: 2_000,
+  });
 
   try {
     let startupTimeout: ReturnType<typeof setTimeout> | undefined;
