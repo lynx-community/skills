@@ -1,5 +1,11 @@
 # @lynx-js/skill-lynx-devtool
 
+## 0.14.27
+
+### Patch Changes
+
+- Use the `agent-lynx` name consistently in documentation.
+
 ## 0.14.26
 
 No changes in this release.
