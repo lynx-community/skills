@@ -50,6 +50,7 @@ interface WsClientSession extends DeviceConnectionSubscriber {
   readonly isClosing: boolean;
   /** Which device connections this client is subscribed to. */
   readonly subscriptions: Set<DeviceConnection>;
+  onClose(listener: () => void): () => void;
   send(message: unknown): void;
   close(cause?: unknown): void;
 }
@@ -671,12 +672,29 @@ export class DevtoolDaemon {
     this.#clearIdleTimer();
 
     let closing = false;
+    const closeListeners = new Set<() => void>();
+    const notifyCloseListeners = () => {
+      for (const listener of closeListeners) {
+        closeListeners.delete(listener);
+        listener();
+      }
+    };
     const session: WsClientSession = {
       id: clientId,
       get isClosing() {
         return closing;
       },
       subscriptions: new Set(),
+      onClose(listener: () => void) {
+        if (closing) {
+          listener();
+          return () => {};
+        }
+        closeListeners.add(listener);
+        return () => {
+          closeListeners.delete(listener);
+        };
+      },
       send(message: unknown) {
         // ws.OPEN === 1
         if (!closing && ws.readyState === 1) {
@@ -687,6 +705,7 @@ export class DevtoolDaemon {
         if (closing) return;
         closing = true;
         this.#wsClients.delete(clientId);
+        notifyCloseListeners();
         if (cause === undefined) {
           ws.close(1001, "device disconnected");
         } else {
@@ -711,6 +730,7 @@ export class DevtoolDaemon {
       debug("ws client %d disconnected", clientId);
       closing = true;
       this.#wsClients.delete(clientId);
+      notifyCloseListeners();
 
       for (const deviceConn of session.subscriptions) {
         deviceConn.removeSubscriber(clientId);
@@ -845,12 +865,24 @@ export class DevtoolDaemon {
             schema?: string;
           };
           if (!p.deviceId || !p.packageName) throw new Error("deviceId and packageName are required");
-          const transport = await this.#findTransportWithDeviceId(p.deviceId);
-          await transport.openApp(p.deviceId, p.packageName, {
-            withDataCleared: p.withDataCleared,
-            schema: p.schema,
-            restart: p.restart,
+          const abortController = new AbortController();
+          const removeCloseListener = session.onClose(() => {
+            abortController.abort(
+              new Error(`Daemon client ${session.id} disconnected before openApp completed`),
+            );
           });
+          try {
+            const transport = await this.#findTransportWithDeviceId(p.deviceId);
+            abortController.signal.throwIfAborted();
+            await transport.openApp(p.deviceId, p.packageName, {
+              withDataCleared: p.withDataCleared,
+              schema: p.schema,
+              restart: p.restart,
+              signal: abortController.signal,
+            });
+          } finally {
+            removeCloseListener();
+          }
           result = null;
           break;
         }
