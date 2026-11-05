@@ -8,6 +8,7 @@ import { cliPlaceholder } from '../cli-invocation.ts';
 import { runSnapshotCommand } from './result.ts';
 import {
   CLIENT_OPTION,
+  COMPACT_JSON_OPTION,
   type Context,
   formatSnapshotRefresh,
   getCommandClient,
@@ -31,7 +32,8 @@ export function registerFillCommand(program: Command, context: Context): void {
     .option(...CLIENT_OPTION)
     .option(...SESSION_OPTION)
     .option(...SNAPSHOT_AFTER_OPTION)
-    .option(...JSON_OPTION);
+    .option(...JSON_OPTION)
+    .option(...COMPACT_JSON_OPTION);
   fill.action(
     async (
       ref: string,
@@ -41,6 +43,7 @@ export function registerFillCommand(program: Command, context: Context): void {
         session?: string;
         snapshot?: boolean;
         json?: boolean;
+        compact?: boolean;
       },
     ) => {
       await runSnapshotCommand<FillResult>(
@@ -73,7 +76,8 @@ export function registerFillCommand(program: Command, context: Context): void {
     .option(...CLIENT_OPTION)
     .option(...SESSION_OPTION)
     .option(...SNAPSHOT_AFTER_OPTION)
-    .option(...JSON_OPTION);
+    .option(...JSON_OPTION)
+    .option(...COMPACT_JSON_OPTION);
   clear.action(
     async (
       ref: string,
@@ -82,6 +86,7 @@ export function registerFillCommand(program: Command, context: Context): void {
         session?: string;
         snapshot?: boolean;
         json?: boolean;
+        compact?: boolean;
       },
     ) => {
       await runSnapshotCommand<ClearResult>(

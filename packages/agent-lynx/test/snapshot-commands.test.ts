@@ -155,8 +155,76 @@ test('--no-daemon returns a JSON failure for every snapshot/ref leaf before maki
     assert.equal(result.ok, false);
     assert.equal(result.error?.reason, 'unsupported-option');
     assert.match(result.error?.message ?? '', /--no-daemon cannot be used/);
+    assert.equal(output.at(-1), JSON.stringify(result, null, 2));
+    if (
+      ['snapshot', 'tap', 'long-press', 'fill', 'clear', 'scroll'].includes(
+        args[0] ?? '',
+      )
+    ) {
+      await program.parseAsync([
+        'node',
+        'agent-lynx',
+        '--no-daemon',
+        ...args,
+        '--json',
+        '--compact',
+      ]);
+      const compactResult = JSON.parse(
+        output.at(-1) ?? 'null',
+      ) as CommandResult;
+      assert.deepEqual(compactResult, result);
+      assert.equal(output.at(-1), JSON.stringify(result));
+    }
     assert.deepEqual(state, { executeCalls: 0, streamCalls: 0 });
     process.exitCode = undefined;
+  }
+});
+
+test('snapshot and ref actions preserve pretty JSON unless --compact is supplied', async (t) => {
+  const output: string[] = [];
+  t.mock.method(console, 'log', (value: unknown) => output.push(String(value)));
+  const data = { refs: [], ref: '@e1', point: { x: 10, y: 20 } };
+  const calls: Array<{ action: string; snapshotAfter?: boolean; }> = [];
+  const client = {
+    async execute(action: string, params: { snapshotAfter?: boolean; }) {
+      calls.push({ action, ...params });
+      return { ok: true, action, data };
+    },
+  } as CommandClient;
+  const cases = [
+    ['snapshot'],
+    ['tap', '@e1'],
+    ['long-press', '@e1'],
+    ['fill', '@e1', 'hello'],
+    ['clear', '@e1'],
+    ['scroll', '@e1'],
+  ];
+  for (const args of cases) {
+    const program = new Command().option('--no-daemon').exitOverride();
+    registerSnapshotFamily(program, { transports: [], commandClient: client });
+    for (const refresh of args[0] === 'snapshot' ? [false] : [false, true]) {
+      for (const compact of [false, true]) {
+        await program.parseAsync([
+          'node',
+          'agent-lynx',
+          ...args,
+          ...(refresh ? ['--snapshot'] : []),
+          '--json',
+          ...(compact ? ['--compact'] : []),
+        ]);
+        assert.equal(
+          output.at(-1),
+          JSON.stringify(
+            { ok: true, action: args[0], data },
+            null,
+            compact ? undefined : 2,
+          ),
+        );
+        if (args[0] !== 'snapshot') {
+          assert.equal(calls.at(-1)?.snapshotAfter, refresh);
+        }
+      }
+    }
   }
 });
 

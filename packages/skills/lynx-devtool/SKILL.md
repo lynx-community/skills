@@ -68,6 +68,12 @@ agent-lynx wait --text Ready
 agent-lynx screenshot --annotate -o page.jpeg
 ```
 
+`snapshot`, `tap`, `long-press`, `fill`, `clear`, and `scroll` support
+`--json --compact` for single-line JSON, for example
+`agent-lynx snapshot --json --compact` or
+`agent-lynx tap @e3 --snapshot --json --compact`. JSON remains indented by
+default. `--compact` does not change text output or `--snapshot` refresh behavior.
+
 Snapshot refs live in daemon memory across CLI invocations. Do not pass
 `--no-daemon` to `snapshot`, `tap`, `long-press`, `fill`, `clear`, `scroll`,
 `get text`, `get style`, `wait`, or `screenshot`. `wait` uses the daemon's SSE

@@ -73,6 +73,11 @@ export const JSON_OPTION = [
   'Emit a machine-readable command result envelope instead of compact text.',
 ] as const;
 
+export const COMPACT_JSON_OPTION = [
+  '--compact',
+  'Emit JSON without indentation (only affects --json output).',
+] as const;
+
 export const SNAPSHOT_AFTER_OPTION = [
   '--snapshot',
   'Refresh snapshot refs after this mutating action and include them in JSON output.',
