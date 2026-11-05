@@ -10,6 +10,7 @@ import { Command } from 'commander';
 import { runSnapshotCommand } from './result.ts';
 import {
   CLIENT_OPTION,
+  COMPACT_JSON_OPTION,
   type Context,
   getCommandClient,
   JSON_OPTION,
@@ -101,7 +102,8 @@ export function registerSnapshotCommand(
     )
     .option(...CLIENT_OPTION)
     .option(...SESSION_OPTION)
-    .option(...JSON_OPTION);
+    .option(...JSON_OPTION)
+    .option(...COMPACT_JSON_OPTION);
 
   command.action(
     async (
@@ -110,6 +112,7 @@ export function registerSnapshotCommand(
         client?: string;
         session?: string;
         json?: boolean;
+        compact?: boolean;
       },
     ) => {
       await runSnapshotCommand<SnapshotResult>(

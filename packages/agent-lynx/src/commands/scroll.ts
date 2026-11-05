@@ -8,6 +8,7 @@ import { cliPlaceholder } from '../cli-invocation.ts';
 import { runSnapshotCommand } from './result.ts';
 import {
   CLIENT_OPTION,
+  COMPACT_JSON_OPTION,
   type Context,
   formatSnapshotRefresh,
   getCommandClient,
@@ -37,7 +38,8 @@ export function registerScrollCommand(
     .option(...CLIENT_OPTION)
     .option(...SESSION_OPTION)
     .option(...SNAPSHOT_AFTER_OPTION)
-    .option(...JSON_OPTION);
+    .option(...JSON_OPTION)
+    .option(...COMPACT_JSON_OPTION);
   command.action(
     async (
       ref: string,
@@ -47,6 +49,7 @@ export function registerScrollCommand(
         session?: string;
         snapshot?: boolean;
         json?: boolean;
+        compact?: boolean;
       },
     ) => {
       await runSnapshotCommand<ScrollResult>(
