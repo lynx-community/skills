@@ -75,7 +75,7 @@
     "obug": "^2.2.1",
     "plist": "^5.0.0",
     "rsbuild-plugin-publint": "^1.0.0",
-    "semver": "^7.8.5",
+    "semver": "^7.8.6",
     "typescript": "^7.0.2",
     "ws": "^8.22.1"
   },
