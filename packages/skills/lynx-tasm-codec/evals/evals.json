@@ -1,0 +1,59 @@
+{
+  "skill_name": "lynx-tasm-codec",
+  "description": "End-to-end task evals for the lynx-tasm-codec skill. These evals measure whether the skill gives the correct Lynx TASM CLI commands, versioning strategy, and install behavior for encode/decode tasks.",
+  "evals": [
+    {
+      "id": 1,
+      "name": "encode-json-with-subcommand",
+      "prompt": "帮我把 `/tmp/card-template.json` 编成 `/tmp/card-template.tasm`。要求直接给 CLI 命令，不要改 package.json，也不要给 Node API 方案。",
+      "expected_output": "A command using `agent-lynx tasm encode -i /tmp/card-template.json -o /tmp/card-template.tasm`, plus a brief note that the output file path is `/tmp/card-template.tasm`.",
+      "expectations": [
+        "The answer uses `agent-lynx tasm encode` (NOT `decode`, NOT a Node API snippet).",
+        "The command passes the exact input path `/tmp/card-template.json` via `-i`.",
+        "The command passes the exact output path `/tmp/card-template.tasm` via `-o`.",
+        "The answer does NOT suggest `npm i -g` or adding `@lynx-js/tasm` to project dependencies.",
+        "The answer explicitly or implicitly indicates the output will be written to `/tmp/card-template.tasm`."
+      ],
+      "files": []
+    },
+    {
+      "id": 2,
+      "name": "decode-with-pinned-version",
+      "prompt": "我想固定 `@lynx-js/tasm@0.0.53` 版本，把 `/data/template.tasm` 解码成 `/data/template.json`，给我最直接的命令。",
+      "expected_output": "A command using `agent-lynx tasm --codec-version 0.0.53 decode -i /data/template.tasm -o /data/template.json`.",
+      "expectations": [
+        "The answer uses `agent-lynx tasm --codec-version 0.0.53 decode` with the version pinned by --codec-version.",
+        "The command uses the `decode` subcommand (NOT `encode`).",
+        "The command passes `/data/template.tasm` via `-i` and `/data/template.json` via `-o`.",
+        "The answer does NOT switch to an unpinned global command like `lynx-tasm decode`.",
+        "The answer does NOT suggest writing the dependency into package.json."
+      ],
+      "files": []
+    },
+    {
+      "id": 3,
+      "name": "check-cli-without-global-install",
+      "prompt": "先别转文件，我只想确认这个 CLI 能不能用，而且不要全局安装。`command -v agent-lynx` 没找到命令，也没有宿主 CLI 入口。你给我一个最小命令就行。",
+      "expected_output": "A command using `npx --yes --registry https://registry.npmjs.org agent-lynx tasm --help` and no global install recommendation.",
+      "expectations": [
+        "The answer uses `npx --yes --registry https://registry.npmjs.org agent-lynx tasm --help` to verify availability when the CLI is not on PATH.",
+        "The answer does NOT suggest a global install because the user explicitly said not to globally install.",
+        "The answer does NOT invent a project-local install step such as `pnpm add -D @lynx-js/tasm`."
+      ],
+      "files": []
+    },
+    {
+      "id": 4,
+      "name": "global-install-only-when-requested",
+      "prompt": "我就是想用全局命令。请先全局安装 `agent-lynx`，然后把 `/abs/in.json` 编成 `/abs/out.tasm`。",
+      "expected_output": "A global install command using the npm registry, followed by a `agent-lynx tasm encode -i /abs/in.json -o /abs/out.tasm` command.",
+      "expectations": [
+        "The answer includes `npm i -g agent-lynx --registry https://registry.npmjs.org` (or equivalent with the same package and registry).",
+        "After installation, the answer uses the global command form `agent-lynx tasm encode` (NOT `npx @lynx-js/tasm encode`).",
+        "The encode command uses `-i /abs/in.json` and `-o /abs/out.tasm`.",
+        "The answer still uses the `encode` subcommand and does not switch to `decode`."
+      ],
+      "files": []
+    }
+  ]
+}

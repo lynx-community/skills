@@ -18,7 +18,8 @@
     "build": "build-plugin"
   },
   "dependencies": {
-    "@lynx-js/skill-lynx-debug-info-remapping": "workspace:*"
+    "@lynx-js/skill-lynx-debug-info-remapping": "workspace:*",
+    "@lynx-js/skill-lynx-tasm-codec": "workspace:*"
   },
   "devDependencies": {
     "build-plugin": "workspace:*"

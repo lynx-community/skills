@@ -34,6 +34,7 @@ export * from './take-content-screenshot.ts';
 export * from './take-heap-snapshot.ts';
 export * from './take-screenshot.ts';
 export * from './tap.ts';
+export * from './tasm.ts';
 export * from './trace-query.ts';
 export * from './trace.ts';
 export * from './utils.ts';

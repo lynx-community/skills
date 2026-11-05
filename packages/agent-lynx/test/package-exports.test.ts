@@ -96,6 +96,7 @@ test('the built package starts its bin and exposes the typed connector API', asy
     'take-heap-snapshot',
     'take-screenshot',
     'tap',
+    'tasm',
     'trace',
     'trace-query',
     'utils',
@@ -162,6 +163,16 @@ test('the built package starts its bin and exposes the typed connector API', asy
     help.stdout,
     /trace\s+Record, download, and inspect Lynx\s+performance traces/,
   );
+  assert.match(
+    help.stdout,
+    /tasm \[options\]\s+Encode\/decode templates \(powered by\s+@lynx-js\/tasm@/,
+  );
+  const tasmHelp = await execFileAsync(process.execPath, [
+    fileURLToPath(builtBin),
+    'tasm',
+    '--help',
+  ]);
+  assert.match(tasmHelp.stdout, /Powered by @lynx-js\/tasm@/);
 
   const traceHelp = await execFileAsync(process.execPath, [
     fileURLToPath(builtBin),
@@ -192,6 +203,7 @@ test('the built package starts its bin and exposes the typed connector API', asy
       'lynx-devtool',
       'lynx-recorder',
       'lynx-recorder-fixture',
+      'lynx-tasm-codec',
       'lynx-trace-analysis',
       'lynx-trace-record',
     ],
@@ -202,6 +214,7 @@ test('the built package starts its bin and exposes the typed connector API', asy
     const skill of [
       'lynx-recorder',
       'lynx-recorder-fixture',
+      'lynx-tasm-codec',
       'lynx-trace-analysis',
       'lynx-trace-record',
     ]
@@ -216,6 +229,11 @@ test('the built package starts its bin and exposes the typed connector API', asy
     if (skill === 'lynx-recorder-fixture') {
       assert.match(result.stdout, /<file>scripts\/fixture_tool\.py<\/file>/u);
       assert.match(result.stdout, /<file>references\/replay\.md<\/file>/u);
+    }
+    if (skill === 'lynx-tasm-codec') {
+      assert.match(result.stdout, /agent-lynx tasm encode/);
+      assert.match(result.stdout, /agent-lynx tasm decode/);
+      assert.match(result.stdout, /@lynx-js\/tasm/);
     }
   }
 

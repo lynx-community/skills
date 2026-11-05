@@ -1,0 +1,27 @@
+{
+  "name": "@lynx-js/skill-lynx-tasm-codec",
+  "version": "0.1.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/lynx-community/skills.git",
+    "directory": "packages/skills/lynx-tasm-codec"
+  },
+  "license": "Apache-2.0",
+  "type": "module",
+  "files": [
+    "SKILL.md",
+    "scripts",
+    "references",
+    "examples",
+    "template",
+    "reference.md",
+    "examples.md"
+  ],
+  "scripts": {},
+  "engines": {
+    "node": ">=18"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

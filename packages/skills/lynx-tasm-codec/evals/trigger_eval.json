@@ -1,0 +1,50 @@
+[
+  {
+    "query": "帮我用 CLI 把 `/tmp/card-template.json` 编成 `/tmp/card-template.tasm`，不要改 package.json，也别写 Node API。",
+    "should_trigger": true
+  },
+  {
+    "query": "我手里有个 `dist/homepage.tasm` 看不懂，先帮我 decode 成 json 再分析一下结构。",
+    "should_trigger": true
+  },
+  {
+    "query": "线上有个 tasm 产物疑似版本不一致，帮我用 `@lynx-js/tasm@0.0.53` 重新 encode 一次对比。",
+    "should_trigger": true
+  },
+  {
+    "query": "别用 Node API，直接给我 `agent-lynx tasm` 的命令，把 `/abs/a.json` 转成 `/abs/a.tasm`。",
+    "should_trigger": true
+  },
+  {
+    "query": "我需要比较两个 bundle 里的模板差异，先把 `foo.tasm` 和 `bar.tasm` 都解码成 json 再 diff，命令怎么写？",
+    "should_trigger": true
+  },
+  {
+    "query": "先帮我验证一下 agent-lynx tasm 这个 CLI 能不能直接用，不要全局安装。",
+    "should_trigger": true
+  },
+  {
+    "query": "帮我把这个 JSON 做 base64 encode，然后塞进 querystring。",
+    "should_trigger": false
+  },
+  {
+    "query": "这个 wasm 二进制怎么反汇编成 wat？",
+    "should_trigger": false
+  },
+  {
+    "query": "我想把图片从 png 转成 webp，顺便压缩到 100KB 内。",
+    "should_trigger": false
+  },
+  {
+    "query": "帮我写个 Node.js 脚本，用 zlib gzip 一下这个 bundle 文件。",
+    "should_trigger": false
+  },
+  {
+    "query": "我们怀疑 JS bundle 太大了，先分析一下 source map 和 tree shaking。",
+    "should_trigger": false
+  },
+  {
+    "query": "把这个 protobuf 二进制 decode 成 json 看看字段。",
+    "should_trigger": false
+  }
+]
