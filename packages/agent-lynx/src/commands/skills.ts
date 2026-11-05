@@ -3,15 +3,13 @@
 // LICENSE file in the root directory of this source tree.
 
 import { Command } from 'commander';
-import { existsSync, readdirSync, readFileSync } from 'node:fs';
+import { existsSync, readdirSync } from 'node:fs';
 import fs from 'node:fs/promises';
-import { createRequire } from 'node:module';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { parse } from 'yaml';
 
 const RESOURCE_ROOTS = ['scripts', 'references', 'assets', 'examples'] as const;
-const SKILL_DEPENDENCY_PATTERN = /^(@[^/]+)\/skill-[^/]+$/u;
 
 export interface SkillDocument {
   name: string;
@@ -24,11 +22,6 @@ export interface SkillDocument {
 interface SkillFrontmatter {
   name?: unknown;
   description?: unknown;
-}
-
-interface PackageManifest {
-  name?: unknown;
-  dependencies?: unknown;
 }
 
 export interface RegisterSkillsCommandOptions {
@@ -99,90 +92,16 @@ export function resolveSkillRoot(moduleUrl?: string): string {
   );
 }
 
-function requirePackageManifest(packageRoot: string): PackageManifest {
-  const location = path.join(packageRoot, 'package.json');
-  const manifest = JSON.parse(readFileSync(location, 'utf8')) as unknown;
-  if (
-    manifest === null || typeof manifest !== 'object' || Array.isArray(manifest)
-  ) {
-    throw new Error(`${location} must contain a JSON object.`);
-  }
-  return manifest as PackageManifest;
-}
-
-export function discoverSkillDependencyNames(
-  packageRoot: string,
-  scopes: readonly string[] = ['@lynx-js'],
-): string[] {
-  const location = path.join(packageRoot, 'package.json');
-  const dependencies = requirePackageManifest(packageRoot).dependencies;
-  if (dependencies === undefined) return [];
-  if (
-    dependencies === null || typeof dependencies !== 'object'
-    || Array.isArray(dependencies)
-  ) {
-    throw new Error(`${location} dependencies must be a JSON object.`);
-  }
-
-  return Object.keys(dependencies).filter(name => {
-    const match = SKILL_DEPENDENCY_PATTERN.exec(name);
-    return match !== null && scopes.includes(match[1]!);
-  }).sort();
-}
-
-export function resolvePackageSkillRoot(
-  packageName: string,
-  packageRoot: string,
-): string {
-  const packageManifest = path.join(packageRoot, 'package.json');
-  const packageRequire = createRequire(packageManifest);
-  try {
-    return path.dirname(packageRequire.resolve(`${packageName}/package.json`));
-  } catch (resolveError) {
-    for (const modulesRoot of packageRequire.resolve.paths(packageName) ?? []) {
-      const candidate = path.join(modulesRoot, packageName, 'package.json');
-      try {
-        if (
-          requirePackageManifest(path.dirname(candidate)).name === packageName
-        ) {
-          return path.dirname(candidate);
-        }
-      } catch (candidateError) {
-        if (isMissingPath(candidateError)) continue;
-        throw candidateError;
-      }
-    }
-    throw new Error(
-      `Cannot resolve declared skill dependency "${packageName}" from ${packageManifest}: ${
-        errorMessage(resolveError)
-      }`,
-      { cause: resolveError },
-    );
-  }
-}
-
 export function resolveSkillRootsFromPackageRoot(
   packageRoot: string,
-  scopes: readonly string[] = ['@lynx-js'],
 ): string[] {
-  const resolvedPackageRoot = path.resolve(packageRoot);
-  const skillsDirectory = path.join(resolvedPackageRoot, 'skills');
-  const bundledSkillRoots = existsSync(skillsDirectory)
-    ? readdirSync(skillsDirectory, { withFileTypes: true })
-      .filter(entry => entry.isDirectory())
-      .map(entry => path.join(skillsDirectory, entry.name))
-      .sort()
-    : [];
-  const ownSkillRoots = existsSync(path.join(resolvedPackageRoot, 'SKILL.md'))
-    ? [resolvedPackageRoot]
-    : [];
-  return [
-    ...ownSkillRoots,
-    ...bundledSkillRoots,
-    ...discoverSkillDependencyNames(resolvedPackageRoot, scopes).map(
-      packageName => resolvePackageSkillRoot(packageName, resolvedPackageRoot),
-    ),
-  ];
+  const skillsDirectory = path.join(path.resolve(packageRoot), 'skills');
+  if (!existsSync(skillsDirectory)) return [];
+
+  return readdirSync(skillsDirectory, { withFileTypes: true })
+    .filter(entry => entry.isDirectory())
+    .map(entry => path.join(skillsDirectory, entry.name))
+    .sort();
 }
 
 export function resolveBuiltInSkillRoots(

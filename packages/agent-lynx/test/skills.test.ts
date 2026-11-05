@@ -10,7 +10,6 @@ import path from 'node:path';
 import { test, type TestContext } from 'node:test';
 import { fileURLToPath } from 'node:url';
 import {
-  discoverSkillDependencyNames,
   readSkillDocument,
   readSkillDocuments,
   registerSkillsCommand,
@@ -223,78 +222,26 @@ test('list and get support multiple canonical package skills', async t => {
   ]);
 });
 
-test('default discovery includes every supported skill dependency without hardcoded package names', async t => {
+test('default discovery resolves bundled skills under skills/', async t => {
   const packageRoot = await createFixture(t);
-  await writeSkill(packageRoot, {
-    name: 'root-skill',
-    description: 'Root skill',
+  await writeSkill(path.join(packageRoot, 'skills/beta'), {
+    name: 'beta',
+    description: 'Beta skill',
   });
-  await writeFile(
-    packageRoot,
-    'package.json',
-    JSON.stringify({
-      name: '@lynx-js/root-skill',
-      dependencies: {
-        '@lynx-js/skill-beta': '1.0.0',
-        '@other/skill-ignored': '1.0.0',
-        '@lynx-js/devtool-connector': '1.0.0',
-        '@lynx-js/skill-alpha': '1.0.0',
-      },
-      devDependencies: {
-        '@lynx-js/skill-dev-only': '1.0.0',
-      },
-    }),
-  );
+  await writeSkill(path.join(packageRoot, 'skills/alpha'), {
+    name: 'alpha',
+    description: 'Alpha skill',
+  });
+  await writeFile(packageRoot, 'skills/README.md', '# Ignored file\n');
 
-  const alphaRoot = path.join(packageRoot, 'node_modules/@lynx-js/skill-alpha');
-  const betaRoot = path.join(packageRoot, 'node_modules/@lynx-js/skill-beta');
-  await Promise.all([
-    writeFile(
-      alphaRoot,
-      'package.json',
-      JSON.stringify({ name: '@lynx-js/skill-alpha' }),
-    ),
-    writeSkill(alphaRoot, { name: 'alpha', description: 'Alpha skill' }),
-    writeFile(
-      betaRoot,
-      'package.json',
-      JSON.stringify({ name: '@lynx-js/skill-beta' }),
-    ),
-    writeSkill(betaRoot, { name: 'beta', description: 'Beta skill' }),
-  ]);
-  const [resolvedAlphaRoot, resolvedBetaRoot] = await Promise.all([
-    fs.realpath(alphaRoot),
-    fs.realpath(betaRoot),
-  ]);
-
-  assert.deepEqual(discoverSkillDependencyNames(packageRoot), [
-    '@lynx-js/skill-alpha',
-    '@lynx-js/skill-beta',
-  ]);
   assert.deepEqual(resolveSkillRootsFromPackageRoot(packageRoot), [
-    packageRoot,
-    resolvedAlphaRoot,
-    resolvedBetaRoot,
+    path.join(packageRoot, 'skills/alpha'),
+    path.join(packageRoot, 'skills/beta'),
   ]);
   assert.deepEqual(
     (await readSkillDocuments(resolveSkillRootsFromPackageRoot(packageRoot)))
       .map(skill => skill.name),
-    ['root-skill', 'alpha', 'beta'],
-  );
-});
-
-test('declared skill dependencies must be installed and package-shaped', async t => {
-  const packageRoot = await createFixture(t);
-  await writeSkill(packageRoot);
-  await writeFile(
-    packageRoot,
-    'package.json',
-    JSON.stringify({ dependencies: { '@lynx-js/skill-missing': '1.0.0' } }),
-  );
-
-  assert.throws(
-    () => resolveSkillRootsFromPackageRoot(packageRoot),
-    /Cannot resolve declared skill dependency "@lynx-js\/skill-missing"/,
+    ['alpha', 'beta'],
   );
 });
 
@@ -333,9 +280,8 @@ test('invalid SKILL.md frontmatter fails with an actionable error', async t => {
   );
 });
 
-test('default public Agent skill discovery resolves the existing public skills', async t => {
+test('default public Agent skill discovery resolves the shipped public skills', async t => {
   const packageRoot = fileURLToPath(new URL('..', import.meta.url));
-  assert.deepEqual(discoverSkillDependencyNames(packageRoot), []);
   try {
     await fs.access(path.join(packageRoot, 'skills'));
   } catch (error) {
