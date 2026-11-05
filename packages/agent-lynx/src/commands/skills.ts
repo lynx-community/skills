@@ -3,7 +3,7 @@
 // LICENSE file in the root directory of this source tree.
 
 import { Command } from 'commander';
-import { existsSync, readFileSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import fs from 'node:fs/promises';
 import { createRequire } from 'node:module';
 import path from 'node:path';
@@ -166,11 +166,19 @@ export function resolveSkillRootsFromPackageRoot(
   scopes: readonly string[] = ['@lynx-js'],
 ): string[] {
   const resolvedPackageRoot = path.resolve(packageRoot);
+  const skillsDirectory = path.join(resolvedPackageRoot, 'skills');
+  const bundledSkillRoots = existsSync(skillsDirectory)
+    ? readdirSync(skillsDirectory, { withFileTypes: true })
+      .filter(entry => entry.isDirectory())
+      .map(entry => path.join(skillsDirectory, entry.name))
+      .sort()
+    : [];
   const ownSkillRoots = existsSync(path.join(resolvedPackageRoot, 'SKILL.md'))
     ? [resolvedPackageRoot]
     : [];
   return [
     ...ownSkillRoots,
+    ...bundledSkillRoots,
     ...discoverSkillDependencyNames(resolvedPackageRoot, scopes).map(
       packageName => resolvePackageSkillRoot(packageName, resolvedPackageRoot),
     ),

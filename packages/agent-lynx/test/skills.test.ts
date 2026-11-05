@@ -333,26 +333,36 @@ test('invalid SKILL.md frontmatter fails with an actionable error', async t => {
   );
 });
 
-test('default public Agent skill discovery resolves the existing public skills', async () => {
+test('default public Agent skill discovery resolves the existing public skills', async t => {
   const packageRoot = fileURLToPath(new URL('..', import.meta.url));
-  const discovered = discoverSkillDependencyNames(packageRoot);
-  assert.deepEqual(discovered, [
-    '@lynx-js/skill-lynx-devtool',
-    '@lynx-js/skill-lynx-recorder',
-    '@lynx-js/skill-lynx-recorder-fixture',
-    '@lynx-js/skill-lynx-tasm-codec',
-    '@lynx-js/skill-lynx-trace-analysis',
-    '@lynx-js/skill-lynx-trace-record',
-  ]);
+  assert.deepEqual(discoverSkillDependencyNames(packageRoot), []);
+  try {
+    await fs.access(path.join(packageRoot, 'skills'));
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
+      t.skip('bundled skills are not present; run pnpm build first');
+      return;
+    }
+    throw error;
+  }
 
+  const expectedSkills = [
+    'lynx-devtool',
+    'lynx-recorder',
+    'lynx-recorder-fixture',
+    'lynx-tasm-codec',
+    'lynx-trace-analysis',
+    'lynx-trace-record',
+  ];
   const skills = await readSkillDocuments(
     resolveSkillRootsFromPackageRoot(packageRoot),
   );
   assert.deepEqual(
     skills.map(skill => skill.name),
-    discovered.map(name => name.replace('@lynx-js/skill-', '')),
+    expectedSkills,
   );
   for (const skill of skills) {
+    assert.equal(skill.directory, path.join(packageRoot, 'skills', skill.name));
     assert.ok(
       skill.description.length > 0,
       `${skill.name} must have a usable description`,
