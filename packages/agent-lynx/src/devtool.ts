@@ -50,6 +50,7 @@ import {
   registerTakeHeapSnapshotCommand,
   registerTakeScreenshotCommand,
   registerTapCommand,
+  registerTasmCommand,
   registerTraceCommand,
   registerWaitCommand,
   registerWaitForClientCommand,
@@ -145,6 +146,7 @@ Examples:
       applyHostJsonPreference(actionCommand, env);
       if (
         isCommandAction(actionCommand, 'skills')
+        || isCommandAction(actionCommand, 'tasm')
         || isCommandAction(actionCommand, 'daemon')
         || isOfflineTraceAction(actionCommand)
       ) return;
@@ -192,6 +194,7 @@ Examples:
     .hook('postAction', (_thisCommand, actionCommand) => {
       if (
         isCommandAction(actionCommand, 'skills')
+        || isCommandAction(actionCommand, 'tasm')
         || isCommandAction(actionCommand, 'daemon')
         || isOfflineTraceAction(actionCommand)
       ) return;
@@ -226,6 +229,7 @@ Examples:
   registerTakeContentScreenshotCommand(program, context);
   registerTakeHeapSnapshotCommand(program, context);
   registerTraceCommand(program, context);
+  registerTasmCommand(program, { env });
   const record = program.command('recorder')
     .description(
       'Record Lynx page interactions via TestBench and export replay files',
