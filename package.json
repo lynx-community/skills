@@ -68,7 +68,7 @@
     "eslint-plugin-headers": "^1.3.5",
     "husky": "^9.1.7",
     "nano-staged": "^1.0.2",
-    "pkg-pr-new": "^0.0.91",
+    "pkg-pr-new": "^0.0.93",
     "turbo": "^2.11.10",
     "yaml": "^2.9.1"
   },
