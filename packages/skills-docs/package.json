@@ -28,7 +28,7 @@
   "devDependencies": {
     "@mdx-js/mdx": "3.1.1",
     "@rsbuild/plugin-less": "^1.6.0",
-    "@rspress/core": "2.0.19",
+    "@rspress/core": "2.1.0",
     "@types/node": "^24.19.2",
     "@types/react": "^18.3.31",
     "@types/react-dom": "^18.3.7",
