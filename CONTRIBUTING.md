@@ -28,6 +28,10 @@ Keep README files brief. Follow [AGENTS.md](AGENTS.md) for writing guidance, loc
 
 For programmatic DevTool MCP integration, start with the [public exports](packages/mcp-servers/devtool-mcp-server/src/index.ts) and [tool registration](packages/mcp-servers/devtool-mcp-server/src/registerTool.ts). Reuse `coreTools` with `registerToolWithContext` for a custom context, or `setupServer` for the shared daemon. Context factories run once per call, including concurrent calls; keep product-specific transports and telemetry in the integration. The [package manifest](packages/mcp-servers/devtool-mcp-server/package.json) defines peers: Zod 4 is required, while the MCP SDK is optional for programmatic consumers and bundled by the stdio command.
 
+## Website guides
+
+Edit the public agent-lynx and Agent Skills guides, conversation examples, and interactive diagrams in [packages/skills-docs](packages/skills-docs/README.md). This single package supports a standalone preview and supplies both sections of lynx-website. The website consumes a released package instead of maintaining a second copy. Agent-facing `SKILL.md` files and references remain in the owning skill packages.
+
 ## Validation and release
 
 Run affected package tests, `pnpm lint` and `pnpm exec dprint check`. Check [package scripts](package.json) and the affected package's manifest for runner and build choices. Device and online evals require a configured environment; report what actually ran.

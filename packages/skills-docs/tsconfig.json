@@ -1,0 +1,22 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "target": "ES2022",
+    "lib": ["DOM", "ES2022"],
+    "jsx": "react-jsx",
+    "types": ["node", "react"],
+    "noEmit": true,
+    "emitDeclarationOnly": false,
+    "isolatedDeclarations": false,
+    "resolveJsonModule": true,
+    "noPropertyAccessFromIndexSignature": false
+  },
+  "include": [
+    "content/**/*.ts",
+    "content/**/*.tsx",
+    "global.d.ts",
+    "rspress.config.ts"
+  ]
+}

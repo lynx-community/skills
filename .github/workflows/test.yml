@@ -59,6 +59,9 @@ jobs:
       - name: Build
         run: pnpm -r build
 
+      - name: Build Skills Documentation Preview
+        run: pnpm --filter @lynx-js/skills-docs build:preview
+
       - name: Validate Skills and Eval Helpers
         run: node --test scripts/validate-skills.test.mjs scripts/skill-eval/*.test.mjs
 
