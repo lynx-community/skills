@@ -231,3 +231,169 @@ test('still requires a property for compatibility queries', async () => {
     },
   );
 });
+
+test('rejects HTTP failures even when the response contains a valid version', async t => {
+  await assert.rejects(
+    runWithPreload(
+      t,
+      `globalThis.fetch = async () => new Response('{"version":"0.0.17"}', { status: 503 });`,
+      '--check-updates',
+    ),
+    error => {
+      assert.equal(error.code, 1);
+      assert.equal(error.stdout, '');
+      assert.match(error.stderr, /Unable to check for css-defines updates/);
+      return true;
+    },
+  );
+});
+
+test('bounds streamed bytes and cancels oversized response bodies', async t => {
+  const preload = `
+    import assert from 'node:assert/strict';
+    let canceled = false;
+    globalThis.fetch = async (_url, options) => {
+      assert.equal(options.redirect, 'error');
+      assert.equal(options.credentials, 'omit');
+      assert.equal(options.cache, 'no-store');
+      return new Response(new ReadableStream({
+        pull(controller) { controller.enqueue(new Uint8Array(32 * 1024)); },
+        cancel() { canceled = true; },
+      }));
+    };
+    process.on('exit', () => assert.equal(canceled, true));
+  `;
+  await assert.rejects(runWithPreload(t, preload, '--check-updates'), error => {
+    assert.equal(error.code, 1);
+    assert.match(error.stderr, /Unable to check for css-defines updates/);
+    assert.doesNotMatch(error.stderr, /AssertionError/);
+    return true;
+  });
+});
+
+test('accepts the exact response size boundary and decodes split UTF-8 sequences', async t => {
+  const preload = `
+    const text = JSON.stringify({ version: '0.0.17', padding: 'é' });
+    const encoded = new TextEncoder().encode(text);
+    const bytes = new Uint8Array(64 * 1024).fill(32);
+    bytes.set(encoded);
+    const split = encoded.indexOf(195) + 1;
+    globalThis.fetch = async () => new Response(new ReadableStream({
+      start(controller) {
+        controller.enqueue(bytes.slice(0, split));
+        controller.enqueue(bytes.slice(split));
+        controller.close();
+      },
+    }));
+  `;
+  const { stdout, stderr } = await runWithPreload(
+    t,
+    preload,
+    '--check-updates',
+    '--json',
+  );
+  assert.equal(stderr, '');
+  assert.equal(JSON.parse(stdout).latest_version, '0.0.17');
+});
+
+test(
+  'aborts requests at the five-second deadline',
+  { timeout: 10_000 },
+  async t => {
+    const preload = `
+    import assert from 'node:assert/strict';
+    let aborted = false;
+    const keepAlive = setTimeout(() => {}, 9000);
+    globalThis.fetch = async (_url, { signal }) => new Promise((_resolve, reject) => {
+      signal.addEventListener('abort', () => {
+        aborted = true;
+        clearTimeout(keepAlive);
+        reject(signal.reason);
+      }, { once: true });
+    });
+    process.on('exit', () => assert.equal(aborted, true));
+  `;
+    const start = Date.now();
+    await assert.rejects(
+      runWithPreload(t, preload, '--check-updates'),
+      error => {
+        assert.equal(error.code, 1);
+        assert.match(error.stderr, /Unable to check for css-defines updates/);
+        assert.doesNotMatch(error.stderr, /AssertionError/);
+        return true;
+      },
+    );
+    assert(Date.now() - start >= 5000);
+  },
+);
+
+test('rejects redirects without contacting their target', async t => {
+  const preload = `
+    import assert from 'node:assert/strict';
+    import { createServer } from 'node:http';
+    let targetRequests = 0;
+    const server = createServer((request, response) => {
+      if (request.url === '/redirect') {
+        response.writeHead(302, { location: '/target' });
+        response.end();
+      } else {
+        targetRequests += 1;
+        response.end('{"version":"0.0.17"}');
+      }
+    });
+    await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
+    const nativeFetch = globalThis.fetch;
+    globalThis.fetch = async (_url, options) => {
+      try {
+        return await nativeFetch('http://127.0.0.1:' + server.address().port + '/redirect', options);
+      } finally {
+        server.closeAllConnections();
+        server.close();
+      }
+    };
+    process.on('exit', () => assert.equal(targetRequests, 0));
+  `;
+  await assert.rejects(runWithPreload(t, preload, '--check-updates'), error => {
+    assert.equal(error.code, 1);
+    assert.match(error.stderr, /Unable to check for css-defines updates/);
+    assert.doesNotMatch(error.stderr, /AssertionError/);
+    return true;
+  });
+});
+
+test('keeps the deadline active while reading the response body', async t => {
+  const preload = `
+    import assert from 'node:assert/strict';
+    const originalTimeout = globalThis.setTimeout;
+    let deadlineInstalled = false;
+    globalThis.setTimeout = (callback, delay, ...args) => {
+      if (delay === 5000) {
+        deadlineInstalled = true;
+        return originalTimeout(callback, 20, ...args);
+      }
+      return originalTimeout(callback, delay, ...args);
+    };
+    let aborted = false;
+    const keepAlive = originalTimeout(() => {}, 1000);
+    globalThis.fetch = async (_url, { signal }) => new Response(new ReadableStream({
+      start(controller) {
+        controller.enqueue(new TextEncoder().encode('{"version":'));
+        signal.addEventListener('abort', () => {
+          aborted = true;
+          clearTimeout(keepAlive);
+          controller.error(signal.reason);
+        }, { once: true });
+      },
+    }));
+    process.on('exit', () => {
+      assert.equal(deadlineInstalled, true);
+      assert.equal(aborted, true);
+    });
+  `;
+  await assert.rejects(runWithPreload(t, preload, '--check-updates'), error => {
+    assert.equal(error.code, 1);
+    assert.match(error.stderr, /Unable to check for css-defines updates/);
+    assert.doesNotMatch(error.stderr, /AssertionError/);
+    return true;
+  });
+});
