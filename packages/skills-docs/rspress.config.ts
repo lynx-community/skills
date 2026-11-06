@@ -38,22 +38,15 @@ export default defineConfig({
       docRepoBaseUrl:
         'https://github.com/lynx-community/skills/edit/main/packages/skills-docs/content',
     },
+    // Keep navigation in _nav.json so Rspress also generates the _meta.json sidebars.
     locales: [
       {
         lang: 'en',
         label: 'English',
-        nav: [
-          { text: 'agent-lynx', link: '/ai/agent-lynx/' },
-          { text: 'Skills', link: '/ai/skills/reactlynx-best-practices' },
-        ],
       },
       {
         lang: 'zh',
         label: '简体中文',
-        nav: [
-          { text: 'agent-lynx', link: '/zh/ai/agent-lynx/' },
-          { text: 'Skills', link: '/zh/ai/skills/reactlynx-best-practices' },
-        ],
       },
     ],
   },

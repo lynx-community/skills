@@ -1,0 +1,12 @@
+[
+  {
+    "type": "dir-section-header",
+    "name": "ai/agent-lynx",
+    "label": "agent-lynx"
+  },
+  {
+    "type": "dir-section-header",
+    "name": "ai/skills",
+    "label": "Skills"
+  }
+]
