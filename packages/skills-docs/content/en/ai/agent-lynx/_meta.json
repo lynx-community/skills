@@ -1,0 +1,67 @@
+[
+  {
+    "type": "file",
+    "name": "index.mdx",
+    "label": "Introduction"
+  },
+  {
+    "type": "file",
+    "name": "getting-started.mdx",
+    "label": "Getting Started"
+  },
+  {
+    "type": "file",
+    "name": "connections.mdx",
+    "label": "Connections"
+  },
+  {
+    "type": "file",
+    "name": "page-inspection.mdx",
+    "label": "Page Inspection and Interaction"
+  },
+  {
+    "type": "file",
+    "name": "screenshots.mdx",
+    "label": "Screenshots"
+  },
+  {
+    "type": "file",
+    "name": "debugging.mdx",
+    "label": "Logs and Runtime Debugging"
+  },
+  {
+    "type": "file",
+    "name": "reactlynx.mdx",
+    "label": "ReactLynx Components"
+  },
+  {
+    "type": "file",
+    "name": "tracing.mdx",
+    "label": "Performance and Memory"
+  },
+  {
+    "type": "file",
+    "name": "recording.mdx",
+    "label": "Recorder"
+  },
+  {
+    "type": "file",
+    "name": "runtime-settings.mdx",
+    "label": "Runtime Settings"
+  },
+  {
+    "type": "file",
+    "name": "programmatic-api.mdx",
+    "label": "Programmatic APIs"
+  },
+  {
+    "type": "file",
+    "name": "cli-reference.mdx",
+    "label": "CLI Reference"
+  },
+  {
+    "type": "file",
+    "name": "troubleshooting.mdx",
+    "label": "Troubleshooting"
+  }
+]

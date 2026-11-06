@@ -1,0 +1,67 @@
+[
+  {
+    "type": "file",
+    "name": "index.mdx",
+    "label": "简介"
+  },
+  {
+    "type": "file",
+    "name": "getting-started.mdx",
+    "label": "快速开始"
+  },
+  {
+    "type": "file",
+    "name": "connections.mdx",
+    "label": "应用与页面连接"
+  },
+  {
+    "type": "file",
+    "name": "page-inspection.mdx",
+    "label": "页面检查与交互"
+  },
+  {
+    "type": "file",
+    "name": "screenshots.mdx",
+    "label": "截图"
+  },
+  {
+    "type": "file",
+    "name": "debugging.mdx",
+    "label": "日志与运行时调试"
+  },
+  {
+    "type": "file",
+    "name": "reactlynx.mdx",
+    "label": "ReactLynx 组件"
+  },
+  {
+    "type": "file",
+    "name": "tracing.mdx",
+    "label": "性能与内存"
+  },
+  {
+    "type": "file",
+    "name": "recording.mdx",
+    "label": "Recorder"
+  },
+  {
+    "type": "file",
+    "name": "runtime-settings.mdx",
+    "label": "运行时开关"
+  },
+  {
+    "type": "file",
+    "name": "programmatic-api.mdx",
+    "label": "程序化 API"
+  },
+  {
+    "type": "file",
+    "name": "cli-reference.mdx",
+    "label": "CLI 参考"
+  },
+  {
+    "type": "file",
+    "name": "troubleshooting.mdx",
+    "label": "常见问题"
+  }
+]
