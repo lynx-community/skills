@@ -278,6 +278,8 @@ agent-lynx get-sources [options]
 - `-c, --client <clientId>`: (Optional) Client ID.
 - `-s, --session <sessionId>`: (Optional) Session ID.
 
+Completes on the successful second `Debugger.enable` response after collecting scripts, with timeout fallback. See [Get Sources](references/get-sources.md) for details.
+
 #### 10. Inspect
 
 Print the DevTool inspector URL served by the connector daemon for a
