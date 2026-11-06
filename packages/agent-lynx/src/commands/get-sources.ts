@@ -3,6 +3,7 @@
 // LICENSE file in the root directory of this source tree.
 
 /* eslint-disable */
+import { nextRequestId } from '@lynx-js/devtool-connector';
 import { Command } from 'commander';
 import { ReadableStream } from 'node:stream/web';
 import { logMonitor, MonitorCode } from '../telemetry.ts';
@@ -26,7 +27,10 @@ export function registerGetSourcesCommand(program: Command, context: Context) {
     .description('List all parsed scripts.')
     .option(...CLIENT_OPTION)
     .option(...SESSION_OPTION)
-    .action(async (options) => {
+    .action(async (options: {
+      client?: string;
+      session?: string;
+    }) => {
       const { connector, clientId, sessionId } = await resolveClientAndSession(
         context,
         options,
@@ -35,9 +39,12 @@ export function registerGetSourcesCommand(program: Command, context: Context) {
 
       const numericSessionId = Number(sessionId);
 
-      const messages: { method: string; }[] = [
+      const barrierId = nextRequestId();
+      const messages: { id?: number; method: string; }[] = [
         { method: 'Debugger.disable' },
         { method: 'Debugger.enable' },
+        // Lynx emits the initial script events before this enable response.
+        { id: barrierId, method: 'Debugger.enable' },
       ];
 
       await using stream = await connector.sendCDPStream(
@@ -53,6 +60,19 @@ export function registerGetSourcesCommand(program: Command, context: Context) {
       ) {
         if (value.method === 'Debugger.scriptParsed') {
           scripts.push(value.params as ScriptParsedEvent);
+        }
+        const response = value as unknown as {
+          id?: unknown;
+          result?: unknown;
+          error?: unknown;
+        };
+        if (
+          response.id === barrierId
+          && response.result !== undefined
+          && response.error === undefined
+          && scripts.length > 0
+        ) {
+          break;
         }
       }
 
