@@ -1,5 +1,13 @@
 # agent-lynx
 
+## 0.14.28
+
+### Patch Changes
+
+- Finish `get-sources` on the successful second `Debugger.enable` response after collecting scripts, without requiring an option. Retain idle and overall timeout fallbacks.
+- Updated dependencies
+  - @lynx-js/devtool-connector@0.18.7
+
 ## 0.14.27
 
 ### Patch Changes

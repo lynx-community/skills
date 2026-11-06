@@ -1,5 +1,11 @@
 # @lynx-js/devtool-connector
 
+## 0.18.7
+
+### Patch Changes
+
+- Updated dependency `semver` to `^7.8.6`.
+
 ## 0.18.6
 
 No changes in this release.
