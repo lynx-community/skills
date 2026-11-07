@@ -3,22 +3,19 @@
 // LICENSE file in the root directory of this source tree.
 
 import assert from 'node:assert/strict';
-import { createHash } from 'node:crypto';
+import { execFile } from 'node:child_process';
+import { once } from 'node:events';
 import fs from 'node:fs/promises';
+import { createServer } from 'node:http';
 import os from 'node:os';
 import path from 'node:path';
-import { test, type TestContext } from 'node:test';
-import { gzipSync } from 'node:zlib';
+import { after, before, test, type TestContext } from 'node:test';
+import { promisify } from 'node:util';
 
 import { Command } from 'commander';
 import { registerTasmCommand } from '../src/commands/tasm.ts';
 import { createProgram } from '../src/devtool.ts';
-import {
-  PUBLIC_TASM_PACKAGE,
-  resolveTasmModule,
-  type TasmPackage,
-  type TasmRuntimeOptions,
-} from '../src/tasm-package.ts';
+import { PUBLIC_TASM_PACKAGE, resolveTasmModule } from '../src/tasm-package.ts';
 
 const codec = `module.exports = async () => {
   const memory = new Uint8Array(1024);
@@ -38,179 +35,146 @@ const codec = `module.exports = async () => {
   };
 };`;
 
-function tarEntry(name: string, content: string, type = '0'): Buffer {
-  const body = Buffer.from(content);
-  const header = Buffer.alloc(512);
-  header.write(name);
-  header.write(body.length.toString(8).padStart(11, '0'), 124);
-  header.write(type, 156);
-  header.write('ustar', 257);
-  header.fill(32, 148, 156);
-  const checksum = header.reduce((sum, value) => sum + value, 0);
-  header.write(`${checksum.toString(8).padStart(6, '0')}\0 `, 148);
-  return Buffer.concat([
-    header,
-    body,
-    Buffer.alloc((512 - body.length % 512) % 512),
-  ]);
-}
+const server = createServer();
+const requests: string[] = [];
+let fixtures: string;
+let registry: string;
 
-function archiveFor(
-  pkg: TasmPackage,
-  source = codec,
-  extra: Buffer = Buffer.alloc(0),
-): Buffer {
-  return gzipSync(Buffer.concat([
-    tarEntry('package/package.json', JSON.stringify(pkg)),
-    tarEntry('package/lepus.js', source),
-    extra,
-    Buffer.alloc(1024),
-  ]));
-}
+before(async () => {
+  fixtures = await fs.mkdtemp(path.join(os.tmpdir(), 'tasm-npm-fixture-'));
+  server.listen(0, '127.0.0.1');
+  await once(server, 'listening');
+  const address = server.address();
+  assert.ok(address && typeof address !== 'string');
+  registry = `http://127.0.0.1:${address.port}`;
+  const responses = new Map<string, string | Buffer>();
+  for (
+    const pkg of [
+      {
+        manifest: {
+          ...PUBLIC_TASM_PACKAGE,
+          dependencies: { 'tasm-test-runtime': '1.0.0' },
+          scripts: { postinstall: 'node install.cjs' },
+        },
+        files: {
+          'lepus.js': "module.exports = require('tasm-test-runtime');",
+          'install.cjs':
+            "require('node:fs').writeFileSync('installed', 'ready');",
+        },
+      },
+      {
+        manifest: { name: 'tasm-test-runtime', version: '1.0.0' },
+        files: { 'index.js': codec },
+      },
+    ]
+  ) {
+    const source = path.join(fixtures, pkg.manifest.name);
+    await fs.mkdir(source, { recursive: true });
+    await fs.writeFile(
+      path.join(source, 'package.json'),
+      JSON.stringify(pkg.manifest),
+    );
+    for (const [name, content] of Object.entries(pkg.files)) {
+      await fs.writeFile(path.join(source, name), content);
+    }
+    const { stdout } = await promisify(execFile)('npm', [
+      'pack',
+      '--ignore-scripts',
+      '--json',
+      '--pack-destination',
+      fixtures,
+    ], { cwd: source, shell: process.platform === 'win32' });
+    const [{ filename }] = JSON.parse(stdout) as Array<{ filename: string; }>;
+    const archivePath = `/${pkg.manifest.name}/package.tgz`;
+    responses.set(
+      archivePath,
+      await fs.readFile(path.join(fixtures, filename!)),
+    );
+    responses.set(
+      `/${pkg.manifest.name}`,
+      JSON.stringify({
+        name: pkg.manifest.name,
+        'dist-tags': { latest: pkg.manifest.version },
+        versions: {
+          [pkg.manifest.version]: {
+            ...pkg.manifest,
+            dist: { tarball: `${registry}${archivePath}` },
+          },
+        },
+      }),
+    );
+  }
+  server.on('request', (req, res) => {
+    const url = decodeURIComponent(req.url!);
+    requests.push(url);
+    const response = responses.get(url);
+    res.writeHead(response ? 200 : 404);
+    res.end(response ?? 'Not found');
+  });
+});
+after(async () => {
+  await new Promise<void>((resolve, reject) =>
+    server.close(error => error ? reject(error) : resolve())
+  );
+  await fs.rm(fixtures, { recursive: true, force: true });
+});
 
-function integrity(archive: Buffer): string {
-  return `sha512-${createHash('sha512').update(archive).digest('base64')}`;
-}
-
-async function fixture(t: TestContext): Promise<{
-  root: string;
-  pkg: TasmPackage;
-  archive: Buffer;
-  runtime: TasmRuntimeOptions;
-  requests: string[];
-}> {
+async function fixture(t: TestContext) {
   const root = await fs.mkdtemp(
     path.join(os.tmpdir(), 'agent-lynx-tasm-test-'),
   );
   t.after(() => fs.rm(root, { recursive: true, force: true }));
-  const pkg = { ...PUBLIC_TASM_PACKAGE };
-  const archive = archiveFor(pkg);
-  pkg.integrity = integrity(archive);
-  const requests: string[] = [];
+  requests.length = 0;
   return {
     root,
-    pkg,
-    archive,
+    pkg: PUBLIC_TASM_PACKAGE,
     requests,
     runtime: {
-      package: pkg,
-      env: { AGENT_LYNX_TASM_CACHE_DIR: root },
-      fetchImpl: async url => {
-        requests.push(String(url));
-        return new Response(new Uint8Array(archive));
+      env: {
+        ...process.env,
+        AGENT_LYNX_CACHE_DIR: path.join(root, 'cache'),
+        CODEX_SANDBOX_NETWORK_DISABLED: '0',
+        npm_config_registry: registry,
+        npm_config_cache: path.join(root, 'npm-cache'),
       },
     },
   };
 }
 
-test('downloads the exact package once, then verifies and reuses it offline', async t => {
+test('npm installs the selected codec with dependencies and scripts, then reuses it offline', async t => {
   const f = await fixture(t);
-  const first = await resolveTasmModule({
-    ...f.runtime,
-    env: { AGENT_LYNX_TASM_CACHE_DIR: path.relative(process.cwd(), f.root) },
-  });
-  assert.equal(path.isAbsolute(first.file), true);
-  assert.equal(await fs.readFile(first.file, 'utf8'), codec);
-  assert.deepEqual(f.requests, [
-    'https://registry.npmjs.org/@lynx-js/tasm/-/tasm-0.0.53.tgz',
-  ]);
-  const offline = {
-    ...f.runtime,
-    env: { ...f.runtime.env, CODEX_SANDBOX_NETWORK_DISABLED: '1' },
-  };
-  assert.deepEqual(await resolveTasmModule(offline), first);
-  // An altered extracted module is repaired from the verified archive before use.
-  await fs.writeFile(first.file, 'throw Error("altered")');
-  await resolveTasmModule(offline);
-  assert.equal(await fs.readFile(first.file, 'utf8'), codec);
-  assert.equal(f.requests.length, 1);
-});
-
-test('concurrent cache population publishes complete files and cleans temporary files', async t => {
-  const f = await fixture(t);
-  const results = await Promise.all(
-    Array.from({ length: 8 }, () => resolveTasmModule(f.runtime)),
-  );
-  assert.equal(new Set(results.map(result => result.file)).size, 1);
-  assert.deepEqual(
-    (await fs.readdir(path.dirname(results[0]!.file))).sort(),
-    [path.basename(results[0]!.file), 'package.tgz'].sort(),
-  );
-  assert.equal(await fs.readFile(results[0]!.file, 'utf8'), codec);
-});
-
-test('download integrity failures cannot populate the cache and a retry succeeds', async t => {
-  const f = await fixture(t);
-  await assert.rejects(
-    resolveTasmModule({
-      ...f.runtime,
-      fetchImpl: async () => new Response('corrupt'),
-    }),
-    /integrity mismatch/,
-  );
-  assert.deepEqual(await fs.readdir(f.root), []);
-  const result = await resolveTasmModule(f.runtime);
-  await fs.writeFile(
-    path.join(path.dirname(result.file), 'package.tgz'),
-    'corrupt',
-  );
-  await resolveTasmModule(f.runtime);
-  assert.equal(f.requests.length, 2);
-});
-
-test('wrong package identity and symlink/duplicate codec entries are rejected', async t => {
-  const f = await fixture(t);
-  for (
-    const archive of [
-      archiveFor({ ...f.pkg, name: '@other/tasm' }),
-      archiveFor(
-        f.pkg,
-        codec,
-        tarEntry('package/lepus.js', '/tmp/foreign', '2'),
-      ),
-      archiveFor(f.pkg, codec, tarEntry('package/lepus.js', codec)),
-    ]
-  ) {
-    await assert.rejects(
-      resolveTasmModule({
-        ...f.runtime,
-        package: { ...f.pkg, integrity: integrity(archive) },
-        fetchImpl: async () => new Response(new Uint8Array(archive)),
-      }),
-      /Expected|Invalid or duplicate/,
-    );
-  }
-  assert.deepEqual(await fs.readdir(f.root), []);
-});
-
-test('exact alternate versions cache metadata and stay in the configured package and registry', async t => {
-  const f = await fixture(t);
-  const pkg = { ...f.pkg, version: '0.0.52' };
-  const archive = archiveFor(pkg);
-  const requests: string[] = [];
   const runtime = {
     ...f.runtime,
-    fetchImpl: (async (url: string | URL | Request) => {
-      requests.push(String(url));
-      return String(url).endsWith('.tgz')
-        ? new Response(new Uint8Array(archive))
-        : Response.json({
-          name: pkg.name,
-          version: pkg.version,
-          dist: { integrity: integrity(archive) },
-        });
-    }) as typeof fetch,
+    package: { ...f.pkg, version: '0.0.52' },
+    env: {
+      ...f.runtime.env,
+      AGENT_LYNX_CACHE_DIR: path.relative(
+        process.cwd(),
+        f.runtime.env.AGENT_LYNX_CACHE_DIR,
+      ),
+    },
   };
-  const result = await resolveTasmModule(runtime, pkg.version);
-  assert.equal(result.package.version, pkg.version);
-  await resolveTasmModule({
-    ...runtime,
-    env: { ...runtime.env, CODEX_SANDBOX_NETWORK_DISABLED: '1' },
-  }, pkg.version);
-  assert.deepEqual(requests, [
-    'https://registry.npmjs.org/@lynx-js/tasm/0.0.52',
-    'https://registry.npmjs.org/@lynx-js/tasm/-/tasm-0.0.52.tgz',
-  ]);
+  const first = await resolveTasmModule(runtime, f.pkg.version);
+  assert.equal(path.isAbsolute(first.file), true);
+  assert.equal(first.package.version, f.pkg.version);
+  assert.equal(
+    await fs.readFile(path.join(path.dirname(first.file), 'installed'), 'utf8'),
+    'ready',
+  );
+  assert.ok(requests.includes('/tasm-test-runtime/package.tgz'));
+  const requestCount = requests.length;
+  assert.deepEqual(
+    await resolveTasmModule({
+      ...runtime,
+      env: { ...runtime.env, PATH: '', CODEX_SANDBOX_NETWORK_DISABLED: '1' },
+    }, f.pkg.version),
+    first,
+  );
+  assert.equal(requests.length, requestCount);
+});
+
+test('invalid versions and uncached offline requests fail without installing', async t => {
+  const f = await fixture(t);
   for (
     const version of [
       'latest',
@@ -219,35 +183,22 @@ test('exact alternate versions cache metadata and stay in the configured package
       'https://example.test/a.tgz',
     ]
   ) {
-    await assert.rejects(resolveTasmModule(runtime, version), /exact version/);
+    await assert.rejects(
+      resolveTasmModule(f.runtime, version),
+      /exact version/,
+    );
   }
-});
-
-test('unavailable network, HTTP failures and mismatched registry metadata fail without execution', async t => {
-  const f = await fixture(t);
   await assert.rejects(
     resolveTasmModule({
       ...f.runtime,
       env: { ...f.runtime.env, CODEX_SANDBOX_NETWORK_DISABLED: '1' },
     }),
-    /not cached and network access is disabled/,
+    /not cached/,
   );
-  await assert.rejects(
-    resolveTasmModule({
-      ...f.runtime,
-      fetchImpl: async () => new Response(null, { status: 404 }),
-    }),
-    /HTTP 404/,
-  );
-  await assert.rejects(
-    resolveTasmModule({
-      ...f.runtime,
-      fetchImpl: async () =>
-        Response.json({ name: '@wrong/tasm', version: '0.0.52' }),
-    }, '0.0.52'),
-    /Invalid registry metadata/,
-  );
-  assert.equal(f.requests.length, 0);
+  assert.equal(requests.length, 0);
+  await assert.rejects(fs.access(f.runtime.env.AGENT_LYNX_CACHE_DIR), {
+    code: 'ENOENT',
+  });
 });
 
 test('encode/decode use in-process codec APIs, preserve files on failure, and report identity', async t => {
@@ -296,7 +247,6 @@ test('encode/decode use in-process codec APIs, preserve files on failure, and re
     run(['encode', '-i', input, '-o', binary]),
     /template JSON object/,
   );
-  assert.equal(f.requests.length, 1);
 });
 
 test('root and nested help identify providers without downloads, including hosted invocation', async t => {

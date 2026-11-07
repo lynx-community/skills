@@ -122,9 +122,9 @@ export function registerTasmCommand(
     `\nPowered by ${pkg.name}@${
       tasm.opts<ConversionOptions>().codecVersion ?? pkg.version
     } (in-process WASM).
-Downloaded on first conversion; cached with SHA-512 verification. Help requires no download.
+Installed with npm on first conversion and cached for offline reuse. Help requires no download.
 Use a codec version compatible with the template.
-AGENT_LYNX_TASM_CACHE_DIR overrides the cache directory (default: XDG_CACHE_HOME/agent-lynx/tasm or ~/.cache/agent-lynx/tasm).`;
+AGENT_LYNX_CACHE_DIR overrides the CLI cache root (default: XDG_CACHE_HOME/agent-lynx, LOCALAPPDATA/agent-lynx, or ~/.cache/agent-lynx).`;
   tasm.addHelpText('after', help);
   for (const operation of ['encode', 'decode'] as const) {
     tasm.command(operation)
