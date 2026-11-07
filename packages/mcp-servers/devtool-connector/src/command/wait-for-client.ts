@@ -11,10 +11,6 @@ const DEFAULT_TIMEOUT_MS = 30_000;
 const DEFAULT_INTERVAL_MS = 1_000;
 const DISCOVERY_DEADLINE = Symbol("discoveryDeadline");
 
-function isHeadlessClientId(clientId: string): boolean {
-  return clientId.startsWith("headless:");
-}
-
 function finiteNumber(value: unknown): number | undefined {
   if (typeof value === "number" && Number.isFinite(value)) return value;
   if (typeof value === "string" && value.trim() !== "") {
@@ -51,23 +47,17 @@ function formatClientForError(client: Client): string {
 }
 
 function selectClients(clients: Client[], clientName: string | undefined): Client[] {
-  const realClients = clients.filter(client => !isHeadlessClientId(client.id));
-  if (clientName === undefined) return realClients.slice(0, 1);
-  return realClients.filter(client => getClientNames(client).includes(clientName));
+  if (clientName === undefined) return clients.slice(0, 1);
+  return clients.filter(client => getClientNames(client).includes(clientName));
 }
 
 function timeoutMessage(clientName: string | undefined, clients: Client[]): string {
   if (clientName !== undefined) {
     const availableClients = clients
-      .filter(client => !isHeadlessClientId(client.id))
       .map(formatClientForError)
       .join("\n");
     return `No client found matching --client-name "${clientName}".`
-      + (availableClients ? `\nAvailable clients:\n${availableClients}` : "\nNo real-device clients are available.");
-  }
-  if (clients.some(client => isHeadlessClientId(client.id))) {
-    return "Only headless Lynx DevTool clients were found before timeout; "
-      + "waiting without --client-name requires a non-headless client.";
+      + (availableClients ? `\nAvailable clients:\n${availableClients}` : "\nNo clients are available.");
   }
   return "No Lynx DevTool clients were found before timeout.";
 }
@@ -138,7 +128,7 @@ export async function* waitForClientStream(
 
     lastClients = discovery;
     attempts += 1;
-    const availableClients = lastClients.filter(client => !isHeadlessClientId(client.id));
+    const availableClients = lastClients;
     const clients = selectClients(lastClients, clientName);
     const elapsedMs = Date.now() - startedAt;
     if (clients.length > 0) {

@@ -22,10 +22,6 @@ function numberParam(params: CommandObject, key: string): number | undefined {
   return undefined;
 }
 
-function isHeadlessClientId(clientId: string): boolean {
-  return clientId.startsWith("headless:");
-}
-
 function targetFailure(action: string, message: string, nextActions: string[]): CommandResult<never> {
   return fail(action, message, {
     reason: "target-not-found",
@@ -56,19 +52,14 @@ export async function resolveTarget(
   }
   if (!clientId) {
     const clients = await connector.listClients();
-    const firstClient = clients.find(client => !isHeadlessClientId(client.id));
+    const firstClient = clients[0];
     if (!firstClient) {
-      const headlessAvailable = clients.some(client => isHeadlessClientId(client.id));
       return {
         ok: false,
         result: targetFailure(
           action,
-          headlessAvailable
-            ? "No real-device clients found. The built-in headless runtime is available but is never auto-selected."
-            : "No available clients found.",
-          headlessAvailable
-            ? ["Retry with an explicit headless client, for example `--client headless:0`."]
-            : ["Connect a Lynx client, then retry the command.", "Run `agent-lynx list-clients` to verify discovery."],
+          "No available clients found.",
+          ["Connect a Lynx client, then retry the command.", "Run `agent-lynx list-clients` to verify discovery."],
         ),
       };
     }
@@ -92,12 +83,8 @@ export async function resolveTarget(
         ok: false,
         result: targetFailure(
           action,
-          isHeadlessClientId(clientId)
-            ? `No sessions found for headless client ${clientId}. The headless runtime has no page open yet.`
-            : `No available sessions found for client: ${clientId}`,
-          isHeadlessClientId(clientId)
-            ? [`Open a page first with \`agent-lynx open --client ${clientId} <url>\`.`]
-            : [`Open or reload a Lynx page on ${clientId}.`, `Run \`agent-lynx list-sessions --client ${clientId}\`.`],
+          `No available sessions found for client: ${clientId}`,
+          [`Open or reload a Lynx page on ${clientId}.`, `Run \`agent-lynx list-sessions --client ${clientId}\`.`],
         ),
       };
     }

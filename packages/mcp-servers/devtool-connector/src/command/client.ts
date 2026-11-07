@@ -14,7 +14,7 @@ import type {
 } from "./contract.ts";
 import { appendCommandQueryParam } from "./query.ts";
 import { type CommandResult, fail } from "./result.ts";
-import { DEFAULT_COMMAND_TIMEOUT_MS, getDefaultCommandTimeoutMs } from "./timeout.ts";
+import { DEFAULT_COMMAND_TIMEOUT_MS } from "./timeout.ts";
 
 const MAX_SSE_BUFFER_LENGTH = 1024 * 1024;
 
@@ -115,7 +115,7 @@ export function callCommand<Action extends CommandAction>(
 ): Promise<CommandResult<CommandData<Action>>> {
   return callRawCommand<CommandData<Action>>(action, params as CommandObject, {
     ...options,
-    timeoutMs: options.timeoutMs ?? getDefaultCommandTimeoutMs(action, params as CommandObject),
+    timeoutMs: options.timeoutMs ?? DEFAULT_COMMAND_TIMEOUT_MS,
   });
 }
 
@@ -158,7 +158,7 @@ export class HttpCommandClient implements CommandClient {
   ): Promise<CommandResult<CommandData<Action>>> {
     return this.executeRaw<CommandData<Action>>(action, params as CommandObject, {
       ...options,
-      timeoutMs: options.timeoutMs ?? getDefaultCommandTimeoutMs(action, params as CommandObject),
+      timeoutMs: options.timeoutMs ?? DEFAULT_COMMAND_TIMEOUT_MS,
     });
   }
 

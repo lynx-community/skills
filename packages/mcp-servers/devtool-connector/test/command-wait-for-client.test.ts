@@ -52,7 +52,7 @@ test("wait-for-client streams retries and returns every exact name match", async
   const matchingTwo = createClient("device:8902", { bundleId: "com.lynx.uiapp" });
   const other = createClient("device:8903", { AppProcessName: "com.example.other" });
   const discoveries = [
-    [createClient("headless:0", { App: "EmbeddedLynx" })],
+    [other],
     [matchingOne, other, matchingTwo],
   ];
   let calls = 0;
@@ -79,7 +79,7 @@ test("wait-for-client streams retries and returns every exact name match", async
     elapsedMs: number;
   };
   assert.equal(progressData.matched, false);
-  assert.deepEqual(progressData.availableClients, []);
+  assert.deepEqual(progressData.availableClients, [other]);
   assert.equal(progressData.attempts, 1);
   assert.ok(progressData.elapsedMs >= 0);
   const final = events[1];
@@ -99,13 +99,13 @@ test("wait-for-client streams retries and returns every exact name match", async
   assert.ok(data.elapsedMs >= 0);
 });
 
-test("wait-for-client without a name selects only the first non-headless client", async () => {
+test("wait-for-client without a name selects only the first discovered client", async () => {
   const first = createClient("device:8901");
   const second = createClient("device:8902");
   const events = await collectWaitForClient(
     {
       async listClients() {
-        return [createClient("headless:0"), first, second];
+        return [first, second];
       },
     },
     { timeoutMs: 1_000 },
@@ -120,11 +120,11 @@ test("wait-for-client without a name selects only the first non-headless client"
   assert.deepEqual(data.availableClients, [first, second]);
 });
 
-test("wait-for-client preserves the headless-only timeout diagnostic", async () => {
+test("wait-for-client reports a timeout when no clients are available", async () => {
   const events = await collectWaitForClient(
     {
       async listClients() {
-        return [createClient("headless:0", { App: "EmbeddedLynx" })];
+        return [];
       },
     },
     { timeoutMs: 0 },
@@ -137,8 +137,7 @@ test("wait-for-client preserves the headless-only timeout diagnostic", async () 
   assert.equal(failure.error.reason, "timeout");
   assert.equal(
     failure.error.message,
-    "Only headless Lynx DevTool clients were found before timeout; "
-      + "waiting without --client-name requires a non-headless client.",
+    "No Lynx DevTool clients were found before timeout.",
   );
 });
 

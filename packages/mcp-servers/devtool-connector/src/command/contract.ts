@@ -42,7 +42,7 @@ export interface OpenData {
 export interface WaitForClientData {
   matched: true;
   clients: Client[];
-  /** Non-headless clients returned by the latest successful discovery attempt. */
+  /** Clients returned by the latest successful discovery attempt. */
   availableClients: Client[];
   attempts: number;
   elapsedMs: number;
@@ -50,7 +50,7 @@ export interface WaitForClientData {
 
 export interface WaitForClientProgressData {
   matched: false;
-  /** Non-headless clients returned by the latest successful discovery attempt. */
+  /** Clients returned by the latest successful discovery attempt. */
   availableClients: Client[];
   attempts: number;
   elapsedMs: number;

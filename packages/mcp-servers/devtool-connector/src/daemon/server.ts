@@ -965,7 +965,7 @@ export class DevtoolDaemon {
       throwClientDiscoveryFailures(discoveryFailures);
     }
 
-    // 0.5. Collect clients from transports with listClients() (e.g. SpawnTransport).
+    // 0.5. Collect clients from transports with listClients().
     // These are added to the entries list but do NOT short-circuit discovery so
     // that real device clients (Android, iOS, etc.) are still discovered.
     const clientListTransports = this.#transports.filter(

@@ -93,37 +93,6 @@ test("InProcessCommandClient keeps the regular timeout for a device open", async
   assert.deepEqual(timeoutCalls, [30_000]);
 });
 
-test("InProcessCommandClient extends the timeout for an explicit headless open", async (t) => {
-  const timeoutCalls: number[] = [];
-  t.mock.method(AbortSignal, "timeout", (delay: number) => {
-    timeoutCalls.push(delay);
-    return new AbortController().signal;
-  });
-  const response = {
-    event: "Customized" as const,
-    data: {
-      type: "SessionList" as const,
-      data: [{ session_id: 7, type: "lynx" as const, url: "lynx://example/page" }],
-    },
-  };
-  const connector = {
-    async waitForHeadlessReady(clientId: string) {
-      assert.equal(clientId, "headless:0");
-    },
-    async openPage() {
-      return response;
-    },
-  } as unknown as Connector;
-
-  const result = await new InProcessCommandClient(connector).execute("open", {
-    clientId: "headless:0",
-    url: "lynx://example/page",
-  });
-
-  assert.equal(result.ok, true);
-  assert.deepEqual(timeoutCalls, [6 * 60_000]);
-});
-
 test("InProcessCommandClient lets callers override the action-level timeout", async (t) => {
   const timeoutCalls: number[] = [];
   t.mock.method(AbortSignal, "timeout", (delay: number) => {
@@ -212,17 +181,13 @@ test("callCommand applies action-level timeouts and preserves explicit overrides
     port,
     ensureDaemon: false,
   });
-  await callCommand("open", { clientId: "headless:0", url: "lynx://example/page" }, {
-    port,
-    ensureDaemon: false,
-  });
   await callCommand("open", { clientId: "device:8901", url: "lynx://example/page" }, {
     port,
     ensureDaemon: false,
     timeoutMs: 1234,
   });
 
-  assert.deepEqual(timeoutCalls, [30_000, 30_000, 6 * 60_000, 1234]);
+  assert.deepEqual(timeoutCalls, [30_000, 30_000, 1234]);
 });
 
 test("streamCommand parses fragmented SSE events sent by POST", async (t) => {

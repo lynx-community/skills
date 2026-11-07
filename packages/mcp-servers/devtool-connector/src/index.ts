@@ -36,12 +36,8 @@ import {
   createCorrelatedFilter,
   type GetGlobalSwitchResponse,
   type GlobalKeys,
-  type HeadlessPrepareRequest,
-  type HeadlessPrepareResponse,
-  type HeadlessPrepareState,
   type InitializeRequest,
   isGetGlobalSwitchResponse,
-  isHeadlessPrepareResponse,
   isInitializeResponse,
   isListSessionResponse,
   isSetGlobalSwitchResponse,
@@ -365,71 +361,6 @@ export class Connector {
     clientId: string,
   ): Promise<Session[]> {
     return await this.#sendListSessionMessage(clientId);
-  }
-
-  /**
-   * Probe the headless runtime's readiness. Returns immediately with the
-   * current state and, when not ready, kicks off the binary download in the
-   * background. Callers (e.g. the `open` command) poll this until `ready` so
-   * the download is driven by a caller-controlled timeout rather than a single
-   * request that could be cut off mid-download.
-   */
-  async prepareHeadless(clientId: string): Promise<HeadlessPrepareState> {
-    const { data: { data: state } } = await this.#sendMessage<HeadlessPrepareRequest, HeadlessPrepareResponse>(
-      clientId,
-      {
-        event: "Customized",
-        data: {
-          type: "HeadlessPrepare",
-          data: {},
-        },
-      },
-      {
-        input: [],
-        output: [
-          new FilterTransformStream(isHeadlessPrepareResponse),
-        ],
-      },
-    );
-
-    return state;
-  }
-
-  /**
-   * Block until the headless runtime is ready, polling {@link prepareHeadless}
-   * so the (potentially long) first-use binary download is not cut off by a
-   * single request timeout. A transient `error` is tolerated until the overall
-   * deadline because the transport retries the download on the next poll.
-   *
-   * Intended to be called by the open ActionCore command before opening a page
-   * on the headless client.
-   */
-  async waitForHeadlessReady(
-    clientId: string,
-    options: { timeoutMs?: number; pollIntervalMs?: number; signal?: AbortSignal } = {},
-  ): Promise<void> {
-    const timeoutMs = options.timeoutMs ?? 5 * 60_000;
-    const pollIntervalMs = options.pollIntervalMs ?? 1_000;
-    const { setTimeout: delay } = await import("node:timers/promises");
-    const deadline = Date.now() + timeoutMs;
-    let lastError: string | undefined;
-    for (;;) {
-      options.signal?.throwIfAborted();
-      const state = await this.prepareHeadless(clientId);
-      options.signal?.throwIfAborted();
-      if (state.status === "ready") return;
-      if (state.status === "error") {
-        lastError = state.message ?? "unknown error";
-      }
-      if (Date.now() >= deadline) {
-        throw new Error(
-          lastError !== undefined
-            ? `Failed to prepare headless runtime: ${lastError}`
-            : `Timed out preparing headless runtime after ${timeoutMs}ms`,
-        );
-      }
-      await delay(pollIntervalMs, undefined, options.signal ? { signal: options.signal } : {});
-    }
   }
 
   async #sendListSessionMessage(

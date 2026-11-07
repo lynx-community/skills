@@ -11,7 +11,6 @@ import { createToolContext } from '../utils/testTool.ts';
 // Mock connector
 const createMockConnector = (overrides = {}) => ({
   openPage: async () => {},
-  waitForHeadlessReady: async () => {},
   sendListSessionMessage: async () => [{ session_id: 'mock_session' }],
   ...overrides,
 });
@@ -42,31 +41,5 @@ describe('Device.openPage', () => {
 
     assert.strictEqual(calledClientId, testClientId);
     assert.strictEqual(calledUrl, 'https://example.com');
-  });
-
-  test('should wait for headless runtime before opening page', async () => {
-    const callOrder: string[] = [];
-
-    const mockConnector = createMockConnector({
-      waitForHeadlessReady: async () => {
-        callOrder.push('waitForHeadlessReady');
-      },
-      openPage: async () => {
-        callOrder.push('openPage');
-      },
-    });
-
-    const headlessClientId = 'headless:test';
-    const { call } = createToolContext(
-      OpenPage,
-      mockConnector as unknown as Connector,
-      headlessClientId,
-    );
-
-    await call({
-      url: 'https://example.com',
-    });
-
-    assert.deepStrictEqual(callOrder, ['waitForHeadlessReady', 'openPage']);
   });
 });
