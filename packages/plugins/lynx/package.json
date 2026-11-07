@@ -1,0 +1,76 @@
+{
+  "name": "@lynx-js/ai-plugin-lynx",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Baseline plugin for Lynx",
+  "keywords": [
+    "lynx",
+    "reactlynx",
+    "lynx-js",
+    "mobile"
+  ],
+  "type": "module",
+  "exports": {
+    "./startup-reminder": "./scripts/startup-reminder.mjs",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    ".claude-plugin",
+    ".codex-plugin",
+    "commands",
+    "agents",
+    "skills",
+    "scripts",
+    "hooks",
+    ".mcp.json",
+    ".lsp.json"
+  ],
+  "scripts": {
+    "build": "rslib build && build-plugin"
+  },
+  "dependencies": {
+    "@lynx-js/skill-lynx-api-docs": "workspace:*",
+    "@lynx-js/skill-lynx-debug-info-remapping": "workspace:*",
+    "@lynx-js/skill-lynx-devtool": "workspace:*",
+    "@lynx-js/skill-lynx-trace-analysis": "0.0.6",
+    "@lynx-js/skill-lynx-trace-record": "0.0.3",
+    "@lynx-js/skill-lynx-typescript": "workspace:*",
+    "@lynx-js/skill-lynx-ui": "3.133.4",
+    "@lynx-js/skill-reactlynx-best-practices": "workspace:*",
+    "@lynx-js/skill-rspeedy-bundle-size": "workspace:*"
+  },
+  "devDependencies": {
+    "@rslib/core": "catalog:rstack",
+    "@types/node": "24",
+    "build-plugin": "workspace:*",
+    "commander": "14"
+  },
+  "engines": {
+    "node": ">=18.17"
+  },
+  "claudePlugin": {
+    "category": "development"
+  },
+  "codexPlugin": {
+    "category": "Development",
+    "interface": {
+      "displayName": "Lynx",
+      "shortDescription": "Baseline plugin for Lynx development",
+      "longDescription": "Lynx development guidance, bundled skills, and MCP servers for documentation, debugging, traces, and TypeScript workflows.",
+      "developerName": "Lynx",
+      "capabilities": [
+        "Interactive",
+        "Read",
+        "Write",
+        "MCP",
+        "Hooks"
+      ],
+      "defaultPrompt": [
+        "Help me build a Lynx feature.",
+        "Review this Lynx change.",
+        "Debug this Lynx issue."
+      ],
+      "brandColor": "#00A6FF"
+    }
+  }
+}
