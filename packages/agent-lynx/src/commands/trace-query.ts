@@ -2,10 +2,18 @@
 // Licensed under the Apache License Version 2.0 that can be found in the
 // LICENSE file in the root directory of this source tree.
 
+import { installRuntimePackages } from '@lynx-js/runtime-package-installer';
 import { Command } from 'commander';
+import { resolve } from 'import-meta-resolve';
 import { createHash, randomUUID } from 'node:crypto';
 import fs from 'node:fs/promises';
 import path from 'node:path';
+import { pathToFileURL } from 'node:url';
+import { runtimeCacheDirectory } from '../runtime-cache.ts';
+import type { Context } from './utils.ts';
+
+export const TRACE_PROCESSOR_PACKAGE = '@lynx-js/trace-processor';
+export const TRACE_PROCESSOR_VERSION = '0.0.1';
 
 const DEFAULT_MAX_QUERY_ROWS = 1_000;
 const EVENT_SUMMARY_SQL = `SELECT name, COUNT(*) AS count
@@ -122,9 +130,22 @@ interface TraceEventSummaryCommandOptions {
 
 async function createTraceProcessorEngine(
   id: string,
+  registry?: string,
 ): Promise<TraceProcessorEngine> {
-  const { WasmEngine } = await import('@lynx-js/trace-processor');
-  return new WasmEngine(id) as unknown as TraceProcessorEngine;
+  const directory = await installRuntimePackages({
+    [TRACE_PROCESSOR_PACKAGE]: TRACE_PROCESSOR_VERSION,
+  }, {
+    cacheDir: path.join(runtimeCacheDirectory(), 'npm'),
+    ...(registry ? { registry } : {}),
+  });
+  const moduleUrl = resolve(
+    TRACE_PROCESSOR_PACKAGE,
+    pathToFileURL(path.join(directory, 'package.json')).href,
+  );
+  const { WasmEngine } = await import(/* webpackIgnore: true */ moduleUrl) as {
+    WasmEngine: new(id: string) => TraceProcessorEngine;
+  };
+  return new WasmEngine(id);
 }
 
 function errorMessage(error: unknown): string {
@@ -254,6 +275,7 @@ export async function runTraceQuery(
     maxRows?: number;
     sqlFile?: string;
     engineFactory?: TraceProcessorEngineFactory;
+    registry?: string;
   } = {},
 ): Promise<TraceQueryResult> {
   const { data, identity } = await readTraceFile(tracePath);
@@ -264,7 +286,8 @@ export async function runTraceQuery(
       `maxRows must be a positive integer, received ${String(maxRows)}`,
     );
   }
-  const engineFactory = options.engineFactory ?? createTraceProcessorEngine;
+  const engineFactory = options.engineFactory
+    ?? (id => createTraceProcessorEngine(id, options.registry));
   let engine: TraceProcessorEngine | undefined;
   let parseSucceeded = false;
   let phase: TraceFailurePhase = 'processor';
@@ -315,10 +338,12 @@ function toSafeCount(value: unknown, eventName: string): number {
 
 export async function runTraceEventSummary(
   tracePath: string,
-  options: { engineFactory?: TraceProcessorEngineFactory; } = {},
+  options: { engineFactory?: TraceProcessorEngineFactory; registry?: string; } =
+    {},
 ): Promise<TraceEventSummaryResult> {
   const { data, identity } = await readTraceFile(tracePath);
-  const engineFactory = options.engineFactory ?? createTraceProcessorEngine;
+  const engineFactory = options.engineFactory
+    ?? (id => createTraceProcessorEngine(id, options.registry));
   let engine: TraceProcessorEngine | undefined;
   let parseSucceeded = false;
   let phase: TraceFailurePhase = 'processor';
@@ -450,7 +475,17 @@ async function emitResult(
   if (!result.success) process.exitCode = 1;
 }
 
-export function registerTraceQueryCommands(trace: Command): void {
+export function registerTraceQueryCommands(
+  trace: Command,
+  context: Pick<Context, 'runtimePackageRegistry'> = {},
+): void {
+  const runtimeOptions = context.runtimePackageRegistry
+    ? { registry: context.runtimePackageRegistry }
+    : {};
+  const help =
+    `\nPowered by ${TRACE_PROCESSOR_PACKAGE}@${TRACE_PROCESSOR_VERSION}.
+Downloaded with npm on first analysis and cached for offline reuse. Help requires no download.
+AGENT_LYNX_CACHE_DIR overrides the CLI cache root (default: XDG_CACHE_HOME/agent-lynx, LOCALAPPDATA/agent-lynx, or ~/.cache/agent-lynx).`;
   trace.command('query')
     .description(
       'Run Perfetto SQL against a local trace and emit JSON evidence',
@@ -465,9 +500,11 @@ export function registerTraceQueryCommands(trace: Command): void {
       DEFAULT_MAX_QUERY_ROWS,
     )
     .option('-o, --output <path>', 'Write the JSON evidence to a file')
+    .addHelpText('after', help)
     .action(async (tracePath: string, options: TraceQueryCommandOptions) => {
       const { sql, sqlFile } = await readSql(options);
       const result = await runTraceQuery(tracePath, sql, {
+        ...runtimeOptions,
         maxRows: options.maxRows,
         ...(sqlFile === undefined ? {} : { sqlFile }),
       });
@@ -481,9 +518,10 @@ export function registerTraceQueryCommands(trace: Command): void {
     .argument('<trace>', 'Local .pftrace file')
     .option('--json', 'Emit machine-readable JSON instead of a text table')
     .option('-o, --output <path>', 'Write the table or JSON evidence to a file')
+    .addHelpText('after', help)
     .action(
       async (tracePath: string, options: TraceEventSummaryCommandOptions) => {
-        const result = await runTraceEventSummary(tracePath);
+        const result = await runTraceEventSummary(tracePath, runtimeOptions);
         const contents = result.success && !options.json
           ? renderTraceEventSummary(result)
           : JSON.stringify(result, null, 2);

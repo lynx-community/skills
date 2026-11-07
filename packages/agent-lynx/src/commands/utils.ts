@@ -15,6 +15,8 @@ import { DEFAULT_CLI_PLACEHOLDER } from '../cli-invocation.ts';
 import { logMonitor, MonitorCode } from '../telemetry.ts';
 
 export interface Context {
+  /** Distribution-specific registry for packages installed on demand. */
+  runtimePackageRegistry?: string;
   transports: Transport[];
   getSourceInfo?: typeof getOriginalNodeSourceInfo;
   cliPlaceholder?: string;
