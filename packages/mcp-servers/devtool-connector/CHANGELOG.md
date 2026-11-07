@@ -1,5 +1,11 @@
 # @lynx-js/devtool-connector
 
+## 0.19.0
+
+### Minor Changes
+
+- Remove the built-in `agent-lynx --client headless:0` path, replaced by Lynx Simulator, including SpawnTransport and headless runtime preparation. EmbeddedLynx and NodeLynx test runtimes remain available.
+
 ## 0.18.8
 
 No changes in this release.
