@@ -70,32 +70,9 @@ export type Session = {
   session_id: number;
   type: "" | "lynx" | "web";
   url: string;
-  /**
-   * Headless (embedded-lynx) runtime metadata, present only for sessions
-   * served by the headless client. Each session is backed by a dedicated
-   * renderer child process; `pid`/`logFile` let callers inspect or stop it
-   * (e.g. `kill <pid>`).
-   */
-  headless?: {
-    pid?: number;
-    logFile: string;
-  };
 };
 export type ListSessionRequest = CustomizedEvent<"ListSession", Record<string, never>>;
 export type ListSessionResponse = CustomizedEvent<"SessionList", Session[]>;
-
-/**
- * Readiness probe for the headless (embedded-lynx) runtime. The headless
- * transport downloads its binary lazily on first use; this lets the caller
- * poll for readiness and drive the (potentially long) download with its own
- * timeout instead of a single request that could be cut off.
- */
-export type HeadlessPrepareState = {
-  status: "ready" | "preparing" | "error";
-  message?: string;
-};
-export type HeadlessPrepareRequest = CustomizedEvent<"HeadlessPrepare", Record<string, never>>;
-export type HeadlessPrepareResponse = CustomizedEvent<"HeadlessPrepare", HeadlessPrepareState>;
 
 // See: https://github.com/lynx-family/lynx/blob/f36190e701964032d92e70e9515538497460ea31/platform/android/lynx_android/src/main/java/com/lynx/devtoolwrapper/DevToolSettings.java#L31-L44
 export type GlobalKeys =
@@ -156,17 +133,10 @@ export type Response =
   | AppResponse
   | CDPResponse
   | GetGlobalSwitchResponse
-  | SetGlobalSwitchResponse
-  | HeadlessPrepareResponse;
+  | SetGlobalSwitchResponse;
 
 export function isInitializeResponse(response: Response | CustomizedResponse): response is InitializeResponse {
   return response.event === "Register";
-}
-
-export function isHeadlessPrepareResponse(
-  response: Response | CustomizedResponse,
-): response is HeadlessPrepareResponse {
-  return response.event === "Customized" && response.data.type === "HeadlessPrepare";
 }
 
 export function isListSessionResponse(response: Response | CustomizedResponse): response is ListSessionResponse {

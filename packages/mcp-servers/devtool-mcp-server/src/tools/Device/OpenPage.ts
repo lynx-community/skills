@@ -19,13 +19,6 @@ export const OpenPage = /*#__PURE__*/ defineTool({
   async handler({ params }, _, context) {
     const connector = context.connector();
 
-    // The built-in headless runtime downloads its binary lazily on first use.
-    // Wait for it here (tool layer) so the open request below is not cut off
-    // while the binary is still downloading.
-    if (params.clientId.startsWith('headless:')) {
-      await connector.waitForHeadlessReady(params.clientId);
-    }
-
     await connector.openPage(params.clientId, params.url);
   },
 });

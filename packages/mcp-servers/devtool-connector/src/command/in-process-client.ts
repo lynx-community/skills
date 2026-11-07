@@ -14,7 +14,7 @@ import type {
 } from "./contract.ts";
 import { ActionCore } from "./core.ts";
 import type { CommandResult } from "./result.ts";
-import { getDefaultCommandTimeoutMs } from "./timeout.ts";
+import { DEFAULT_COMMAND_TIMEOUT_MS } from "./timeout.ts";
 
 /** Invoke the same ActionCore without crossing the daemon HTTP boundary. */
 export class InProcessCommandClient implements CommandClient {
@@ -32,7 +32,7 @@ export class InProcessCommandClient implements CommandClient {
     options: { timeoutMs?: number } = {},
   ): Promise<CommandResult<CommandData<Action>>> {
     const commandParams = params as CommandObject;
-    const signal = AbortSignal.timeout(options.timeoutMs ?? getDefaultCommandTimeoutMs(action, commandParams));
+    const signal = AbortSignal.timeout(options.timeoutMs ?? DEFAULT_COMMAND_TIMEOUT_MS);
     return this.#core.execute(
       action,
       commandParams,

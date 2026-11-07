@@ -235,15 +235,15 @@ describe("ActionCore", () => {
     assert.equal(result.error.message, NO_CLIENTS_FOUND_MESSAGE);
   });
 
-  test("list-sessions auto-resolves one real client and preserves an empty session snapshot", async () => {
+  test("list-sessions auto-resolves the first client and preserves an empty session snapshot", async () => {
     let clientCalls = 0;
     let sessionCalls = 0;
     const connector = {
       async listClients() {
         clientCalls += 1;
         return [
-          { id: "headless:0", info: { App: "lynx" } },
           { id: "device:8901", info: { App: "Example" } },
+          { id: "device:8902", info: { App: "AnotherExample" } },
         ];
       },
       async sendListSessionMessage(clientId: string) {
@@ -292,7 +292,7 @@ describe("ActionCore", () => {
     assert.equal(sessionCalls, 1);
   });
 
-  test("open auto-resolves a non-headless client and returns the raw SessionList response", async () => {
+  test("open auto-resolves the first client and returns the raw SessionList response", async () => {
     const response = {
       event: "Customized" as const,
       data: {
@@ -304,12 +304,9 @@ describe("ActionCore", () => {
     const connector = {
       async listClients() {
         return [
-          { id: "headless:0", info: { App: "lynx" } },
           { id: "device:8901", info: { App: "Example" } },
+          { id: "device:8902", info: { App: "AnotherExample" } },
         ];
-      },
-      async waitForHeadlessReady() {
-        assert.fail("an auto-resolved real client must not prepare the headless runtime");
       },
       async openPage(clientId: string, url: string) {
         calls.push({ clientId, url });
@@ -331,7 +328,7 @@ describe("ActionCore", () => {
     assert.deepEqual(calls, [{ clientId: "device:8901", url: "lynx://example/page" }]);
   });
 
-  test("open prepares an explicit headless client before opening the page", async () => {
+  test("open uses an explicit client without discovery and forwards cancellation", async () => {
     const timeline: string[] = [];
     const response = {
       event: "Customized" as const,
@@ -340,24 +337,18 @@ describe("ActionCore", () => {
         data: [{
           session_id: 9,
           type: "lynx" as const,
-          url: "lynx://headless/page",
-          headless: { pid: 4321, logFile: "/tmp/embedded-lynx.log" },
+          url: "lynx://example/page",
         }],
       },
     };
     const controller = new AbortController();
     const connector = {
       async listClients() {
-        assert.fail("an explicit headless client must bypass discovery");
-      },
-      async waitForHeadlessReady(clientId: string, options: { signal?: AbortSignal }) {
-        timeline.push("prepare");
-        assert.equal(clientId, "headless:0");
-        assert.strictEqual(options.signal, controller.signal);
+        assert.fail("an explicit client must bypass discovery");
       },
       async openPage(clientId: string, url: string, signal?: AbortSignal) {
         timeline.push("open");
-        assert.deepEqual({ clientId, url }, { clientId: "headless:0", url: "lynx://headless/page" });
+        assert.deepEqual({ clientId, url }, { clientId: "device:8902", url: "lynx://example/page" });
         assert.strictEqual(signal, controller.signal);
         return response;
       },
@@ -365,20 +356,17 @@ describe("ActionCore", () => {
 
     const result = await new ActionCore().execute(
       "open",
-      { clientId: "headless:0", url: "lynx://headless/page" },
+      { clientId: "device:8902", url: "lynx://example/page" },
       { connector },
       controller.signal,
     );
 
     assert.equal(result.ok, true, result.error?.message);
-    assert.deepEqual(timeline, ["prepare", "open"]);
+    assert.deepEqual(timeline, ["open"]);
   });
 
   test("open rejects an empty URL before touching the client", async () => {
     const connector = {
-      async waitForHeadlessReady() {
-        assert.fail("invalid open params must not prepare headless");
-      },
       async openPage() {
         assert.fail("invalid open params must not open a page");
       },
@@ -1282,12 +1270,12 @@ describe("ActionCore", () => {
     );
   });
 
-  test("resolves an omitted target inside ActionCore and excludes headless auto-selection", async () => {
+  test("resolves an omitted target to the first client and latest session inside ActionCore", async () => {
     const core = new ActionCore();
     const connector = fakeConnector({
       clients: [
-        { id: "headless:0", info: {} },
         { id: "device:8901", info: {} },
+        { id: "device:8902", info: {} },
       ],
       sessions: [
         { session_id: 2, type: "lynx", url: "two" },
@@ -1300,10 +1288,8 @@ describe("ActionCore", () => {
     assert.equal((result.data as { clientId: string; sessionId: number }).clientId, "device:8901");
     assert.equal((result.data as { clientId: string; sessionId: number }).sessionId, 9);
 
-    const headlessOnly = await core.execute("snapshot", {}, {
-      connector: fakeConnector({ clients: [{ id: "headless:0", info: {} }] }),
-    });
-    assert.equal(headlessOnly.error?.reason, "target-not-found");
-    assert.match(headlessOnly.error?.message ?? "", /never auto-selected/);
+    const noClients = await core.execute("snapshot", {}, { connector: fakeConnector() });
+    assert.equal(noClients.error?.reason, "target-not-found");
+    assert.equal(noClients.error?.message, "No available clients found.");
   });
 });

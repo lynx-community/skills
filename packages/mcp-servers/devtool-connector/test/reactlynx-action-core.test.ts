@@ -445,8 +445,8 @@ test("ReactLynx ActionCore auto-resolves an omitted client and latest session", 
   Object.assign(harness.connector, {
     async listClients() {
       return [
-        { id: "headless:0", info: {} },
         { id: TARGET.clientId, info: {} },
+        { id: "device:8902", info: {} },
       ];
     },
     async sendListSessionMessage(clientId: string) {

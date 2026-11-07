@@ -5,13 +5,9 @@ import type { Connector } from "../index.ts";
 import type { CommandData, CommandParams } from "./contract.ts";
 import { type CommandResult, fail, ok } from "./result.ts";
 
-function isHeadlessClientId(clientId: string): boolean {
-  return clientId.startsWith("headless:");
-}
-
 /** The sole production implementation of the open command. */
 export async function openAction(
-  connector: Pick<Connector, "openPage" | "waitForHeadlessReady">,
+  connector: Pick<Connector, "openPage">,
   params: CommandParams<"open">,
   signal?: AbortSignal,
 ): Promise<CommandResult<CommandData<"open">>> {
@@ -23,10 +19,6 @@ export async function openAction(
     return fail("open", "url must be a non-empty string.", { reason: "bad-params" });
   }
 
-  signal?.throwIfAborted();
-  if (isHeadlessClientId(clientId)) {
-    await connector.waitForHeadlessReady(clientId, signal ? { signal } : {});
-  }
   signal?.throwIfAborted();
 
   const response = await connector.openPage(clientId, params.url, signal);
