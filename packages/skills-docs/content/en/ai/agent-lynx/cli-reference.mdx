@@ -69,11 +69,12 @@ The public CLI provides the following 46 executable commands, counting subcomman
 
 Use `--client` and `--session` on commands that declare them to select the target explicitly. Use `--json` where supported to request structured output. The global JSON preference is forwarded only to commands with a JSON mode.
 
-| Environment variable                 | Purpose                                                                            |
-| ------------------------------------ | ---------------------------------------------------------------------------------- |
-| `AGENT_LYNX_FORCE_JSON`              | Set to `1` or `true` to enable supported JSON output modes.                        |
-| `AGENT_LYNX_DISABLE_UPDATE_NOTICE`   | Set to `1` to disable npm update notices.                                          |
-| `AGENT_LYNX_INVOKED_AS`              | Set the user-facing invocation name in a process host.                             |
-| `AGENT_LYNX_CLI_PLACEHOLDER`         | Fallback invocation name for help and recovery hints.                              |
-| `ADB_SERVER_HOST`, `ADB_SERVER_PORT` | Configure the direct-mode Android ADB server; defaults are `127.0.0.1` and `5037`. |
-| `DEBUG`                              | Enable diagnostic logging namespaces on stderr.                                    |
+| Environment variable                                    | Purpose                                                                                                                            |
+| ------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| `AGENT_LYNX_FORCE_JSON`                                 | Set to `1` or `true` to enable supported JSON output modes.                                                                        |
+| `AGENT_LYNX_DISABLE_UPDATE_NOTICE`                      | Set to `1` to disable npm update notices.                                                                                          |
+| `AGENT_LYNX_INVOKED_AS`                                 | Set the user-facing invocation name in a process host.                                                                             |
+| `AGENT_LYNX_CLI_PLACEHOLDER`                            | Fallback invocation name for help and recovery hints.                                                                              |
+| `ADB_SERVER_SOCKET`                                     | Direct-mode (`--no-daemon`) Android ADB socket. Takes precedence over the address and port. Accepts `tcp:host:port`, `tcp:port`, and `localfilesystem:/path`. |
+| `ANDROID_ADB_SERVER_ADDRESS`, `ANDROID_ADB_SERVER_PORT` | Direct-mode (`--no-daemon`) Android ADB server host and port. Defaults are `127.0.0.1` and `5037`. Daemon mode ignores them and warns on stderr.                  |
+| `DEBUG`                                                 | Enable diagnostic logging namespaces on stderr.                                                                                    |
