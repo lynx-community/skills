@@ -69,11 +69,12 @@ description: 'agent-lynx 全部公开命令、版本与帮助、JSON 输出控�
 
 在提供相应选项的命令中，用 `--client` 和 `--session` 显式选择目标，用 `--json` 请求结构化输出。全局 JSON 偏好只会转发给支持 JSON 模式的命令。
 
-| 环境变量                             | 用途                                                                    |
-| ------------------------------------ | ----------------------------------------------------------------------- |
-| `AGENT_LYNX_FORCE_JSON`              | 设为 `1` 或 `true`，启用命令支持的 JSON 输出模式。                      |
-| `AGENT_LYNX_DISABLE_UPDATE_NOTICE`   | 设为 `1`，关闭 npm 更新提示。                                           |
-| `AGENT_LYNX_INVOKED_AS`              | 由进程宿主设置面向用户的调用名称。                                      |
-| `AGENT_LYNX_CLI_PLACEHOLDER`         | 帮助和恢复提示中调用名称的回退值。                                      |
-| `ADB_SERVER_HOST`、`ADB_SERVER_PORT` | 配置直接连接模式的 Android ADB server，默认值为 `127.0.0.1` 和 `5037`。 |
-| `DEBUG`                              | 在 stderr 启用对应命名空间的诊断日志。                                  |
+| 环境变量                                                | 用途                                                                                                           |
+| ------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
+| `AGENT_LYNX_FORCE_JSON`                                 | 设为 `1` 或 `true`，启用命令支持的 JSON 输出模式。                                                             |
+| `AGENT_LYNX_DISABLE_UPDATE_NOTICE`                      | 设为 `1`，关闭 npm 更新提示。                                                                                  |
+| `AGENT_LYNX_INVOKED_AS`                                 | 由进程宿主设置面向用户的调用名称。                                                                             |
+| `AGENT_LYNX_CLI_PLACEHOLDER`                            | 帮助和恢复提示中调用名称的回退值。                                                                             |
+| `ADB_SERVER_SOCKET`                                     | 直接连接模式（`--no-daemon`）的 Android ADB socket，优先于地址和端口。支持 `tcp:host:port`、`tcp:port` 和 `localfilesystem:/path`。 |
+| `ANDROID_ADB_SERVER_ADDRESS`、`ANDROID_ADB_SERVER_PORT` | 直接连接模式（`--no-daemon`）的 Android ADB server 主机和端口，默认值为 `127.0.0.1` 和 `5037`。daemon 模式会忽略它们，并在 stderr 输出警告。 |
+| `DEBUG`                                                 | 在 stderr 启用对应命名空间的诊断日志。                                                                         |
