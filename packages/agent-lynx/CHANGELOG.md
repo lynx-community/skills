@@ -22,7 +22,7 @@
 - Use the `agent-lynx` name consistently in documentation.
 - Ship built-in Agent Skills directly under `skills/<name>/SKILL.md` in the `agent-lynx` npm packages without runtime dependencies on skill packages.
 - Add `--compact` to snapshot and mutating ref commands to opt into single-line JSON while preserving the full result envelope, default JSON indentation, text output, and `--snapshot` refresh behavior.
-- Add `agent-lynx tasm encode/decode` backed by a TASM package downloaded and cached at runtime with integrity verification. Run the codec in process, identify its npm package in help, and route the TASM Skill through the managed subcommand. Distribute the TASM Skill through Agent Lynx, the Marketplace and the debug Plugin.
+- Add `agent-lynx tasm encode/decode` backed by a TASM package downloaded and cached at runtime with integrity verification. Run the codec in process, identify its npm package in help, and route the TASM Skill through the managed subcommand. Distribute the TASM Skill through agent-lynx, the Marketplace and the debug Plugin.
 - Updated dependencies
   - @lynx-js/devtool-connector@0.18.6
 
