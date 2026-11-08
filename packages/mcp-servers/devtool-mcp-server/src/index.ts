@@ -3,6 +3,7 @@
 // LICENSE file in the root directory of this source tree.
 
 import 'core-js/modules/es.promise.with-resolvers.js';
+import type { Transport } from '@lynx-js/devtool-connector/transport';
 import {
   AndroidTransport,
   DaemonTransport,
@@ -10,7 +11,6 @@ import {
   HDTTransport,
   iOSTransport,
 } from '@lynx-js/devtool-connector/transport';
-import type { Transport } from '@lynx-js/devtool-connector/transport';
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { GetGlobalSwitch } from './tools/App/GetGlobalSwitch.ts';
 import { ListGlobalSwitch } from './tools/App/ListGlobalSwitch.ts';

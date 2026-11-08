@@ -191,13 +191,11 @@ export async function scanSkillResources(skillRoot: string): Promise<string[]> {
 export function renderAvailableSkills(
   skills: readonly SkillDocument[],
 ): string {
-  const skillEntries = skills.map(skill =>
-    `  <skill>
+  const skillEntries = skills.map(skill => `  <skill>
     <name>${skill.name}</name>
     <description>${skill.description}</description>
     <location>${skill.location}</location>
-  </skill>`
-  ).join('\n');
+  </skill>`).join('\n');
   return `<available_skills>
 ${skillEntries}
 </available_skills>`;

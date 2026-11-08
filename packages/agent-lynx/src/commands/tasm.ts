@@ -118,8 +118,8 @@ export function registerTasmCommand(
       },
       pkg.version,
     );
-  const help = (): string =>
-    `\nPowered by ${pkg.name}@${
+  const help =
+    (): string => `\nPowered by ${pkg.name}@${
       tasm.opts<ConversionOptions>().codecVersion ?? pkg.version
     } (in-process WASM).
 Downloaded on first conversion; cached with SHA-512 verification. Help requires no download.

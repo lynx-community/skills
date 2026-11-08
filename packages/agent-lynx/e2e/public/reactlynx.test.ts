@@ -198,7 +198,7 @@ testWithClient(
           .filter(
             (ref, index, refs) =>
               refs.findIndex((candidate) => candidate.ref === ref.ref)
-                === index,
+              === index,
           )
           .slice(0, 8);
         t.assert.ok(

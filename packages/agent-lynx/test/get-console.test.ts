@@ -281,23 +281,27 @@ for (const watch of [false, true]) {
   });
 
   test(`get-console ${mode} retains the selected event timestamp after level, offset and limit filters`, async (t) => {
-    const output = await captureConsole(t, [
-      { method: 'Debugger.scriptParsed', params: {} },
-      ...['log', 'warning', 'warning', 'warning'].map((type, index) =>
-        consoleEvent({
-          type,
-          timestamp: 1_700_000_000_123 + index,
-          args: [{ type: 'string', value: `message-${index}` }],
-          stackTrace: {
-            callFrames: [{
-              url: 'background.js',
-              lineNumber: 1,
-              columnNumber: 0,
-            }],
-          },
-        })
-      ),
-    ], [...options, '--level', 'warning', '--offset', '1', '--limit', '1']);
+    const output = await captureConsole(
+      t,
+      [
+        { method: 'Debugger.scriptParsed', params: {} },
+        ...['log', 'warning', 'warning', 'warning'].map((type, index) =>
+          consoleEvent({
+            type,
+            timestamp: 1_700_000_000_123 + index,
+            args: [{ type: 'string', value: `message-${index}` }],
+            stackTrace: {
+              callFrames: [{
+                url: 'background.js',
+                lineNumber: 1,
+                columnNumber: 0,
+              }],
+            },
+          })
+        ),
+      ],
+      [...options, '--level', 'warning', '--offset', '1', '--limit', '1'],
+    );
     assert.equal(output, '[22:13:20.125Z] [warning/background] message-2');
   });
 }

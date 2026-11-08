@@ -161,10 +161,10 @@ test('default list-clients uses daemon HTTP and never invokes Connector directly
     HttpCommandClient.prototype,
     'execute',
     async (action: string, params: unknown) => {
-      assert.deepEqual({ action, params }, {
-        action: 'list-clients',
-        params: {},
-      });
+      assert.deepEqual(
+        { action, params },
+        { action: 'list-clients', params: {} },
+      );
       return ok('list-clients', { clients: [client] }) as never;
     },
   );

@@ -74,17 +74,20 @@ test('a product target resolver stays scoped to its context', async (t) => {
 });
 
 test('explicit targets bypass product default resolution', async () => {
-  const target = await resolveClientAndSession({
-    transports: [],
-    targetResolver: {
-      async getFirstClient() {
-        assert.fail('explicit clients must not be resolved');
-      },
-      async getLatestSession() {
-        assert.fail('explicit sessions must not be resolved');
+  const target = await resolveClientAndSession(
+    {
+      transports: [],
+      targetResolver: {
+        async getFirstClient() {
+          assert.fail('explicit clients must not be resolved');
+        },
+        async getLatestSession() {
+          assert.fail('explicit sessions must not be resolved');
+        },
       },
     },
-  }, { client: 'custom:1', session: '7' });
+    { client: 'custom:1', session: '7' },
+  );
   assert.equal(target.clientId, 'custom:1');
   assert.equal(target.sessionId, '7');
 });
@@ -95,17 +98,20 @@ test('product target resolution failures propagate without falling back to disco
     assert.fail('must not fall back');
   });
   await assert.rejects(
-    resolveClient({
-      transports: [],
-      targetResolver: {
-        async getFirstClient() {
-          throw failure;
-        },
-        async getLatestSession() {
-          throw failure;
+    resolveClient(
+      {
+        transports: [],
+        targetResolver: {
+          async getFirstClient() {
+            throw failure;
+          },
+          async getLatestSession() {
+            throw failure;
+          },
         },
       },
-    }, {}),
+      {},
+    ),
     error => error === failure,
   );
 });
