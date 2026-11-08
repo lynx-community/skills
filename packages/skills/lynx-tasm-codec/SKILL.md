@@ -66,7 +66,7 @@ agent-lynx tasm --codec-version <version> encode -i <input.json> -o <output.tasm
 agent-lynx tasm --codec-version <version> decode -i <input.tasm> -o <output.json>
 ```
 
-用户明确要求全局命令时，安装 Agent Lynx 后仍使用同一子命令：
+用户明确要求全局命令时，安装 `agent-lynx` 后仍使用同一子命令：
 
 ```bash
 agent-lynx tasm encode -i <input.json> -o <output.tasm>

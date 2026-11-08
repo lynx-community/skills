@@ -662,13 +662,13 @@ describe("ActionCore", () => {
     const target = { clientId: "device:8901", sessionId: 3 };
 
     assert.equal((await core.execute("snapshot", target, context)).ok, true);
-    assert.equal((await core.execute("fill", { ...target, ref: "@e1", text: "Agent Lynx" }, context)).ok, true);
+    assert.equal((await core.execute("fill", { ...target, ref: "@e1", text: "agent-lynx" }, context)).ok, true);
 
     const focusIndex = calls.findIndex(call => call.method === "DOM.focus");
     const insertIndex = calls.findIndex(call => call.method === "Input.insertText");
     assert.ok(focusIndex >= 0);
     assert.ok(insertIndex > focusIndex);
-    assert.deepEqual(calls[insertIndex]?.params, { text: "Agent Lynx" });
+    assert.deepEqual(calls[insertIndex]?.params, { text: "agent-lynx" });
     assert.equal(calls.some(call => call.method === "DOM.setAttributesAsText"), false);
   });
 
@@ -711,7 +711,7 @@ describe("ActionCore", () => {
     const target = { clientId: "device:8901", sessionId: 3 };
 
     assert.equal((await core.execute("snapshot", target, context)).ok, true);
-    assert.equal((await core.execute("fill", { ...target, ref: "@e1", text: "Agent Lynx" }, context)).ok, true);
+    assert.equal((await core.execute("fill", { ...target, ref: "@e1", text: "agent-lynx" }, context)).ok, true);
 
     const focus = calls.find(call => call.method === "DOM.focus");
     assert.deepEqual(focus?.params, { nodeId: 202 });
@@ -732,7 +732,7 @@ describe("ActionCore", () => {
     const target = { clientId: "device:8901", sessionId: 3 };
 
     assert.equal((await core.execute("snapshot", target, context)).ok, true);
-    const result = await core.execute("fill", { ...target, ref: "@e1", text: "Agent Lynx" }, context);
+    const result = await core.execute("fill", { ...target, ref: "@e1", text: "agent-lynx" }, context);
 
     assert.equal(result.error?.reason, "stale-ref");
     assert.equal(calls.some(call => call.method === "DOM.focus"), false);
