@@ -43,9 +43,10 @@ test('Page.takeScreenshot acknowledges an empty frame before accepting the next 
               typeof id === 'number' && Number.isInteger(id),
               'screencast acknowledgements need a CDP request ID',
             );
-            const ackCount = requests.filter(({ method }) =>
-              method === 'Page.screencastFrameAck'
-            ).length;
+            const ackCount =
+              requests.filter(({ method }) =>
+                method === 'Page.screencastFrameAck'
+              ).length;
             if (ackCount === 1) {
               outputController.enqueue({
                 method: 'Page.screencastFrame',

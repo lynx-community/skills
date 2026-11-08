@@ -179,11 +179,14 @@ test('default open uses daemon HTTP and never invokes Connector directly', async
       ...[action, params, options]: Parameters<CommandClient['execute']>
     ) {
       httpCalls += 1;
-      assert.deepEqual({ action, params, options }, {
-        action: 'open',
-        params: { url, clientId: 'device:8901' },
-        options: undefined,
-      });
+      assert.deepEqual(
+        { action, params, options },
+        {
+          action: 'open',
+          params: { url, clientId: 'device:8901' },
+          options: undefined,
+        },
+      );
       return ok('open', { clientId: 'device:8901', response }) as never;
     },
   );
@@ -222,10 +225,10 @@ test('--no-daemon open invokes ActionCore in-process and never uses HTTP', async
     'openPage',
     async (clientId: string, openedUrl: string) => {
       openCalls += 1;
-      assert.deepEqual({ clientId, openedUrl }, {
-        clientId: 'device:8901',
-        openedUrl: url,
-      });
+      assert.deepEqual(
+        { clientId, openedUrl },
+        { clientId: 'device:8901', openedUrl: url },
+      );
       return response;
     },
   );

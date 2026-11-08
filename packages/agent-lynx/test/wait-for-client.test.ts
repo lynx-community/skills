@@ -213,10 +213,13 @@ test('default wait-for-client uses daemon HTTP SSE and never invokes Connector d
       ...[action, params, options]: Parameters<CommandClient['stream']>
     ) {
       streamCalls += 1;
-      assert.deepEqual({ action, params }, {
-        action: 'wait-for-client',
-        params: { clientName: 'Example', timeoutMs: 0, intervalMs: 0 },
-      });
+      assert.deepEqual(
+        { action, params },
+        {
+          action: 'wait-for-client',
+          params: { clientName: 'Example', timeoutMs: 0, intervalMs: 0 },
+        },
+      );
       assert.equal(options?.method, 'POST');
       return (async function*() {
         yield finalEvent([client]);

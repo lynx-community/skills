@@ -83,9 +83,10 @@ test('list-sessions preserves stdout and optional success telemetry', async (t) 
     MonitorCode.COMMAND_LIST_SESSIONS_SUCCESS,
   ]);
   t.assert.equal(monitorEvents[1]?.data['m1'], 2);
-  t.assert.deepEqual(JSON.parse(String(monitorEvents[1]?.data['d1'])), [{
-    type: 'lynx',
-  }, { type: 'web' }]);
+  t.assert.deepEqual(JSON.parse(String(monitorEvents[1]?.data['d1'])), [
+    { type: 'lynx' },
+    { type: 'web' },
+  ]);
 });
 
 test('list-sessions preserves an empty session snapshot as successful array output', async (t) => {
@@ -136,10 +137,10 @@ test('default list-sessions uses daemon HTTP and never invokes Connector directl
     HttpCommandClient.prototype,
     'execute',
     async (action: string, params: unknown) => {
-      assert.deepEqual({ action, params }, {
-        action: 'list-sessions',
-        params: {},
-      });
+      assert.deepEqual(
+        { action, params },
+        { action: 'list-sessions', params: {} },
+      );
       return ok('list-sessions', {
         clientId: 'device:8901',
         sessions: [session],

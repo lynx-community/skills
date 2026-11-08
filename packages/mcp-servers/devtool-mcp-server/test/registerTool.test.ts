@@ -189,10 +189,10 @@ test('shared execution preserves text/image output and normalizes tool failures'
     { type: 'image', data: 'aW1hZ2U=', mimeType: 'image/png' },
   ]);
   for (
-    const [name, message] of [['Fixture_error', 'original error'], [
-      'Fixture_string',
-      'original string',
-    ]]
+    const [name, message] of [
+      ['Fixture_error', 'original error'],
+      ['Fixture_string', 'original string'],
+    ]
   ) {
     const result = await client.callTool({ name: name!, arguments: {} });
     assert.equal(result.isError, true);
