@@ -6,7 +6,6 @@ import {
   Check,
   ChevronRight,
   FileText,
-  Lightbulb,
   MessageSquare,
   Terminal,
 } from 'lucide-react';
@@ -174,7 +173,6 @@ export function AgentConversation({
             if (step.type === 'note') {
               return (
                 <div className={styles.note} key={index}>
-                  <Lightbulb size={14} aria-hidden='true' />
                   <p>
                     <span className={styles.srOnly}>{copy.thought}:</span>
                     {step.content}
@@ -201,7 +199,7 @@ export function AgentConversation({
                     toggle(step.id);
                   }}
                 >
-                  <Icon size={15} aria-hidden='true' />
+                  <Icon size={14} aria-hidden='true' />
                   <span
                     className={styles.toolName}
                     title={step.name ?? step.command}

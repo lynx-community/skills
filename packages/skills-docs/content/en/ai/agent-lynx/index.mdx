@@ -8,7 +8,7 @@ import { AgentLynxArchitecture } from '../../../_ai/agent-lynx-architecture';
 
 [agent-lynx](https://github.com/lynx-community/skills/tree/main/packages/agent-lynx) — **Lynx for your agent**: the knowledge and tools to build, debug, and verify Lynx apps.
 
-It combines a CLI, a typed Connector API, composable CLI APIs, and bundled skills. Agents can inspect and operate a running page, diagnose performance and memory issues, record page runtime state for replay, and use runtime feedback to verify code changes.
+It combines a CLI, a typed Connector API, and bundled skills. Agents can inspect and operate a running page, diagnose performance and memory issues, record page runtime state for replay, and use runtime feedback to verify code changes.
 
 ## How It Connects to Your App
 
@@ -32,12 +32,10 @@ Follow [Getting Started](getting-started.mdx) to install agent-lynx, give your a
 | Record and analyze traces, inspect memory, and capture JS heaps    | [Performance and Memory](tracing.mdx)                  |
 | Record page runtime state for deterministic replay                 | [Recorder](recording.mdx)                              |
 | Read and change runtime switches                                   | [Runtime Settings](runtime-settings.mdx)               |
-| Build Connector scripts or host and extend the CLI                 | [Programmatic APIs](programmatic-api.mdx)              |
+| Automate with CLI subprocesses or the Connector API                | [Programmatic APIs](programmatic-api.mdx)              |
 
 The [CLI reference](cli-reference.mdx) lists all public commands, output controls, and environment settings. For connection and inspection issues, see [Troubleshooting](troubleshooting.mdx).
 
 ## Skills and Project Context
 
 The bundled skills provide instructions for using agent-lynx; the CLI and APIs execute the operations. Discover them with `agent-lynx skills list`, then load the relevant instructions with `agent-lynx skills get <name>`. [Agent Skills](https://github.com/lynx-community/skills) also provide Lynx development knowledge, and [AGENTS.md](https://lynxjs.org/ai/agentsmd) gives agents project-specific context.
-
-If you previously used `lynx-devtool` or skill-local trace scripts, use `agent-lynx` as the CLI entry point and read its current DevTool instructions. The [performance tracing workflow](tracing.mdx) replaces the separate recorder-script entry point.
