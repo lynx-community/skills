@@ -22,6 +22,7 @@ import {
 const debug = createDebug("devtool-mcp-server:connector:android");
 const APP_ICON_HELPER_REMOTE_PATH = "/data/local/tmp/lynx-connector-app-icon-v1.jar";
 const PNG_SIGNATURE = [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a] as const;
+const SOCKET_GRACEFUL_CLOSE_TIMEOUT_MS = 100;
 
 function createQueryLauncherActivitiesCommandArgs(packageName: string): string[] {
   return [
@@ -161,17 +162,28 @@ export class AndroidTransport implements Transport {
         } catch (err) {
           closeResult = Promise.reject(err);
         }
-        // ADB's close() only sends FIN. If the peer stays half-open, abort the
-        // socket on the next turn and still wait for its physical close before
-        // completing disposal.
+        // ADB's close() only sends FIN. Give the peer a short grace period to
+        // finish closing cleanly; if it stays half-open, abort the socket and
+        // still wait for its physical close before completing disposal.
         const hardCloseCheck = new Promise<void>(resolve => {
-          setImmediate(() => {
+          const timer = setTimeout(() => {
             if (!socketClosedSettled) {
               debug(`connect: force close socket ${service} after graceful close stalled`);
               closeController.abort();
             }
             resolve();
-          });
+          }, SOCKET_GRACEFUL_CLOSE_TIMEOUT_MS);
+          timer.unref?.();
+          void socketClosed.then(
+            () => {
+              clearTimeout(timer);
+              resolve();
+            },
+            () => {
+              clearTimeout(timer);
+              resolve();
+            },
+          );
         });
         closePromise = Promise.allSettled([closeResult, socketClosed, hardCloseCheck]).then(
           ([closeResultOutcome, socketClosedOutcome]) => {
