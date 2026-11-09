@@ -54,9 +54,14 @@ export function registerGetSourcesCommand(program: Command, context: Context) {
       );
 
       const scripts: ScriptParsedEvent[] = [];
+      let didReceiveAnyResponse = false;
 
       for await (
-        const value of readUntilIdle(stream, { idleMs: 2000, maxMs: 5000 })
+        const value of readUntilIdle(stream, {
+          idleMs: 2000,
+          maxMs: 5000,
+          onIdle: () => !didReceiveAnyResponse && scripts.length === 0,
+        })
       ) {
         if (value.method === 'Debugger.scriptParsed') {
           scripts.push(value.params as ScriptParsedEvent);
@@ -66,6 +71,9 @@ export function registerGetSourcesCommand(program: Command, context: Context) {
           result?: unknown;
           error?: unknown;
         };
+        if (response.id !== undefined) {
+          didReceiveAnyResponse = true;
+        }
         if (
           response.id === barrierId
           && response.result !== undefined
