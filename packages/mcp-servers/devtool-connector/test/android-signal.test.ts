@@ -333,8 +333,9 @@ test("Android disposal hard-closes a half-open Node socket", async () => {
     const dispose = connection[Symbol.asyncDispose]().then(() => {
       disposed = true;
     });
-    await Promise.resolve();
+    await nextImmediate();
     assert.equal(disposed, false);
+    assert.equal(clientSocket?.destroyed, false);
 
     await dispose;
     assert.equal(clientSocket?.destroyed, true);
