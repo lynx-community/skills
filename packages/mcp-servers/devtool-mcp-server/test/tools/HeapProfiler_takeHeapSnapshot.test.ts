@@ -307,4 +307,23 @@ describe('HeapProfiler.takeHeapSnapshot', () => {
       await fs.unlink(filePath).catch(() => {});
     }
   });
+
+  test('rejects and removes the temporary file when the stream ends before the snapshot response', async () => {
+    const connector = createMockConnector(() => [
+      {
+        method: 'HeapProfiler.addHeapSnapshotChunk',
+        params: { chunk: '{"snapshot":{"truncated":true}' },
+      },
+    ]);
+
+    const { call } = createToolContext(
+      TakeHeapSnapshot,
+      connector as never,
+      testClientId,
+    );
+    await assert.rejects(
+      () => call<string>({ thread: 'background' }),
+      /Failed to capture heap snapshot, no chunks received or timed out\./,
+    );
+  });
 });

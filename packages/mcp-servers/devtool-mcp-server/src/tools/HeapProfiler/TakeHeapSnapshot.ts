@@ -165,7 +165,7 @@ export const TakeHeapSnapshot = /*#__PURE__*/ defineTool({
         { signal },
       );
 
-      if (!didWriteSnapshotChunk) {
+      if (!didWriteSnapshotChunk || !didReceiveSnapshotResponse) {
         throw new Error(
           'Failed to capture heap snapshot, no chunks received or timed out.',
         );

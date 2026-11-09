@@ -30,11 +30,17 @@ type CustomizedCDPRequest = {
 class FakeHeapSnapshotTransport implements Transport {
   readonly #chunks: readonly string[];
   readonly #failureAfterChunks: Error | undefined;
+  readonly #closeBeforeResponse: boolean;
   readonly methods: string[] = [];
 
-  constructor(chunks: readonly string[], failureAfterChunks?: Error) {
+  constructor(
+    chunks: readonly string[],
+    failureAfterChunks?: Error,
+    closeBeforeResponse = false,
+  ) {
     this.#chunks = chunks;
     this.#failureAfterChunks = failureAfterChunks;
+    this.#closeBeforeResponse = closeBeforeResponse;
   }
 
   async close(): Promise<void> {}
@@ -77,6 +83,10 @@ class FakeHeapSnapshotTransport implements Transport {
         }
         if (this.#failureAfterChunks) {
           outputController?.error(this.#failureAfterChunks);
+          return;
+        }
+        if (this.#closeBeforeResponse) {
+          outputController?.close();
           return;
         }
         outputController?.enqueue(cdpMessage({ id, result: {} }));
@@ -196,6 +206,45 @@ test('take-heap-snapshot preserves the previous output when streaming fails', as
       output,
     ]),
     error => error === streamFailure,
+  );
+
+  t.assert.equal(await fs.readFile(output, 'utf8'), 'previous snapshot');
+  t.assert.deepEqual(await fs.readdir(tempDir), ['snapshot.heapsnapshot']);
+});
+
+test('take-heap-snapshot rejects truncated snapshots when stream ends before response', async (t) => {
+  const transport = new FakeHeapSnapshotTransport(
+    ['{"snapshot":{"truncated":true}'],
+    undefined,
+    true,
+  );
+  const context: Context = { transports: [transport] };
+  const program = new Command();
+  program.exitOverride();
+  registerTakeHeapSnapshotCommand(program, context);
+
+  const tempDir = await fs.mkdtemp(
+    path.join(os.tmpdir(), 'lynx-heap-snapshot-eof-'),
+  );
+  t.after(() => {
+    void fs.rm(tempDir, { recursive: true, force: true });
+  });
+  const output = path.join(tempDir, 'snapshot.heapsnapshot');
+  await fs.writeFile(output, 'previous snapshot');
+
+  await t.assert.rejects(
+    program.parseAsync([
+      'node',
+      'test',
+      'take-heap-snapshot',
+      '--client',
+      'device:8901',
+      '--session',
+      '7',
+      '--output',
+      output,
+    ]),
+    /Failed to capture heap snapshot, no chunks received or timed out\./,
   );
 
   t.assert.equal(await fs.readFile(output, 'utf8'), 'previous snapshot');
