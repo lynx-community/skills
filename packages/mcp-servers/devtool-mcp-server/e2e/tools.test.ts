@@ -682,11 +682,6 @@ testWithClient('Tools', async (suite, connector, client, target) => {
 
   await suite.test(
     'Lynx.getVersion',
-    {
-      skip: target.appPackageName === 'EmbeddedLynx'
-        ? 'EmbeddedLynx does not support Lynx.getVersion (for now)'
-        : false,
-    },
     async (t: TestContext) => {
       const { call } = createToolContext(GetVersion, connector, clientId);
       const version = await call<string>({});
@@ -867,8 +862,8 @@ testWithClient('Tools', async (suite, connector, client, target) => {
   await suite.test(
     'UITree.getLynxUITree returns an uncompressed native UI tree',
     async (t: TestContext) => {
-      if (target.appPackageName === 'EmbeddedLynx') {
-        t.skip('EmbeddedLynx does not support UITree.getLynxUITree yet');
+      if (target.appPackageName === 'Lynxtron') {
+        t.skip('Lynxtron does not support UITree.getLynxUITree yet');
         return;
       }
 
@@ -919,8 +914,8 @@ testWithClient('Tools', async (suite, connector, client, target) => {
   await suite.test(
     'UITree.getLynxUITree exposes Lynx 4 metadata fields',
     async (t: TestContext) => {
-      if (target.appPackageName === 'EmbeddedLynx') {
-        t.skip('EmbeddedLynx does not support UITree.getLynxUITree yet');
+      if (target.appPackageName === 'Lynxtron') {
+        t.skip('Lynxtron does not support UITree.getLynxUITree yet');
         return;
       }
       const { call } = createToolContext(GetLynxUITree, connector, clientId);
@@ -945,10 +940,6 @@ testWithClient('Tools', async (suite, connector, client, target) => {
   );
 
   await suite.test('Performance.getAllTimingInfo', async (t: TestContext) => {
-    if (target.appPackageName === 'EmbeddedLynx') {
-      t.skip('EmbeddedLynx does not support Performance.getAllTimingInfo yet');
-      return;
-    }
     const { call } = createToolContext(GetAllTimingInfo, connector, clientId);
     const result = await call<Record<string, unknown>>({});
 
@@ -1070,12 +1061,6 @@ testWithClient('Tools', async (suite, connector, client, target) => {
   await suite.test(
     'HeapProfiler.takeHeapSnapshot saves a background snapshot filename by default',
     async (t: TestContext) => {
-      if (target.appPackageName === 'EmbeddedLynx') {
-        t.skip(
-          'EmbeddedLynx does not support background-thread heap snapshots yet',
-        );
-        return;
-      }
       const { call } = createToolContext(TakeHeapSnapshot, connector, clientId);
       const result = await call<string>({});
 
@@ -1300,11 +1285,6 @@ testWithClient('Tools', async (suite, connector, client, target) => {
 
   await suite.test(
     'Debugger.enable (listScripts)',
-    {
-      skip: target.appPackageName === 'EmbeddedLynx'
-        ? 'EmbeddedLynx does not support Debugger.enable'
-        : false,
-    },
     async (t: TestContext) => {
       const { call } = createToolContext(ListScripts, connector, clientId);
       const result = await call<string>({});
@@ -1325,11 +1305,6 @@ testWithClient('Tools', async (suite, connector, client, target) => {
 
   await suite.test(
     'Debugger.getScriptSource',
-    {
-      skip: target.appPackageName === 'EmbeddedLynx'
-        ? 'EmbeddedLynx does not support Debugger.enable'
-        : false,
-    },
     async (t: TestContext) => {
       const { call: listScripts } = createToolContext(
         ListScripts,
@@ -1406,12 +1381,6 @@ testWithClient('Tools', async (suite, connector, client, target) => {
   await suite.test(
     'Runtime.consoleAPICalled (listConsole)',
     async (t: TestContext) => {
-      if (target.appPackageName === 'EmbeddedLynx') {
-        t.skip(
-          'EmbeddedLynx does not replay buffered console entries on Runtime.enable',
-        );
-        return;
-      }
       const { call: evaluate } = createToolContext(
         Evaluate,
         connector,

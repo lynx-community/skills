@@ -161,12 +161,6 @@ testWithClient(
     await t.test(
       'DOM and component refs round-trip through runtime identities',
       async (t: TestContext) => {
-        if (target.appPackageName === 'EmbeddedLynx') {
-          t.skip(
-            'Clay-based EmbeddedLynx does not expose the App-side host identity mapping yet',
-          );
-          return;
-        }
         if (!treeData) {
           t.skip('tree action did not complete');
           return;

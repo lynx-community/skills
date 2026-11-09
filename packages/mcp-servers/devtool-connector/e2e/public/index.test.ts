@@ -44,7 +44,7 @@ async function waitForGlobalSwitch(
   );
 }
 
-testWithClient("Connector", async (t, connector, client) => {
+testWithClient("Connector", async (t, connector, client, target) => {
   const clientId = client.id;
 
   await t.test("sendMessage", async (t) => {
@@ -121,7 +121,10 @@ testWithClient("Connector", async (t, connector, client) => {
       );
 
       t.assert.equal(result.result.type, "string");
-      t.assert.equal(result.result.value, "quickjs");
+      t.assert.equal(
+        result.result.value,
+        target.appPackageName === "Lynxtron" ? "v8" : "quickjs",
+      );
     });
     await t.test("Runtime.evaluate with sessionId: 'Main'", async () => {
       const session = await getTestingSession(connector, clientId);
@@ -152,7 +155,7 @@ testWithClient("Connector", async (t, connector, client) => {
         () => connector.sendCDPMessage(clientId, -1, "DOM.getDocument"),
         {
           name: "Error",
-          message: "CDP request error: Not implemented: DOM.getDocument",
+          message: /^CDP request error: (?:Not implemented: DOM\.getDocument|'DOM\.getDocument' wasn't found)$/,
         },
       );
     });
