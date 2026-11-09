@@ -57,4 +57,4 @@ pnpm run build
 pnpm run test
 ```
 
-Environment-sensitive tests are separate from unit tests. GitHub selects `test:e2e:public` against EmbeddedLynx; Codebase may run the complete `test:e2e` entry. Real-device tests require an explicitly configured target.
+Environment-sensitive tests are separate from unit tests. GitHub selects `test:e2e:public` against Lynxtron; Codebase may run the complete `test:e2e` entry. Real-device tests require an explicitly configured target.

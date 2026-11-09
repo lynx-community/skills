@@ -3,6 +3,7 @@
 // LICENSE file in the root directory of this source tree.
 
 import { describe, test, type TestContext } from "node:test";
+import { setTimeout as delay } from "node:timers/promises";
 import { Connector } from "../src/index.ts";
 import { AndroidTransport } from "../src/transport/android.ts";
 import { DaemonTransport } from "../src/transport/daemon.ts";
@@ -59,6 +60,31 @@ export function selectTestingClient(
   return clients.find((client) => isClientForTarget(client, target));
 }
 
+export async function waitForTestingClient(
+  connector: { listClients(): Promise<Client[]> },
+  target: TestingTarget = resolveTestingTarget(),
+  options: { attempts?: number; intervalMs?: number } = {},
+): Promise<{ client?: Client; clients: Client[] }> {
+  const attempts = options.attempts ?? 10;
+  const intervalMs = options.intervalMs ?? 500;
+  let clients: Client[] = [];
+  let lastError: unknown;
+
+  for (let attempt = 1; attempt <= attempts; attempt++) {
+    try {
+      clients = await connector.listClients();
+      const client = selectTestingClient(clients, target);
+      if (client) return { client, clients };
+    } catch (error) {
+      lastError = error;
+    }
+    if (attempt < attempts) await delay(intervalMs);
+  }
+
+  if (lastError !== undefined) throw lastError;
+  return { clients };
+}
+
 function formatClient(client: Client): string {
   const info = client.info;
   return [
@@ -101,15 +127,27 @@ export async function getTestingSession(
     sendListSessionMessage(clientId: string): Promise<TestingSession[]>;
   },
   clientId: string,
+  options: { attempts?: number; intervalMs?: number } = {},
 ): Promise<TestingSession> {
-  const sessions = await connector.sendListSessionMessage(clientId);
-  const session = sessions[sessions.length - 1];
-  if (!session) {
-    throw new Error(
-      `No sessions found for client ${clientId}. Ensure a page is opened before running tests (e.g. node skills/lynx-devtool/scripts/index.mjs open <url>)`,
-    );
+  const attempts = options.attempts ?? 30;
+  const intervalMs = options.intervalMs ?? 500;
+  let lastError: unknown;
+
+  for (let attempt = 1; attempt <= attempts; attempt++) {
+    try {
+      const sessions = await connector.sendListSessionMessage(clientId);
+      const session = sessions[sessions.length - 1];
+      if (session) return session;
+    } catch (error) {
+      lastError = error;
+    }
+    if (attempt < attempts) await delay(intervalMs);
   }
-  return session;
+
+  if (lastError !== undefined) throw lastError;
+  throw new Error(
+    `No sessions found for client ${clientId}. Ensure a page is opened before running tests (e.g. node skills/lynx-devtool/scripts/index.mjs open <url>)`,
+  );
 }
 
 const Transports: {
@@ -120,7 +158,7 @@ const Transports: {
   { name: "Android", createTransports: () => [new AndroidTransport()] },
   { name: "Daemon", createTransports: () => [new DaemonTransport()] },
   {
-    name: "EmbeddedLynx",
+    name: "Lynxtron",
     createTransports: () => [new DesktopTransport()],
   },
 ].filter((i) => !transportsFromEnv || transportsFromEnv.includes(i.name));
@@ -160,8 +198,7 @@ function createRunner(
             await Promise.all(transports.map((transport) => transport.close()));
           });
 
-          const clients = await connector.listClients();
-          const client = selectTestingClient(clients, target);
+          const { client, clients } = await waitForTestingClient(connector, target);
 
           if (!client) {
             t.assert.fail(formatNoTestingClientMessage(name, clients, target));
