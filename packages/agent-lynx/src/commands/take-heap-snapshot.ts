@@ -174,7 +174,7 @@ export function registerTakeHeapSnapshotCommand(
           { signal: timeoutSignal },
         );
 
-        if (!didWriteSnapshotChunk) {
+        if (!didWriteSnapshotChunk || !didReceiveSnapshotResponse) {
           throw new Error(
             'Failed to capture heap snapshot, no chunks received or timed out.',
           );
