@@ -1,58 +1,148 @@
 ---
-description: 'Use the typed Connector API, host or extend the CLI, and integrate agent-lynx public package entry points and helpers.'
+description: 'Compose automation scripts with CLI subprocesses and JSON output, or use the Connector API to inspect running Lynx pages directly.'
 ---
+
+import { Tab, Tabs } from '@rspress/core/theme';
 
 # Programmatic APIs
 
+There are two ways to use agent-lynx in automation scripts:
+
+- **CLI subprocesses**: invoke commands from Shell, Python, Node.js, or another language, then parse JSON output to filter data, make decisions, or save results.
+- **Connector API**: connect through `agent-lynx/connector` in JavaScript or TypeScript to send CDP and App requests or subscribe to events.
+
+For the examples below, connect an app using [Getting Started](getting-started.mdx), then obtain the target page IDs with `list-clients` and `list-sessions`. Set them as environment variables:
+
+```bash
+export CLIENT_ID='<client-id>'
+export SESSION_ID='<session-id>'
+```
+
+## Call the CLI as a Subprocess
+
+Install the CLI and make sure your script can find `agent-lynx` on `PATH`:
+
+```bash
+npm install -g agent-lynx
+```
+
+Put `--json` before the command to request machine-readable output. These three examples perform the same task: read the page's element tree, evaluate an expression in the background VM to get the global property keys, and save both results to `page-report.json`.
+
+<Tabs groupId="agent-lynx-script-language">
+<Tab label="Shell">
+
+Use Bash and `jq`:
+
+```bash
+set -euo pipefail
+target=(--client "$CLIENT_ID" --session "$SESSION_ID")
+
+document=$(agent-lynx --json cdp --method DOM.getDocument \
+  '{"depth":-1}' "${target[@]}")
+props=$(agent-lynx --json evaluate \
+  'Object.keys(lynx.__globalProps || {})' "${target[@]}")
+
+jq -n --argjson document "$document" --argjson props "$props" '
+  if $props.exceptionDetails then error($props.exceptionDetails | tostring)
+  else {document: $document, globalPropKeys: $props.result.value}
+  end
+' > page-report.json
+```
+
+</Tab>
+<Tab label="Python">
+
+Save as `inspect_page.py` and run `python3 inspect_page.py`:
+
+```python
+import json
+import os
+import subprocess
+from pathlib import Path
+
+def run(*args):
+    result = subprocess.run(
+        ["agent-lynx", "--json", *args,
+         "--client", os.environ["CLIENT_ID"],
+         "--session", os.environ["SESSION_ID"]],
+        check=True, stdout=subprocess.PIPE, text=True,
+    )
+    return json.loads(result.stdout)
+
+document = run("cdp", "--method", "DOM.getDocument", '{"depth":-1}')
+props = run("evaluate", "Object.keys(lynx.__globalProps || {})")
+if props.get("exceptionDetails"):
+    raise RuntimeError(props["exceptionDetails"])
+report = {"document": document, "globalPropKeys": props["result"]["value"]}
+Path("page-report.json").write_text(json.dumps(report, indent=2), encoding="utf-8")
+```
+
+</Tab>
+<Tab label="Node.js">
+
+Save as `inspect-page.mjs` and run `node inspect-page.mjs`:
+
+```js
+import { execFileSync } from 'node:child_process';
+import { writeFileSync } from 'node:fs';
+
+function run(...args) {
+  return JSON.parse(execFileSync('agent-lynx', [
+    '--json', ...args,
+    '--client', process.env.CLIENT_ID,
+    '--session', process.env.SESSION_ID,
+  ], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'inherit'], maxBuffer: 16 * 1024 * 1024 }));
+}
+
+const document = run('cdp', '--method', 'DOM.getDocument', '{"depth":-1}');
+const props = run('evaluate', 'Object.keys(lynx.__globalProps || {})');
+if (props.exceptionDetails) throw new Error(JSON.stringify(props.exceptionDetails));
+writeFileSync('page-report.json', JSON.stringify({
+  document, globalPropKeys: props.result.value,
+}, null, 2));
+```
+
+</Tab>
+</Tabs>
+
+The scripts check the process exit status and parse only stdout, leaving stderr for diagnostics. Python and Node.js pass argument arrays, so expressions and JSON parameters need no additional shell escaping.
+
+JSON shapes depend on the command: `cdp` and `evaluate` already output JSON; `evaluate` returns its value in `result.value` and VM exceptions in `exceptionDetails`. Commands such as `snapshot --json` return an envelope containing `ok`, `data`, or `error`. `get-console --watch --json` emits one JSON event per line and should be parsed line by line. See the [CLI reference](cli-reference.mdx) for more options.
+
 ## Use the Connector API
 
-For JavaScript or TypeScript automation, install agent-lynx in the project so imports can resolve:
+Use the Connector API to reuse a connection and compose protocol requests in JavaScript or TypeScript scripts. First, install `agent-lynx` in your project:
 
 ```bash
 npm install agent-lynx
 ```
 
+This example performs the same page inspection as the CLI examples and saves the results to `page-report.json`. Using the `CLIENT_ID` and `SESSION_ID` set above, save the script as `inspect-page.mjs` and run `node inspect-page.mjs`:
+
 ```js
-import { createDefaultConnector } from 'agent-lynx/connector';
+import { writeFileSync } from 'node:fs';
+import { createDefaultConnector, evaluateExpression } from 'agent-lynx/connector';
 
 const connector = createDefaultConnector();
-const clients = await connector.listClients();
-console.log(clients);
+const clientId = process.env.CLIENT_ID;
+const sessionId = Number(process.env.SESSION_ID);
+if (!clientId || !Number.isInteger(sessionId)) {
+  throw new Error('Set CLIENT_ID and SESSION_ID to the target page IDs.');
+}
+
+const document = await connector.sendCDPMessage(
+  clientId, sessionId, 'DOM.getDocument', { depth: -1 },
+);
+const props = await evaluateExpression(
+  connector, clientId, sessionId, 'Object.keys(lynx.__globalProps || {})',
+);
+if (props.exceptionDetails) throw new Error(JSON.stringify(props.exceptionDetails));
+
+writeFileSync('page-report.json', JSON.stringify({
+  document, globalPropKeys: props.result.value,
+}, null, 2));
 ```
 
-The default connector shares the daemon connection with the CLI. See the [Connector API examples](https://github.com/lynx-community/skills/blob/main/packages/skills/lynx-devtool/references/library-usage.md) for session discovery and CDP workflows.
+`createDefaultConnector()` shares the daemon-managed app connection with the CLI. `sendCDPMessage` sends a protocol request to the selected page; `evaluateExpression` runs in the background VM by default and prepares the page's `lynx` context. Results arrive as JavaScript objects, without parsing process output.
 
-## Public Package Entry Points
-
-Install `agent-lynx` as a project dependency and use its named entry points:
-
-| Entry point               | Public functionality                                                                                                                                                                                                                                                                                                                    |
-| ------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `agent-lynx/connector`    | `Connector`, daemon-backed `createDefaultConnector` and `createDefaultTransports`, Android/iOS/Desktop/HDT/daemon transports, protocol streams, and `evaluateExpression` / `wrapExpression`. See the [Connector examples](https://github.com/lynx-community/skills/blob/main/packages/skills/lynx-devtool/references/library-usage.md). |
-| `agent-lynx/cli`          | Program creation, command registration and execution helpers, skill readers, output formatting, invocation naming, optional telemetry, and update notices.                                                                                                                                                                              |
-| `agent-lynx/bin`          | The published executable module for process launchers.                                                                                                                                                                                                                                                                                  |
-| `agent-lynx/package.json` | Package version, exports, and other package metadata.                                                                                                                                                                                                                                                                                   |
-
-## Host or Extend the CLI
-
-```js
-import { createProgram } from 'agent-lynx/cli';
-
-const program = createProgram({ cliPlaceholder: 'my-tool lynx' });
-await program.parseAsync(process.argv);
-```
-
-For a custom transport context, use `createRootCommand(context, telemetry)` and the exported `register*Command` functions. The caller supplies the transports and command client; the root lifecycle closes those transports and preserves action errors. The exported `run*` helpers reuse command actions without copying their implementations.
-
-The CLI entry point also provides these integration helpers:
-
-| Area                                | APIs and behavior                                                                                                                                                                                                  |
-| ----------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Skill discovery and reading         | `resolveBuiltInSkillRoots`, `discoverSkillDependencyNames`, `resolveSkillRootsFromPackageRoot`, `readSkillDocument`, `readSkillDocuments`, `scanSkillResources`, `renderAvailableSkills`, `renderSkillContent`.    |
-| Select a product's skills           | `createProgram({ skills: { skillRoots } })` or `registerSkillsCommand(program, { skillRoots })`; select explicit direct Skill dependencies. Discovery does not recursively aggregate other agent packages' skills. |
-| Command results and rendering       | `ok`, `fail`, `renderJson`, snapshot and ReactLynx renderers, and shared client/session/JSON option definitions.                                                                                                   |
-| Recording and stream utilities      | `analyzeRecordingBuffer`, `recordingOutputPath`, `readUntilIdle`, `buildWatchSignal`, and timeout / abort helpers.                                                                                                 |
-| Invocation and JSON preferences     | `resolveCliPlaceholder`, placeholder-replacement helpers, and `applyHostJsonPreference`.                                                                                                                           |
-| Optional host telemetry and notices | `withTelemetry`, `logMonitor`, `resolveUpdateNotice`, and `withUpdateNotice`; telemetry is invocation-scoped and has no default reporter.                                                                          |
-
-Use the exported TypeScript declarations for exact signatures. The [CLI API source](https://github.com/lynx-community/skills/blob/main/packages/agent-lynx/src/cli.ts), [command exports](https://github.com/lynx-community/skills/blob/main/packages/agent-lynx/src/commands/index.ts), and [Connector API source](https://github.com/lynx-community/skills/blob/main/packages/agent-lynx/src/connector.ts) provide the full public API entry points.
+Beyond page inspection, use `sendAppMessage` for host app operations or `sendCDPStream` to compose input events and subscribe to runtime messages. For more workflows, see the [programmatic usage introduction](https://github.com/lynx-community/skills/blob/release/skills/lynx-devtool/SKILL.md#use-as-a-library), [detailed Connector examples](https://github.com/lynx-community/skills/blob/release/skills/lynx-devtool/references/library-usage.md), and [click and double-click example](https://github.com/lynx-community/skills/blob/release/skills/lynx-devtool/examples/programmatic-touch-click-and-double-click.md) in `lynx-community/skills`.

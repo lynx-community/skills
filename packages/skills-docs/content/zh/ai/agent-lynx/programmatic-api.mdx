@@ -1,58 +1,148 @@
 ---
-description: '使用带类型的 Connector API、托管或扩展 CLI，并集成 agent-lynx 的公开入口和辅助函数。'
+description: '通过 CLI 子进程和 JSON 输出串联自动化脚本，或使用 Connector API 直接检查运行中的 Lynx 页面。'
 ---
+
+import { Tab, Tabs } from '@rspress/core/theme';
 
 # 程序化 API
 
+agent-lynx 可以通过两种方式接入自动化脚本：
+
+- **CLI 子进程**：从 Shell、Python、Node.js 等语言调用命令，解析 JSON 输出，再进行筛选、判断或保存结果。
+- **Connector API**：在 JavaScript 或 TypeScript 中通过 `agent-lynx/connector` 连接应用，发送 CDP、App 请求或订阅事件。
+
+以下示例都需要先按[快速开始](getting-started.mdx)连接应用，并用 `list-clients`、`list-sessions` 获取目标页面的 ID。将它们设为环境变量：
+
+```bash
+export CLIENT_ID='<client-id>'
+export SESSION_ID='<session-id>'
+```
+
+## 通过子进程调用 CLI
+
+安装 CLI 并确保脚本能从 `PATH` 找到 `agent-lynx`：
+
+```bash
+npm install -g agent-lynx
+```
+
+将 `--json` 放在命令前，请求机器可读输出。下面三种写法完成相同的任务：读取页面元素树，在后台 VM 中执行表达式获取全局属性的字段名，最后将两份结果保存为 `page-report.json`。
+
+<Tabs groupId="agent-lynx-script-language">
+<Tab label="Shell">
+
+使用 Bash 和 `jq`：
+
+```bash
+set -euo pipefail
+target=(--client "$CLIENT_ID" --session "$SESSION_ID")
+
+document=$(agent-lynx --json cdp --method DOM.getDocument \
+  '{"depth":-1}' "${target[@]}")
+props=$(agent-lynx --json evaluate \
+  'Object.keys(lynx.__globalProps || {})' "${target[@]}")
+
+jq -n --argjson document "$document" --argjson props "$props" '
+  if $props.exceptionDetails then error($props.exceptionDetails | tostring)
+  else {document: $document, globalPropKeys: $props.result.value}
+  end
+' > page-report.json
+```
+
+</Tab>
+<Tab label="Python">
+
+保存为 `inspect_page.py`，运行 `python3 inspect_page.py`：
+
+```python
+import json
+import os
+import subprocess
+from pathlib import Path
+
+def run(*args):
+    result = subprocess.run(
+        ["agent-lynx", "--json", *args,
+         "--client", os.environ["CLIENT_ID"],
+         "--session", os.environ["SESSION_ID"]],
+        check=True, stdout=subprocess.PIPE, text=True,
+    )
+    return json.loads(result.stdout)
+
+document = run("cdp", "--method", "DOM.getDocument", '{"depth":-1}')
+props = run("evaluate", "Object.keys(lynx.__globalProps || {})")
+if props.get("exceptionDetails"):
+    raise RuntimeError(props["exceptionDetails"])
+report = {"document": document, "globalPropKeys": props["result"]["value"]}
+Path("page-report.json").write_text(json.dumps(report, indent=2), encoding="utf-8")
+```
+
+</Tab>
+<Tab label="Node.js">
+
+保存为 `inspect-page.mjs`，运行 `node inspect-page.mjs`：
+
+```js
+import { execFileSync } from 'node:child_process';
+import { writeFileSync } from 'node:fs';
+
+function run(...args) {
+  return JSON.parse(execFileSync('agent-lynx', [
+    '--json', ...args,
+    '--client', process.env.CLIENT_ID,
+    '--session', process.env.SESSION_ID,
+  ], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'inherit'], maxBuffer: 16 * 1024 * 1024 }));
+}
+
+const document = run('cdp', '--method', 'DOM.getDocument', '{"depth":-1}');
+const props = run('evaluate', 'Object.keys(lynx.__globalProps || {})');
+if (props.exceptionDetails) throw new Error(JSON.stringify(props.exceptionDetails));
+writeFileSync('page-report.json', JSON.stringify({
+  document, globalPropKeys: props.result.value,
+}, null, 2));
+```
+
+</Tab>
+</Tabs>
+
+脚本检查进程退出状态，只解析 stdout；stderr 保留为诊断信息。Python 和 Node.js 使用参数数组传递命令，表达式和 JSON 参数不需要再做 Shell 转义。
+
+JSON 结构由具体命令决定：`cdp`、`evaluate` 本身就输出 JSON；`evaluate` 的值位于 `result.value`，VM 执行异常通过 `exceptionDetails` 返回。`snapshot --json` 等命令则返回包含 `ok`、`data` 或 `error` 的结果。`get-console --watch --json` 是逐行 JSON 事件流，应逐行解析。更多选项见 [CLI 参考](cli-reference.mdx)。
+
 ## 使用 Connector API
 
-需要编写 JavaScript 或 TypeScript 自动化脚本时，在项目中安装 agent-lynx，使模块导入可以解析：
+Connector API 适合在 JavaScript 或 TypeScript 脚本中复用连接、组合协议请求。先在项目中安装 `agent-lynx`：
 
 ```bash
 npm install agent-lynx
 ```
 
+下面通过 Connector 完成与 CLI 示例相同的页面检查，并保存为 `page-report.json`。使用前面设置的 `CLIENT_ID` 和 `SESSION_ID`，将脚本保存为 `inspect-page.mjs`，运行 `node inspect-page.mjs`：
+
 ```js
-import { createDefaultConnector } from 'agent-lynx/connector';
+import { writeFileSync } from 'node:fs';
+import { createDefaultConnector, evaluateExpression } from 'agent-lynx/connector';
 
 const connector = createDefaultConnector();
-const clients = await connector.listClients();
-console.log(clients);
+const clientId = process.env.CLIENT_ID;
+const sessionId = Number(process.env.SESSION_ID);
+if (!clientId || !Number.isInteger(sessionId)) {
+  throw new Error('Set CLIENT_ID and SESSION_ID to the target page IDs.');
+}
+
+const document = await connector.sendCDPMessage(
+  clientId, sessionId, 'DOM.getDocument', { depth: -1 },
+);
+const props = await evaluateExpression(
+  connector, clientId, sessionId, 'Object.keys(lynx.__globalProps || {})',
+);
+if (props.exceptionDetails) throw new Error(JSON.stringify(props.exceptionDetails));
+
+writeFileSync('page-report.json', JSON.stringify({
+  document, globalPropKeys: props.result.value,
+}, null, 2));
 ```
 
-默认 connector 与 CLI 共享 daemon 连接。Session 发现和 CDP 工作流参见 [Connector API 示例](https://github.com/lynx-community/skills/blob/main/packages/skills/lynx-devtool/references/library-usage.md)。
+`createDefaultConnector()` 与 CLI 共享本地 daemon 管理的应用连接。`sendCDPMessage` 对选中的页面执行协议请求；`evaluateExpression` 默认在后台 VM 中执行，并准备页面对应的 `lynx` 上下文。结果直接返回为 JavaScript 对象，无需解析进程输出。
 
-## 公开包导出入口
-
-在项目中安装 `agent-lynx`，然后使用命名导出入口：
-
-| 入口                      | 公开能力                                                                                                                                                                                                                                                                                                                    |
-| ------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `agent-lynx/connector`    | `Connector`、基于 daemon 的 `createDefaultConnector` 和 `createDefaultTransports`、Android/iOS/Desktop/HDT/daemon transport、协议数据流，以及 `evaluateExpression` / `wrapExpression`。参见 [Connector 示例](https://github.com/lynx-community/skills/blob/main/packages/skills/lynx-devtool/references/library-usage.md)。 |
-| `agent-lynx/cli`          | 创建程序、注册和执行命令、读取 skills、格式化输出、配置调用名称、可选 telemetry 和更新提示。                                                                                                                                                                                                                                |
-| `agent-lynx/bin`          | 供进程启动器使用的已发布可执行模块。                                                                                                                                                                                                                                                                                        |
-| `agent-lynx/package.json` | 包版本、导出配置及其他包元数据。                                                                                                                                                                                                                                                                                            |
-
-## 托管或扩展 CLI
-
-```js
-import { createProgram } from 'agent-lynx/cli';
-
-const program = createProgram({ cliPlaceholder: 'my-tool lynx' });
-await program.parseAsync(process.argv);
-```
-
-需要自定义 transport 上下文时，使用 `createRootCommand(context, telemetry)` 和导出的 `register*Command` 函数。调用方提供 transports 和 command client；根命令的生命周期负责关闭这些 transports，并保留命令原始错误。导出的 `run*` 辅助函数可以复用命令行为，无需复制实现。
-
-CLI 入口还提供以下集成能力：
-
-| 范围                            | API 和行为                                                                                                                                                                                                       |
-| ------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Skill 发现和读取                | `resolveBuiltInSkillRoots`、`discoverSkillDependencyNames`、`resolveSkillRootsFromPackageRoot`、`readSkillDocument`、`readSkillDocuments`、`scanSkillResources`、`renderAvailableSkills`、`renderSkillContent`。 |
-| 选择产品的 skills               | `createProgram({ skills: { skillRoots } })` 或 `registerSkillsCommand(program, { skillRoots })`，显式选择直接依赖的 Skill，不会递归聚合其他 agent 包的 skills。                                                  |
-| 命令结果和渲染                  | `ok`、`fail`、`renderJson`、snapshot 和 ReactLynx 渲染器，以及共享的 client/session/JSON 选项定义。                                                                                                              |
-| 录制和数据流工具                | `analyzeRecordingBuffer`、`recordingOutputPath`、`readUntilIdle`、`buildWatchSignal`，以及超时和取消辅助函数。                                                                                                   |
-| 调用名称和 JSON 偏好            | `resolveCliPlaceholder`、调用名称替换辅助函数和 `applyHostJsonPreference`。                                                                                                                                      |
-| 可选的宿主 telemetry 和更新提示 | `withTelemetry`、`logMonitor`、`resolveUpdateNotice`、`withUpdateNotice`；telemetry 以单次调用为范围，默认没有 reporter。                                                                                        |
-
-准确签名以导出的 TypeScript 声明为准。[CLI API 源码](https://github.com/lynx-community/skills/blob/main/packages/agent-lynx/src/cli.ts)、[命令导出](https://github.com/lynx-community/skills/blob/main/packages/agent-lynx/src/commands/index.ts)和 [Connector API 源码](https://github.com/lynx-community/skills/blob/main/packages/agent-lynx/src/connector.ts)列出了完整的公开 API 入口。
+除了页面检查，还可以用 `sendAppMessage` 调用宿主能力，或用 `sendCDPStream` 组合输入事件、订阅运行时消息。更多用法见 `lynx-community/skills` 中的[程序化使用介绍](https://github.com/lynx-community/skills/blob/release/skills/lynx-devtool/SKILL.md#use-as-a-library)、[Connector 详细示例](https://github.com/lynx-community/skills/blob/release/skills/lynx-devtool/references/library-usage.md)和[点击与双击示例](https://github.com/lynx-community/skills/blob/release/skills/lynx-devtool/examples/programmatic-touch-click-and-double-click.md)。
