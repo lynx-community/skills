@@ -113,6 +113,20 @@ test('default collection completes only on its matching successful ack after scr
   f.checkCleanup();
 });
 
+test('waits past idleMs when Debugger.enable has not responded yet', async t => {
+  const f = fixture(t);
+  await flush();
+  const id = f.requests()[2]?.id;
+  t.mock.timers.tick(2500);
+  await flush();
+  assert.deepEqual(f.output, []);
+  f.send(parsed(0));
+  f.send({ id, result: {} });
+  await f.done;
+  assert.deepEqual(JSON.parse(f.output[0]!), [scripts[0]]);
+  f.checkCleanup();
+});
+
 for (const kind of ['early', 'error', 'missing-result', 'missing', 'empty']) {
   test(`barrier ${kind} falls back to the original idle timeout`, async t => {
     const f = fixture(t);
