@@ -23,6 +23,7 @@ const debug = createDebug("devtool-mcp-server:connector:android");
 const APP_ICON_HELPER_REMOTE_PATH = "/data/local/tmp/lynx-connector-app-icon-v1.jar";
 const PNG_SIGNATURE = [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a] as const;
 const SOCKET_GRACEFUL_CLOSE_TIMEOUT_MS = 100;
+const WAIT_FOR_DEVICE_TIMEOUT_MS = 3_000;
 
 function createQueryLauncherActivitiesCommandArgs(packageName: string): string[] {
   return [
@@ -102,13 +103,29 @@ export class AndroidTransport implements Transport {
     return connectWithPeertalk<TInput, TOutput>(opts => this.#connectRaw(opts), options);
   }
 
-  async #createAdb(deviceId: string): Promise<Adb & AsyncDisposable> {
+  async #createAdb(deviceId: string, signal?: AbortSignal): Promise<Adb & AsyncDisposable> {
+    await this.#waitForDevice(deviceId, signal);
     const adb = await this.client.createAdb({ serial: deviceId });
     return Object.assign(adb, {
       async [Symbol.asyncDispose]() {
         await adb.close();
       },
     });
+  }
+
+  async #waitForDevice(deviceId: string, signal?: AbortSignal): Promise<void> {
+    const timeoutSignal = AbortSignal.timeout(WAIT_FOR_DEVICE_TIMEOUT_MS);
+    const waitSignal = signal
+      ? AbortSignal.any([signal, timeoutSignal])
+      : timeoutSignal;
+    try {
+      await this.client.waitFor({ serial: deviceId }, "device", { signal: waitSignal });
+    } catch (err) {
+      if (timeoutSignal.aborted && !signal?.aborted) {
+        return;
+      }
+      throw err;
+    }
   }
 
   async close(): Promise<void> {
@@ -133,6 +150,7 @@ export class AndroidTransport implements Transport {
 
     let socket: Awaited<ReturnType<AdbServerClient["createDeviceConnection"]>>;
     try {
+      await this.#waitForDevice(deviceId, socketSignal);
       socket = await this.client.createDeviceConnection(
         { serial: deviceId },
         service,
@@ -313,9 +331,9 @@ export class AndroidTransport implements Transport {
   async openApp(
     deviceId: string,
     packageName: string,
-    { withDataCleared, schema, restart = true }: OpenAppOptions = {},
+    { withDataCleared, schema, restart = true, signal }: OpenAppOptions = {},
   ): Promise<void> {
-    await using adb = await this.#createAdb(deviceId);
+    await using adb = await this.#createAdb(deviceId, signal);
 
     const pmOutput = await spawnWaitText(adb, [
       "pm",

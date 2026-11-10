@@ -72,7 +72,10 @@ function installClient(
   createDeviceConnection: (...args: unknown[]) => Promise<RawSocket>,
 ): void {
   Object.defineProperty(transport, "client", {
-    value: { createDeviceConnection },
+    value: {
+      async waitFor() {},
+      createDeviceConnection,
+    },
   });
 }
 
@@ -96,6 +99,7 @@ test("Android direct connections bind cancellation to the ADB service socket", a
   };
   Object.defineProperty(transport, "client", {
     value: {
+      async waitFor() {},
       async createAdb() {
         createAdbCount += 1;
         throw new Error("direct connection must not create an Adb transport");
@@ -346,4 +350,79 @@ test("Android disposal hard-closes a half-open Node socket", async () => {
       server.close(error => error ? reject(error) : resolve());
     });
   }
+});
+
+test("Android connect waits for the ADB device before creating the socket", async () => {
+  const transport = new AndroidTransport();
+  const events: string[] = [];
+  let waitSignal: AbortSignal | undefined;
+  let receivedSignal: AbortSignal | undefined;
+  const rawSocket = createRawSocket();
+  rawSocket.close = () => {
+    rawSocket.resolveClosed();
+  };
+  Object.defineProperty(transport, "client", {
+    value: {
+      async waitFor(
+        device: unknown,
+        state: unknown,
+        options?: { signal?: AbortSignal },
+      ) {
+        events.push(`waitFor:${JSON.stringify(device)}:${String(state)}`);
+        waitSignal = options?.signal;
+      },
+      async createDeviceConnection(
+        device: unknown,
+        service: unknown,
+        options?: { signal?: AbortSignal },
+      ) {
+        events.push(`createDeviceConnection:${JSON.stringify(device)}:${String(service)}`);
+        receivedSignal = options?.signal;
+        return rawSocket;
+      },
+    },
+  });
+
+  const connection = await transport.connect({
+    deviceId: "adb.lynx-sandbox.byted.org:29453",
+    port: 8901,
+  });
+  assert.deepEqual(events, [
+    "waitFor:{\"serial\":\"adb.lynx-sandbox.byted.org:29453\"}:device",
+    "createDeviceConnection:{\"serial\":\"adb.lynx-sandbox.byted.org:29453\"}:tcp:8901",
+  ]);
+  assert.equal(waitSignal?.aborted, false);
+  assert.equal(receivedSignal?.aborted, false);
+  await connection[Symbol.asyncDispose]();
+});
+
+test("Android openApp falls through to createAdb when waitFor times out on a missing device", async (t) => {
+  const timeoutController = new AbortController();
+  const originalTimeout = AbortSignal.timeout.bind(AbortSignal);
+  t.mock.method(
+    AbortSignal,
+    "timeout",
+    (delay: number) => delay === 3_000 ? timeoutController.signal : originalTimeout(delay),
+  );
+
+  const transport = new AndroidTransport();
+  Object.defineProperty(transport, "client", {
+    value: {
+      async waitFor(_device: unknown, _state: unknown, options?: { signal?: AbortSignal }) {
+        timeoutController.abort(new DOMException("The operation was aborted due to timeout", "TimeoutError"));
+        options?.signal?.throwIfAborted();
+      },
+      async createAdb() {
+        throw new Error("device 'foo.bar' not found");
+      },
+    },
+  });
+
+  await assert.rejects(
+    () => transport.openApp("foo.bar", "baz"),
+    {
+      name: "Error",
+      message: "device 'foo.bar' not found",
+    },
+  );
 });
