@@ -252,8 +252,8 @@ importers:
         specifier: ^2.2.1
         version: 2.2.1
       plist:
-        specifier: ^5.0.0
-        version: 5.0.0
+        specifier: ^5.0.1
+        version: 5.1.0
       rsbuild-plugin-publint:
         specifier: ^1.0.0
         version: 1.0.0(@rsbuild/core@2.3.1(core-js@3.51.0))
@@ -2699,8 +2699,8 @@ packages:
     resolution: {integrity: sha512-JH3HEO+m8sNFpalNAeGrNKjdwxNcXT3yuEuGMU/65dvLojPo+Ofnmc8la2v2ceisjXTOKQw/738Pj4KNFY7F+w==}
     hasBin: true
 
-  plist@5.0.0:
-    resolution: {integrity: sha512-20N+g1DvMm/DFRbsvER7tT4wDryq0WunK7VMkDaiJcKNapAnUMkTsAnacFYf8n420F4Hf6/hefgmJRkMb1M0fg==}
+  plist@5.1.0:
+    resolution: {integrity: sha512-8nts5dm85R/fxkvfvE0b+Iw/DzulOA/lKYlhWAtxMRMsLAX8HwkKTdiMd2ndWE+tdR1LaiK0nt9BjA7ukavrOQ==}
     engines: {node: '>=18'}
 
   prelude-ls@1.2.1:
@@ -5701,7 +5701,7 @@ snapshots:
 
   pkg-pr-new@0.0.93: {}
 
-  plist@5.0.0:
+  plist@5.1.0:
     dependencies:
       '@xmldom/xmldom': 0.9.10
       xmlbuilder: 15.1.1
