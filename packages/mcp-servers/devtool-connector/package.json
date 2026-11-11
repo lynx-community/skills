@@ -60,14 +60,14 @@
     "format": "dprint fmt --config dprint.jsonc"
   },
   "dependencies": {
-    "@lynx-js/debug-metadata": "0.1.0",
-    "@yume-chan/adb": "catalog:adb"
+    "@lynx-js/debug-metadata": "0.1.0"
   },
   "devDependencies": {
     "@rslib/core": "catalog:rstack",
     "@types/node": "^24.19.2",
     "@types/semver": "^7.8.0",
     "@types/ws": "^8.18.2",
+    "@yume-chan/adb": "catalog:adb",
     "@yume-chan/adb-server-node-tcp": "catalog:adb",
     "@yume-chan/stream-extra": "catalog:adb",
     "dprint": "^0.64.3",

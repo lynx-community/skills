@@ -220,9 +220,6 @@ importers:
       '@lynx-js/debug-metadata':
         specifier: 0.1.0
         version: 0.1.0
-      '@yume-chan/adb':
-        specifier: catalog:adb
-        version: 3.0.0-beta.4
     devDependencies:
       '@rslib/core':
         specifier: catalog:rstack
@@ -236,6 +233,9 @@ importers:
       '@types/ws':
         specifier: ^8.18.2
         version: 8.18.2
+      '@yume-chan/adb':
+        specifier: catalog:adb
+        version: 3.0.0-beta.4
       '@yume-chan/adb-server-node-tcp':
         specifier: catalog:adb
         version: 3.0.0-beta.4
