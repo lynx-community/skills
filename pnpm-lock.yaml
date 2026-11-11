@@ -7,14 +7,14 @@ settings:
 catalogs:
   adb:
     '@yume-chan/adb':
-      specifier: 3.0.0-beta.4
-      version: 3.0.0-beta.4
+      specifier: 3.0.0-beta.5
+      version: 3.0.0-beta.5
     '@yume-chan/adb-server-node-tcp':
-      specifier: 3.0.0-beta.4
-      version: 3.0.0-beta.4
+      specifier: 3.0.0-beta.5
+      version: 3.0.0-beta.5
     '@yume-chan/stream-extra':
-      specifier: 3.0.0-beta.4
-      version: 3.0.0-beta.4
+      specifier: 3.0.0-beta.5
+      version: 3.0.0-beta.5
   mcp_sdk:
     '@modelcontextprotocol/sdk':
       specifier: ^1.32.2
@@ -222,7 +222,7 @@ importers:
         version: 0.1.0
       '@yume-chan/adb':
         specifier: catalog:adb
-        version: 3.0.0-beta.4
+        version: 3.0.0-beta.5
     devDependencies:
       '@rslib/core':
         specifier: catalog:rstack
@@ -238,10 +238,10 @@ importers:
         version: 8.18.2
       '@yume-chan/adb-server-node-tcp':
         specifier: catalog:adb
-        version: 3.0.0-beta.4
+        version: 3.0.0-beta.5
       '@yume-chan/stream-extra':
         specifier: catalog:adb
-        version: 3.0.0-beta.4
+        version: 3.0.0-beta.5
       dprint:
         specifier: ^0.64.3
         version: 0.64.3
@@ -284,7 +284,7 @@ importers:
         version: 24.19.2
       '@yume-chan/adb-server-node-tcp':
         specifier: catalog:adb
-        version: 3.0.0-beta.4
+        version: 3.0.0-beta.5
       core-js:
         specifier: ^3.51.0
         version: 3.51.0
@@ -1520,26 +1520,26 @@ packages:
     engines: {node: '>=14.6'}
     deprecated: this version has critical issues, please update to the latest version
 
-  '@yume-chan/adb-server-node-tcp@3.0.0-beta.4':
-    resolution: {integrity: sha512-HrLzsf4LBL7cdHqPmxAcSD5GB24EhVHMx9ZTaoYMnmzg5Fq0FejUMNTsYwGn4S6NBgbo+0R/769tVbSvBk5Tyg==}
+  '@yume-chan/adb-server-node-tcp@3.0.0-beta.5':
+    resolution: {integrity: sha512-OMq/7YgzwoDK0DCLkwwv2lEgPh+5OH/4p284qnHpMiMLji3DVsRP+tcmoWCWgqng240p3+Wy+N5Gcas6fKfvYA==}
 
-  '@yume-chan/adb@3.0.0-beta.4':
-    resolution: {integrity: sha512-GdfQptvzXEoMUPc93PJRmOHtIY5oKmjQT4Q3fCK7rEnMvnZvOJj5bmjEvwXzjSFl8YQ7EEkVxhJJeAezMEwGWw==}
+  '@yume-chan/adb@3.0.0-beta.5':
+    resolution: {integrity: sha512-Uv1BuqSO+O1sDGewEd5uH2/3wmOM44RXK4Fz7l/aExTY993n9POw5CaY8crKxYFGFrB74oCHDQCgMKalGjTgVQ==}
 
-  '@yume-chan/async@4.1.3':
-    resolution: {integrity: sha512-0vzhNJMkWUPyjKzUK4rqHEeCU6YQtF78RsB1kFRB6Y2BLupmEQNxcSb0mjKabPL9jZpCCiLa5KL8oTOJClUVaw==}
+  '@yume-chan/async@4.2.2':
+    resolution: {integrity: sha512-sF4nd/GZKgLVhACPHW2KY6JBiFXVVLZtCy+P42XTM5LPBy57+hj4+jumdEUr46f+MUOQhe8eyiuB1P6QOew/xQ==}
 
-  '@yume-chan/event@3.0.0-beta.4':
-    resolution: {integrity: sha512-w7cXpK109+2ObjyGtruA0yxpMf8w50irwsAKwac6qkw6CvtI9zz3bRfZ3KHuaFe2IACip8yPvxcPnLfu4bbWSQ==}
+  '@yume-chan/event@3.0.0-beta.5':
+    resolution: {integrity: sha512-Tnb7G5MzvXLkoXqt5ngiea2azKd7GOU28TS4DDSEikjf50w90LU6hNilEttHUctLEA8663CHG+I/dD0CzVIukg==}
 
-  '@yume-chan/no-data-view@3.0.0-beta.4':
-    resolution: {integrity: sha512-HZo2h1stUQH/J2hXAaJwNFVOsrxHfWoUCds7jk3R1sEfIQFD0GBQOqXrloQolF4UUkhETz09kJEHGHAng3Mrkw==}
+  '@yume-chan/no-data-view@3.0.0-beta.5':
+    resolution: {integrity: sha512-d3m1BhYrZL586dvbSlnV1Ri0mdf3sIpkonuKOUQcw9A9/jgANZsgbRf5urj9EgqpLl1ofIK7ueN22R3FBL3OcQ==}
 
-  '@yume-chan/stream-extra@3.0.0-beta.4':
-    resolution: {integrity: sha512-/mPzXjFBWSCm5aHPozRgk270Q8Gt+zUXpN6tplzRnYEPs/fhYXYD2Y9exDqfBE8oYEL1ydkd34s1DZu1TWtQ/Q==}
+  '@yume-chan/stream-extra@3.0.0-beta.5':
+    resolution: {integrity: sha512-Ruf6yYLICPX+aNvqCFTOcKLteHreuRxKTbMe6kejFiimbXRwLHq9uQQkUji6A/MtlfSioAhNvpFsUWNzxLMnaA==}
 
-  '@yume-chan/struct@3.0.0-beta.4':
-    resolution: {integrity: sha512-6efB/lmuARQzAyfn5mZw1CLcGuJg/aVnBu4XFAGjShlzxJV8k+G5HYSfCTGdda5SaCbDQybjD4Q4Qm0cI3lMIg==}
+  '@yume-chan/struct@3.0.0-beta.5':
+    resolution: {integrity: sha512-ICN3isMo/T2x57R2UzQGBLpPVFx0UOlDqyaMvYWPTRwAte1PKsAyxS3VmgoJvMWGyxjRVvtk4VaQNYWdlSK4/g==}
 
   accepts@2.0.0:
     resolution: {integrity: sha512-5cvg6CtKwfgdmVqY1WIiXKc3Q1bkRqGLi+2W/6ao+6Y7gu/RCwRuAhGEzh5B4KlszSuTLgZYuqFqo5bImjNKng==}
@@ -4092,38 +4092,38 @@ snapshots:
 
   '@xmldom/xmldom@0.9.10': {}
 
-  '@yume-chan/adb-server-node-tcp@3.0.0-beta.4':
+  '@yume-chan/adb-server-node-tcp@3.0.0-beta.5':
     dependencies:
-      '@yume-chan/adb': 3.0.0-beta.4
-      '@yume-chan/async': 4.1.3
-      '@yume-chan/stream-extra': 3.0.0-beta.4
-      '@yume-chan/struct': 3.0.0-beta.4
+      '@yume-chan/adb': 3.0.0-beta.5
+      '@yume-chan/async': 4.2.2
+      '@yume-chan/stream-extra': 3.0.0-beta.5
+      '@yume-chan/struct': 3.0.0-beta.5
 
-  '@yume-chan/adb@3.0.0-beta.4':
+  '@yume-chan/adb@3.0.0-beta.5':
     dependencies:
-      '@yume-chan/async': 4.1.3
-      '@yume-chan/event': 3.0.0-beta.4
-      '@yume-chan/no-data-view': 3.0.0-beta.4
-      '@yume-chan/stream-extra': 3.0.0-beta.4
-      '@yume-chan/struct': 3.0.0-beta.4
+      '@yume-chan/async': 4.2.2
+      '@yume-chan/event': 3.0.0-beta.5
+      '@yume-chan/no-data-view': 3.0.0-beta.5
+      '@yume-chan/stream-extra': 3.0.0-beta.5
+      '@yume-chan/struct': 3.0.0-beta.5
 
-  '@yume-chan/async@4.1.3': {}
+  '@yume-chan/async@4.2.2': {}
 
-  '@yume-chan/event@3.0.0-beta.4':
+  '@yume-chan/event@3.0.0-beta.5':
     dependencies:
-      '@yume-chan/async': 4.1.3
+      '@yume-chan/async': 4.2.2
 
-  '@yume-chan/no-data-view@3.0.0-beta.4': {}
+  '@yume-chan/no-data-view@3.0.0-beta.5': {}
 
-  '@yume-chan/stream-extra@3.0.0-beta.4':
+  '@yume-chan/stream-extra@3.0.0-beta.5':
     dependencies:
-      '@yume-chan/async': 4.1.3
-      '@yume-chan/struct': 3.0.0-beta.4
+      '@yume-chan/async': 4.2.2
+      '@yume-chan/struct': 3.0.0-beta.5
 
-  '@yume-chan/struct@3.0.0-beta.4':
+  '@yume-chan/struct@3.0.0-beta.5':
     dependencies:
-      '@yume-chan/async': 4.1.3
-      '@yume-chan/no-data-view': 3.0.0-beta.4
+      '@yume-chan/async': 4.2.2
+      '@yume-chan/no-data-view': 3.0.0-beta.5
 
   accepts@2.0.0:
     dependencies:

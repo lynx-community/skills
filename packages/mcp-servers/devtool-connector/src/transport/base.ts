@@ -19,15 +19,18 @@ export async function connectWithPeertalk<TInput = unknown, TOutput = unknown>(
   const disposeReason = new Error("Peertalk connection disposed");
   let terminationPromise: Promise<void> | undefined;
   let writerReleased = false;
+  let pendingWrites = 0;
   const releaseWriter = () => {
     if (!writerReleased) {
       writerReleased = true;
       rawWriter.releaseLock();
     }
   };
-  const terminateConnection = (reason: unknown) => {
+  const terminateConnection = (reason: unknown, abortIdleWriter = true) => {
     if (!terminationPromise) {
-      const rawAbort = writerReleased ? Promise.resolve() : rawWriter.abort(reason);
+      const shouldAbortWriter = !writerReleased && (abortIdleWriter || pendingWrites > 0);
+      if (!shouldAbortWriter) releaseWriter();
+      const rawAbort = shouldAbortWriter ? rawWriter.abort(reason) : Promise.resolve();
       const dispose = Promise.resolve().then(() => conn[Symbol.asyncDispose]());
       terminationPromise = rawAbort.then(
         () => dispose,
@@ -45,16 +48,20 @@ export async function connectWithPeertalk<TInput = unknown, TOutput = unknown>(
       const signal = (controller as WritableStreamDefaultController & { readonly signal: AbortSignal }).signal;
       const abort = () => void terminateConnection(signal.reason).catch(() => {});
       signal.addEventListener("abort", abort, { once: true });
+      pendingWrites += 1;
       const write = Promise.resolve().then(() => rawWriter.write(encodePeertalkMessage(message))).catch((error) => {
         void terminateConnection(error).catch(() => {});
         throw error;
       });
       return write.finally(() => {
+        pendingWrites -= 1;
         signal.removeEventListener("abort", abort);
       });
     },
     close: releaseWriter,
-    abort: terminateConnection,
+    abort(reason) {
+      return terminateConnection(reason, true);
+    },
   });
   const readable = conn.readable.pipeThrough(
     new PeertalkToMessageTransformStream() as TransformStream<Uint8Array, TOutput>,
@@ -63,7 +70,7 @@ export async function connectWithPeertalk<TInput = unknown, TOutput = unknown>(
     readable,
     writable,
     [Symbol.asyncDispose]() {
-      return terminateConnection(disposeReason);
+      return terminateConnection(disposeReason, false);
     },
   };
 }

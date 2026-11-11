@@ -25,49 +25,6 @@ const PNG_SIGNATURE = [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a] as const;
 const SOCKET_GRACEFUL_CLOSE_TIMEOUT_MS = 100;
 const WAIT_FOR_DEVICE_TIMEOUT_MS = 3_000;
 
-function createQueryLauncherActivitiesCommandArgs(packageName: string): string[] {
-  return [
-    "cmd",
-    "package",
-    "query-activities",
-    "--components",
-    "-a",
-    "android.intent.action.MAIN",
-    "-c",
-    "android.intent.category.LAUNCHER",
-    "-p",
-    packageName,
-  ];
-}
-
-function parseLauncherActivityComponents(output: string): string[] {
-  return output
-    .split("\n")
-    .map(line => line.trim())
-    .filter((line) => {
-      const separatorIndex = line.indexOf("/");
-      return !/\s/u.test(line)
-        && separatorIndex > 0
-        && separatorIndex === line.lastIndexOf("/")
-        && separatorIndex < line.length - 1;
-    });
-}
-
-function createOpenAppCommandArgs(componentName: string, restart: boolean): string[] {
-  return [
-    "am",
-    "start",
-    "-W",
-    ...(restart ? ["-S"] : []),
-    "-a",
-    "android.intent.action.MAIN",
-    "-c",
-    "android.intent.category.LAUNCHER",
-    "-n",
-    componentName,
-  ];
-}
-
 function spawnWaitText(adb: Adb, command: string | readonly string[]): Promise<string> {
   return adb.subprocess.noneProtocol.spawn(command).wait().toString();
 }
@@ -85,17 +42,14 @@ export class AndroidTransport implements Transport {
   constructor(spec?: SocketConnectOpts) {
     // ADB's server always listens on IPv4 loopback, while `localhost` can
     // resolve to ::1 first on IPv6-only hosts, so the default host is explicit.
-    if (spec === undefined) {
-      this.client = process.env["ADB_SERVER_SOCKET"]
+    const defaultHost = process.env["ANDROID_ADB_SERVER_ADDRESS"] ?? "127.0.0.1";
+    this.client = !spec
+      ? process.env["ADB_SERVER_SOCKET"]
         ? new AdbServerNodeJsClient()
-        : new AdbServerNodeJsClient({
-          host: process.env["ANDROID_ADB_SERVER_ADDRESS"] ?? "127.0.0.1",
-        });
-    } else if ("path" in spec) {
-      this.client = new AdbServerNodeJsClient(spec);
-    } else {
-      this.client = new AdbServerNodeJsClient({ ...spec, host: spec.host ?? "127.0.0.1" });
-    }
+        : new AdbServerNodeJsClient({ host: defaultHost })
+      : "path" in spec
+      ? new AdbServerNodeJsClient(spec)
+      : new AdbServerNodeJsClient({ ...spec, host: spec.host ?? "127.0.0.1" });
   }
 
   async connect<TInput = unknown, TOutput = unknown>(
@@ -104,139 +58,67 @@ export class AndroidTransport implements Transport {
     return connectWithPeertalk<TInput, TOutput>(opts => this.#connectRaw(opts), options);
   }
 
-  async #createAdb(deviceId: string, signal?: AbortSignal): Promise<Adb & AsyncDisposable> {
-    await this.#waitForDevice(deviceId, signal);
-    const adb = await this.client.createAdb({ serial: deviceId });
-    return Object.assign(adb, {
-      async [Symbol.asyncDispose]() {
-        await adb.close();
-      },
-    });
+  async close(): Promise<void> {
+    debug("Android transport closed");
   }
 
   async #waitForDevice(deviceId: string, signal?: AbortSignal): Promise<void> {
     const timeoutSignal = AbortSignal.timeout(WAIT_FOR_DEVICE_TIMEOUT_MS);
-    const waitSignal = signal
-      ? AbortSignal.any([signal, timeoutSignal])
-      : timeoutSignal;
+    const waitSignal = signal ? AbortSignal.any([signal, timeoutSignal]) : timeoutSignal;
     try {
       await this.client.waitFor({ serial: deviceId }, "device", { signal: waitSignal });
     } catch (err) {
-      if (timeoutSignal.aborted && !signal?.aborted) {
-        return;
-      }
-      throw err;
+      if (!timeoutSignal.aborted || signal?.aborted) throw err;
     }
   }
 
-  async close(): Promise<void> {
-    // noop
-    debug("Android transport closed");
-    return;
+  async #withAdb<T>(deviceId: string, signal: AbortSignal | undefined, fn: (adb: Adb) => Promise<T>): Promise<T> {
+    await this.#waitForDevice(deviceId, signal);
+    const adb = await this.client.createAdb({ serial: deviceId });
+    try {
+      return await fn(adb);
+    } finally {
+      await adb.close();
+    }
   }
 
-  async #connectRaw(
-    { deviceId, port, signal }: TransportConnectOptions,
-  ): Promise<Connection> {
+  async #connectRaw({ deviceId, port, signal }: TransportConnectOptions): Promise<Connection> {
     const numericPort = requireNumericPort(port);
     debug(`connect: create connection to deviceId: ${deviceId}, port: ${numericPort}`);
-
     signal?.throwIfAborted();
 
     const service = `tcp:${numericPort}`;
     const closeController = new AbortController();
-    const socketSignal = signal
-      ? AbortSignal.any([signal, closeController.signal])
-      : closeController.signal;
+    const socketSignal = signal ? AbortSignal.any([signal, closeController.signal]) : closeController.signal;
 
-    let socket: Awaited<ReturnType<AdbServerClient["createDeviceConnection"]>>;
-    try {
-      await this.#waitForDevice(deviceId, socketSignal);
-      socket = await this.client.createDeviceConnection(
-        { serial: deviceId },
-        service,
-        { signal: socketSignal },
-      );
-    } catch (err) {
-      debug(`connect: create socket to ${service} failed with err: %o`, err);
-      throw err;
-    }
-
-    const socketClosed = Promise.resolve(socket.closed);
-    let socketClosedSettled = false;
-    void socketClosed.then(
-      () => {
-        socketClosedSettled = true;
-      },
-      () => {
-        socketClosedSettled = true;
-      },
+    await this.#waitForDevice(deviceId, socketSignal);
+    const socket = await this.client.createDeviceConnection(
+      { serial: deviceId },
+      service,
+      { signal: socketSignal },
     );
+
+    const socketClosed = Promise.resolve(socket.closed).catch(() => {});
     let closePromise: Promise<void> | undefined;
-    const closeSocket = (): Promise<void> => {
-      if (!closePromise) {
-        let closeResult: Promise<void>;
+    const closeSocket = (): Promise<void> =>
+      closePromise ??= (async () => {
+        await socket.close();
+        const timer = setTimeout(() => closeController.abort(), SOCKET_GRACEFUL_CLOSE_TIMEOUT_MS);
+        timer.unref?.();
         try {
-          closeResult = Promise.resolve(socket.close());
-        } catch (err) {
-          closeResult = Promise.reject(err);
+          await socketClosed;
+        } finally {
+          clearTimeout(timer);
         }
-        // ADB's close() only sends FIN. Give the peer a short grace period to
-        // finish closing cleanly; if it stays half-open, abort the socket and
-        // still wait for its physical close before completing disposal.
-        const hardCloseCheck = new Promise<void>(resolve => {
-          const timer = setTimeout(() => {
-            if (!socketClosedSettled) {
-              debug(`connect: force close socket ${service} after graceful close stalled`);
-              closeController.abort();
-            }
-            resolve();
-          }, SOCKET_GRACEFUL_CLOSE_TIMEOUT_MS);
-          timer.unref?.();
-          void socketClosed.then(
-            () => {
-              clearTimeout(timer);
-              resolve();
-            },
-            () => {
-              clearTimeout(timer);
-              resolve();
-            },
-          );
-        });
-        closePromise = Promise.allSettled([closeResult, socketClosed, hardCloseCheck]).then(
-          ([closeResultOutcome, socketClosedOutcome]) => {
-            if (closeResultOutcome.status === "rejected") {
-              throw closeResultOutcome.reason;
-            }
-            if (socketClosedOutcome.status === "rejected") {
-              throw socketClosedOutcome.reason;
-            }
-          },
-        );
-      }
-      return closePromise;
-    };
+      })();
 
     if (signal?.aborted) {
-      try {
-        await closeSocket();
-      } catch (err) {
-        debug(`connect: close canceled socket ${service} err: %o`, err);
-      }
+      await closeSocket().catch(() => {});
       signal.throwIfAborted();
     }
 
-    const abortHandler = () => {
-      void closeSocket().catch((err: unknown) => {
-        debug(`connect: socket ${service} close on abort err: %o`, err);
-      });
-    };
+    const abortHandler = () => void closeSocket().catch(() => {});
     signal?.addEventListener("abort", abortHandler, { once: true });
-
-    void socketClosed.catch((err: unknown) => {
-      debug(`connect: socket ${service} closed with err: %o`, err);
-    });
 
     return {
       readable: socket.readable as never,
@@ -251,13 +133,8 @@ export class AndroidTransport implements Transport {
 
   async listDevices(): Promise<Device[]> {
     const devices = await this.client.getDevices();
-
     debug("listDevices: devices %o", devices);
-
-    return devices.map(({ serial }) => ({
-      os: "Android",
-      id: serial,
-    }));
+    return devices.map(({ serial }) => ({ os: "Android", id: serial }));
   }
 
   protected getKnownApp(_packageName: string): { name?: string; activityName?: string } | undefined {
@@ -266,24 +143,17 @@ export class AndroidTransport implements Transport {
   }
 
   async listAvailableApps(deviceId: string): Promise<App[]> {
-    await using adb = await this.#createAdb(deviceId);
-    const output = await spawnWaitText(adb, [
-      // adb shell pm list packages
-      "pm",
-      "list",
-      "packages",
-      "-3", // third-party apps only
-    ]);
-    const packages = output
-      .split("\n")
-      .map((line) => line.replace("package:", "").trim())
-      .filter((i) => i !== "");
-    debug(`listAvailableApps all packages: %o`, packages);
-
-    return packages.map((packageName) => ({
-      packageName,
-      name: this.getKnownApp(packageName)?.name ?? packageName,
-    }));
+    return this.#withAdb(deviceId, undefined, async (adb) => {
+      const output = await spawnWaitText(adb, ["pm", "list", "packages", "-3"]);
+      return output
+        .split("\n")
+        .map(line => line.replace("package:", "").trim())
+        .filter(Boolean)
+        .map(packageName => ({
+          packageName,
+          name: this.getKnownApp(packageName)?.name ?? packageName,
+        }));
+    });
   }
 
   async getAppIcon(deviceId: string, packageName: string): Promise<AppIcon> {
@@ -291,42 +161,40 @@ export class AndroidTransport implements Transport {
       throw new TypeError(`Invalid Android package name: ${packageName}`);
     }
 
-    await using adb = await this.#createAdb(deviceId);
-    await this.#ensureAppIconHelper(adb, deviceId);
-    const data = await adb.subprocess.noneProtocol.spawn([
-      `CLASSPATH=${APP_ICON_HELPER_REMOTE_PATH}`,
-      "app_process",
-      "/system/bin",
-      "org.lynx.connector.AppIconRenderer",
-      packageName,
-    ]).wait();
-    if (PNG_SIGNATURE.some((byte, index) => data[index] !== byte)) {
-      throw new Error(`Device returned an invalid App icon for package ${packageName}`);
-    }
-    return { data, mimeType: "image/png" };
-  }
+    return this.#withAdb(deviceId, undefined, async (adb) => {
+      let deployment = this.#appIconHelperDeployments.get(deviceId);
+      if (!deployment) {
+        deployment = adb.sync.write({
+          path: APP_ICON_HELPER_REMOTE_PATH,
+          permission: 0o644,
+          readable: new ReadableStream({
+            start(controller) {
+              controller.enqueue(ANDROID_APP_ICON_HELPER_JAR);
+              controller.close();
+            },
+          }),
+        }).then(() => undefined);
+        this.#appIconHelperDeployments.set(deviceId, deployment);
+      }
+      try {
+        await deployment;
+      } catch (error) {
+        this.#appIconHelperDeployments.delete(deviceId);
+        throw error;
+      }
 
-  async #ensureAppIconHelper(adb: Adb, deviceId: string): Promise<void> {
-    let deployment = this.#appIconHelperDeployments.get(deviceId);
-    if (!deployment) {
-      deployment = adb.sync.write({
-        path: APP_ICON_HELPER_REMOTE_PATH,
-        permission: 0o644,
-        readable: new ReadableStream({
-          start(controller) {
-            controller.enqueue(ANDROID_APP_ICON_HELPER_JAR);
-            controller.close();
-          },
-        }),
-      }).then(() => undefined);
-      this.#appIconHelperDeployments.set(deviceId, deployment);
-    }
-    try {
-      await deployment;
-    } catch (error) {
-      this.#appIconHelperDeployments.delete(deviceId);
-      throw error;
-    }
+      const data = await adb.subprocess.noneProtocol.spawn([
+        `CLASSPATH=${APP_ICON_HELPER_REMOTE_PATH}`,
+        "app_process",
+        "/system/bin",
+        "org.lynx.connector.AppIconRenderer",
+        packageName,
+      ]).wait();
+      if (PNG_SIGNATURE.some((byte, index) => data[index] !== byte)) {
+        throw new Error(`Device returned an invalid App icon for package ${packageName}`);
+      }
+      return { data, mimeType: "image/png" };
+    });
   }
 
   async openApp(
@@ -334,73 +202,79 @@ export class AndroidTransport implements Transport {
     packageName: string,
     { withDataCleared, schema, restart = true, signal }: OpenAppOptions = {},
   ): Promise<void> {
-    await using adb = await this.#createAdb(deviceId, signal);
-
-    const pmOutput = await spawnWaitText(adb, [
-      "pm",
-      "list",
-      "packages",
-      packageName,
-    ]);
-    const installed = pmOutput
-      .split("\n")
-      .some((line) => line.trim() === `package:${packageName}`);
-    if (!installed) {
-      throw new Error(`package ${packageName} not found`);
-    }
-
-    if (withDataCleared) {
-      const output = await spawnWaitText(adb, [
-        // adb shell pm clear <package_name>
-        "pm",
-        "clear",
-        packageName,
-      ]);
-      debug(`openApp clear data output ${output}`);
-    }
-
-    let command: string[];
-    if (schema) {
-      command = [
-        "am",
-        "start",
-        "-W",
-        ...(restart ? ["-S"] : []),
-        "-a",
-        "android.intent.action.VIEW",
-        "-d",
-        escapeArg(schema),
-        "-p",
-        packageName,
-      ];
-    } else {
-      const knownActivity = this.getKnownApp(packageName)?.activityName;
-      let componentName = knownActivity ? `${packageName}/${knownActivity}` : undefined;
-      if (!componentName) {
-        const queryOutput = await spawnWaitText(
-          adb,
-          createQueryLauncherActivitiesCommandArgs(packageName),
-        );
-        debug(`openApp launcher activities output ${queryOutput}`);
-        [componentName] = parseLauncherActivityComponents(queryOutput);
+    await this.#withAdb(deviceId, signal, async (adb) => {
+      const pmOutput = await spawnWaitText(adb, ["pm", "list", "packages", packageName]);
+      if (!pmOutput.split("\n").some(line => line.trim() === `package:${packageName}`)) {
+        throw new Error(`package ${packageName} not found`);
       }
-      if (!componentName) {
-        throw new Error(`No launchable activity found for package ${packageName}.`);
-      }
-      command = createOpenAppCommandArgs(componentName, restart);
-    }
 
-    const output = await spawnWaitText(adb, command);
-    debug(`openApp output ${output}`);
-    if (
-      output.includes("Error:")
-      || output.includes("Security exception:")
-      || output.includes("Permission Denial:")
-      || output.includes("unable to resolve Intent")
-      || /\b[A-Za-z0-9_$.]*Exception:/u.test(output)
-      || /Error type \d+/u.test(output)
-    ) {
-      throw new Error(`Failed to open app ${packageName}: ${output.trim()}`);
-    }
+      if (withDataCleared) {
+        await spawnWaitText(adb, ["pm", "clear", packageName]);
+      }
+
+      let command: string[];
+      if (schema) {
+        command = [
+          "am",
+          "start",
+          "-W",
+          ...(restart ? ["-S"] : []),
+          "-a",
+          "android.intent.action.VIEW",
+          "-d",
+          escapeArg(schema),
+          "-p",
+          packageName,
+        ];
+      } else {
+        const knownActivity = this.getKnownApp(packageName)?.activityName;
+        let componentName = knownActivity ? `${packageName}/${knownActivity}` : undefined;
+        if (!componentName) {
+          const queryOutput = await spawnWaitText(adb, [
+            "cmd",
+            "package",
+            "query-activities",
+            "--components",
+            "-a",
+            "android.intent.action.MAIN",
+            "-c",
+            "android.intent.category.LAUNCHER",
+            "-p",
+            packageName,
+          ]);
+          [componentName] = queryOutput
+            .split("\n")
+            .map(line => line.trim())
+            .filter(line => !/\s/u.test(line) && /^[^/]+\/[^/]+$/u.test(line));
+        }
+        if (!componentName) {
+          throw new Error(`No launchable activity found for package ${packageName}.`);
+        }
+        command = [
+          "am",
+          "start",
+          "-W",
+          ...(restart ? ["-S"] : []),
+          "-a",
+          "android.intent.action.MAIN",
+          "-c",
+          "android.intent.category.LAUNCHER",
+          "-n",
+          componentName,
+        ];
+      }
+
+      const output = await spawnWaitText(adb, command);
+      if (
+        output.includes("Error:")
+        || output.includes("Security exception:")
+        || output.includes("Permission Denial:")
+        || output.includes("unable to resolve Intent")
+        || /\b[A-Za-z0-9_$.]*Exception:/u.test(output)
+        || /Error type \d+/u.test(output)
+      ) {
+        throw new Error(`Failed to open app ${packageName}: ${output.trim()}`);
+      }
+    });
   }
 }
