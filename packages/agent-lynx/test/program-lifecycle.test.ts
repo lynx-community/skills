@@ -51,7 +51,7 @@ test('--no-daemon closes every direct transport without creating a daemon transp
   assert.deepEqual(closed, directCloses());
 });
 
-test('daemon mode warns when direct transport environment is ignored', async (t) => {
+test('daemon mode consumes transport environment without warning', async (t) => {
   let stderr = '';
   t.mock.method(process.stderr, 'write', (chunk: unknown) => {
     stderr += String(chunk);
@@ -68,10 +68,7 @@ test('daemon mode warns when direct transport environment is ignored', async (t)
 
   await program.parseAsync(['node', 'test', 'succeed']);
 
-  assert.equal(
-    stderr,
-    'Warning: ANDROID_ADB_SERVER_ADDRESS, ANDROID_ADB_SERVER_PORT are ignored in daemon mode. Pass --no-daemon to apply direct transport configuration.\n',
-  );
+  assert.equal(stderr, '');
   assert.deepEqual(closed, zeroCloses({ daemon: 1 }));
 });
 

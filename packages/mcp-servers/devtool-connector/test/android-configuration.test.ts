@@ -32,11 +32,15 @@ function useAdbEnvironment(t: { after: (hook: () => void) => void }): void {
 describe("Android ADB server configuration", () => {
   test("reads the standard ADB environment with an IPv4 loopback default host", (t) => {
     useAdbEnvironment(t);
-    assert.deepEqual(new InspectableAndroidTransport().socketSpec, { host: "127.0.0.1", port: 5037 });
+    const defaultTransport = new InspectableAndroidTransport();
+    assert.deepEqual(defaultTransport.socketSpec, { host: "127.0.0.1", port: 5037 });
+    assert.equal(defaultTransport.id, "android");
 
     // The port comes from upstream, so it is validated instead of ignored.
     process.env["ANDROID_ADB_SERVER_PORT"] = "5038";
-    assert.deepEqual(new InspectableAndroidTransport().socketSpec, { host: "127.0.0.1", port: 5038 });
+    const customPortTransport = new InspectableAndroidTransport();
+    assert.deepEqual(customPortTransport.socketSpec, { host: "127.0.0.1", port: 5038 });
+    assert.equal(customPortTransport.id, "android:127.0.0.1:5038");
     for (const port of ["0", "-1", "65536", "5037junk", "1.5", " 5037 "]) {
       process.env["ANDROID_ADB_SERVER_PORT"] = port;
       assert.throws(() => new InspectableAndroidTransport(), /ANDROID_ADB_SERVER_PORT/);
@@ -44,7 +48,9 @@ describe("Android ADB server configuration", () => {
     delete process.env["ANDROID_ADB_SERVER_PORT"];
 
     process.env["ANDROID_ADB_SERVER_ADDRESS"] = "10.0.0.1";
-    assert.deepEqual(new InspectableAndroidTransport().socketSpec, { host: "10.0.0.1", port: 5037 });
+    const customHostTransport = new InspectableAndroidTransport();
+    assert.deepEqual(customHostTransport.socketSpec, { host: "10.0.0.1", port: 5037 });
+    assert.equal(customHostTransport.id, "android:10.0.0.1:5037");
 
     // A socket spec takes precedence over the address and port.
     process.env["ANDROID_ADB_SERVER_PORT"] = "5038";
@@ -59,7 +65,9 @@ describe("Android ADB server configuration", () => {
 
     if (process.platform !== "win32") {
       process.env["ADB_SERVER_SOCKET"] = "localfilesystem:/tmp/adb.sock";
-      assert.deepEqual(new InspectableAndroidTransport().socketSpec, { path: "/tmp/adb.sock" });
+      const socketTransport = new InspectableAndroidTransport();
+      assert.deepEqual(socketTransport.socketSpec, { path: "/tmp/adb.sock" });
+      assert.equal(socketTransport.id, "android:/tmp/adb.sock");
     }
 
     // Explicit socket options bypass the environment.
@@ -68,7 +76,9 @@ describe("Android ADB server configuration", () => {
       port: 5042,
     });
     if (process.platform !== "win32") {
-      assert.deepEqual(new InspectableAndroidTransport({ path: "\0adb" }).socketSpec, { path: "\0adb" });
+      const abstractTransport = new InspectableAndroidTransport({ path: "\0adb" });
+      assert.deepEqual(abstractTransport.socketSpec, { path: "\0adb" });
+      assert.equal(abstractTransport.id, "android:\0adb");
     }
   });
 

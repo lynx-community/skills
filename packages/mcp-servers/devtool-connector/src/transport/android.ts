@@ -2,7 +2,7 @@
 // Licensed under the Apache License Version 2.0 that can be found in the
 // LICENSE file in the root directory of this source tree.
 import { type Adb, type AdbServerClient, escapeArg } from "@yume-chan/adb";
-import { AdbServerNodeJsClient } from "@yume-chan/adb-server-node-tcp";
+import { AdbServerNodeJsClient, AdbServerNodeJsTcpConnector } from "@yume-chan/adb-server-node-tcp";
 import { ReadableStream } from "@yume-chan/stream-extra";
 import type { SocketConnectOpts } from "node:net";
 import { createDebug } from "obug";
@@ -77,8 +77,62 @@ export interface AppIcon {
   readonly mimeType: "image/png";
 }
 
+export function resolveAdbSocketSpec(
+  spec?: SocketConnectOpts,
+  env: NodeJS.ProcessEnv = process.env,
+): SocketConnectOpts {
+  let client: AdbServerClient;
+  if (spec === undefined) {
+    const savedSocket = process.env["ADB_SERVER_SOCKET"];
+    const savedAddress = process.env["ANDROID_ADB_SERVER_ADDRESS"];
+    const savedPort = process.env["ANDROID_ADB_SERVER_PORT"];
+    try {
+      if (env["ADB_SERVER_SOCKET"] === undefined) delete process.env["ADB_SERVER_SOCKET"];
+      else process.env["ADB_SERVER_SOCKET"] = env["ADB_SERVER_SOCKET"];
+      if (env["ANDROID_ADB_SERVER_ADDRESS"] === undefined) delete process.env["ANDROID_ADB_SERVER_ADDRESS"];
+      else process.env["ANDROID_ADB_SERVER_ADDRESS"] = env["ANDROID_ADB_SERVER_ADDRESS"];
+      if (env["ANDROID_ADB_SERVER_PORT"] === undefined) delete process.env["ANDROID_ADB_SERVER_PORT"];
+      else process.env["ANDROID_ADB_SERVER_PORT"] = env["ANDROID_ADB_SERVER_PORT"];
+
+      client = env["ADB_SERVER_SOCKET"]
+        ? new AdbServerNodeJsClient()
+        : new AdbServerNodeJsClient({
+          host: env["ANDROID_ADB_SERVER_ADDRESS"] ?? "127.0.0.1",
+        });
+    } finally {
+      if (savedSocket === undefined) delete process.env["ADB_SERVER_SOCKET"];
+      else process.env["ADB_SERVER_SOCKET"] = savedSocket;
+      if (savedAddress === undefined) delete process.env["ANDROID_ADB_SERVER_ADDRESS"];
+      else process.env["ANDROID_ADB_SERVER_ADDRESS"] = savedAddress;
+      if (savedPort === undefined) delete process.env["ANDROID_ADB_SERVER_PORT"];
+      else process.env["ANDROID_ADB_SERVER_PORT"] = savedPort;
+    }
+  } else if ("path" in spec) {
+    client = new AdbServerNodeJsClient(spec);
+  } else {
+    client = new AdbServerNodeJsClient({ ...spec, host: spec.host ?? "127.0.0.1" });
+  }
+  const connector = client.connector;
+  if (connector instanceof AdbServerNodeJsTcpConnector) {
+    return connector.spec;
+  }
+  return spec ?? { host: "127.0.0.1", port: 5037 };
+}
+
+export function formatSocketSpecTransportId(baseId: string, spec: SocketConnectOpts, defaultPort = 5037): string {
+  if ("path" in spec) {
+    return `${baseId}:${spec.path}`;
+  }
+  const host = spec.host ?? "127.0.0.1";
+  const port = spec.port;
+  if (host === "127.0.0.1" && port === defaultPort) {
+    return baseId;
+  }
+  return `${baseId}:${host}:${port}`;
+}
+
 export class AndroidTransport implements Transport {
-  readonly id = "android";
+  readonly id: string;
   protected readonly client: AdbServerClient;
   readonly #appIconHelperDeployments = new Map<string, Promise<void>>();
 
@@ -96,6 +150,10 @@ export class AndroidTransport implements Transport {
     } else {
       this.client = new AdbServerNodeJsClient({ ...spec, host: spec.host ?? "127.0.0.1" });
     }
+    const connector = this.client.connector;
+    this.id = connector instanceof AdbServerNodeJsTcpConnector
+      ? formatSocketSpecTransportId("android", connector.spec, 5037)
+      : "android";
   }
 
   async connect<TInput = unknown, TOutput = unknown>(

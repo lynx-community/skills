@@ -2,6 +2,7 @@
 // Licensed under the Apache License Version 2.0 that can be found in the
 // LICENSE file in the root directory of this source tree.
 import { DaemonManager, DEFAULT_DAEMON_PORT } from "../daemon/manager.ts";
+import { resolvePublicDaemonTransportIds } from "../transport/daemon.ts";
 import type {
   CommandAction,
   CommandClient,
@@ -18,17 +19,22 @@ import { DEFAULT_COMMAND_TIMEOUT_MS } from "./timeout.ts";
 
 const MAX_SSE_BUFFER_LENGTH = 1024 * 1024;
 
-export interface CommandCallOptions {
-  port?: number;
-  timeoutMs?: number;
-  ensureDaemon?: boolean;
+export const DAEMON_TRANSPORT_IDS_HEADER = "x-lynx-transport-ids";
+
+export interface HttpCommandClientOptions {
+  port?: number | undefined;
+  ensureDaemon?: boolean | undefined;
+  env?: NodeJS.ProcessEnv | undefined;
+  transportIds?: readonly string[] | undefined;
 }
 
-export interface CommandStreamOptions {
-  port?: number;
-  signal?: AbortSignal;
-  ensureDaemon?: boolean;
-  method?: "GET" | "POST";
+export interface CommandCallOptions extends HttpCommandClientOptions {
+  timeoutMs?: number | undefined;
+}
+
+export interface CommandStreamOptions extends HttpCommandClientOptions {
+  signal?: AbortSignal | undefined;
+  method?: "GET" | "POST" | undefined;
 }
 
 async function responseText(response: Response): Promise<string> {
@@ -145,10 +151,22 @@ export function streamCommand<Action extends StreamCommandAction>(
 export class HttpCommandClient implements CommandClient {
   readonly #port: number;
   readonly #ensureDaemon: boolean;
+  readonly #transportIds: readonly string[] | undefined;
 
-  constructor(options: { port?: number; ensureDaemon?: boolean } = {}) {
+  constructor(options: HttpCommandClientOptions = {}) {
     this.#port = options.port ?? DEFAULT_DAEMON_PORT;
     this.#ensureDaemon = options.ensureDaemon ?? true;
+    this.#transportIds = options.transportIds ?? this.resolveDefaultTransportIds(options.env);
+  }
+
+  protected resolveDefaultTransportIds(env?: NodeJS.ProcessEnv): readonly string[] | undefined {
+    return resolvePublicDaemonTransportIds(env);
+  }
+
+  #transportHeaders(): Record<string, string> {
+    return this.#transportIds && this.#transportIds.length > 0
+      ? { [DAEMON_TRANSPORT_IDS_HEADER]: JSON.stringify(this.#transportIds) }
+      : {};
   }
 
   execute<Action extends CommandAction>(
@@ -186,7 +204,10 @@ export class HttpCommandClient implements CommandClient {
       if (this.#ensureDaemon) await this.ensureDaemonRunning(port);
       response = await fetch(`http://127.0.0.1:${port}/command/${encodeURIComponent(action)}`, {
         method: "POST",
-        headers: { "content-type": "application/json" },
+        headers: {
+          "content-type": "application/json",
+          ...this.#transportHeaders(),
+        },
         body: JSON.stringify(params),
         signal,
       });
@@ -224,6 +245,7 @@ export class HttpCommandClient implements CommandClient {
           headers: {
             accept: "text/event-stream",
             ...(method === "POST" ? { "content-type": "application/json" } : {}),
+            ...this.#transportHeaders(),
           },
           ...(method === "POST" ? { body: JSON.stringify(params) } : {}),
           ...(options.signal ? { signal: options.signal } : {}),
