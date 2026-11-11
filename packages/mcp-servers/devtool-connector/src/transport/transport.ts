@@ -61,6 +61,20 @@ export interface Client {
   info: AppInfo;
 }
 
+export interface ClientList extends Array<Client> {
+  transports?: string[];
+}
+
+export function withTransports<T extends Client[]>(clients: T, transports?: string[]): T & ClientList {
+  if (transports !== undefined) {
+    Object.defineProperty(clients, "transports", {
+      value: transports,
+      configurable: true,
+    });
+  }
+  return clients;
+}
+
 export interface App {
   packageName: string;
   name: string;

@@ -149,6 +149,7 @@ describe("Connector listClients fallback", () => {
     ]).listClients();
 
     t.assert.deepStrictEqual(clients, []);
+    t.assert.deepStrictEqual(clients.transports, ["direct-fallback"]);
     t.assert.equal(directTransport.listDevicesCalls, 1);
   });
 
@@ -288,6 +289,7 @@ describe("Connector listClients fallback", () => {
     const clients = await connector.listClients();
 
     t.assert.deepStrictEqual(clients, []);
+    t.assert.deepStrictEqual(clients.transports, ["daemon"]);
     t.assert.equal(daemonTransport.listClientsCalls, 1);
     t.assert.equal(hdtTransport.listClientsCalls, 0);
     t.assert.equal(directTransport.listDevicesCalls, 0);
@@ -301,6 +303,7 @@ describe("Connector listClients fallback", () => {
     const clients = await connector.listClients();
 
     t.assert.deepStrictEqual(clients, []);
+    t.assert.deepStrictEqual(clients.transports, ["HDT-19783"]);
     t.assert.equal(hdtTransport.listClientsCalls, 1);
     t.assert.equal(directTransport.listDevicesCalls, 0);
   });

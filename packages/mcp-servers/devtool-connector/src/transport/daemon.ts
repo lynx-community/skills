@@ -9,14 +9,15 @@ import { createDebug } from "obug";
 import { DAEMON_CONVERGENCE_TIMEOUT_MS, DaemonManager, DEFAULT_DAEMON_PORT } from "../daemon/manager.ts";
 import type { ClientListEntry, ControlResponse } from "../daemon/protocol.ts";
 import { readOnce, writeOnce } from "./stream-lifecycle.ts";
-import type {
-  App,
-  Client,
-  Connection,
-  Device,
-  OpenAppOptions,
-  Transport,
-  TransportConnectOptions,
+import {
+  type App,
+  type ClientList,
+  type Connection,
+  type Device,
+  type OpenAppOptions,
+  type Transport,
+  type TransportConnectOptions,
+  withTransports,
 } from "./transport.ts";
 
 const debug = createDebug("devtool-mcp-server:daemon:transport");
@@ -80,10 +81,19 @@ export class DaemonTransport implements Transport {
     );
   }
 
-  async listClients(): Promise<Client[]> {
-    const entries = await this.#controlRequest<ClientListEntry[]>("listClients");
-    debug("received ClientList with %d entries", entries.length);
-    return entries.map(({ id, info }) => ({ id, info }));
+  async listClients(): Promise<ClientList> {
+    const conn = await this.#createWebSocketConnection();
+    try {
+      const response = await this.#controlRequestOnConn(conn, "listClients");
+      const entries = (response.result ?? []) as ClientListEntry[];
+      debug("received ClientList with %d entries", entries.length);
+      return withTransports(
+        entries.map(({ id, info }) => ({ id, info })),
+        [this.id, ...(response.transports ?? [])],
+      );
+    } finally {
+      await conn[Symbol.asyncDispose]();
+    }
   }
 
   async connect<TInput = unknown, TOutput = unknown>(
@@ -150,7 +160,7 @@ export class DaemonTransport implements Transport {
   ): Promise<T> {
     const conn = await this.#createWebSocketConnection(signal);
     try {
-      return await this.#controlRequestOnConn<T>(conn, method, params, signal);
+      return (await this.#controlRequestOnConn(conn, method, params, signal)).result as T;
     } finally {
       await conn[Symbol.asyncDispose]();
     }
@@ -160,12 +170,12 @@ export class DaemonTransport implements Transport {
    * Send a Control request on an already-open WS connection and wait for
    * the matching ControlResponse.
    */
-  async #controlRequestOnConn<T>(
+  async #controlRequestOnConn(
     conn: { readable: ReadableStream<string>; writable: WritableStream<string> },
     method: string,
     params?: Record<string, unknown>,
     callerSignal?: AbortSignal,
-  ): Promise<T> {
+  ): Promise<ControlResponse["data"]> {
     const id = randomInt(10_000, 50_000);
 
     const signal = callerSignal ?? AbortSignal.timeout(10_000);
@@ -197,7 +207,7 @@ export class DaemonTransport implements Transport {
             if (resp.error) {
               throw new Error(resp.error);
             }
-            return resp.result as T;
+            return resp;
           }
         }
       }

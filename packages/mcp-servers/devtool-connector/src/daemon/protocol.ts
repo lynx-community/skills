@@ -83,6 +83,7 @@ export interface ControlResponse {
     id: number;
     result?: unknown;
     error?: string;
+    transports?: string[];
   };
 }
 

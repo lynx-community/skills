@@ -21,14 +21,16 @@ import { isDaemonLifecycleError } from "./daemon/manager.ts";
 import { nextRequestId } from "./request-id.ts";
 import { DaemonTransport } from "./transport/daemon.ts";
 import { HDTTransport } from "./transport/hdt.ts";
-import type {
-  App,
-  Client,
-  Connection,
-  Device,
-  OpenAppOptions,
-  Transport,
-  TransportConnectOptions,
+import {
+  type App,
+  type Client,
+  type ClientList,
+  type Connection,
+  type Device,
+  type OpenAppOptions,
+  type Transport,
+  type TransportConnectOptions,
+  withTransports,
 } from "./transport/transport.ts";
 import {
   type AppInfo,
@@ -108,7 +110,7 @@ export class Connector {
     this.#daemonTransports = transports.filter((t): t is DaemonTransport => t instanceof DaemonTransport);
   }
 
-  async listClients(): Promise<Client[]> {
+  async listClients(): Promise<ClientList> {
     const discoveryFailures: unknown[] = [];
 
     // 0. Try to get clients from daemon transport, which supports multiplexing.
@@ -130,7 +132,10 @@ export class Connector {
 
     if (fulfilledDaemonClientResults.length > 0) {
       debug("Using clients from daemon transport: %o", daemonClients);
-      return daemonClients;
+      return withTransports(
+        daemonClients,
+        fulfilledDaemonClientResults.flatMap(r => r.value.transports ?? ["daemon"]),
+      );
     }
 
     const daemonLifecycleFailure = daemonClientResults
@@ -151,7 +156,7 @@ export class Connector {
         await Promise.allSettled(
           clients.flatMap(({ id }) => this.#setupClient(transport, id)),
         );
-        return clients;
+        return { clients, id: transport.id };
       }),
     );
     const fulfilledHDTClientResults = hdtClientResults
@@ -159,10 +164,10 @@ export class Connector {
     discoveryFailures.push(
       ...hdtClientResults.filter((r) => r.status === "rejected").map((r) => r.reason),
     );
-    const hdtClients = fulfilledHDTClientResults.flatMap((r) => r.value);
+    const hdtClients = fulfilledHDTClientResults.flatMap((r) => r.value.clients);
     if (fulfilledHDTClientResults.length > 0) {
       debug("Using clients from HDT transport: %o", hdtClients);
-      return hdtClients;
+      return withTransports(hdtClients, fulfilledHDTClientResults.map(r => r.value.id));
     }
 
     // 2. Try direct connection for other transports.
@@ -180,7 +185,7 @@ export class Connector {
           await Promise.allSettled(
             clients.flatMap(({ id }) => this.#setupClient(transport, id)),
           );
-          return clients;
+          return { clients, id: transport.id };
         }),
       ),
       Promise.allSettled(
@@ -238,10 +243,17 @@ export class Connector {
       );
     }
 
-    return [
-      ...fulfilledClientListResults.flatMap((r) => r.value),
-      ...fulfilledClientResults.flatMap((r) => r.value),
+    const fulfilledTransports = [
+      ...fulfilledClientListResults.map(r => r.value.id),
+      ...fulfilledTransportDevices.map(r => r.value.transport.id),
     ];
+    return withTransports(
+      [
+        ...fulfilledClientListResults.flatMap((r) => r.value.clients),
+        ...fulfilledClientResults.flatMap((r) => r.value),
+      ],
+      fulfilledTransports.length > 0 ? fulfilledTransports : undefined,
+    );
   }
 
   async listDevices(): Promise<Device[]> {
