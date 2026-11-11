@@ -8,6 +8,7 @@ import { setTimeout as sleep } from "node:timers/promises";
 import { createDebug } from "obug";
 import { DAEMON_CONVERGENCE_TIMEOUT_MS, DaemonManager, DEFAULT_DAEMON_PORT } from "../daemon/manager.ts";
 import type { ClientListEntry, ControlResponse } from "../daemon/protocol.ts";
+import { formatSocketSpecTransportId, resolveAdbSocketSpec } from "./android.ts";
 import { readOnce, writeOnce } from "./stream-lifecycle.ts";
 import type {
   App,
@@ -25,6 +26,25 @@ export interface DaemonConnectOptions extends TransportConnectOptions {
   transportId: string;
 }
 
+export interface DaemonTransportOptions {
+  env?: NodeJS.ProcessEnv | undefined;
+  transportIds?: readonly string[] | undefined;
+}
+
+export function resolvePublicDaemonTransportIds(
+  env: NodeJS.ProcessEnv = process.env,
+): string[] | undefined {
+  if (
+    env["ADB_SERVER_SOCKET"] === undefined
+    && env["ANDROID_ADB_SERVER_ADDRESS"] === undefined
+    && env["ANDROID_ADB_SERVER_PORT"] === undefined
+  ) {
+    return undefined;
+  }
+  const spec = resolveAdbSocketSpec(undefined, env);
+  return [formatSocketSpecTransportId("android", spec, 5037)];
+}
+
 /**
  * A Transport implementation that communicates with devices through the
  * daemon process over WebSocket.
@@ -37,8 +57,13 @@ export interface DaemonConnectOptions extends TransportConnectOptions {
 export class DaemonTransport implements Transport {
   readonly id = "daemon";
   #endpoint: number | string;
+  #transportIds: readonly string[] | undefined;
 
-  constructor(endpoint: number | string = DEFAULT_DAEMON_PORT) {
+  constructor(
+    endpoint: number | string = DEFAULT_DAEMON_PORT,
+    options?: DaemonTransportOptions,
+  ) {
+    this.#transportIds = options?.transportIds ?? this.resolveDefaultTransportIds(options?.env);
     if (typeof endpoint === "string") {
       const url = new URL(endpoint);
       if (url.protocol !== "ws:" && url.protocol !== "wss:") {
@@ -51,18 +76,28 @@ export class DaemonTransport implements Transport {
     this.#endpoint = endpoint;
   }
 
+  protected resolveDefaultTransportIds(env?: NodeJS.ProcessEnv): readonly string[] | undefined {
+    return resolvePublicDaemonTransportIds(env);
+  }
+
   async close(): Promise<void> {
     // DaemonTransport is stateless — nothing to close.
     // The daemon itself manages its own lifecycle.
   }
 
   async listDevices(): Promise<Device[]> {
-    const result = await this.#controlRequest<Device[]>("listDevices");
+    const result = await this.#controlRequest<Device[]>(
+      "listDevices",
+      this.#transportIds ? { transportIds: this.#transportIds } : undefined,
+    );
     return result;
   }
 
   async listAvailableApps(deviceId: string): Promise<App[]> {
-    const result = await this.#controlRequest<App[]>("listAvailableApps", { deviceId });
+    const result = await this.#controlRequest<App[]>("listAvailableApps", {
+      deviceId,
+      ...(this.#transportIds ? { transportIds: this.#transportIds } : {}),
+    });
     return result;
   }
 
@@ -75,13 +110,17 @@ export class DaemonTransport implements Transport {
         withDataCleared: options?.withDataCleared,
         restart: options?.restart,
         schema: options?.schema,
+        ...(this.#transportIds ? { transportIds: this.#transportIds } : {}),
       },
       options?.signal,
     );
   }
 
   async listClients(): Promise<Client[]> {
-    const entries = await this.#controlRequest<ClientListEntry[]>("listClients");
+    const entries = await this.#controlRequest<ClientListEntry[]>(
+      "listClients",
+      this.#transportIds ? { transportIds: this.#transportIds } : undefined,
+    );
     debug("received ClientList with %d entries", entries.length);
     return entries.map(({ id, info }) => ({ id, info }));
   }

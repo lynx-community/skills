@@ -10,6 +10,7 @@ describe("DaemonTransport connection setup timeout", () => {
   test("listClients returns when a daemon device port connect never settles", async (t) => {
     const pendingConnect = Promise.withResolvers<Connection<unknown, unknown>>();
     const hangingTransport: Transport = {
+      id: "hanging",
       async close() {
         pendingConnect.reject(new Error("transport closed"));
       },

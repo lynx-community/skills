@@ -3,14 +3,16 @@
 // LICENSE file in the root directory of this source tree.
 import { randomUUID } from "node:crypto";
 import http from "node:http";
-import type { AddressInfo } from "node:net";
+import type { AddressInfo, SocketConnectOpts } from "node:net";
 import { createDebug } from "obug";
 import { type WebSocket, WebSocketServer } from "ws";
 import { throwClientDiscoveryFailures } from "../client-discovery-errors.ts";
 import { ClientId, type ClientTarget } from "../client-id.ts";
+import { DAEMON_TRANSPORT_IDS_HEADER } from "../command/client.ts";
 import { ActionCore } from "../command/core.ts";
 import { decodeCommandQuery } from "../command/query.ts";
 import { Connector } from "../index.ts";
+import { AndroidTransport } from "../transport/android.ts";
 import { DaemonTransport } from "../transport/daemon.ts";
 import { HDTTransport } from "../transport/hdt.ts";
 import type { Device, Transport } from "../transport/transport.ts";
@@ -437,7 +439,7 @@ export class DevtoolDaemon {
       const result = await this.actionCore.execute(
         action,
         params,
-        { connector: this.#requireCommandConnector() },
+        { connector: this.#requireCommandConnector(this.#parseTransportIdsHeader(req)) },
         controller.signal,
       );
       if (!controller.signal.aborted && !res.destroyed) this.#sendJson(res, 200, result);
@@ -528,7 +530,7 @@ export class DevtoolDaemon {
         const event of this.actionCore.stream(
           action,
           params,
-          { connector: this.#requireCommandConnector() },
+          { connector: this.#requireCommandConnector(this.#parseTransportIdsHeader(req)) },
           controller.signal,
         )
       ) {
@@ -572,9 +574,33 @@ export class DevtoolDaemon {
     });
   }
 
-  #requireCommandConnector(): Connector {
+  #parseTransportIdsHeader(req: http.IncomingMessage): readonly string[] | undefined {
+    const rawHeader = req.headers[DAEMON_TRANSPORT_IDS_HEADER];
+    if (!rawHeader) return undefined;
+    const raw = Array.isArray(rawHeader) ? rawHeader[0] : rawHeader;
+    if (!raw) return undefined;
+    try {
+      const parsed: unknown = JSON.parse(raw);
+      if (Array.isArray(parsed) && parsed.every(item => typeof item === "string")) {
+        return parsed;
+      }
+    } catch {
+      // ignore invalid header
+    }
+    return undefined;
+  }
+
+  #requireCommandConnector(transportIds?: readonly string[]): Connector {
     if (!this.#commandConnector) {
       throw new Error("Connector daemon has not started its command transport.");
+    }
+    if (transportIds && transportIds.length > 0) {
+      const address = this.#httpServer.address() as AddressInfo | null;
+      if (address) {
+        return new Connector([
+          new DaemonTransport(`ws://127.0.0.1:${address.port}${DAEMON_WS_PATH}`, { transportIds }),
+        ]);
+      }
     }
     return this.#commandConnector;
   }
@@ -832,14 +858,17 @@ export class DevtoolDaemon {
 
       switch (method) {
         case "listClients": {
-          result = await this.#discoverClients();
+          const transportIds = this.#parseControlTransportIds(params);
+          result = await this.#discoverClients(transportIds);
           break;
         }
 
         case "listDevices": {
+          const transportIds = this.#parseControlTransportIds(params);
+          const activeTransports = this.#resolveActiveTransports(transportIds);
           const devices: Device[] = [];
           const allResults = await Promise.allSettled(
-            this.#transports.map(t => t.listDevices()),
+            activeTransports.map(t => t.listDevices()),
           );
           for (const r of allResults) {
             if (r.status === "fulfilled") devices.push(...r.value);
@@ -851,7 +880,8 @@ export class DevtoolDaemon {
         case "listAvailableApps": {
           const deviceId = (params as { deviceId?: string } | undefined)?.deviceId;
           if (!deviceId) throw new Error("deviceId is required");
-          const transport = await this.#findTransportWithDeviceId(deviceId);
+          const transportIds = this.#parseControlTransportIds(params);
+          const transport = await this.#findTransportWithDeviceId(deviceId, undefined, transportIds);
           result = await transport.listAvailableApps(deviceId);
           break;
         }
@@ -865,6 +895,7 @@ export class DevtoolDaemon {
             schema?: string;
           };
           if (!p.deviceId || !p.packageName) throw new Error("deviceId and packageName are required");
+          const transportIds = this.#parseControlTransportIds(params);
           const abortController = new AbortController();
           const removeCloseListener = session.onClose(() => {
             abortController.abort(
@@ -872,7 +903,7 @@ export class DevtoolDaemon {
             );
           });
           try {
-            const transport = await this.#findTransportWithDeviceId(p.deviceId);
+            const transport = await this.#findTransportWithDeviceId(p.deviceId, undefined, transportIds);
             abortController.signal.throwIfAborted();
             await transport.openApp(p.deviceId, p.packageName, {
               withDataCleared: p.withDataCleared,
@@ -934,7 +965,9 @@ export class DevtoolDaemon {
     }
   }
 
-  async #discoverClients(): Promise<ClientListEntry[]> {
+  async #discoverClients(transportIds?: readonly string[]): Promise<ClientListEntry[]> {
+    const activeTransports = this.#resolveActiveTransports(transportIds);
+    const activeTransportIdSet = new Set(activeTransports.map(t => t.id));
     const entries: ClientListEntry[] = [];
     const discoveryFailures: unknown[] = [];
     let lowerAuthorityFulfilled = false;
@@ -969,7 +1002,7 @@ export class DevtoolDaemon {
     // 0.5. Collect clients from transports with listClients().
     // These are added to the entries list but do NOT short-circuit discovery so
     // that real device clients (Android, iOS, etc.) are still discovered.
-    const clientListTransports = this.#transports.filter(
+    const clientListTransports = activeTransports.filter(
       (t): t is Transport & { listClients(): Promise<{ id: string; info: Record<string, unknown> }[]> } =>
         !(t instanceof HDTTransport) && typeof t.listClients === "function",
     );
@@ -989,7 +1022,7 @@ export class DevtoolDaemon {
 
     // 1. Report already-connected device connections that completed handshake
     for (const [, conn] of this.#deviceConnections) {
-      if (conn.appInfo && !conn.isDisposed) {
+      if (conn.appInfo && !conn.isDisposed && activeTransportIdSet.has(conn.transport.id)) {
         const id = ClientId.serialize(conn.transport.id, conn.deviceId, conn.port);
         if (entries.some((e) => e.id === id)) continue;
         entries.push({
@@ -1003,7 +1036,7 @@ export class DevtoolDaemon {
     // 2. Probe unconnected ports on all discovered devices
     const allDevices: { transport: Transport; devices: Device[] }[] = [];
     const transportResults = await Promise.allSettled(
-      this.#transports
+      activeTransports
         .filter(transport => typeof transport.listClients !== "function")
         .map(async (transport) => ({
           transport,
@@ -1211,14 +1244,84 @@ export class DevtoolDaemon {
     this.#deviceConnectionCleanupTimers.delete(key);
   }
 
-  async #findTransportWithDeviceId(deviceId: string, transportId?: string): Promise<Transport> {
+  #parseControlTransportIds(params: Record<string, unknown> | undefined): readonly string[] | undefined {
+    const raw = params?.["transportIds"];
+    if (!Array.isArray(raw)) return undefined;
+    const ids = raw.filter((item): item is string => typeof item === "string" && item.length > 0);
+    return ids.length > 0 ? ids : undefined;
+  }
+
+  protected parseTransportSocketSpec(spec: string): SocketConnectOpts | undefined {
+    if (spec.startsWith("/") || spec.startsWith("\0")) {
+      return { path: spec };
+    }
+    const match = /^(?:\[([^\]]+)\]|(.+)):(\d+)$/u.exec(spec);
+    if (!match) return undefined;
+    const host = match[1] ?? match[2];
+    const port = Number(match[3]);
+    if (!host || !Number.isInteger(port) || port < 1 || port > 65535) return undefined;
+    return { host, port };
+  }
+
+  protected createDynamicTransport(transportId: string): Transport | undefined {
+    if (transportId.startsWith("android:")) {
+      const spec = this.parseTransportSocketSpec(transportId.slice("android:".length));
+      if (!spec) throw new Error(`Invalid Android transport id: ${transportId}`);
+      return new AndroidTransport(spec);
+    }
+    return undefined;
+  }
+
+  #getOrCreateTransportById(transportId: string): Transport | undefined {
+    const existing = this.#transports.find(t => t.id === transportId);
+    if (existing) return existing;
+    const created = this.createDynamicTransport(transportId);
+    if (created) {
+      this.#transports.push(created);
+    }
+    return created;
+  }
+
+  #resolveActiveTransports(transportIds?: readonly string[]): Transport[] {
+    if (!transportIds || transportIds.length === 0) {
+      return this.#transports.filter(t => !t.id.includes(":"));
+    }
+    const overriddenTypes = new Set<string>();
+    const customTransports = new Map<string, Transport>();
+    for (const id of transportIds) {
+      const colonIdx = id.indexOf(":");
+      const baseType = colonIdx === -1 ? id : id.slice(0, colonIdx);
+      overriddenTypes.add(baseType);
+      const transport = this.#getOrCreateTransportById(id);
+      if (!transport) {
+        throw new Error(`Transport with id: ${id} not found`);
+      }
+      customTransports.set(transport.id, transport);
+    }
+    const result: Transport[] = [...customTransports.values()];
+    for (const transport of this.#transports) {
+      if (transport.id.includes(":")) continue;
+      if (overriddenTypes.has(transport.id)) continue;
+      if (!customTransports.has(transport.id)) {
+        result.push(transport);
+      }
+    }
+    return result;
+  }
+
+  async #findTransportWithDeviceId(
+    deviceId: string,
+    transportId?: string,
+    transportIds?: readonly string[],
+  ): Promise<Transport> {
     if (transportId !== undefined) {
-      const matchedById = this.#transports.find(t => t.id === transportId);
+      const matchedById = this.#getOrCreateTransportById(transportId);
       if (matchedById) return matchedById;
       throw new Error(`Transport with id: ${transportId} not found`);
     }
 
-    for (const transport of this.#transports) {
+    const candidates = this.#resolveActiveTransports(transportIds);
+    for (const transport of candidates) {
       try {
         const devices = await transport.listDevices();
         if (devices.some(({ id }) => id === deviceId)) return transport;

@@ -127,12 +127,10 @@ Environment variables:
   AGENT_LYNX_FORCE_JSON           Set to 1 or true to enable local --json options.
   AGENT_LYNX_DISABLE_UPDATE_NOTICE
                                   Set to 1 to disable new-version notices.
-  ADB_SERVER_SOCKET              Direct-mode ADB socket spec (requires --no-daemon;
-                                  takes precedence over address and port).
-  ANDROID_ADB_SERVER_ADDRESS      Direct-mode Android ADB server host
-                                  (default: 127.0.0.1; requires --no-daemon).
-  ANDROID_ADB_SERVER_PORT         Direct-mode Android ADB server port
-                                  (default: 5037; requires --no-daemon).
+  ADB_SERVER_SOCKET              ADB socket spec (takes precedence over address
+                                  and port).
+  ANDROID_ADB_SERVER_ADDRESS      Android ADB server host (default: 127.0.0.1).
+  ANDROID_ADB_SERVER_PORT         Android ADB server port (default: 5037).
   DEBUG                           Diagnostic log namespaces on stderr.
   CODEX_SANDBOX_NETWORK_DISABLED  When set to 1, device commands stop with a
                                   network-permission error.
@@ -159,20 +157,8 @@ Examples:
         );
       }
       if (thisCommand.opts<{ daemon?: boolean; }>().daemon !== false) {
-        const ignored = [
-          'ADB_SERVER_SOCKET',
-          'ANDROID_ADB_SERVER_ADDRESS',
-          'ANDROID_ADB_SERVER_PORT',
-        ].filter(name => env[name] !== undefined);
-        if (ignored.length) {
-          process.stderr.write(
-            `Warning: ${ignored.join(', ')} ${
-              ignored.length === 1 ? 'is' : 'are'
-            } ignored in daemon mode. Pass --no-daemon to apply direct transport configuration.\n`,
-          );
-        }
-        context.commandClient = new HttpCommandClient();
-        context.transports.push(new DaemonTransport());
+        context.commandClient = new HttpCommandClient({ env });
+        context.transports.push(new DaemonTransport(undefined, { env }));
       } else {
         const transports = createDirectTransports();
         context.transports.push(...transports);
