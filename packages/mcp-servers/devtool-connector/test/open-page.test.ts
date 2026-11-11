@@ -8,6 +8,7 @@ import { ClientId, Connector } from "../src/index.ts";
 import type { Connection, Transport, TransportConnectOptions } from "../src/transport/transport.ts";
 
 class OpenPageTransport implements Transport {
+  readonly id = "open-page";
   readonly requests: unknown[] = [];
 
   close(): Promise<void> {
@@ -60,6 +61,7 @@ class OpenPageTransport implements Transport {
 }
 
 class DelayedOpenPageTransport implements Transport {
+  readonly id = "delayed-open-page";
   close(): Promise<void> {
     return Promise.resolve();
   }
@@ -156,7 +158,7 @@ test("openPage ignores an uncorrelated empty SessionList before the new page plu
   const connector = new Connector([transport]);
 
   const response = await connector.openPage(
-    ClientId.serialize("device", 8901),
+    ClientId.serialize("open-page", "device", 8901),
     "lynx://example/new-page",
   );
 
@@ -174,7 +176,7 @@ test("openPage ignores an uncorrelated empty SessionList before the new page plu
 test("sendListSessionMessage still reports a legitimate empty session snapshot", async (t) => {
   const connector = new Connector([new OpenPageTransport()]);
 
-  const sessions = await connector.sendListSessionMessage(ClientId.serialize("device", 8901));
+  const sessions = await connector.sendListSessionMessage(ClientId.serialize("open-page", "device", 8901));
 
   t.assert.deepEqual(sessions, []);
 });
@@ -184,7 +186,7 @@ test("openPage cancels a delayed SessionList when its caller deadline expires", 
   const controller = new AbortController();
   const reason = new Error("caller deadline expired");
   const pending = connector.openPage(
-    ClientId.serialize("device", 8901),
+    ClientId.serialize("delayed-open-page", "device", 8901),
     "lynx://example/delayed-page",
     controller.signal,
   );
@@ -205,7 +207,7 @@ test("openPage uses its caller deadline instead of the shorter library default",
 
     try {
       const response = await connector.openPage(
-        ClientId.serialize("device", 8901),
+        ClientId.serialize("delayed-open-page", "device", 8901),
         "lynx://example/delayed-page",
         controller.signal,
       );
@@ -228,7 +230,7 @@ test("openPage keeps its library default deadline when no caller signal is suppl
     const connector = new Connector([new DelayedOpenPageTransport()]);
 
     await assert.rejects(
-      connector.openPage(ClientId.serialize("device", 8901), "lynx://example/delayed-page"),
+      connector.openPage(ClientId.serialize("delayed-open-page", "device", 8901), "lynx://example/delayed-page"),
       { name: "TimeoutError" },
     );
   });

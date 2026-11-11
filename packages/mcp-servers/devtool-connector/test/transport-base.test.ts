@@ -70,7 +70,7 @@ test("Connector aborts a pending Peertalk write before physical disposal", async
   });
   const input = new ReadableStream<string>({ start: controller => controller.enqueue("request") });
   const output = await new Connector([peertalkTransport(raw)]).sendStream<string, string>(
-    ClientId.serialize("device", 8901),
+    ClientId.serialize("peertalk", "device", 8901),
     input,
   );
   await started.promise;
@@ -92,6 +92,7 @@ function connectRaw(raw: Connection<Uint8Array, Uint8Array>) {
 
 function peertalkTransport(raw: Connection): Transport {
   return {
+    id: "peertalk",
     close: () => Promise.resolve(),
     listDevices: () => Promise.resolve([{ id: "device", os: "Android" }]),
     listAvailableApps: () => Promise.resolve([]),

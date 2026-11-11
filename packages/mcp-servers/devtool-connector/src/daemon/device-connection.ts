@@ -50,7 +50,7 @@ export class DeviceConnection {
     this.#options = options;
     this.deviceId = options.deviceId;
     this.port = options.port;
-    this.key = `${options.deviceId}:${options.port}`;
+    this.key = `${transport.id}:${options.deviceId}:${options.port}`;
     this.#registered = new Promise<AppInfo>((resolve, reject) => {
       this.#resolveRegistered = resolve;
       this.#rejectRegistered = reject;

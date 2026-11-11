@@ -60,6 +60,7 @@ class RejectingHDTTransport extends HDTTransport {
 }
 
 class DirectFallbackProbeTransport implements Transport {
+  readonly id = "direct-fallback";
   #devices: Device[];
   listAvailableAppsCalls = 0;
   listDevicesCalls = 0;

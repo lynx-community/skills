@@ -30,6 +30,7 @@ type CustomizedCDPRequest = {
 };
 
 class FakeTransport implements Transport {
+  readonly id = 'fake-screenshot';
   readonly requests: CustomizedCDPRequest[] = [];
 
   async close(): Promise<void> {}
@@ -129,7 +130,7 @@ test('take-screenshot acks the captured frame and stops screencast', async (t) =
     'test',
     'take-screenshot',
     '--client',
-    'device:1234',
+    'fake-screenshot:device:1234',
     '--session',
     '7',
     '--output',
