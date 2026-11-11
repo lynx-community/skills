@@ -233,9 +233,9 @@ export function AgentConversation({
                   <div className={styles.codeLabel}>{copy.output}</div>
                   <pre
                     className={`${styles.output} ${
-                      step.wrapOutput === false ? styles.preformatted : ''
+                      step.wrapOutput !== true ? styles.preformatted : ''
                     }`}
-                    tabIndex={step.wrapOutput === false ? 0 : undefined}
+                    tabIndex={step.wrapOutput !== true ? 0 : undefined}
                   >
                     <code>{step.output}</code>
                   </pre>
