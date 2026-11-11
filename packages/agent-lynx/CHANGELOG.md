@@ -1,5 +1,14 @@
 # agent-lynx
 
+## 0.15.0
+
+### Patch Changes
+
+- Updated dependency `@rslib/core` to `^1.0.6`.
+- Wait for the Debugger.enable collection barrier before ending get-sources on idle, so earlier acknowledgements and pauses between script events do not return an empty or incomplete source list.
+- Updated dependencies
+  - @lynx-js/devtool-connector@0.19.0
+
 ## 0.14.29
 
 ### Patch Changes

@@ -1,5 +1,11 @@
 # @lynx-js/skill-lynx-tasm-codec
 
+## 0.1.2
+
+### Patch Changes
+
+- Use the `agent-lynx` name consistently in the TASM Skill instructions. Thanks [@洪志远](https://code.byted.org/hongzhiyuan.hzy) in [!987](https://code.byted.org/lynx/skills/merge_requests/987)
+
 ## 0.1.1
 
 ### Patch Changes
