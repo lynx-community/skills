@@ -29,6 +29,7 @@ function urlToDeviceId(url: string): string {
 }
 
 export class HDTTransport implements Transport {
+  readonly id: string;
   #url: string;
 
   static DEFAULT_PORT = 19783;
@@ -48,6 +49,7 @@ export class HDTTransport implements Transport {
       : urlOrPort;
 
     this.#url = url;
+    this.id = urlToDeviceId(url);
   }
 
   close(): Promise<void> {
@@ -89,7 +91,7 @@ export class HDTTransport implements Transport {
         return clients
           .filter(({ info }) => this.#url !== "ws://127.0.0.1:3005/ws" || info.osType !== "unknown")
           .map(({ info, id }) => ({
-            id: ClientId.serialize(urlToDeviceId(this.#url), info.debugRouterId || Number(id)),
+            id: ClientId.serialize(this.id, urlToDeviceId(this.#url), info.debugRouterId || Number(id)),
             info,
           }));
       }

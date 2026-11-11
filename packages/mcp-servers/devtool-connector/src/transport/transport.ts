@@ -33,6 +33,8 @@ export interface OpenAppOptions {
 }
 
 export interface Transport {
+  readonly id: string;
+
   close(): Promise<void>;
 
   listDevices(): Promise<Device[]>;

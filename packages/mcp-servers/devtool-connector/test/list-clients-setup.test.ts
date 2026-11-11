@@ -8,6 +8,7 @@ import { ClientId, Connector } from "../src/index.ts";
 import type { Connection, Transport, TransportConnectOptions } from "../src/transport/transport.ts";
 
 class SetupAwareTransport implements Transport {
+  readonly id = "setup-aware";
   readonly #deviceId = "device under:test";
   readonly #failRegisterPorts: Set<number>;
   readonly #failSetup: { key: string; port: number } | undefined;
@@ -196,8 +197,8 @@ describe("Connector listClients setup", () => {
     t.assert.deepStrictEqual(
       clients.map(({ id }) => id).sort(),
       [
-        ClientId.serialize("device under:test", 8901),
-        ClientId.serialize("device under:test", 8902),
+        ClientId.serialize("setup-aware", "device under:test", 8901),
+        ClientId.serialize("setup-aware", "device under:test", 8902),
       ],
     );
     t.assert.deepStrictEqual(transport.setupRequests, [
@@ -261,7 +262,9 @@ describe("Connector listClients setup", () => {
 
     const clients = await new Connector([transport]).listClients();
 
-    t.assert.deepStrictEqual(clients.map(({ id }) => id), [ClientId.serialize("device under:test", 8901)]);
+    t.assert.deepStrictEqual(clients.map(({ id }) => id), [
+      ClientId.serialize("setup-aware", "device under:test", 8901),
+    ]);
     t.assert.deepStrictEqual(transport.setupRequests, [
       { key: "enable_devtool", value: true, port: 8901 },
       { key: "enable_quickjs_debug", value: true, port: 8901 },

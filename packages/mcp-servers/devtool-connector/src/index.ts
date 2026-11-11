@@ -166,15 +166,37 @@ export class Connector {
     }
 
     // 2. Try direct connection for other transports.
-    const transportDevices = await Promise.allSettled(
-      this.#transports
-        .filter(t => !(t instanceof HDTTransport))
-        .filter(t => !(t instanceof DaemonTransport))
-        .map(async (transport) => ({
+    const directTransports = this.#transports
+      .filter(t => !(t instanceof DaemonTransport));
+    const clientListTransports = directTransports
+      .filter(t => !(t instanceof HDTTransport))
+      .filter(hasClientList);
+    const deviceProbeTransports = directTransports.filter(t => !hasClientList(t));
+
+    const [clientListResults, transportDevices] = await Promise.all([
+      Promise.allSettled(
+        clientListTransports.map(async (transport) => {
+          const clients = await transport.listClients();
+          await Promise.allSettled(
+            clients.flatMap(({ id }) => this.#setupClient(transport, id)),
+          );
+          return clients;
+        }),
+      ),
+      Promise.allSettled(
+        deviceProbeTransports.map(async (transport) => ({
           transport,
           devices: await transport.listDevices(),
         })),
-    );
+      ),
+    ]);
+
+    for (const result of clientListResults) {
+      if (result.status === "rejected") {
+        discoveryFailures.push(result.reason);
+        debug("listClients: listClients failed on one transport: %O", result.reason);
+      }
+    }
 
     for (const result of transportDevices) {
       if (result.status === "rejected") {
@@ -183,9 +205,15 @@ export class Connector {
       }
     }
 
+    const fulfilledClientListResults = clientListResults
+      .filter(result => result.status === "fulfilled");
     const fulfilledTransportDevices = transportDevices
       .filter(result => result.status === "fulfilled");
-    if (fulfilledTransportDevices.length === 0 && discoveryFailures.length > 0) {
+    if (
+      fulfilledClientListResults.length === 0
+      && fulfilledTransportDevices.length === 0
+      && discoveryFailures.length > 0
+    ) {
       throwClientDiscoveryFailures(discoveryFailures);
     }
 
@@ -197,7 +225,11 @@ export class Connector {
 
     const fulfilledClientResults = results
       .filter((r) => r.status === "fulfilled");
-    if (fulfilledClientResults.length === 0 && results.length > 0) {
+    if (
+      fulfilledClientListResults.length === 0
+      && fulfilledClientResults.length === 0
+      && results.length > 0
+    ) {
       throwClientDiscoveryFailures(
         [
           ...discoveryFailures,
@@ -206,7 +238,10 @@ export class Connector {
       );
     }
 
-    return fulfilledClientResults.flatMap((r) => r.value);
+    return [
+      ...fulfilledClientListResults.flatMap((r) => r.value),
+      ...fulfilledClientResults.flatMap((r) => r.value),
+    ];
   }
 
   async listDevices(): Promise<Device[]> {
@@ -433,12 +468,12 @@ export class Connector {
     inputStream: ReadableStream<I>,
     { signal, pipeline }: { signal?: AbortSignal | undefined; pipeline?: Pipeline | undefined } = {},
   ): Promise<OutputStream<O>> {
-    const { deviceId, port } = this.#resolveClientId(clientId);
-    const transport = await this.#findTransportWithDeviceId(deviceId);
+    const { transportId, deviceId, port } = this.#resolveClientId(clientId);
+    const transport = await this.#findTransportWithDeviceId(deviceId, transportId);
 
     return await this.#connect(
       transport,
-      { deviceId, port, signal },
+      { transportId, deviceId, port, signal },
       inputStream,
       pipeline ?? { input: [], output: [] },
     );
@@ -464,7 +499,7 @@ export class Connector {
     });
   }
 
-  #resolveClientId(clientId: string): TransportConnectOptions {
+  #resolveClientId(clientId: string): ClientId {
     const parsed = ClientId.deserialize(clientId);
     if (!parsed) {
       throw new Error(`Invalid clientId: ${clientId}`);
@@ -472,7 +507,7 @@ export class Connector {
     return parsed;
   }
 
-  async #findTransportWithDeviceId(deviceId: string): Promise<Transport> {
+  async #findTransportWithDeviceId(deviceId: string, transportId?: string): Promise<Transport> {
     const [onlyTransport] = this.#transports;
     if (this.#transports.length === 1 && onlyTransport instanceof DaemonTransport) {
       // The daemon can reuse its pooled target before requiring a fresh device scan.
@@ -488,8 +523,17 @@ export class Connector {
       return daemonTransport;
     }
 
+    const nonDaemonTransports = this.#transports.filter(t => !(t instanceof DaemonTransport));
+    if (transportId !== undefined) {
+      const matchedById = nonDaemonTransports.find(t => t.id === transportId);
+      if (matchedById) {
+        return matchedById;
+      }
+      throw new Error(`Transport with id: ${transportId} not found`);
+    }
+
     const transport = await this.#findTransportWithDeviceIdInPool(
-      this.#transports.filter(t => !(t instanceof DaemonTransport)),
+      nonDaemonTransports,
       deviceId,
     );
     if (transport) {
@@ -519,13 +563,15 @@ export class Connector {
 
   async #connect<I, O>(
     transport: Transport,
-    options: TransportConnectOptions,
+    options: TransportConnectOptions & { transportId: string },
     inputStream: ReadableStream<I>,
     pipeline: Pipeline,
   ): Promise<OutputStream<O>> {
     const { deviceId, port } = options;
 
-    const conn = await transport.connect<I, O>(options);
+    const conn = transport instanceof DaemonTransport
+      ? await transport.connect<I, O>(options)
+      : await transport.connect<I, O>({ deviceId, port, signal: options.signal });
 
     const inputAbortController = new AbortController();
     const inputAbortReason = new Error("Connector input stream disposed");
@@ -572,12 +618,12 @@ export class Connector {
     pipeline: Pipeline = { input: [], output: [] },
     signal?: AbortSignal,
   ): Promise<O> {
-    const { deviceId, port } = this.#resolveClientId(clientId);
-    const transport = await this.#findTransportWithDeviceId(deviceId);
+    const { transportId, deviceId, port } = this.#resolveClientId(clientId);
+    const transport = await this.#findTransportWithDeviceId(deviceId, transportId);
 
     return this.#sendMessageWithTransport(
       transport,
-      { deviceId, port, signal: signal ?? AbortSignal.timeout(10_000) },
+      { transportId, deviceId, port, signal: signal ?? AbortSignal.timeout(10_000) },
       input,
       pipeline,
       describeRequest(input),
@@ -586,7 +632,7 @@ export class Connector {
 
   async #sendMessageWithTransport<I, O>(
     transport: Transport,
-    options: TransportConnectOptions,
+    options: TransportConnectOptions & { transportId: string },
     input: I,
     pipeline: Pipeline,
     request = "request",
@@ -611,7 +657,7 @@ export class Connector {
         result = response.value;
       } else {
         options.signal?.throwIfAborted();
-        const clientId = ClientId.serialize(options.deviceId, options.port);
+        const clientId = ClientId.serialize(transport.id, options.deviceId, options.port);
         throw new Error(
           `Transport ${transport.constructor.name} ended cleanly (EOF) while waiting for a response to ${request} on clientId: ${clientId}.`,
         );
@@ -650,7 +696,7 @@ export class Connector {
     const discoverySignal = AbortSignal.timeout(5_000);
     const results = await Promise.allSettled(PORTS.map(async (port: number) => {
       const info = await this.#discoverAndSetupClient(transport, deviceId, port, discoverySignal);
-      return { id: ClientId.serialize(deviceId, port), info, port };
+      return { id: ClientId.serialize(transport.id, deviceId, port), info, port };
     }));
 
     const clients = results
@@ -753,12 +799,12 @@ export class Connector {
   }
 
   async #setupClient(transport: Transport, clientId: string): Promise<void> {
-    const { deviceId, port } = this.#resolveClientId(clientId);
+    const { transportId, deviceId, port } = this.#resolveClientId(clientId);
     for (const { key, value } of clientSetupSwitches) {
       try {
         await this.#sendMessageWithTransport<{ key: GlobalKeys; value: boolean }, never>(
           transport,
-          { deviceId, port, signal: AbortSignal.timeout(3_000) },
+          { transportId, deviceId, port, signal: AbortSignal.timeout(3_000) },
           { key, value },
           {
             input: [

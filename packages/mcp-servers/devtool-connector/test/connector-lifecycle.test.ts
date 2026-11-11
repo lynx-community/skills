@@ -17,6 +17,7 @@ test("Connector.sendMessage waits for input write before disposing connection", 
   let disposedBeforeWriteSettled = false;
 
   class DelayedWriteTransport implements Transport {
+    readonly id = "delayed-write";
     close(): Promise<void> {
       return Promise.resolve();
     }
@@ -66,7 +67,7 @@ test("Connector.sendMessage waits for input write before disposing connection", 
 
   const connector = new Connector([new DelayedWriteTransport()]);
   const resultPromise = connector.sendMessage<string, string>(
-    ClientId.serialize("device-1", 8901),
+    ClientId.serialize("delayed-write", "device-1", 8901),
     "request",
   );
 
@@ -107,6 +108,7 @@ test("Connector.sendStream cleanup preserves a delivered response", async () => 
   let readableCanceled = false;
 
   class CancellableReadableTransport implements Transport {
+    readonly id = "cancellable-readable";
     close(): Promise<void> {
       return Promise.resolve();
     }
@@ -150,7 +152,7 @@ test("Connector.sendStream cleanup preserves a delivered response", async () => 
   });
   const connector = new Connector([new CancellableReadableTransport()]);
   const stream = await connector.sendStream<string, string>(
-    ClientId.serialize("device-1", 8901),
+    ClientId.serialize("cancellable-readable", "device-1", 8901),
     input,
   );
 
@@ -176,6 +178,7 @@ async function assertInputWriteFailurePreserved(writeFailure: Error, disposeFail
   let outputCanceled = false;
 
   class RejectingWriteTransport implements Transport {
+    readonly id = "rejecting-write";
     close(): Promise<void> {
       return Promise.resolve();
     }
@@ -217,7 +220,7 @@ async function assertInputWriteFailurePreserved(writeFailure: Error, disposeFail
 
   const connector = new Connector([new RejectingWriteTransport()]);
   const resultPromise = connector.sendMessage<string, string>(
-    ClientId.serialize("device-1", 8901),
+    ClientId.serialize("rejecting-write", "device-1", 8901),
     "request",
   );
   await writeAttempted.promise;
