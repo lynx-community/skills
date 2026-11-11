@@ -505,13 +505,13 @@ test("Android direct discovery and request disposal succeed over AdbServerNodeJs
     const clients = await connector.listClients();
     assert.deepEqual(clients, [
       {
-        id: "test-device:8901",
+        id: "android:test-device:8901",
         info: { App: "com.lynx.uiapp", AppProcessName: "com.lynx.uiapp" },
         port: 8901,
       },
     ]);
 
-    const sessions = await connector.sendListSessionMessage("test-device:8901");
+    const sessions = await connector.sendListSessionMessage("android:test-device:8901");
     assert.deepEqual(sessions, [
       { session_id: 1, url: "https://example.com/template.js", type: undefined },
     ]);
