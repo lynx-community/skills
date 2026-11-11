@@ -61,6 +61,7 @@ function fixture(t: TestContext, args: string[] = []) {
   t.mock.method(console, 'log', (line: string) => output.push(line));
   const program = new Command().exitOverride();
   program.configureOutput({ writeErr() {} });
+  let settled = false;
   registerGetSourcesCommand(program, { transports: [] });
   const done = program.parseAsync([
     'node',
@@ -74,8 +75,17 @@ function fixture(t: TestContext, args: string[] = []) {
   ]);
   // Keep the original rejection available to assertions without a late unhandled rejection.
   void done.catch(() => {});
+  void done.then(
+    () => {
+      settled = true;
+    },
+    () => {
+      settled = true;
+    },
+  );
   return {
     done,
+    settled: () => settled,
     output,
     stream,
     send: (value: unknown) => controller.enqueue(value),
@@ -127,8 +137,48 @@ test('waits past idleMs when Debugger.enable has not responded yet', async t => 
   f.checkCleanup();
 });
 
+test('Debugger.disable response does not satisfy the enable barrier', async t => {
+  const f = fixture(t);
+  await flush();
+  const id = f.requests()[2]?.id;
+  assert.equal(typeof id, 'number');
+
+  f.send({ id: Number(id) + 1, result: {} });
+  await flush();
+  t.mock.timers.tick(2000);
+  await flush();
+  assert.equal(f.settled(), false);
+
+  t.mock.timers.tick(1000);
+  f.send(parsed(0));
+  f.send({ id, result: {} });
+  await f.done;
+  assert.deepEqual(JSON.parse(f.output[0]!), [scripts[0]]);
+  f.checkCleanup();
+});
+
+test('scriptParsed events do not satisfy the enable barrier', async t => {
+  const f = fixture(t);
+  await flush();
+  const id = f.requests()[2]?.id;
+  assert.equal(typeof id, 'number');
+
+  f.send(parsed(0));
+  await flush();
+  t.mock.timers.tick(2000);
+  await flush();
+  assert.equal(f.settled(), false);
+
+  f.send(parsed(1));
+  f.send({ id, result: {} });
+  await f.done;
+  assert.deepEqual(JSON.parse(f.output[0]!), scripts);
+  f.checkCleanup();
+});
+
 for (const kind of ['early', 'error', 'missing-result', 'missing', 'empty']) {
-  test(`barrier ${kind} falls back to the original idle timeout`, async t => {
+  const fallback = kind === 'missing' ? 'hard deadline' : 'idle timeout';
+  test(`barrier ${kind} falls back to the ${fallback}`, async t => {
     const f = fixture(t);
     await flush();
     const id = f.requests()[2]?.id;
@@ -141,7 +191,7 @@ for (const kind of ['early', 'error', 'missing-result', 'missing', 'empty']) {
     if (kind === 'empty') f.send({ id, result: {} });
     await flush();
     assert.deepEqual(f.output, []);
-    t.mock.timers.tick(2000);
+    t.mock.timers.tick(kind === 'missing' ? 5000 : 2000);
     await f.done;
     assert.deepEqual(
       JSON.parse(f.output[0]!),
