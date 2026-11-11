@@ -1,5 +1,23 @@
 # @lynx-js/devtool-connector
 
+## 0.19.0
+
+### Minor Changes
+
+- Remove the built-in `agent-lynx --client headless:0` path, replaced by Lynx Simulator, including SpawnTransport and headless runtime preparation. EmbeddedLynx and NodeLynx test runtimes remain available.
+- Include the transport ID in client IDs to route requests directly to the matching transport and isolate daemon connections across transports. Client IDs now use `transportId:deviceId:target`; rediscover clients instead of reusing IDs from older versions.
+
+### Patch Changes
+
+- Updated dependency `@yume-chan/adb-server-node-tcp` to `3.0.0-beta.5`.
+- Updated dependency `@yume-chan/adb` to `3.0.0-beta.5`.
+- Updated dependency `@yume-chan/stream-extra` to `3.0.0-beta.5`.
+- Updated dependency `plist` to `^5.1.0`.
+- Updated dependency `@rslib/core` to `^1.0.6`.
+- Reuse a known target's transport when reconnecting after a disconnect, allowing its connection setup to wait for the device instead of failing on a temporarily empty device scan.
+- Include the actual discovery path in empty `list-clients` errors, including responding HDT/Aiden endpoints and whether they bypassed direct device discovery. Preserve this information through the daemon and clarify that `--no-daemon` still prioritizes HDT/Aiden.
+- Load the Inspector Preact DevTools plugin from the configured network mirror so the panel is reachable in restricted network environments.
+
 ## 0.18.8
 
 No changes in this release.

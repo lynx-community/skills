@@ -1,5 +1,18 @@
 # @lynx-js/devtool-mcp-server
 
+## 0.17.0
+
+### Minor Changes
+
+- Remove the built-in `agent-lynx --client headless:0` path, replaced by Lynx Simulator, including SpawnTransport and headless runtime preparation. EmbeddedLynx and NodeLynx test runtimes remain available.
+
+### Patch Changes
+
+- Updated dependency `@yume-chan/adb-server-node-tcp` to `3.0.0-beta.5`.
+- Updated dependency `@rslib/core` to `^1.0.6`.
+- Updated dependencies
+  - @lynx-js/devtool-connector@0.19.0
+
 ## 0.16.15
 
 ### Patch Changes
