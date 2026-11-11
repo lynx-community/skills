@@ -322,5 +322,46 @@ testWithClient(
         );
       },
     );
+
+    await t.test(
+      'tree refresh immediately after Page.reload clears stale nodes and returns a single root tree',
+      async (t: TestContext) => {
+        if (target.appPackageName === 'com.lynx.LynxExample') {
+          t.skip(
+            'iOS LynxExample reuses a shared JS context where preact-devtools keeps the initial root shim across Page.reload',
+          );
+          return;
+        }
+        if (!treeData) {
+          t.skip('tree action did not complete');
+          return;
+        }
+        await connector.sendCDPMessage(
+          client.id,
+          session.session_id,
+          'Page.reload',
+        );
+        const result = await actionCore.execute(
+          'reactlynx-tree',
+          commandTarget,
+          { connector },
+          t.signal,
+        );
+        t.assert.equal(result.ok, true, result.error?.message);
+        if (!result.ok) return;
+        const data = result.data as CommandData<'reactlynx-tree'>;
+        t.assert.equal(data.cache.status, 'refreshed');
+        t.assert.equal(
+          data.roots.length,
+          treeData.roots.length,
+          'reloaded tree must not retain stale roots from the previous context',
+        );
+        t.assert.equal(
+          data.nodes.length,
+          treeData.nodes.length,
+          'reloaded tree must not double-count nodes from the previous context',
+        );
+      },
+    );
   },
 );

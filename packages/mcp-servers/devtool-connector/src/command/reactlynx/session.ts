@@ -221,6 +221,14 @@ export async function runReactLynxSession(
   let rootOrderFrames = 0;
   const envelopeTypes = new Set<string>();
   let snapshotPending = afterSnapshot !== undefined;
+  const wantsTree = outbound.some(frame => {
+    try {
+      const parsed = JSON.parse(frame.params.data) as { type?: unknown };
+      return parsed.type === "refresh";
+    } catch {
+      return false;
+    }
+  });
 
   try {
     for await (
@@ -228,6 +236,9 @@ export async function runReactLynxSession(
         idleMs: () => snapshotPending ? snapshotIdleMs : idleMs,
         maxMs,
         onIdle: () => {
+          if (wantsTree && state.tree.size === 0 && (operationFrames > 0 || envelopeTypes.has("attach"))) {
+            return true;
+          }
           if (!snapshotPending || !afterSnapshot) return awaitEnvelope;
           snapshotPending = false;
           assertInputWritable();
@@ -265,7 +276,10 @@ export async function runReactLynxSession(
         Array.isArray(envelope.data) ? envelope.data.length : typeof envelope.data,
       );
 
-      if (envelope.type === "operation_v2" && Array.isArray(envelope.data)) {
+      if (envelope.type === "init") {
+        state.tree.clear();
+        state.roots.length = 0;
+      } else if (envelope.type === "operation_v2" && Array.isArray(envelope.data)) {
         operationFrames += 1;
         applyOperationV2(state, envelope.data as number[]);
       } else if (envelope.type === "root-order" && Array.isArray(envelope.data)) {

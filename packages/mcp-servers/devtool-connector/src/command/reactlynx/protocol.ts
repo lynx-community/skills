@@ -198,9 +198,22 @@ export function applyOperationV2(state: RendererState, ops: number[]): void {
   }
 }
 
-/** Replace the renderer's roots vector. */
+/** Replace the renderer's roots vector while preserving live roots omitted from `rootOrder`. */
 export function applyRootOrder(state: RendererState, rootOrder: ID[]): void {
-  state.roots = [...rootOrder];
+  const ordered = rootOrder.filter(id => state.tree.has(id));
+  for (const id of state.roots) {
+    if (state.tree.has(id) && !ordered.includes(id)) {
+      ordered.push(id);
+    }
+  }
+  if (ordered.length === 0) {
+    for (const [id, node] of state.tree) {
+      if (node.parent === -1) {
+        ordered.push(id);
+      }
+    }
+  }
+  state.roots = ordered;
 }
 
 /** Short type tag used by the CLI's compact renderer. */

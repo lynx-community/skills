@@ -600,3 +600,69 @@ test("an aborted queued ReactLynx action does not open a hole in the session loc
   assert.equal(thirdResult.ok, true, thirdResult.error?.message);
   assert.equal(harness.maxActiveStreams, 1);
 });
+
+test("ReactLynx tree waits across idle for the remount operation_v2 when refresh first emits REMOVE_VNODE and clears stale nodes on page init", async () => {
+  const REMOVE_VNODE = 3;
+  const outbound: OutboundEnvelope[] = [];
+  let replyTimer: NodeJS.Timeout | undefined;
+  const connector = {
+    async sendCDPStream(
+      _clientId: string,
+      _sessionId: number,
+      input: ReadableStream<{ method: string; params?: unknown }>,
+    ) {
+      let outputController: ReadableStreamDefaultController<unknown> | undefined;
+      const output = new ReadableStream<unknown>({
+        start(controller) {
+          outputController = controller;
+        },
+      });
+      const inputClosed = (async () => {
+        try {
+          for await (const frame of input) {
+            const params = frame.params as { data?: string } | undefined;
+            const envelope = JSON.parse(params?.data ?? "null") as OutboundEnvelope;
+            outbound.push(envelope);
+            if (envelope.type === "refresh") {
+              // Simulate a stale tree followed by a page reload `init` and a delayed remount batch
+              outputController?.enqueue(
+                vmEvent("operation_v2", operation(["StaleRoot"], [ADD_VNODE, 99, 3, -1, -1, 1, 0, 0, 0])),
+              );
+              outputController?.enqueue(vmEvent("init", null));
+              outputController?.enqueue(vmEvent("attach", { id: 1, supports: {} }));
+              outputController?.enqueue(vmEvent("operation_v2", operation([], [REMOVE_VNODE, 1, 99])));
+              replyTimer = setTimeout(() => {
+                outputController?.enqueue(vmEvent("operation_v2", componentTree()));
+                outputController?.enqueue(vmEvent("root-order", []));
+                outputController?.close();
+              }, 750);
+            }
+          }
+        } catch {
+          // Stream closed by consumer after tree capture.
+        }
+      })();
+      return Object.assign(output, {
+        inputClosed,
+        async [Symbol.asyncDispose]() {
+          if (replyTimer) clearTimeout(replyTimer);
+          try {
+            outputController?.close();
+          } catch {
+            // Output may already be closed.
+          }
+          await inputClosed;
+        },
+      });
+    },
+  } as unknown as Connector;
+
+  const core = new ActionCore();
+  const tree = await core.execute("reactlynx-tree", TARGET, { connector });
+  assert.equal(tree.ok, true, tree.error?.message);
+  if (!tree.ok) return;
+  const treeData = tree.data as CommandData<"reactlynx-tree">;
+  assert.deepEqual(outbound.map(envelope => envelope.type), ["init", "refresh"]);
+  assert.equal(treeData.nodes.some(node => node.id === 99), false);
+  assert.deepEqual(treeData.labels, [2, 3, 4, 5]);
+});
