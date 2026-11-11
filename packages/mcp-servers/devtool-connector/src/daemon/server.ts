@@ -893,7 +893,7 @@ export class DevtoolDaemon {
           const key = `${s.deviceId}:${s.port}`;
           let conn = this.#deviceConnections.get(key);
           if (!conn || conn.isDisposed) {
-            const transport = await this.#findTransportWithDeviceId(s.deviceId);
+            const transport = conn?.transport ?? await this.#findTransportWithDeviceId(s.deviceId);
             conn = await this.#getOrCreateDeviceConnection(transport, s.deviceId, s.port);
           } else {
             this.#clearDeviceConnectionCleanup(key);
