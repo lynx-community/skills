@@ -5,16 +5,17 @@ import type { Connector } from "../index.ts";
 import type { CommandData } from "./contract.ts";
 import { type CommandResult, fail, ok } from "./result.ts";
 
-export const NO_CLIENTS_FOUND_MESSAGE: string = [
-  "No Lynx DevTool clients were found.",
-  "",
+const noClientsSummary = "No Lynx DevTool clients were found.";
+const noClientsHelp = [
   "Try these steps:",
   "1. Make sure the target device/simulator and app are running.",
   "2. If the app just launched, wait a moment and rerun `list-clients`.",
-  "3. If this is unexpected, rerun with `DEBUG='devtool-mcp-server:connector*'` or try `--no-daemon`.",
+  "3. If this is unexpected, rerun with `DEBUG='devtool-mcp-server:connector*'` or try `--no-daemon` (HDT/Aiden discovery still takes precedence).",
   "",
   "Run `agent-lynx skills get lynx-devtool`, then read `references/troubleshooting/symptoms.md#list-clients-returns-` relative to the reported Skill directory.",
 ].join("\n");
+
+export const NO_CLIENTS_FOUND_MESSAGE: string = [noClientsSummary, noClientsHelp].join("\n\n");
 
 /** The sole production implementation of the list-clients command. */
 export async function listClientsAction(
@@ -22,12 +23,18 @@ export async function listClientsAction(
 ): Promise<CommandResult<CommandData<"list-clients">>> {
   const clients = await connector.listClients();
   if (clients.length === 0) {
-    return fail("list-clients", NO_CLIENTS_FOUND_MESSAGE, {
+    const transports = clients.transports ?? [];
+    const message = [
+      noClientsSummary,
+      ...(transports.length > 0 ? [`Discovery path: ${transports.join(", ")}`] : []),
+      noClientsHelp,
+    ].join("\n\n");
+    return fail("list-clients", message, {
       reason: "no-clients",
       recoverable: true,
       nextActions: [
         "Make sure the target device/simulator and app are running, then retry.",
-        "Retry with `--no-daemon` to use direct device discovery.",
+        "Retry with `--no-daemon` to run discovery in-process; HDT/Aiden still takes precedence over direct discovery.",
       ],
     });
   }

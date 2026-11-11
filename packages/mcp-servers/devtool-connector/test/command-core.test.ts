@@ -11,6 +11,7 @@ import { ActionCore } from "../src/command/core.ts";
 import { NO_CLIENTS_FOUND_MESSAGE } from "../src/command/list-clients.ts";
 import type { DomNode } from "../src/command/snapshot.ts";
 import type { Connector } from "../src/index.ts";
+import { withTransports } from "../src/transport/transport.ts";
 
 interface CdpCall {
   method: string;
@@ -233,6 +234,19 @@ describe("ActionCore", () => {
     if (result.ok) assert.fail("expected empty discovery to fail");
     assert.equal(result.error.reason, "no-clients");
     assert.equal(result.error.message, NO_CLIENTS_FOUND_MESSAGE);
+  });
+
+  test("list-clients includes the responding discovery path when no clients are found", async () => {
+    const connector = {
+      async listClients() {
+        return withTransports([], ["daemon", "HDT-ws://127.0.0.1:3005/ws"]);
+      },
+    } as unknown as Connector;
+
+    const result = await new ActionCore().execute("list-clients", {}, { connector });
+    assert.equal(result.ok, false);
+    if (result.ok) assert.fail("expected empty discovery to fail");
+    assert.match(result.error.message, /Discovery path: daemon, HDT-ws:\/\/127\.0\.0\.1:3005\/ws/u);
   });
 
   test("list-sessions auto-resolves the first client and preserves an empty session snapshot", async () => {

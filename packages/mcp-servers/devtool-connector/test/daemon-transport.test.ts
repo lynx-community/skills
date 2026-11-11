@@ -83,6 +83,7 @@ test("DaemonTransport listClients sends explicit Control listClients request", a
           data: {
             id: msg.data.id,
             result: [{ id: "device:8901", info: { App: "FakeApp" } }],
+            transports: ["HDT-ws://127.0.0.1:3005/ws"],
           },
         }));
       }, 1_200);
@@ -102,6 +103,7 @@ test("DaemonTransport listClients sends explicit Control listClients request", a
 
   assert.equal(clients.length, 1);
   assert.equal(clients[0]?.id, "device:8901");
+  assert.deepEqual(clients.transports, ["daemon", "HDT-ws://127.0.0.1:3005/ws"]);
 });
 
 test("DaemonTransport closes daemon connection when subscribe fails", async (t) => {

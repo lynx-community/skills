@@ -13,7 +13,7 @@ import { decodeCommandQuery } from "../command/query.ts";
 import { Connector } from "../index.ts";
 import { DaemonTransport } from "../transport/daemon.ts";
 import { HDTTransport } from "../transport/hdt.ts";
-import type { Device, Transport } from "../transport/transport.ts";
+import { type Device, type Transport, withTransports } from "../transport/transport.ts";
 import { DeviceConnection, type DeviceConnectionSubscriber } from "./device-connection.ts";
 import {
   type ClientListEntry,
@@ -829,10 +829,13 @@ export class DevtoolDaemon {
 
     try {
       let result: unknown;
+      let transports: string[] | undefined;
 
       switch (method) {
         case "listClients": {
-          result = await this.#discoverClients();
+          const clients = await this.#discoverClients();
+          result = clients;
+          transports = clients.transports;
           break;
         }
 
@@ -913,7 +916,7 @@ export class DevtoolDaemon {
           throw new Error(`Unknown control method: ${method}`);
       }
 
-      session.send({ event: "ControlResponse", data: { id, result } });
+      session.send({ event: "ControlResponse", data: { id, result, ...(transports ? { transports } : {}) } });
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
       session.send({ event: "ControlResponse", data: { id, error: message } });
@@ -934,28 +937,32 @@ export class DevtoolDaemon {
     }
   }
 
-  async #discoverClients(): Promise<ClientListEntry[]> {
+  async #discoverClients(): Promise<ClientListEntry[] & { transports: string[] }> {
     const entries: ClientListEntry[] = [];
+    const transports: string[] = [];
     const discoveryFailures: unknown[] = [];
     let lowerAuthorityFulfilled = false;
 
     // 0. Return HDT clients if the multiplexing transport responded successfully.
     const hdtClientResults = await Promise.allSettled(
-      this.#hdtTransports.map(transport => transport.listClients()),
+      this.#hdtTransports.map(async transport => ({ clients: await transport.listClients(), id: transport.id })),
     );
     const fulfilledHDTClientResults = hdtClientResults
       .filter((r) => r.status === "fulfilled");
     discoveryFailures.push(
       ...hdtClientResults.filter((r) => r.status === "rejected").map((r) => r.reason),
     );
-    const hdtClients = fulfilledHDTClientResults.flatMap((r) => r.value);
+    const hdtClients = fulfilledHDTClientResults.flatMap((r) => r.value.clients);
     if (fulfilledHDTClientResults.length > 0) {
       debug("Using clients from HDT transport: %o", hdtClients);
-      return hdtClients.map(({ id, info }) => ({
-        id,
-        info,
-        type: "runtime",
-      }));
+      return withTransports(
+        hdtClients.map(({ id, info }) => ({
+          id,
+          info,
+          type: "runtime" as const,
+        })),
+        fulfilledHDTClientResults.map(r => r.value.id),
+      ) as ClientListEntry[] & { transports: string[] };
     }
 
     // A failed HDT discovery does not release its physical device connection.
@@ -974,12 +981,13 @@ export class DevtoolDaemon {
         !(t instanceof HDTTransport) && typeof t.listClients === "function",
     );
     const clientListResults = await Promise.allSettled(
-      clientListTransports.map(t => t.listClients()),
+      clientListTransports.map(async t => ({ clients: await t.listClients(), id: t.id })),
     );
     for (const r of clientListResults) {
       if (r.status === "fulfilled") {
         lowerAuthorityFulfilled = true;
-        for (const { id, info } of r.value) {
+        transports.push(r.value.id);
+        for (const { id, info } of r.value.clients) {
           entries.push({ id, info, type: "runtime" });
         }
       } else {
@@ -1013,6 +1021,7 @@ export class DevtoolDaemon {
     for (const r of transportResults) {
       if (r.status === "fulfilled") {
         lowerAuthorityFulfilled = true;
+        transports.push(r.value.transport.id);
         allDevices.push(r.value);
       } else {
         discoveryFailures.push(r.reason);
@@ -1053,7 +1062,7 @@ export class DevtoolDaemon {
       throwClientDiscoveryFailures(discoveryFailures);
     }
 
-    return entries;
+    return withTransports(entries, transports) as ClientListEntry[] & { transports: string[] };
   }
 
   // ---------------------------------------------------------------------------
