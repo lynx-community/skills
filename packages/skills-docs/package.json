@@ -1,6 +1,6 @@
 {
   "name": "@lynx-js/skills-docs",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "The agent-lynx and Agent Skills guides, conversations, and interactive illustrations for the Lynx website.",
   "repository": {
     "type": "git",

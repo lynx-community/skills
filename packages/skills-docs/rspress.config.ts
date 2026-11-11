@@ -36,7 +36,7 @@ export default defineConfig({
   themeConfig: {
     editLink: {
       docRepoBaseUrl:
-        'https://github.com/lynx-community/skills/edit/main/packages/skills-docs/content',
+        'https://github.com/lynx-community/skills/blob/main/packages/skills-docs/content',
     },
     // Keep navigation in _nav.json so Rspress also generates the _meta.json sidebars.
     locales: [

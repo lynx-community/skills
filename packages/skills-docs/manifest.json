@@ -42,5 +42,5 @@
     }
   ],
   "sourceRepository": "https://github.com/lynx-community/skills",
-  "editBaseUrl": "https://github.com/lynx-community/skills/edit/main/packages/skills-docs/content"
+  "editBaseUrl": "https://github.com/lynx-community/skills/blob/main/packages/skills-docs/content"
 }
