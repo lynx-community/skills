@@ -4,9 +4,12 @@
 import assert from "node:assert/strict";
 import { once } from "node:events";
 import net from "node:net";
+import { Readable, Writable } from "node:stream";
 import { ReadableStream, WritableStream } from "node:stream/web";
 import { test } from "node:test";
+import { Connector } from "../src/index.ts";
 import { AndroidTransport } from "../src/transport/android.ts";
+import { encodePeertalkMessage } from "../src/transport/peertalk.ts";
 
 type Deferred<T> = {
   promise: Promise<T>;
@@ -239,19 +242,16 @@ test("Android already-aborted cleanup errors do not mask the abort reason", asyn
   );
 });
 
-test("Android disposal reports a physical close rejection after close succeeds", async () => {
+test("Android disposal ignores socket.closed rejection caused by stream cancellation", async () => {
   const transport = new AndroidTransport();
   const rawSocket = createRawSocket();
-  const closedError = new Error("physical close failed");
+  const closedError = new Error("socket closed by stream abort");
   installClient(transport, async () => rawSocket);
 
   const connection = await transport.connect({ deviceId: "device", port: 8901 });
   rawSocket.rejectClosed(closedError);
 
-  await assert.rejects(
-    connection[Symbol.asyncDispose](),
-    error => error === closedError,
-  );
+  await connection[Symbol.asyncDispose]();
   assert.equal(rawSocket.closeCalls, 1);
 });
 
@@ -305,26 +305,15 @@ test("Android disposal hard-closes a half-open Node socket", async () => {
       const socket = new net.Socket({ signal: options?.signal });
       clientSocket = socket;
       socket.on("error", () => {});
-      const closed = new Promise<undefined>(resolve => {
+      const closed = new Promise<undefined>((resolve, reject) => {
         socket.once("close", () => resolve(undefined));
+        socket.once("error", reject);
       });
       socket.connect(address.port, "127.0.0.1");
       await once(socket, "connect");
       return {
-        readable: new ReadableStream<Uint8Array>({
-          start(controller) {
-            socket.on("data", data => controller.enqueue(data));
-            socket.on("end", () => controller.close());
-            socket.on("error", error => controller.error(error));
-          },
-        }),
-        writable: new WritableStream<Uint8Array>({
-          write(chunk) {
-            return new Promise<void>((resolve, reject) => {
-              socket.write(chunk, error => error ? reject(error) : resolve());
-            });
-          },
-        }),
+        readable: Readable.toWeb(socket) as ReadableStream<Uint8Array>,
+        writable: Writable.toWeb(socket) as WritableStream<Uint8Array>,
         closed,
         close() {
           socket.end();
@@ -425,4 +414,111 @@ test("Android openApp falls through to createAdb when waitFor times out on a mis
       message: "device 'foo.bar' not found",
     },
   );
+});
+
+test("Android direct discovery and request disposal succeed over AdbServerNodeJsClient", async () => {
+  const serverSockets = new Set<net.Socket>();
+  const server = net.createServer({ allowHalfOpen: true }, (sock) => {
+    serverSockets.add(sock);
+    sock.once("close", () => serverSockets.delete(sock));
+    sock.on("error", () => {});
+    let mode = "adb";
+    let buf = "";
+    sock.on("data", (chunk) => {
+      if (mode === "peertalk") {
+        const msg = JSON.parse(chunk.subarray(20).toString("utf8")) as {
+          event: string;
+          data?: { type?: string; data?: { message?: { global_key?: string } } };
+        };
+        if (msg.event === "Initialize") {
+          sock.write(encodePeertalkMessage({
+            event: "Register",
+            data: { info: { App: "com.lynx.uiapp", AppProcessName: "com.lynx.uiapp" }, id: 8901 },
+          }));
+        } else if (msg.event === "Customized") {
+          if (msg.data?.type === "SetGlobalSwitch") {
+            sock.write(encodePeertalkMessage({
+              event: "Customized",
+              data: {
+                type: "SetGlobalSwitch",
+                data: {
+                  client_id: 8901,
+                  session_id: -1,
+                  message: JSON.stringify({
+                    global_key: msg.data.data?.message?.global_key,
+                    global_value: true,
+                  }),
+                },
+              },
+            }));
+          } else if (msg.data?.type === "ListSession") {
+            sock.write(encodePeertalkMessage({
+              event: "Customized",
+              data: {
+                type: "SessionList",
+                data: [{ session_id: 1, url: "https://example.com/template.js" }],
+                sender: 8901,
+              },
+            }));
+          }
+        }
+        return;
+      }
+      buf += chunk.toString("utf8");
+      while (buf.length >= 4) {
+        const len = Number.parseInt(buf.slice(0, 4), 16);
+        if (buf.length < 4 + len) break;
+        const cmd = buf.slice(4, 4 + len);
+        buf = buf.slice(4 + len);
+        if (cmd === "host:version") {
+          sock.write("OKAY00040029");
+        } else if (cmd === "host:devices-l") {
+          const line = "test-device device product:a model:b device:c transport_id:1\n";
+          sock.write(`OKAY${line.length.toString(16).padStart(4, "0")}${line}`);
+        } else if (cmd.startsWith("host-serial:test-device:wait-for-")) {
+          sock.write("OKAYOKAY");
+        } else if (cmd === "host:tport:serial:test-device") {
+          const resp = Buffer.alloc(12);
+          resp.write("OKAY", 0);
+          resp.writeBigUInt64LE(1n, 4);
+          sock.write(resp);
+        } else if (cmd === "tcp:8901") {
+          sock.write("OKAY");
+          mode = "peertalk";
+        } else if (cmd.startsWith("tcp:")) {
+          sock.write("FAIL000ecannot connect");
+        }
+      }
+    });
+  });
+
+  await new Promise<void>((resolve, reject) => {
+    server.once("error", reject);
+    server.listen(0, "127.0.0.1", resolve);
+  });
+  const address = server.address();
+  assert.ok(address && typeof address === "object");
+
+  try {
+    const transport = new AndroidTransport({ host: "127.0.0.1", port: address.port });
+    const connector = new Connector([transport]);
+    const clients = await connector.listClients();
+    assert.deepEqual(clients, [
+      {
+        id: "test-device:8901",
+        info: { App: "com.lynx.uiapp", AppProcessName: "com.lynx.uiapp" },
+        port: 8901,
+      },
+    ]);
+
+    const sessions = await connector.sendListSessionMessage("test-device:8901");
+    assert.deepEqual(sessions, [
+      { session_id: 1, url: "https://example.com/template.js", type: undefined },
+    ]);
+  } finally {
+    for (const socket of serverSockets) socket.destroy();
+    await new Promise<void>((resolve, reject) => {
+      server.close(error => error ? reject(error) : resolve());
+    });
+  }
 });
