@@ -17,7 +17,7 @@ Use this skill to author Vanilla Lynx directly with Element PAPI and Lynx Runtim
 
 ## Core Rules
 
-- Do not use ReactLynx, JSX, virtual DOM, or browser DOM APIs.
+- Rely only on Lynx-supported ECMAScript built-ins (note that `Intl` is not built in), Element PAPI, and Lynx runtime globals documented by this skill (`lynx`, `SystemInfo`, `console`, timers, `requestAnimationFrame`/`cancelAnimationFrame`, and background-only `NativeModules`/`fetch`). Do not use ReactLynx, JSX, virtual DOM, or undeclared browser/Node globals such as `window`, `document`, `navigator`, `localStorage`, or `performance` (use either `Date.now()` or the `requestAnimationFrame` callback timestamp consistently without mixing the two; `lynx.performance` is for trace/timing observation and has no `.now()`).
 - For a complete authoring request, deliver a complete artifact in the selected format. Never return only an example asset or reference path.
 - Keep Element PAPI tree creation, mutation, lifecycle rendering, and UI updates in the main-thread source: `<script thread="main">` for `.lynxml` or `main-thread.ts` for Rspeedy. Never call Element PAPI APIs or `__FlushElementTree()` from the background-thread source; it only sends serializable patches for the main thread to apply and flush.
 - Rely on the SDK flush for initial render; call `__FlushElementTree()` after later UI mutations.

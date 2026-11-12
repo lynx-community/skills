@@ -11,10 +11,21 @@
     "CHANGELOG.md",
     "assets",
     "evals",
-    "references"
+    "references",
+    "scripts"
   ],
-  "scripts": {},
-  "devDependencies": {},
+  "scripts": {
+    "build": "rslib build",
+    "test": "pnpm typecheck && node --test test/check-lynxml.test.mjs",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@rslib/core": "catalog:rstack",
+    "@types/node": "^24.19.2",
+    "acorn": "^8.19.0",
+    "eslint-scope": "^8.4.0",
+    "typescript": "^5.9.3"
+  },
   "engines": {
     "node": ">=18"
   },
