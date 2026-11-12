@@ -16,10 +16,8 @@
     "test": "pnpm typecheck && pnpm build && node --test test/*.test.mjs",
     "typecheck": "tsc --noEmit"
   },
-  "dependencies": {
-    "@lynx-js/css-defines": "0.0.18"
-  },
   "devDependencies": {
+    "@lynx-js/css-defines": "0.0.18",
     "@rslib/core": "catalog:rstack",
     "@types/node": "^24.19.2",
     "commander": "^13.1.0",
