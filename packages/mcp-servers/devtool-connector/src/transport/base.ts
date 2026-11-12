@@ -1,7 +1,7 @@
 // Copyright 2026 The Lynx Authors. All rights reserved.
 // Licensed under the Apache License Version 2.0 that can be found in the
 // LICENSE file in the root directory of this source tree.
-import { type TransformStream, WritableStream } from "node:stream/web";
+import { type TransformStream, WritableStream, type WritableStreamDefaultWriter } from "node:stream/web";
 import { takeoverDebugRouterLock } from "../takeover.ts";
 import { encodePeertalkMessage, PeertalkToMessageTransformStream } from "./peertalk.ts";
 import type { Connection, TransportConnectOptions } from "./transport.ts";
@@ -15,22 +15,19 @@ export async function connectWithPeertalk<TInput = unknown, TOutput = unknown>(
     await takeoverDebugRouterLock();
   }
   const conn = await connectRaw(options);
-  const rawWriter = conn.writable.getWriter();
-  const disposeReason = new Error("Peertalk connection disposed");
+  let rawWriter: WritableStreamDefaultWriter<Uint8Array> | undefined = conn.writable.getWriter();
+  let writing = false;
   let terminationPromise: Promise<void> | undefined;
-  let writerReleased = false;
-  let pendingWrites = 0;
   const releaseWriter = () => {
-    if (!writerReleased) {
-      writerReleased = true;
-      rawWriter.releaseLock();
-    }
+    rawWriter?.releaseLock();
+    rawWriter = undefined;
   };
   const terminateConnection = (reason: unknown, abortIdleWriter = true) => {
     if (!terminationPromise) {
-      const shouldAbortWriter = !writerReleased && (abortIdleWriter || pendingWrites > 0);
-      if (!shouldAbortWriter) releaseWriter();
-      const rawAbort = shouldAbortWriter ? rawWriter.abort(reason) : Promise.resolve();
+      const writer = rawWriter;
+      const shouldAbort = writer !== undefined && (abortIdleWriter || writing);
+      if (!shouldAbort) releaseWriter();
+      const rawAbort = shouldAbort ? writer.abort(reason) : Promise.resolve();
       const dispose = Promise.resolve().then(() => conn[Symbol.asyncDispose]());
       terminationPromise = rawAbort.then(
         () => dispose,
@@ -44,19 +41,20 @@ export async function connectWithPeertalk<TInput = unknown, TOutput = unknown>(
     return terminationPromise;
   };
   const writable = new WritableStream<TInput>({
-    write(message, controller) {
+    async write(message, controller) {
       const signal = (controller as WritableStreamDefaultController & { readonly signal: AbortSignal }).signal;
       const abort = () => void terminateConnection(signal.reason).catch(() => {});
       signal.addEventListener("abort", abort, { once: true });
-      pendingWrites += 1;
-      const write = Promise.resolve().then(() => rawWriter.write(encodePeertalkMessage(message))).catch((error) => {
+      writing = true;
+      try {
+        await rawWriter!.write(encodePeertalkMessage(message));
+      } catch (error) {
         void terminateConnection(error).catch(() => {});
         throw error;
-      });
-      return write.finally(() => {
-        pendingWrites -= 1;
+      } finally {
+        writing = false;
         signal.removeEventListener("abort", abort);
-      });
+      }
     },
     close: releaseWriter,
     abort(reason) {
@@ -70,7 +68,7 @@ export async function connectWithPeertalk<TInput = unknown, TOutput = unknown>(
     readable,
     writable,
     [Symbol.asyncDispose]() {
-      return terminateConnection(disposeReason, false);
+      return terminateConnection(new Error("Peertalk connection disposed"), false);
     },
   };
 }
