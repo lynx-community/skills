@@ -8,61 +8,42 @@ export class PeertalkToMessageTransformStream<Output extends Response | Customiz
   extends TransformStream<Uint8Array, Output>
 {
   constructor() {
-    let buffer = new Uint8Array(0);
-    let start = 0;
-    let end = 0;
+    let buffer: Uint8Array = new Uint8Array(0);
     const decoder = new TextDecoder();
 
     super({
-      transform: (chunk, c) => {
-        const buffered = end - start;
-        if (buffer.length - end < chunk.length) {
-          if (buffered + chunk.length <= buffer.length) {
-            buffer.copyWithin(0, start, end);
-            start = 0;
-            end = buffered;
-          } else {
-            const next = new Uint8Array(Math.max(buffered + chunk.length, Math.max(20, buffer.length * 2)));
-            next.set(buffer.subarray(start, end));
-            buffer = next;
-            start = 0;
-            end = buffered;
-          }
+      transform(chunk, controller) {
+        if (buffer.length === 0) {
+          buffer = chunk;
+        } else {
+          const next = new Uint8Array(buffer.length + chunk.length);
+          next.set(buffer);
+          next.set(chunk, buffer.length);
+          buffer = next;
         }
-        buffer.set(chunk, end);
-        end += chunk.length;
 
-        while (end - start >= 20) {
-          const v = new DataView(buffer.buffer, buffer.byteOffset + start, 20);
-          const len = v.getUint32(16);
+        let offset = 0;
+        while (buffer.length - offset >= 20) {
+          const view = new DataView(buffer.buffer, buffer.byteOffset + offset, 20);
+          const len = view.getUint32(16);
 
-          if (end - start < 20 + len) break;
+          if (buffer.length - offset < 20 + len) break;
 
           try {
-            c.enqueue(JSON.parse(decoder.decode(buffer.subarray(start + 20, start + 20 + len))));
-          } catch (e) {
-            c.error(e);
+            controller.enqueue(JSON.parse(decoder.decode(buffer.subarray(offset + 20, offset + 20 + len))));
+          } catch (error) {
+            controller.error(error);
+            return;
           }
 
-          start += 20 + len;
-          if (start === end) {
-            start = 0;
-            end = 0;
-          }
+          offset += 20 + len;
         }
-      },
-    });
-  }
-}
 
-export class MessageToPeertalkTransformStream<TMessage = unknown> extends TransformStream<
-  TMessage,
-  Uint8Array
-> {
-  constructor() {
-    super({
-      transform(chunk, controller) {
-        controller.enqueue(encodePeertalkMessage(chunk));
+        if (offset === buffer.length) {
+          buffer = new Uint8Array(0);
+        } else if (offset > 0) {
+          buffer = buffer.slice(offset);
+        }
       },
     });
   }
