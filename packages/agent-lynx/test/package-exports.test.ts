@@ -10,6 +10,7 @@ import path from 'node:path';
 import { test } from 'node:test';
 import { fileURLToPath } from 'node:url';
 import { promisify } from 'node:util';
+import { prepareTraceProcessorCache } from './helpers/trace-processor.ts';
 
 const execFileAsync = promisify(execFile);
 
@@ -273,7 +274,7 @@ test('the built package starts its bin and exposes the typed connector API', asy
   };
   assert.deepEqual(
     Object.keys(packedManifest.dependencies ?? {}).sort(),
-    ['@lynx-js/devtool-connector', '@lynx-js/trace-processor'],
+    ['@lynx-js/devtool-connector'],
   );
   const { stdout: archiveEntriesText } = await execFileAsync('tar', [
     '-tzf',
@@ -282,6 +283,7 @@ test('the built package starts its bin and exposes the typed connector API', asy
   const archiveEntries = new Set(
     archiveEntriesText.trim().split('\n').map(entry => entry.trim()),
   );
+  assert.ok(![...archiveEntries].some(entry => entry.endsWith('.wasm')));
   for (
     const skill of [
       'lynx-devtool',
@@ -316,7 +318,9 @@ test('the built bin runs offline trace analysis without a device', async (t) => 
   t.after(() => fs.rm(workDirectory, { recursive: true, force: true }));
   const localOnlyEnvironment = {
     ...process.env,
-    CODEX_SANDBOX_NETWORK_DISABLED: '1',
+    ...await prepareTraceProcessorCache(
+      path.join(workDirectory, 'processor-cache'),
+    ),
   };
 
   const traceFixture = path.join(workDirectory, 'trace-fixture.json');

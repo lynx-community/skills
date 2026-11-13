@@ -12,6 +12,9 @@ import {
   runTraceEventSummary,
   runTraceQuery,
 } from '../src/commands/trace-query.ts';
+import { useTraceProcessorFixture } from './helpers/trace-processor.ts';
+
+useTraceProcessorFixture();
 
 const TRACE_EVENTS = {
   traceEvents: [
