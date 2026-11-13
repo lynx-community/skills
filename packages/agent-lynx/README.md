@@ -5,12 +5,12 @@ Agent-friendly CLI and typed Connector API for inspecting Lynx applications.
 ## Install and use
 
 ```sh
-npx --yes agent-lynx --help
-npx --yes agent-lynx skills list
-npx --yes agent-lynx skills get lynx-devtool
-npx --yes agent-lynx list-clients
-npx --yes agent-lynx snapshot
-npx --yes agent-lynx get-source-info @e1
+pnpx agent-lynx --help
+pnpx agent-lynx skills list
+pnpx agent-lynx skills get lynx-devtool
+pnpx agent-lynx list-clients
+pnpx agent-lynx snapshot
+pnpx agent-lynx get-source-info @e1
 ```
 
 The default device connection uses the public Connector daemon. Use `--no-daemon` for explicit direct Android, iOS, Desktop, or HDT access. Direct and daemon connections are mutually exclusive.

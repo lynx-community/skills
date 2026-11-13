@@ -77,7 +77,7 @@ When the user requests rendering validation, serve the encoded file at a device-
 The CLI is normally on `PATH`. If it is not installed, use the public package:
 
 ```bash
-npx --yes agent-lynx <command> [options]
+pnpx agent-lynx <command> [options]
 ```
 
 See [replay validation](references/replay.md) for connection, URL encoding, replay, and troubleshooting steps.
