@@ -125,3 +125,58 @@ test("daemon close reasons remain valid when a transport error is long UTF-8", a
     },
   );
 });
+
+test("daemon write failures close the subscribed WebSocket session instead of stalling", async t => {
+  const writeError = Object.assign(new Error("broken device pipe"), { code: "EPIPE" });
+  const appToDaemon = new TransformStream<unknown>();
+  const appWriter = appToDaemon.writable.getWriter();
+  const transport: Transport = {
+    id: "write-fail",
+    async close() {
+      await appWriter.close().catch(() => {});
+    },
+    async listDevices() {
+      return [{ id: "fake-device", os: "Android" }];
+    },
+    async listAvailableApps() {
+      return [];
+    },
+    async openApp() {},
+    async connect<TOutput, TInput>(): Promise<Connection<TOutput, TInput>> {
+      const writable = new WritableStream<unknown>({
+        async write(message) {
+          if (isInitializeRequest(message)) {
+            const { data: id } = message as { data: number };
+            await appWriter.write({ event: "Register", data: { id, info: appInfo } });
+            return;
+          }
+          throw writeError;
+        },
+      });
+      return {
+        readable: appToDaemon.readable as ReadableStream<TOutput>,
+        writable: writable as WritableStream<TInput>,
+        async [Symbol.asyncDispose]() {},
+      };
+    },
+  };
+
+  const daemon = new DevtoolDaemon([transport]);
+  const port = await daemon.start(0);
+  t.after(() => daemon.close());
+
+  const connector = new Connector([
+    new DaemonTransport(`ws://127.0.0.1:${port}${DAEMON_WS_PATH}`),
+  ]);
+  const clientId = ClientId.serialize("write-fail", "fake-device", 8901);
+
+  await assert.rejects(
+    connector.sendCDPMessage(clientId, 7, "Runtime.evaluate", { expression: "1 + 1" }, AbortSignal.timeout(1000)),
+    error => {
+      assert(error instanceof Error);
+      assert.equal(error.message, "WebSocket closed abnormally (1011): Error (EPIPE): broken device pipe");
+      assert.equal((error as Error & { code?: number }).code, 1011);
+      return true;
+    },
+  );
+});

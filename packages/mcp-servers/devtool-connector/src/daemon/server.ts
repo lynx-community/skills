@@ -812,6 +812,7 @@ export class DevtoolDaemon {
           });
         } catch (err) {
           debug("failed to forward message to %s: %O", deviceConn.key, err);
+          session.close(err);
         }
         return;
       }
