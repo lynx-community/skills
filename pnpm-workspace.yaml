@@ -11,7 +11,7 @@ catalogs:
   mcp_sdk:
     "@modelcontextprotocol/sdk": ^1.32.2
   rstack:
-    "@rslib/core": ^1.0.6
+    "@rslib/core": 1.1.0-beta.0
     "@rsbuild/core": ^2.3.1
     "@rspack/core": 2.3.2
     "@rstest/core": 0.12.6
@@ -34,3 +34,5 @@ packageExtensions:
 
 minimumReleaseAgeExclude:
   - "@lynx-js/*"
+  - "@rslib/core@1.1.0-beta.0"
+  - rsbuild-plugin-dts@1.1.0-beta.0

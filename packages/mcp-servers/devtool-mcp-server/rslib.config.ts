@@ -6,6 +6,13 @@ import { defineConfig } from '@rslib/core';
 import { pluginPublint } from 'rsbuild-plugin-publint';
 
 export default defineConfig({
+  exports: {
+    source: true,
+    include: ['index', 'connector', 'schema/index'],
+    custom: {
+      './package.json': './package.json',
+    },
+  },
   plugins: [pluginPublint({ throwOn: 'suggestion' })],
   syntax: 'es2022',
   lib: [

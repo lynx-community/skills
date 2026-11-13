@@ -29,6 +29,14 @@ const skillCopies = Object.keys(packageJson.devDependencies)
   });
 
 export default defineConfig({
+  exports: {
+    source: true,
+    include: ['connector', 'cli'],
+    custom: {
+      './bin': './dist/index.mjs',
+      './package.json': './package.json',
+    },
+  },
   autoExtension: false,
   source: {
     define: {

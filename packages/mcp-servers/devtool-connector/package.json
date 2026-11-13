@@ -12,31 +12,11 @@
     "#daemon-entry": "./src/daemon/entry.ts"
   },
   "exports": {
-    ".": {
-      "types": "./src/index.ts",
-      "import": "./src/index.ts",
-      "default": "./src/index.ts"
-    },
-    "./daemon": {
-      "types": "./src/daemon/index.ts",
-      "import": "./src/daemon/index.ts",
-      "default": "./src/daemon/index.ts"
-    },
-    "./transport": {
-      "types": "./src/transport/index.ts",
-      "import": "./src/transport/index.ts",
-      "default": "./src/transport/index.ts"
-    },
-    "./streams": {
-      "types": "./src/streams/index.ts",
-      "import": "./src/streams/index.ts",
-      "default": "./src/streams/index.ts"
-    },
-    "./command": {
-      "types": "./src/command/index.ts",
-      "import": "./src/command/index.ts",
-      "default": "./src/command/index.ts"
-    },
+    ".": "./src/index.ts",
+    "./command": "./src/command/index.ts",
+    "./daemon": "./src/daemon/index.ts",
+    "./streams": "./src/streams/index.ts",
+    "./transport": "./src/transport/index.ts",
     "./test-with-client": {
       "types": "./test/testWithClient.ts",
       "import": "./test/testWithClient.ts",
@@ -90,31 +70,11 @@
       "#daemon-entry": "./dist/daemon/entry.js"
     },
     "exports": {
-      ".": {
-        "types": "./dist/index.d.ts",
-        "import": "./dist/index.js",
-        "default": "./dist/index.js"
-      },
-      "./daemon": {
-        "types": "./dist/daemon/index.d.ts",
-        "import": "./dist/daemon/index.js",
-        "default": "./dist/daemon/index.js"
-      },
-      "./transport": {
-        "types": "./dist/transport/index.d.ts",
-        "import": "./dist/transport/index.js",
-        "default": "./dist/transport/index.js"
-      },
-      "./streams": {
-        "types": "./dist/streams/index.d.ts",
-        "import": "./dist/streams/index.js",
-        "default": "./dist/streams/index.js"
-      },
-      "./command": {
-        "types": "./dist/command/index.d.ts",
-        "import": "./dist/command/index.js",
-        "default": "./dist/command/index.js"
-      },
+      ".": "./dist/index.js",
+      "./command": "./dist/command/index.js",
+      "./daemon": "./dist/daemon/index.js",
+      "./streams": "./dist/streams/index.js",
+      "./transport": "./dist/transport/index.js",
       "./package.json": "./package.json"
     }
   }

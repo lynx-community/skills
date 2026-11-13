@@ -5,6 +5,29 @@ import { defineConfig } from "@rslib/core";
 import { pluginPublint } from "rsbuild-plugin-publint";
 
 export default defineConfig({
+  exports: {
+    source: true,
+    include: [
+      "index",
+      "daemon/index",
+      "transport/index",
+      "streams/index",
+      "command/index",
+    ],
+    custom: (generated, { isPublishConfig }) => ({
+      ...generated,
+      ...(isPublishConfig
+        ? {}
+        : {
+          "./test-with-client": {
+            types: "./test/testWithClient.ts",
+            import: "./test/testWithClient.ts",
+            default: "./test/testWithClient.ts",
+          },
+        }),
+      "./package.json": "./package.json",
+    }),
+  },
   plugins: [
     pluginPublint({ throwOn: "suggestion" }),
   ],

@@ -10,27 +10,18 @@
   "license": "Apache-2.0",
   "type": "module",
   "exports": {
-    ".": {
-      "types": "./src/index.ts",
-      "import": "./src/index.ts",
-      "default": "./src/index.ts"
-    },
-    "./connector": {
-      "types": "./src/connector.ts",
-      "import": "./src/connector.ts",
-      "default": "./src/connector.ts"
-    },
-    "./schema": {
-      "types": "./src/schema/index.ts",
-      "import": "./src/schema/index.ts",
-      "default": "./src/schema/index.ts"
-    },
+    ".": "./src/index.ts",
+    "./connector": "./src/connector.ts",
+    "./schema": "./src/schema/index.ts",
     "./package.json": "./package.json"
   },
   "main": "./src/index.ts",
   "types": "./src/index.ts",
   "bin": "./src/main.ts",
-  "files": ["dist", "CHANGELOG.md"],
+  "files": [
+    "dist",
+    "CHANGELOG.md"
+  ],
   "scripts": {
     "build": "rslib build",
     "test": "node --test --test-concurrency=1 \"test/**/*.test.ts\"",
@@ -49,28 +40,25 @@
     "typescript": "^5.9.3",
     "zod": "^4.6.7"
   },
-  "peerDependencies": { "@modelcontextprotocol/sdk": "*", "zod": "^4.6.5" },
-  "peerDependenciesMeta": { "@modelcontextprotocol/sdk": { "optional": true } },
-  "engines": { "node": ">=18.19" },
+  "peerDependencies": {
+    "@modelcontextprotocol/sdk": "*",
+    "zod": "^4.6.5"
+  },
+  "peerDependenciesMeta": {
+    "@modelcontextprotocol/sdk": {
+      "optional": true
+    }
+  },
+  "engines": {
+    "node": ">=18.19"
+  },
   "publishConfig": {
     "access": "public",
     "bin": "./dist/main.js",
     "exports": {
-      ".": {
-        "types": "./dist/index.d.ts",
-        "import": "./dist/index.js",
-        "default": "./dist/index.js"
-      },
-      "./connector": {
-        "types": "./dist/connector.d.ts",
-        "import": "./dist/connector.js",
-        "default": "./dist/connector.js"
-      },
-      "./schema": {
-        "types": "./dist/schema/index.d.ts",
-        "import": "./dist/schema/index.js",
-        "default": "./dist/schema/index.js"
-      },
+      ".": "./dist/index.js",
+      "./connector": "./dist/connector.js",
+      "./schema": "./dist/schema/index.js",
       "./package.json": "./package.json"
     },
     "main": "./dist/index.js",
