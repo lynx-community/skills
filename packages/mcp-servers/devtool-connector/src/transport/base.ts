@@ -43,7 +43,9 @@ export async function connectWithPeertalk<TInput = unknown, TOutput = unknown>(
   const writable = new WritableStream<TInput>({
     async write(message, controller) {
       const signal = (controller as WritableStreamDefaultController & { readonly signal: AbortSignal }).signal;
-      const abort = () => void terminateConnection(signal.reason).catch(() => {});
+      const abort = () => {
+        if (writing) void terminateConnection(signal.reason).catch(() => {});
+      };
       signal.addEventListener("abort", abort, { once: true });
       writing = true;
       try {
@@ -58,6 +60,10 @@ export async function connectWithPeertalk<TInput = unknown, TOutput = unknown>(
     },
     close: releaseWriter,
     abort(reason) {
+      if (!writing) {
+        releaseWriter();
+        return Promise.resolve();
+      }
       return terminateConnection(reason, true);
     },
   });
