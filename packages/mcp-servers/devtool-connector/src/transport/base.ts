@@ -6,6 +6,9 @@ import { takeoverDebugRouterLock } from "../takeover.ts";
 import { encodePeertalkMessage, PeertalkToMessageTransformStream } from "./peertalk.ts";
 import type { Connection, TransportConnectOptions } from "./transport.ts";
 
+const PEERTALK_PING_DELAY_MS = 100;
+const PEERTALK_PING_FRAME = encodePeertalkMessage({ event: "Ping" });
+
 export async function connectWithPeertalk<TInput = unknown, TOutput = unknown>(
   connectRaw: (options: TransportConnectOptions) => Promise<Connection>,
   options: TransportConnectOptions,
@@ -17,12 +20,21 @@ export async function connectWithPeertalk<TInput = unknown, TOutput = unknown>(
   const conn = await connectRaw(options);
   let rawWriter: WritableStreamDefaultWriter<Uint8Array> | undefined = conn.writable.getWriter();
   let writing = false;
+  let pingTimer: ReturnType<typeof setTimeout> | undefined;
   let terminationPromise: Promise<void> | undefined;
+  const clearPingTimer = () => {
+    if (pingTimer !== undefined) {
+      clearTimeout(pingTimer);
+      pingTimer = undefined;
+    }
+  };
   const releaseWriter = () => {
+    clearPingTimer();
     rawWriter?.releaseLock();
     rawWriter = undefined;
   };
   const terminateConnection = (reason: unknown, abortIdleWriter = true) => {
+    clearPingTimer();
     if (!terminationPromise) {
       const writer = rawWriter;
       const shouldAbort = writer !== undefined && (abortIdleWriter || writing);
@@ -40,14 +52,29 @@ export async function connectWithPeertalk<TInput = unknown, TOutput = unknown>(
     }
     return terminationPromise;
   };
+  const schedulePing = () => {
+    clearPingTimer();
+    if (!rawWriter || terminationPromise) return;
+    pingTimer = setTimeout(() => {
+      pingTimer = undefined;
+      if (!rawWriter || writing || terminationPromise) return;
+      writing = true;
+      void rawWriter.write(PEERTALK_PING_FRAME).catch(() => {}).finally(() => {
+        writing = false;
+      });
+    }, PEERTALK_PING_DELAY_MS);
+    pingTimer.unref?.();
+  };
   const writable = new WritableStream<TInput>({
     async write(message, controller) {
       const signal = (controller as WritableStreamDefaultController & { readonly signal: AbortSignal }).signal;
       const abort = () => void terminateConnection(signal.reason).catch(() => {});
       signal.addEventListener("abort", abort, { once: true });
+      clearPingTimer();
       writing = true;
       try {
         await rawWriter!.write(encodePeertalkMessage(message));
+        schedulePing();
       } catch (error) {
         void terminateConnection(error).catch(() => {});
         throw error;

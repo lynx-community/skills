@@ -86,6 +86,35 @@ test("Connector aborts a pending Peertalk write before physical disposal", async
   assert.equal(disposeCount, 1);
 });
 
+test("Peertalk sends a trailing Ping frame after a write to wake a sleeping peer", async (t) => {
+  t.mock.timers.enable({ apis: ["setTimeout"] });
+  const frames: Uint8Array[] = [];
+  const raw = rawConnection({
+    write(chunk) {
+      frames.push(chunk);
+    },
+  }, () => {});
+  const connection = await connectRaw(raw);
+  const writer = connection.writable.getWriter();
+
+  await writer.write({ event: "Customized", data: { type: "CDP" } });
+  assert.equal(frames.length, 1);
+
+  t.mock.timers.tick(100);
+  await setImmediate();
+  assert.equal(frames.length, 2);
+  const pingPayload = JSON.parse(new TextDecoder().decode(frames[1]!.subarray(20)));
+  assert.deepEqual(pingPayload, { event: "Ping" });
+
+  // One trailing Ping per write — does not keep polling on idle connections.
+  t.mock.timers.tick(2_000);
+  await setImmediate();
+  assert.equal(frames.length, 2);
+
+  writer.releaseLock();
+  await connection[Symbol.asyncDispose]();
+});
+
 function connectRaw(raw: Connection<Uint8Array, Uint8Array>) {
   return connectWithPeertalk(() => Promise.resolve(raw), { deviceId: "device", port: 8901 });
 }
