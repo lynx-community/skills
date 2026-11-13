@@ -1,5 +1,19 @@
 # @lynx-js/devtool-connector
 
+## 0.19.1
+
+### Patch Changes
+
+- Updated dependency `plist` to `^5.1.1`.
+- Updated dependency `ws` to `^8.22.2`.
+- Close subscribed daemon WebSocket sessions when forwarding a message to `DeviceConnection` fails, and preserve the target `transportId` in `Connector` clean-EOF diagnostics.
+- Skip corrupt or stale per-device entries in `~/bdc_config` when loading `iOSBDCTransport` routes so valid BDC endpoints remain discoverable.
+- Keep Peertalk frame buffering amortized when messages arrive in small fragments.
+- Avoid disposing underlying Peertalk connections when `writable.abort()` runs while no write is in flight.
+- Enable TCP keepalive on direct and proxied `createProxySocket` connections so intermediate NAT/proxy idle timeouts do not drop long-lived BDC tunnels.
+- Simplify `PeertalkToMessageTransformStream` frame buffering and remove the unused `MessageToPeertalkTransformStream` class.
+- Simplify `connectWithPeertalk` writer lifecycle and promise chaining in `transport/base.ts`.
+
 ## 0.19.0
 
 ### Minor Changes
