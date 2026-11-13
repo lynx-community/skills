@@ -1,5 +1,11 @@
 # @lynx-js/skill-vanilla-lynx
 
+## 0.2.2
+
+### Patch Changes
+
+- Tighten the `vanilla-lynx` global API allowlist rules, clarify single-clock-source animation timing, and bundle a static `scripts/check-lynxml.mjs` validator for `.lynxml` artifacts. Thanks [@甄子琦](https://code.byted.org/zhenziqi) in [!1036](https://code.byted.org/lynx/skills/merge_requests/1036)
+
 ## 0.2.1
 
 ### Patch Changes
