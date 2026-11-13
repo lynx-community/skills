@@ -17,7 +17,7 @@ Open `/ai/agent-lynx/` on the preview server and use the navigation to switch be
 - Put public demos and downloads under `public/ai/<section>/` and declare their directories in `manifest.json`.
 - Keep agent instructions (`SKILL.md` and references) in their owning skill packages. Website guides explain use cases, outcomes, and examples, and link to those sources.
 
-Use relative Markdown links within and between the packaged sections, and full `https://lynxjs.org/…` URLs for other website sections. The website localizes those URLs when the target exists, then applies its normal dead-link check. Standalone previews keep the external URLs. Keep locale prefixes explicit on external links.
+Use root-relative paths for published links between packaged pages, with an explicit `/zh` prefix for Chinese pages. Relative Markdown file links also work within the package. Use full `https://lynxjs.org/…` URLs for pages outside the package so standalone previews can reach them.
 
 To preview inside a lynx-website checkout, run its `sync:skills-docs` script with this package directory as the source. Its `--watch` option updates the generated documents while the website dev server runs. Generated website files are not authoring sources.
 
