@@ -376,23 +376,24 @@ width: 23.4rem;
 
 ### 4. Adjust Positioning
 
-**Web**:
+**Web**: `z-index` applies to positioned elements and to Flexbox or Grid items. An ordinary `position: static` box does not gain a stacking level from `z-index` alone.
 
 ```css
 .element {
-  /* Default: position: static */
+  position: relative;
   z-index: 10;
 }
 ```
 
-**Lynx**:
+**Lynx**: An explicit integer `z-index`, including `0`, creates a stacking context without requiring an explicit `position`. Do not add `position` solely to make `z-index` work; the default is `relative`.
 
 ```css
 .element {
-  position: relative; /* Must be set explicitly. */
   z-index: 10;
 }
 ```
+
+An ancestor's explicit `z-index`, including `0`, can constrain its descendants' stacking order. Check ancestor stacking contexts when migrating layered content. See [the z-index differences](css-differences/positioning-and-stacking.md#z-index) for stacking and scroll-container behavior.
 
 ### 5. Enable Text Wrapping
 
@@ -684,7 +685,7 @@ $spacing-unit: 8px;
 - [ ] Remove `display: inline` and `display: inline-block`; Lynx 2.0+ retains `display: block` and falls back to Flex or Linear layout.
 - [ ] Replace `position: static` with `relative`.
 - [ ] Keep `max-content` and `fit-content`; replace `min-content` for width or height, and note that `flex-basis: min-content` degrades to `0px`.
-- [ ] Add `position` wherever `z-index` is used.
+- [ ] Treat every explicit `z-index`, including `0`, as creating a stacking context even without `position`; check ancestor contexts instead of automatically adding `position`.
 - [ ] Check whether `z-index` in a scroll container prevents elements from moving with scrolling.
 - [ ] Verify compatibility of CSS custom properties through `var()`; Lynx fully supports them.
 - [ ] Remove every use of `::before` and `::after`; they are not supported.

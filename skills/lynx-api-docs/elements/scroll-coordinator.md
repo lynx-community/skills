@@ -33,7 +33,10 @@ The header and slot are the structural children. Keep normal page content inside
 | Prop | Child | Platforms | Description |
 | --- | --- | --- | --- |
 | `enable-drag` | `scroll-coordinator-slot-drag` | Android, iOS, Harmony | Enables the drag affordance |
+| `experimental-consume-gesture` | `scroll-coordinator-header` | Android, Harmony | Scrolls a vertical header child first, then hands remaining scroll to the coordinator at its boundary |
 | `android-consume-gesture` | `scroll-coordinator-header` | Android | Consumes gestures on the Android header path |
+
+`experimental-consume-gesture` enables child-first scrolling on Android and Harmony. It currently defaults to `false` to limit rollout impact; it is planned to default to `true` and then be removed. On Android, set `enable-nested-scroll="true"` on the header's `<scroll-view>` for boundary handoff. This property does not affect iOS. The legacy `android-consume-gesture` property retains its interception behavior and does not enable this child-first policy.
 
 ## Platform Props
 
