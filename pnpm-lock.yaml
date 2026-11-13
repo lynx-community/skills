@@ -409,8 +409,8 @@ importers:
   packages/skills/lynx-api-docs:
     devDependencies:
       '@lynx-js/lynx-api-docs':
-        specifier: 0.3.9
-        version: 0.3.9
+        specifier: 0.3.11
+        version: 0.3.11
 
   packages/skills/lynx-check-css-support:
     devDependencies:
@@ -937,8 +937,8 @@ packages:
     engines: {node: '>=18'}
     hasBin: true
 
-  '@lynx-js/lynx-api-docs@0.3.9':
-    resolution: {integrity: sha512-BnZY3wCe+lfXmsPNn0wuu8iJUWxCFnPz23zSjUGqzB71iQwaRKLSWhWmgyHxNbsP0Z3WjpFE61pH+eiCnQD6HQ==}
+  '@lynx-js/lynx-api-docs@0.3.11':
+    resolution: {integrity: sha512-2IdEjAfZzmJDwWND+k0cCeDYvv9ZG8AzpbCEjtM6iOFsO+hnZxKzRyAiuN5Iz0j0Gh9Xe+xoOkJZGntmNgR8Bw==}
     engines: {node: '>=14'}
     hasBin: true
 
@@ -3494,7 +3494,7 @@ snapshots:
 
   '@lynx-js/debug-metadata@0.1.0': {}
 
-  '@lynx-js/lynx-api-docs@0.3.9': {}
+  '@lynx-js/lynx-api-docs@0.3.11': {}
 
   '@lynx-js/skill-lynx-openui@0.0.3': {}
 
