@@ -2,6 +2,8 @@
 description: '安装 agent-lynx、读取自带 skills、连接应用并检查第一个页面。'
 ---
 
+import { Prompt } from '@rspress/core/theme';
+
 # 快速开始
 
 ## 安装 CLI
@@ -32,14 +34,14 @@ agent-lynx skills get lynx-devtool
 
 `skills get` 返回使用说明，并列出该 skill 的参考文件和示例，不会把 skill 安装到项目中。若希望 agent 通过自身的 skill 发现机制自动加载 DevTool skill，参见 [lynx-devtool](/zh/ai/skills/lynx-devtool)。
 
-例如，可以对 coding agent 说：
-
-```text
-使用 agent-lynx 调试当前打开的 Lynx 页面。先读取
-`pnpx agent-lynx skills get lynx-devtool`，再查找已连接的
+<Prompt
+  eyebrow="发给你的 Agent"
+  title="调试当前打开的 Lynx 页面"
+  prompt={`使用 agent-lynx 调试当前打开的 Lynx 页面。先读取
+\`pnpx agent-lynx skills get lynx-devtool\`，再查找已连接的
 client 和 session。检查页面和控制台，复现问题，修改源码，
-然后用新的截图验证结果。
-```
+然后用新的截图验证结果。`}
+/>
 
 也可以在项目的 [AGENTS.md](https://lynxjs.org/zh/ai/agentsmd) 中约定：运行时调试前先读取 `lynx-devtool` 使用说明。
 

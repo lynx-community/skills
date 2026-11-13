@@ -2,6 +2,8 @@
 description: 'Install agent-lynx, load its bundled skills, connect an app, and inspect your first page.'
 ---
 
+import { Prompt } from '@rspress/core/theme';
+
 # Getting Started
 
 ## Install the CLI
@@ -32,14 +34,13 @@ agent-lynx skills get lynx-devtool
 
 `skills get` returns the instructions and lists the skill's reference and example files. It does not install a skill into your project. To make the DevTool skill available through your agent's automatic skill discovery, see [lynx-devtool](/ai/skills/lynx-devtool).
 
-For example, ask your coding agent:
-
-```text
-Use agent-lynx to debug the currently open Lynx page. First read
-`pnpx agent-lynx skills get lynx-devtool`, then find the connected
+<Prompt
+  title="Debug the open Lynx page"
+  prompt={`Use agent-lynx to debug the currently open Lynx page. First read
+\`pnpx agent-lynx skills get lynx-devtool\`, then find the connected
 client and session. Inspect the page and console, reproduce the issue,
-fix the source code, and verify the result with a fresh screenshot.
-```
+fix the source code, and verify the result with a fresh screenshot.`}
+/>
 
 You can also add the instruction to read `lynx-devtool` before runtime debugging to your project's [AGENTS.md](https://lynxjs.org/ai/agentsmd).
 
