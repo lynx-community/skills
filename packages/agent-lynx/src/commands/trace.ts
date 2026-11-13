@@ -569,5 +569,5 @@ export function registerTraceCommand(program: Command, context: Context): void {
       },
     );
 
-  registerTraceQueryCommands(trace);
+  registerTraceQueryCommands(trace, context);
 }

@@ -1,0 +1,29 @@
+{
+  "name": "@lynx-js/runtime-package-installer",
+  "version": "0.0.0",
+  "private": true,
+  "license": "Apache-2.0",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "import": "./src/index.ts",
+      "default": "./src/index.ts"
+    }
+  },
+  "scripts": {
+    "build": "rslib build",
+    "test": "node --test 'test/**/*.test.ts'"
+  },
+  "dependencies": {
+    "proper-lockfile": "^4.1.2",
+    "semver": "^7.8.6"
+  },
+  "devDependencies": {
+    "@rslib/core": "catalog:rstack",
+    "@types/node": "^24.19.2",
+    "@types/proper-lockfile": "^4.1.4",
+    "@types/semver": "^7.8.0",
+    "typescript": "^7.0.2"
+  }
+}

@@ -210,7 +210,10 @@ target app's global trace controller owns recording state across `start`, `end`,
 `read-data`. Those recording commands use the normal connector transport and
 also work with `--no-daemon`; ActionCore and snapshot refs are not involved.
 
-`query` and `event-summary` are fully local and offline. They do not start the
+`query` and `event-summary` download `@lynx-js/trace-processor` with npm on first use,
+then reuse the version-isolated cache for offline analysis. Set `AGENT_LYNX_CACHE_DIR`
+to override the cache location; `--help` shows the defaults. Trace files stay local.
+These commands do not start the
 daemon, connect to Android debug-router, or create any
 connector transport. A device and `--no-daemon` are therefore unnecessary.
 
