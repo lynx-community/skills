@@ -11,7 +11,7 @@ description: '排查 agent-lynx 设备连接、页面选择、引用失效、Rea
 | 元素引用不存在或已失效 | 重新运行 `snapshot`，使用同一个 client 和 session 最新输出中的引用。                                            |
 | ReactLynx 组件树为空   | 检查所选 session，并使用包含兼容 ReactLynx DevTools 的开发构建。                                                |
 | 无法获取源码位置       | 启用 UI source-map 生成，并确保工具可以访问与页面匹配的 debug metadata。                                        |
-| Agent 报网络权限错误   | 允许 agent 访问本地 daemon 和设备服务。使用 Codex 时，参见 [Codex 网络配置](https://lynxjs.org/zh/ai/skills/lynx-devtool#codex)。 |
+| Agent 报网络权限错误   | 允许 agent 访问本地 daemon 和设备服务。使用 Codex 时，参见 [Codex 网络配置](/zh/ai/skills/lynx-devtool#codex)。 |
 
 可以用 `agent-lynx daemon status` 检查本地 daemon，并通过 `<command> --help` 查看当前选项。`--no-daemon` 用于显式的直接连接场景；页面快照、元素引用操作、`screenshot` 和 ReactLynx 命令需要 daemon。
 

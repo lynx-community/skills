@@ -108,11 +108,17 @@ test('MDX imports and local links resolve within the package without website ali
       if (!['link', 'definition'].includes(node.type)) return;
       const url = node.url;
       if (/^(?:https?:|mailto:|#)/.test(url)) return;
-      assert.ok(
-        !url.startsWith('/'),
-        `${name}: use a full website URL for ${url}`,
-      );
-      const target = resolve(dirname(file), url.split(/[?#]/)[0]);
+      const path = url.split(/[?#]/)[0];
+      if (path.startsWith('/')) {
+        const route = path.startsWith('/zh/') ? path.slice(1) : `en${path}`;
+        const target = join(root, 'content', route);
+        assert.ok(
+          ['.mdx', '/index.mdx'].some((suffix) => existsSync(target + suffix)),
+          `${name}: ${url} does not resolve to a packaged page`,
+        );
+        return;
+      }
+      const target = resolve(dirname(file), path);
       assert.ok(
         target.startsWith(join(root, 'content') + sep),
         `${name}: link escapes the package`,
