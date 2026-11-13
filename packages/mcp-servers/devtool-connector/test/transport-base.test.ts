@@ -86,6 +86,19 @@ test("Connector aborts a pending Peertalk write before physical disposal", async
   assert.equal(disposeCount, 1);
 });
 
+test("idle Peertalk writable.abort releases the writer without disposing the raw connection", async () => {
+  let disposeCount = 0;
+  const connection = await connectWithPeertalk(
+    () => Promise.resolve(rawConnection({}, () => disposeCount++)),
+    { deviceId: "device", port: 8901 },
+    false,
+  );
+  await connection.writable.abort(new Error("idle abort"));
+  assert.equal(disposeCount, 0);
+  await connection[Symbol.asyncDispose]();
+  assert.equal(disposeCount, 1);
+});
+
 function connectRaw(raw: Connection<Uint8Array, Uint8Array>) {
   return connectWithPeertalk(() => Promise.resolve(raw), { deviceId: "device", port: 8901 });
 }
