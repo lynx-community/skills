@@ -10,16 +10,8 @@
   "license": "Apache-2.0",
   "type": "module",
   "exports": {
-    "./connector": {
-      "types": "./src/connector.ts",
-      "import": "./src/connector.ts",
-      "default": "./src/connector.ts"
-    },
-    "./cli": {
-      "types": "./src/cli.ts",
-      "import": "./src/cli.ts",
-      "default": "./src/cli.ts"
-    },
+    "./cli": "./src/cli.ts",
+    "./connector": "./src/connector.ts",
     "./bin": "./dist/index.mjs",
     "./package.json": "./package.json"
   },
@@ -65,15 +57,13 @@
   "publishConfig": {
     "access": "public",
     "exports": {
-      "./connector": {
-        "types": "./dist/connector.d.ts",
-        "import": "./dist/connector.mjs",
-        "default": "./dist/connector.mjs"
-      },
       "./cli": {
         "types": "./dist/cli.d.ts",
-        "import": "./dist/cli.mjs",
         "default": "./dist/cli.mjs"
+      },
+      "./connector": {
+        "types": "./dist/connector.d.ts",
+        "default": "./dist/connector.mjs"
       },
       "./bin": "./dist/index.mjs",
       "./package.json": "./package.json"
