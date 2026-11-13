@@ -54,6 +54,25 @@ test("Peertalk decoder preserves messages across arbitrary fragment boundaries",
   ]);
 });
 
+test("Peertalk decoder compacts buffered bytes before appending the next frame", async () => {
+  const firstMessage = { method: "same-size-frame", params: { value: 1 } };
+  const secondMessage = { method: "same-size-frame", params: { value: 2 } };
+  const first = encodePeertalkMessage(firstMessage);
+  const second = encodePeertalkMessage(secondMessage);
+  const secondHeaderBytes = 5;
+  const firstFragment = new Uint8Array(first.length + secondHeaderBytes);
+  firstFragment.set(first);
+  firstFragment.set(second.subarray(0, secondHeaderBytes), first.length);
+
+  assert.deepEqual(
+    await decodeFragments([
+      firstFragment,
+      second.subarray(secondHeaderBytes),
+    ]),
+    [firstMessage, secondMessage],
+  );
+});
+
 test("Peertalk decoder handles a multi-megabyte fragmented message", async () => {
   const payload = "x".repeat(8 * 1024 * 1024);
   const encoded = encodePeertalkMessage({
