@@ -669,7 +669,7 @@ export class Connector {
         result = response.value;
       } else {
         options.signal?.throwIfAborted();
-        const clientId = ClientId.serialize(transport.id, options.deviceId, options.port);
+        const clientId = ClientId.serialize(options.transportId, options.deviceId, options.port);
         throw new Error(
           `Transport ${transport.constructor.name} ended cleanly (EOF) while waiting for a response to ${request} on clientId: ${clientId}.`,
         );
