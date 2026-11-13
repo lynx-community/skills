@@ -83,7 +83,7 @@ In practice:
       command: 'agent-lynx list-clients',
       output: `[
   {
-    "id": "android-phone:8901",
+    "id": "android:1A231FDF6000AB:8901",
     "info": {
       "App": "LynxExplorer",
       "deviceModel": "Pixel 8",
@@ -104,7 +104,7 @@ In practice:
       id: 'list-sessions',
       description:
         'Use the client ID from the previous result. Each session_id identifies a debugging context in that app.',
-      command: 'agent-lynx list-sessions --client android-phone:8901',
+      command: 'agent-lynx list-sessions --client android:1A231FDF6000AB:8901',
       output: `[
   {
     "session_id": 1,

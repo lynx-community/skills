@@ -2202,7 +2202,7 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
                   </button>
                   <div class="call-content" id="call-body-1" hidden>
                     <pre class="command-box">agent-lynx <button class="keyword" data-link="runtime" type="button">simulator run</button>
-<span class="comment"># { "clientId": "simulator:45678", ... }</span></pre>
+<span class="comment"># { "clientId": "simulator:localhost:45678", ... }</span></pre>
                   </div>
                 </article>
               </div>
@@ -2425,7 +2425,7 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
                   </button>
                   <div class="call-content" id="call-body-3">
                     <pre class="command-box">agent-lynx <button class="keyword" type="button" data-link="open">open</button> "$PAGE_URL" \
-  --client simulator:45678 \
+  --client simulator:localhost:45678 \
   --simulator-window-height 750 \
   <button class="keyword" type="button" data-link="score">--page-env ./page-env.mjs</button></pre>
                     <div class="scene-values">
@@ -2506,7 +2506,7 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
                   </button>
                   <div class="call-content" id="call-body-4" hidden>
                     <pre class="command-box">agent-lynx <button class="keyword" type="button" data-link="snapshot">snapshot</button> \
-  --client simulator:45678 --session 1
+  --client simulator:localhost:45678 --session 1
 <span class="comment"># ...</span>
 <span class="comment"># </span><button class="keyword" type="button" data-link="node-score">@e6 [text] "268.50"</button>
 <span class="comment"># </span><button class="keyword" type="button" data-link="node-progress">@e25 [text] "LYNX DEMO"</button></pre>
