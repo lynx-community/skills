@@ -13,13 +13,13 @@ npm install -g agent-lynx
 agent-lynx --help
 ```
 
-You can also run it without a global installation:
+If you have pnpm, you can run the CLI without a global installation:
 
 ```bash
-npx --yes agent-lynx --help
+pnpx agent-lynx --help
 ```
 
-The examples below use `agent-lynx`. Replace it with `npx --yes agent-lynx` if you use the one-shot command.
+The examples below use `agent-lynx`. Replace it with `pnpx agent-lynx` if you use the one-shot command.
 
 ## Give Your Agent the Instructions
 
@@ -36,7 +36,7 @@ For example, ask your coding agent:
 
 ```text
 Use agent-lynx to debug the currently open Lynx page. First read
-`npx --yes agent-lynx skills get lynx-devtool`, then find the connected
+`pnpx agent-lynx skills get lynx-devtool`, then find the connected
 client and session. Inspect the page and console, reproduce the issue,
 fix the source code, and verify the result with a fresh screenshot.
 ```
