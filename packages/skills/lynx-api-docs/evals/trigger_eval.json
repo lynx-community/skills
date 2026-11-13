@@ -1,42 +1,74 @@
 [
   {
-    "query": "Check the installed Lynx API docs for every public attribute, event, and ref method supported by `<scroll-view>`.",
+    "query": "Help me write a ReactLynx card page with CSS layout, spacing, and text wrapping.",
     "should_trigger": true
   },
   {
-    "query": "Before writing this ReactLynx page, verify which Lynx elements and CSS properties are valid instead of assuming browser behavior.",
+    "query": "I need to migrate Web HTML and CSS to Lynx TSX. Which patterns cannot be copied directly?",
     "should_trigger": true
   },
   {
-    "query": "Compare Linear, Flex, Grid, and Relative Layout in Lynx and recommend one for this two-dimensional card gallery.",
+    "query": "Why do Lynx flex items shrink more than Web flex items? How should I set min-width?",
     "should_trigger": true
   },
   {
-    "query": "Why does this web layout migrate incorrectly to Lynx? Check the bundled Lynx-versus-Web references and propose a documented rewrite.",
+    "query": "Help me diagnose why fixed elements have different positions in Lynx and the Web preview.",
     "should_trigger": true
   },
   {
-    "query": "Review this TTML and styling change against the authoritative public Lynx element and CSS documentation.",
+    "query": "Does Lynx CSS support attribute selectors, ::before, and :has()? Give me alternatives.",
     "should_trigger": true
   },
   {
-    "query": "Does `display: grid` work on Android with Lynx 2.0, and which engine version first supports it?",
+    "query": "Migrate a Web animation using scale3d, rotate3d, and steps(4) to Lynx.",
+    "should_trigger": true
+  },
+  {
+    "query": "Percentage height has no effect in a ReactLynx page whose parent has auto height. How should I change the layout?",
+    "should_trigger": true
+  },
+  {
+    "query": "Where should I look up Lynx pageConfig and compilerOptions? Help me verify a configuration option.",
+    "should_trigger": true
+  },
+  {
+    "query": "Review the element usage and CSS in this Lynx TSX file for platform compatibility.",
+    "should_trigger": true
+  },
+  {
+    "query": "When migrating a Web body background to Lynx, should I put it on page or a regular view?",
+    "should_trigger": true
+  },
+  {
+    "query": "Help me write a regular browser HTML page using div and CSS Grid.",
     "should_trigger": false
   },
   {
-    "query": "TypeScript says this ReactLynx event handler is incompatible with the component prop type. Fix the type error.",
+    "query": "How do I implement Flex layout and shadows with React Native StyleSheet?",
     "should_trigger": false
   },
   {
-    "query": "Use Lynx DevTool to inspect the running page, capture console logs, and take a screenshot.",
+    "query": "How do I encapsulate form validation in a Vue 3 composable?",
     "should_trigger": false
   },
   {
-    "query": "Which lynx-ui dialog component should I use, and what props does that component expose?",
+    "query": "My rspeedy build fails. Help me check the webpack configuration.",
     "should_trigger": false
   },
   {
-    "query": "Compare current CSS Grid support in Chrome, Safari, and Firefox for a normal web application.",
+    "query": "Help me analyze performance bottlenecks and thread timings in this Lynx trace file.",
+    "should_trigger": false
+  },
+  {
+    "query": "How do TypeScript conditional types and infer implement Pick?",
+    "should_trigger": false
+  },
+  {
+    "query": "What are the CSS margin collapsing rules in Chrome? Discuss only Web standards.",
+    "should_trigger": false
+  },
+  {
+    "query": "Help me configure GitHub Actions to run Node project tests automatically.",
     "should_trigger": false
   }
 ]

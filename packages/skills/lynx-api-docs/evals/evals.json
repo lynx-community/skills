@@ -1,43 +1,124 @@
 {
   "skill_name": "lynx-api-docs",
-  "description": "End-to-end task evals for retrieving authoritative Lynx element, CSS, layout, migration, and implementation guidance from the bundled public API documentation.",
+  "description": "Task evals for retrieving Lynx API docs during CSS generation, Web migration, and debugging.",
   "evals": [
     {
       "id": 1,
-      "name": "scroll-view-api-lookup",
-      "prompt": "Before implementing a ReactLynx infinite feed, use the installed Lynx API documentation to verify the public attributes, scroll events, and ref methods available on `<scroll-view>`. Identify the specific documentation file you consulted and do not infer APIs from browser elements.",
-      "expected_output": "A documentation-backed summary of the public scroll-view surface, organized by attributes, events, and methods, with the installed element reference identified as the source.",
+      "name": "migrate-web-card-with-text-and-box-model",
+      "prompt": "Migrate this Web card to Lynx TSX and CSS. Allow text wrapping and preserve Web content-box sizing:\n\n```html\n<div class=\"card\">Hello Lynx</div>\n```\n```css\n.card {\n  width: 200px;\n  padding: 12px;\n  border: 1px solid black;\n}\n```",
+      "expected_output": "Lynx code using view and text elements, explicit content-box sizing, and normal white-space, without relying on Web block layout defaults.",
       "expectations": [
-        "The response reads or cites the installed `elements/scroll-view.md` reference.",
-        "Attributes, events, and ref methods are distinguished instead of being presented as one invented API list.",
-        "The answer does not infer behavior from HTML scrolling elements or general browser knowledge.",
-        "Any API detail not established by the installed reference is reported as unverified rather than guessed."
+        "The response replaces the HTML div with a Lynx view and places the text inside a text element.",
+        "The response explicitly sets box-sizing: content-box to preserve the requested Web sizing behavior.",
+        "The response enables text wrapping with white-space: normal on the text.",
+        "The response uses an explicit Lynx layout such as display: linear or display: flex, or otherwise demonstrates awareness that Lynx defaults to Linear rather than Web block flow.",
+        "The response does not use div, span, or display: inline-block in the Lynx solution."
       ],
       "files": []
     },
     {
       "id": 2,
-      "name": "choose-layout-for-two-dimensional-content",
-      "prompt": "I need a Lynx product gallery with aligned rows and columns and items that can span multiple tracks. Compare the installed Linear, Flex, Grid, and Relative Layout documentation, recommend the appropriate layout, and call out Lynx-specific constraints I should verify before coding.",
-      "expected_output": "A concise recommendation grounded in the bundled layout references, selecting Grid for the two-dimensional spanning requirement and identifying relevant Lynx-specific constraints without assuming browser parity.",
+      "name": "prevent-flex-content-from-shrinking",
+      "prompt": "In the same Flex row, text stops shrinking in the Web preview but shrinks below its content size in Lynx. The text must not shrink. How should I fix it? Provide the key CSS and explain the difference between Lynx and Web defaults.",
+      "expected_output": "An explanation of Lynx's missing automatic content-based minimum size and a fix using flex-shrink: 0 or an explicit main-axis minimum.",
       "expectations": [
-        "The response consults the installed layout references rather than relying only on web layout knowledge.",
-        "Grid is recommended because the requirement is explicitly two-dimensional and includes track spanning.",
-        "The answer distinguishes Grid from Linear, Flex, and Relative Layout in terms relevant to the requested gallery.",
-        "Lynx-specific syntax, defaults, or limitations are verified from the references or explicitly left unverified."
+        "The response explains that Web flex items can establish an automatic content-based minimum through min-width: auto, while Lynx does not automatically apply that protection when resolving flex-shrink.",
+        "The response recommends flex-shrink: 0 or an explicit min-width for the row item that must not shrink.",
+        "The response does not claim that min-width: 0 prevents shrinking; it identifies min-width: 0 as allowing shrinkage if that value is discussed.",
+        "The response scopes the fix to the main axis of the row rather than suggesting an unrelated height-only workaround."
       ],
       "files": []
     },
     {
       "id": 3,
-      "name": "review-web-to-lynx-styling",
-      "prompt": "Review this proposed Lynx styling approach before I implement it: use `<div>` and `<span>`, rely on normal browser flow, assume `content-box`, and copy several web CSS properties without checking support. Use the installed Lynx API documentation to identify the invalid assumptions and propose the documentation-backed direction.",
-      "expected_output": "A review that rejects the web-only element and layout assumptions, explains the relevant Lynx defaults, and routes each implementation decision to the bundled element, CSS, layout, or web-migration references.",
+      "name": "migrate-margins-and-fixed-position",
+      "prompt": "Spacing and the floating button position are incorrect after migrating this CSS to Lynx. Please fix it:\n\n```css\n.first { margin-bottom: 20px; }\n.second { margin-top: 20px; }\n.fab { position: fixed; right: 16px; bottom: 16px; }\n```\nOn the Web, the gap between the cards is 20px, and the button is positioned toward the bottom right from its original static position.",
+      "expected_output": "A migration that accounts for non-collapsing margins and has a definite fixed-position inset on each axis; right and bottom are sufficient without requiring left and top.",
       "expectations": [
-        "The response identifies that Lynx uses elements such as `<view>` and `<text>` rather than HTML `<div>` and `<span>`.",
-        "The response identifies Lynx layout and box-sizing assumptions from the installed references rather than treating browser defaults as authoritative.",
-        "The response requires checking bundled CSS documentation before using web CSS properties.",
-        "The response points to the relevant `elements/`, `css/`, `layout/`, or `lynx-vs-web/` references and does not invent unsupported replacements."
+        "The response identifies that Lynx adds the two 20px margins instead of collapsing them, producing 40px without a fix.",
+        "The response preserves a 20px gap by setting margin on only one element, zeroing the other margin, or using an appropriate Flex/Grid gap.",
+        "The response keeps or sets definite horizontal and vertical insets, accepting right and bottom as sufficient without requiring left and top.",
+        "The response does not claim that Lynx fixed positioning falls back to the Web static position when left or top is auto."
+      ],
+      "files": []
+    },
+    {
+      "id": 4,
+      "name": "replace-unsupported-selectors-pseudo-elements-and-float",
+      "prompt": "Rewrite these Web styles using supported Lynx patterns. You may also adjust the TSX structure:\n\n```css\n.item { float: left; }\n.item::before { content: 'NEW'; }\n.item[data-active='true'] { color: red; }\n```",
+      "expected_output": "A Lynx implementation replacing float with Flex, the pseudo-element with real markup, and the attribute selector with an explicit class.",
+      "expectations": [
+        "The response removes float and uses display: flex or another supported Lynx layout.",
+        "The response removes ::before and represents the NEW content with a real Lynx text element or equivalent markup.",
+        "The response replaces the attribute selector with an explicit class selector and shows the corresponding class/state mapping.",
+        "The response does not merely rename the HTML while retaining float, ::before, or the attribute selector."
+      ],
+      "files": []
+    },
+    {
+      "id": 5,
+      "name": "migrate-animation-transform-and-steps",
+      "prompt": "This Web animation does not work in Lynx. Provide a compatible implementation:\n\n```css\n.card {\n  animation: flip 1s steps(4);\n}\n@keyframes flip {\n  from { transform: scale3d(0.6, 0.6, 1) rotate3d(0, 1, 0, 0deg); }\n  to { transform: scale3d(1, 1, 1) rotate3d(0, 1, 0, 180deg); }\n}\n```",
+      "expected_output": "A rewritten animation using supported scale and rotateY functions and an explicit steps position.",
+      "expectations": [
+        "The response identifies scale3d and rotate3d as unsupported by the Lynx transform parser.",
+        "The response rewrites the transforms using scale(x, y) and rotateY(...), preserving the intended XY scale and Y-axis rotation.",
+        "The response changes steps(4) to steps(4, end), steps(4, jump-end), or another explicit supported step position.",
+        "The response does not claim that scale3d or rotate3d is supported merely because translate3d or matrix3d is supported."
+      ],
+      "files": []
+    },
+    {
+      "id": 6,
+      "name": "fix-cyclic-percentage-sizing",
+      "prompt": "In the default Lynx Linear layout, the outer height is determined by content, the middle layer uses height: 50%, and the inner layer has a fixed height. The percentage height sometimes has no effect. Explain why and provide two more reliable layout approaches.",
+      "expected_output": "Guidance that avoids the content-size/percentage cycle by defining key ancestor sizes or by allocating remaining space with Flex or Linear weights.",
+      "expectations": [
+        "The response identifies the cyclic dependency where content determines the parent size while the child's percentage size depends on that parent.",
+        "The response explains that Lynx Linear layout favors a single measurement pass and does not repeatedly resolve the cycle like Web or Flex layouts may.",
+        "The response recommends setting an explicit or otherwise definite height on the key ancestor as one solution.",
+        "The response recommends flex-grow/flex-shrink or linear-weight as another way to allocate space instead of relying on that percentage cycle."
+      ],
+      "files": []
+    },
+    {
+      "id": 7,
+      "name": "migrate-page-background-and-background-attachment",
+      "prompt": "When migrating a Web page, html has a gray full-page background and body has a white content background. A content image also uses `background: url('bg.png') 0 0 / cover no-repeat fixed #fff;`. Map these to Lynx page, the root view, and background styles, and explain how to handle fixed attachment.",
+      "expected_output": "A mapping of the full-page background to page, content background to the root view, and supported background longhands with background-attachment handled separately.",
+      "expectations": [
+        "The response maps the gray full-page html background to the Lynx page element.",
+        "The response maps the white body content-container background to the root view rather than treating an ordinary view as the Web body canvas.",
+        "The response expands the shorthand into supported properties including background-image, background-position, background-size, background-repeat, and background-color.",
+        "The response identifies background-attachment as unsupported and says its scroll-binding behavior must be handled separately rather than silently preserved.",
+        "The response does not claim that the fixed background attachment continues to work after expanding the shorthand."
+      ],
+      "files": []
+    },
+    {
+      "id": 8,
+      "name": "review-correct-lynx-css-without-false-positives",
+      "prompt": "Review this code only for Lynx versus Web CSS differences. If no changes are required, say so clearly and avoid unnecessary rewrites:\n\n```tsx\n<view className=\"row\">\n  <text className=\"label\">Hello</text>\n</view>\n```\n```css\n.row {\n  display: flex;\n  box-sizing: border-box;\n  gap: 8px;\n}\n.label {\n  min-width: 0;\n  white-space: normal;\n}\n```",
+      "expected_output": "A clean review that recognizes the supported layout, element, sizing, gap, and wrapping choices and does not invent unsupported-feature violations.",
+      "expectations": [
+        "The response confirms that text is correctly wrapped in a Lynx text element.",
+        "The response recognizes display: flex, explicit box-sizing: border-box, and gap as valid choices and does not demand replacement with Linear.",
+        "The response does not flag min-width: 0 as an error; if it explains the behavior, it says this allows main-axis shrinking.",
+        "The response recognizes white-space: normal as explicitly enabling text wrapping.",
+        "The response reports no mandatory CSS-difference fix and avoids fabricating unsupported properties or selectors."
+      ],
+      "files": []
+    },
+    {
+      "id": 9,
+      "name": "route-css-generation-to-focused-references",
+      "prompt": "I am preparing to edit the CSS of a Lynx page. Which document should I read first to identify Lynx versus Web differences? If I then need to handle flex content shrinking and steps animations, which two topic files should I read next? Return only the lookup paths.",
+      "expected_output": "The CSS differences index followed by the flex-and-sizing and transforms-and-animations topic files.",
+      "expectations": [
+        "The response identifies lynx-vs-web/css-differences.md as the first CSS generation and Web-difference routing document.",
+        "The response identifies lynx-vs-web/css-differences/flex-and-sizing.md for the flex shrinking task.",
+        "The response identifies lynx-vs-web/css-differences/transforms-and-animations.md for the steps animation task.",
+        "The response does not route this CSS generation task to best-practices.md or the general migration guide as the primary entry point."
       ],
       "files": []
     }
