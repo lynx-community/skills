@@ -11,7 +11,7 @@ description: 'Resolve agent-lynx device connection, page selection, stale ref, R
 | An element ref is missing or stale           | Run `snapshot` again and use refs from its latest output for the same client and session.                                                                     |
 | The ReactLynx tree is empty                  | Check the selected session and use a development build with compatible ReactLynx DevTools.                                                                    |
 | Source information is unavailable            | Enable UI source-map generation and make the matching debug metadata reachable by the tooling.                                                                |
-| The agent reports a network-permission error | Allow the agent to reach the local daemon and device services. See [Codex network configuration](https://lynxjs.org/ai/skills/lynx-devtool#codex) if applicable.             |
+| The agent reports a network-permission error | Allow the agent to reach the local daemon and device services. See [Codex network configuration](/ai/skills/lynx-devtool#codex) if applicable.             |
 
 Use `agent-lynx daemon status` to inspect the local daemon and `<command> --help` for current options. `--no-daemon` is for explicit direct-transport workflows; snapshot refs, ref actions, `screenshot`, and ReactLynx commands require the daemon.
 
