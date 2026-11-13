@@ -29,6 +29,7 @@ interface Deferred<T> {
 
 interface ObservedCDPRequest extends CDPRequestMessage {
   id: number;
+  to?: unknown;
 }
 
 interface HdtClientHarness {
@@ -91,6 +92,7 @@ async function createHdtClientHarness(
     socket.on("message", raw => {
       const message = JSON.parse(raw.toString()) as {
         event?: string;
+        to?: unknown;
         data?: { type?: string; data?: { message?: unknown } };
       };
 
@@ -108,15 +110,16 @@ async function createHdtClientHarness(
       if (message.event !== "Customized" || message.data?.type !== "CDP") return;
       const cdpMessage = message.data.data?.message as ObservedCDPRequest | undefined;
       if (!cdpMessage || typeof cdpMessage.method !== "string" || cdpMessage.id === undefined) return;
+      const observed: ObservedCDPRequest = { ...cdpMessage, to: message.to };
 
-      const pending = waiters.get(cdpMessage.method)?.shift();
-      if (pending) pending.resolve(cdpMessage);
+      const pending = waiters.get(observed.method)?.shift();
+      if (pending) pending.resolve(observed);
       else {
-        const queue = requests.get(cdpMessage.method) ?? [];
-        queue.push(cdpMessage);
-        requests.set(cdpMessage.method, queue);
+        const queue = requests.get(observed.method) ?? [];
+        queue.push(observed);
+        requests.set(observed.method, queue);
       }
-      onCDPRequest?.(cdpMessage);
+      onCDPRequest?.(observed);
     });
   });
 
@@ -336,3 +339,71 @@ for (const viaDaemon of [false, true]) {
     }
   });
 }
+
+test("daemon: stable HDT target replays in-flight CDP request when route recovers after transient disconnect", async t => {
+  const harness = await createHdtClientHarness(t, TARGET_ROUTER_ID, true);
+
+  const firstRequest = harness.nextRequest("Runtime.evaluate");
+  harness.onCDPRequest = request => {
+    if (request.method === "Runtime.evaluate") {
+      harness.broadcast(cdpMessage(TARGET_PORT, SESSION_ID, {
+        id: request.id,
+        result: { source: "initial" },
+      }));
+    }
+  };
+  const initialCall = harness.connector.sendCDPMessage<{ source: string }, { expression: string }>(
+    harness.clientId,
+    SESSION_ID,
+    "Runtime.evaluate",
+    { expression: "1 + 1" },
+  );
+  await within(firstRequest, "initial Runtime.evaluate");
+  assert.deepEqual(
+    await within(initialCall, "initial response"),
+    { source: "initial" },
+  );
+
+  // Simulate transient ADB reset in HDT: target disappears from ClientList,
+  // a request is sent while unresolved, then target reconnects on UPDATED_TARGET_PORT.
+  harness.broadcast({
+    event: "ClientList",
+    data: [{ id: SIBLING_PORT, info: { App: "SiblingApp", debugRouterId: SIBLING_ROUTER_ID } }],
+  });
+  await nextTurn();
+
+  const observedTargets: unknown[] = [];
+  const replayedRequest = deferred<ObservedCDPRequest>();
+  harness.onCDPRequest = request => {
+    if (request.method !== "DOM.innerText") return;
+    observedTargets.push(request.to);
+    if (request.to === UPDATED_TARGET_PORT) {
+      replayedRequest.resolve(request);
+      harness.broadcast(cdpMessage(UPDATED_TARGET_PORT, SESSION_ID, {
+        id: request.id,
+        result: { rawTextValues: [{ text: "Close" }] },
+      }));
+    }
+  };
+
+  const staleAttempt = harness.nextRequest("DOM.innerText");
+  const pendingResult = harness.connector.sendCDPMessage<
+    { rawTextValues: Array<{ text: string }> },
+    { nodeId: number }
+  >(
+    harness.clientId,
+    SESSION_ID,
+    "DOM.innerText",
+    { nodeId: 25 },
+  );
+  const firstObserved = await within(staleAttempt, "stale-route DOM.innerText");
+  assert.equal(firstObserved.to, TARGET_PORT);
+
+  harness.updateTargetPort(UPDATED_TARGET_PORT);
+  const secondObserved = await within(replayedRequest.promise, "replayed DOM.innerText");
+  assert.equal(secondObserved.to, UPDATED_TARGET_PORT);
+  assert.deepEqual(await within(pendingResult, "recovered DOM.innerText response"), {
+    rawTextValues: [{ text: "Close" }],
+  });
+  assert.deepEqual(observedTargets, [TARGET_PORT, UPDATED_TARGET_PORT]);
+});

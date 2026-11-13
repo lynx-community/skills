@@ -135,6 +135,7 @@ export class HDTTransport implements Transport {
     }
 
     const target = { port: targetPort, resolved: true };
+    const pendingRouteMessages: unknown[] = [];
 
     const writable = new WritableStream<TInput>({
       async write(chunk) {
@@ -144,23 +145,45 @@ export class HDTTransport implements Transport {
           target.port,
           typeof port === "string" ? port : undefined,
         );
+        if (typeof port === "string" && !target.resolved && isRecord(chunk) && chunk["event"] === "Customized") {
+          pendingRouteMessages.push(chunk);
+        }
         debug("Transformed chunk for HDT transport: %o", message);
         await writeOnce(conn.writable, stringifyMessage(message), signal);
       },
       async abort() {
+        pendingRouteMessages.length = 0;
         await conn[Symbol.asyncDispose]();
       },
     });
 
+    const flushPendingRouteMessages = (nextPort: number) => {
+      if (pendingRouteMessages.length === 0 || typeof port !== "string") return;
+      const messages = pendingRouteMessages.splice(0);
+      for (const chunk of messages) {
+        const message = routeDriverMessage(chunk, conn.id, nextPort, port);
+        debug("Replaying chunk after HDT route recovery: %o", message);
+        void writeOnce(conn.writable, stringifyMessage(message), signal).catch(() => {});
+      }
+    };
+
     return {
       readable: [
-        new JSONStringToObjectStream(typeof port === "string" ? port : undefined, target),
+        new JSONStringToObjectStream(
+          typeof port === "string" ? port : undefined,
+          target,
+          flushPendingRouteMessages,
+          () => {
+            pendingRouteMessages.length = 0;
+          },
+        ),
       ].reduce(
         (stream, transform) => stream.pipeThrough(transform),
         conn.readable,
       ),
       writable,
       async [Symbol.asyncDispose]() {
+        pendingRouteMessages.length = 0;
         await conn[Symbol.asyncDispose]();
       },
     };
@@ -276,7 +299,12 @@ async function requestFreshClientList(
 }
 
 class JSONStringToObjectStream extends TransformStream<string, unknown> {
-  constructor(debugRouterId: string | undefined, target: { port: number; resolved: boolean }) {
+  constructor(
+    debugRouterId: string | undefined,
+    target: { port: number; resolved: boolean },
+    onRouteResolved?: (port: number) => void,
+    onMessageReceived?: () => void,
+  ) {
     super({
       transform(chunk, controller) {
         try {
@@ -288,8 +316,12 @@ class JSONStringToObjectStream extends TransformStream<string, unknown> {
               );
               const nextPort = isRecord(client) ? Number(client["id"]) : NaN;
               if (Number.isSafeInteger(nextPort)) {
+                const wasResolved = target.resolved;
                 target.port = nextPort;
                 target.resolved = true;
+                if (!wasResolved) {
+                  onRouteResolved?.(nextPort);
+                }
               } else {
                 target.resolved = false;
               }
@@ -310,6 +342,7 @@ class JSONStringToObjectStream extends TransformStream<string, unknown> {
               sender !== undefined && String(sender) !== "-1" && String(sender) !== "4294967295"
               && String(sender) !== String(debugRouterId ?? (target.resolved ? target.port : undefined))
             ) return;
+            onMessageReceived?.();
           }
           if (debugRouterId !== undefined && isRecord(obj) && obj["event"] === "RouteRejected") {
             const data = isRecord(obj["data"]) ? obj["data"] : {};
