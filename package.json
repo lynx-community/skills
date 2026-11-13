@@ -62,7 +62,7 @@
     "@lynx-js/skill-vanilla-lynx": "workspace:*"
   },
   "devDependencies": {
-    "@rslint/core": "^0.10.0",
+    "@rslint/core": "^0.10.1",
     "build-marketplace": "workspace:*",
     "build-plugin": "workspace:*",
     "dprint": "^0.64.3",
