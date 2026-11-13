@@ -16,7 +16,7 @@ import { connectionExample } from './_examples/connection';
     <code>https://example.com/settings.lynx.bundle</code>。
   </p>
   <p>
-    应用的 client ID 是 <code>android-phone:8901</code>，页面的 session ID 是{' '}
+    应用的 client ID 是 <code>android:1A231FDF6000AB:8901</code>，页面的 session ID 是{' '}
     <code>1</code>。后续可以用这组目标检查页面结构、读取日志或截图。
   </p>
 </AgentConversation>
@@ -28,7 +28,7 @@ import { connectionExample } from './_examples/connection';
 - **Client 对应应用进程**，由 `list-clients` 返回应用名称、设备信息和 client ID。示例中找到的是 Android 手机上的 Lynx Explorer。
 - **Session 对应页面**，由 `list-sessions` 返回这个应用里的调试上下文及页面地址。选择 `type` 为 `lynx` 的目标，并保留它的 `session_id`。
 
-后续操作应同时使用实际返回的 client 和 session，确保 agent 操作的是你看到的页面。应用重启或页面重新打开后，再发现一次目标。
+Android client ID 的格式为 `android:<serial>:<port>`。后续操作应同时使用 `list-clients` 返回的完整 ID 和实际返回的 session ID。应用重启或页面重新打开后，再发现一次目标。
 
 ## 让你的应用出现在结果里
 

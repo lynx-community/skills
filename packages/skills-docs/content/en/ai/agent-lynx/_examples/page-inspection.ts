@@ -4,7 +4,7 @@
 
 import type { AgentConversationProps } from '../../../../_ai/agent-conversation';
 
-const target = '--client android-phone:8901 --session 1';
+const target = '--client android:1A231FDF6000AB:8901 --session 1';
 
 const themeSnapshot = `@e1 [scroll-view] @(207,426) {scrollable}
 └─ @e2 [view] @(207,436)

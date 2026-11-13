@@ -16,7 +16,7 @@ Start with “Are there any Lynx pages I can debug on my phone?” and follow th
     <code>https://example.com/settings.lynx.bundle</code>.
   </p>
   <p>
-    The app's client ID is <code>android-phone:8901</code>, and the page's
+    The app's client ID is <code>android:1A231FDF6000AB:8901</code>, and the page's
     session ID is <code>1</code>. These identify the target for inspecting the
     page, reading logs, or taking a screenshot.
   </p>
@@ -29,7 +29,7 @@ A device can run several Lynx apps, and an app can contain several pages. The co
 - **Client: choose the app.** `list-clients` returns app names, device information, and client IDs. This example finds Lynx Explorer on the Android phone.
 - **Session: choose the page.** `list-sessions` returns the app's debugging contexts and page URLs. Select a target with `type` set to `lynx` and keep its `session_id`.
 
-Use both returned IDs for subsequent page operations so the agent acts on the page you intend. Discover the targets again after restarting the app or reopening a page.
+An Android client ID has the form `android:<serial>:<port>`. Pass the complete value returned by `list-clients` along with the returned session ID for subsequent page operations. Discover the targets again after restarting the app or reopening a page.
 
 ## Make Your App Discoverable
 
