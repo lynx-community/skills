@@ -30,7 +30,7 @@ REPLAY_URL=$(python3 -c 'import sys; from urllib.parse import quote; print("sslo
 agent-lynx open "$REPLAY_URL" --client <clientId>
 ```
 
-`example.com` is a placeholder; replace it with the actual file service. If the CLI is not on `PATH`, replace `agent-lynx` with `npx --yes agent-lynx`.
+`example.com` is a placeholder; replace it with the actual file service. If the CLI is not on `PATH`, replace `agent-lynx` with `pnpx agent-lynx`.
 
 ## Check the result
 

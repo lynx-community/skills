@@ -129,10 +129,10 @@ agent-lynx tasm decode -i <input.tasm> -o <output.json>
 
 统一使用 `agent-lynx tasm`，由 CLI 按需下载并缓存 TASM，不要推荐项目内安装。
 
-使用独立 CLI 时，先用 `command -v agent-lynx` 检查入口。若未找到命令，将命令中的 `agent-lynx` 替换为 `npx --yes --registry https://registry.npmjs.org agent-lynx`，保留后面的子命令和参数。例如：
+使用独立 CLI 时，先用 `command -v agent-lynx` 检查入口。若未找到命令，将命令中的 `agent-lynx` 替换为 `npm_config_registry=https://registry.npmjs.org pnpx agent-lynx`，保留后面的子命令和参数。例如：
 
 ```bash
-npx --yes --registry https://registry.npmjs.org agent-lynx tasm --help
+npm_config_registry=https://registry.npmjs.org pnpx agent-lynx tasm --help
 ```
 
 默认方式：

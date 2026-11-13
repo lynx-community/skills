@@ -34,9 +34,9 @@
       "id": 3,
       "name": "check-cli-without-global-install",
       "prompt": "先别转文件，我只想确认这个 CLI 能不能用，而且不要全局安装。`command -v agent-lynx` 没找到命令，也没有宿主 CLI 入口。你给我一个最小命令就行。",
-      "expected_output": "A command using `npx --yes --registry https://registry.npmjs.org agent-lynx tasm --help` and no global install recommendation.",
+      "expected_output": "A command using `npm_config_registry=https://registry.npmjs.org pnpx agent-lynx tasm --help` and no global install recommendation.",
       "expectations": [
-        "The answer uses `npx --yes --registry https://registry.npmjs.org agent-lynx tasm --help` to verify availability when the CLI is not on PATH.",
+        "The answer uses `npm_config_registry=https://registry.npmjs.org pnpx agent-lynx tasm --help` to verify availability when the CLI is not on PATH.",
         "The answer does NOT suggest a global install because the user explicitly said not to globally install.",
         "The answer does NOT invent a project-local install step such as `pnpm add -D @lynx-js/tasm`."
       ],

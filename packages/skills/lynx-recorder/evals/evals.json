@@ -8,7 +8,7 @@
       "prompt": "I want to record page interactions in the public Lynx Explorer for replay. The client ID is demo-client. Give me the command sequence and save the result to ./recording.json. Provide instructions only; do not connect to a device.",
       "expected_output": "Public agent-lynx commands that start recording before opening or reloading the page, keep the selected client, then end and save the recording.",
       "expectations": [
-        "Uses agent-lynx or npx --yes agent-lynx without a private package or registry.",
+        "Uses agent-lynx or pnpx agent-lynx without a private package or registry.",
         "Starts recording before opening or reloading the page so loadTemplate is captured.",
         "Passes --client demo-client to recorder start and end, and --output ./recording.json to end.",
         "Does not claim to have run commands or recorded the page."

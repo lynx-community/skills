@@ -39,7 +39,7 @@
       "expected_output": "A public agent-lynx open command with the complete fixture URL encoded as the arkview url query parameter and the selected client.",
       "expectations": [
         "Uses sslocal://arkview with a URL-encoded complete fixture URL, preserving both query parameters.",
-        "Uses agent-lynx open with --client demo-client or its public npx equivalent.",
+        "Uses agent-lynx open with --client demo-client or its public pnpx equivalent.",
         "Requires a replay-capable host and a device-accessible fixture URL, without requiring an internal uploader.",
         "Does not claim to have executed the replay."
       ],

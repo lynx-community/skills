@@ -24,10 +24,10 @@ only this direct mode. Daemon mode ignores them with a stderr warning. Defaults
 resolve to `127.0.0.1:5037`; `ADB_SERVER_SOCKET` takes priority when set.
 
 The `agent-lynx` CLI is normally available on `PATH`. If
-`command -v agent-lynx` fails, use `npx` instead:
+`command -v agent-lynx` fails, use `pnpx`:
 
 ```bash
-npx --yes agent-lynx <command>
+pnpx agent-lynx <command>
 ```
 
 This published skill does not ship a local CLI entry script. Use:
@@ -103,7 +103,7 @@ npm install agent-lynx
 ```
 
 This project-local install is needed only for connector workflows, not for
-CLI-only use through the `agent-lynx` CLI on `PATH` or `npx`.
+CLI-only use through the `agent-lynx` CLI on `PATH` or `pnpx`.
 
 ### Use as a Library
 

@@ -13,13 +13,13 @@ npm install -g agent-lynx
 agent-lynx --help
 ```
 
-也可以直接运行，无需全局安装：
+如果已安装 pnpm，可以直接运行 CLI，无需全局安装：
 
 ```bash
-npx --yes agent-lynx --help
+pnpx agent-lynx --help
 ```
 
-下文示例使用 `agent-lynx`。如果使用单次运行方式，将其替换为 `npx --yes agent-lynx` 即可。
+下文示例使用 `agent-lynx`。如果使用单次运行方式，将其替换为 `pnpx agent-lynx` 即可。
 
 ## 让 Agent 读取使用说明
 
@@ -36,7 +36,7 @@ agent-lynx skills get lynx-devtool
 
 ```text
 使用 agent-lynx 调试当前打开的 Lynx 页面。先读取
-`npx --yes agent-lynx skills get lynx-devtool`，再查找已连接的
+`pnpx agent-lynx skills get lynx-devtool`，再查找已连接的
 client 和 session。检查页面和控制台，复现问题，修改源码，
 然后用新的截图验证结果。
 ```

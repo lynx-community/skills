@@ -20,13 +20,13 @@ agent-lynx recorder end [options]
 ```
 
 The `agent-lynx` CLI is normally available on `PATH`. If
-`command -v agent-lynx` fails, use `npx` instead, for example:
+`command -v agent-lynx` fails, use `pnpx`, for example:
 
 ```bash
-npx --yes agent-lynx recorder start [options]
+pnpx agent-lynx recorder start [options]
 ```
 
-The `agent-lynx` CLI on `PATH` and the `npx` command are the supported
+The `agent-lynx` CLI on `PATH` and the `pnpx` command are the supported
 execution forms.
 This skill does not provide a local `scripts/index.mjs` entry.
 
