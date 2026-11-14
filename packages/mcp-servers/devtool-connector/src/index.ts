@@ -726,6 +726,28 @@ export class Connector {
     port: number,
     discoverySignal: AbortSignal,
   ): Promise<AppInfo> {
+    const result = await this.#probeClient(transport, deviceId, port, discoverySignal, true);
+    if (!result.setupTimedOut) return result.info;
+
+    // App-only runtimes may register but never acknowledge Lynx switches. The timed-out
+    // connection has been disposed; confirm the same runtime on a fresh connection before
+    // publishing it. Do not turn disconnects, cancellation, or replacement into success.
+    const current = await this.#probeClient(transport, deviceId, port, AbortSignal.timeout(3_000), false);
+    const identityKeys = ["debugRouterId", "AppProcessName", "bundleId", "bundleName", "App"] as const;
+    if (identityKeys.some(key => current.info[key] !== result.info[key])) {
+      throw new Error("Client identity changed after global-switch setup timed out");
+    }
+    debug(`setupClient ${deviceId}:${port} retaining registered client without confirmed Lynx switches`);
+    return current.info;
+  }
+
+  async #probeClient(
+    transport: Transport,
+    deviceId: string,
+    port: number,
+    discoverySignal: AbortSignal,
+    setup: boolean,
+  ): Promise<{ info: AppInfo; setupTimedOut?: boolean }> {
     const lifetime = new AbortController();
     const forwardStageSignal = (signal: AbortSignal): () => void => {
       const abort = () => lifetime.abort(signal.reason);
@@ -782,7 +804,10 @@ export class Connector {
       discoverySignal,
     );
 
+    if (!setup) return { info: register.data.info };
+
     for (const { key, value, required } of clientSetupSwitches) {
+      const setupSignal = AbortSignal.timeout(3_000);
       try {
         await exchange(
           connection,
@@ -799,15 +824,22 @@ export class Connector {
             },
           },
           isSetGlobalSwitchResponse,
-          AbortSignal.timeout(3_000),
+          setupSignal,
         );
       } catch (err) {
         debug(`setupClient ${deviceId}:${port} ${key} failed %O`, err);
+        if (
+          setupSignal.aborted && err === setupSignal.reason
+          && err instanceof DOMException && err.name === "TimeoutError"
+          && register.data.info.debugRouterId
+        ) {
+          return { info: register.data.info, setupTimedOut: true };
+        }
         if (required) throw err;
       }
     }
 
-    return register.data.info;
+    return { info: register.data.info };
   }
 
   async #setupClient(transport: Transport, clientId: string): Promise<void> {
