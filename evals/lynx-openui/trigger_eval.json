@@ -38,5 +38,21 @@
   {
     "query": "解释 OpenUI、A2UI 和普通 React 组件在架构与传输方式上的区别，不需要生成任何界面协议。",
     "should_trigger": false
+  },
+  {
+    "query": "请生成 Lynx OpenUI Lang v0.5 原始 DSL 程序供 OpenUiRenderer 渲染，不要生成 A2UI v0.9 JSON 消息，也不要写 ReactLynx TSX 代码。",
+    "should_trigger": true,
+    "scenario": "own_single_trigger",
+    "co_installed_skills": ["lynx-a2ui", "reactlynx-best-practices"],
+    "expected_skills": ["lynx-openui"],
+    "forbidden_skills": ["lynx-a2ui", "reactlynx-best-practices"]
+  },
+  {
+    "query": "请把“活动报名表”转换成 A2UI v0.9 的 `createSurface`、`updateDataModel` 和 `updateComponents` JSON 消息，不要返回 OpenUI Lang DSL。",
+    "should_trigger": false,
+    "scenario": "own_single_trigger",
+    "co_installed_skills": ["lynx-a2ui"],
+    "expected_skills": ["lynx-a2ui"],
+    "forbidden_skills": ["lynx-openui"]
   }
 ]

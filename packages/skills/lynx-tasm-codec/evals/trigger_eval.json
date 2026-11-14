@@ -46,5 +46,55 @@
   {
     "query": "把这个 protobuf 二进制 decode 成 json 看看字段。",
     "should_trigger": false
+  },
+  {
+    "query": "不需要连接真机 DevTool，也不需要分析 Rspeedy 包体积，只用 `agent-lynx tasm` 把 `/tmp/template.tasm` 二进制解码成 JSON。",
+    "should_trigger": true,
+    "scenario": "own_single_trigger",
+    "co_installed_skills": [
+      "lynx-devtool",
+      "rspeedy-bundle-size",
+      "lynx-debug-info-remapping"
+    ],
+    "expected_skills": ["lynx-tasm-codec"],
+    "forbidden_skills": [
+      "lynx-devtool",
+      "rspeedy-bundle-size",
+      "lynx-debug-info-remapping"
+    ]
+  },
+  {
+    "query": "请先用 `agent-lynx tasm` 把 `/tmp/card.json` 编码成 `/tmp/card.tasm`，然后用 `lynx-devtool` 连接当前调试设备打开页面并拉取 console 日志验证加载结果。",
+    "should_trigger": true,
+    "scenario": "own_multi_trigger",
+    "co_installed_skills": ["lynx-devtool", "lynx-typescript"],
+    "expected_skills": ["lynx-tasm-codec", "lynx-devtool"],
+    "forbidden_skills": ["lynx-typescript"]
+  },
+  {
+    "query": "请用 `agent-lynx tasm` 命令把本地的 `dist/main.tasm` 二进制文件解码成可读的模板 JSON。",
+    "should_trigger": true,
+    "scenario": "similar_skill_present",
+    "competing_skills": [
+      {
+        "name": "protobuf-binary-codec",
+        "description": "Encode and decode Protocol Buffers (.proto / .pb) binary payloads and inspect wire-format fields into JSON using protoc."
+      }
+    ],
+    "expected_skills": ["lynx-tasm-codec"],
+    "forbidden_skills": ["protobuf-binary-codec"]
+  },
+  {
+    "query": "这是一个标准的 gRPC `.pb` 二进制响应文件（不是 Lynx tasm 产物），请使用 protobuf-binary-codec 技能将它解码为 JSON。",
+    "should_trigger": false,
+    "scenario": "similar_skill_requested",
+    "competing_skills": [
+      {
+        "name": "protobuf-binary-codec",
+        "description": "Encode and decode Protocol Buffers (.proto / .pb) binary payloads and inspect wire-format fields into JSON using protoc."
+      }
+    ],
+    "expected_skills": ["protobuf-binary-codec"],
+    "forbidden_skills": ["lynx-tasm-codec"]
   }
 ]

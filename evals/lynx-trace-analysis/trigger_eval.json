@@ -30,5 +30,29 @@
   {
     "query": "Habitat 的 DEPS 里怎么配置 http 下载？",
     "should_trigger": false
+  },
+  {
+    "query": "这里已经有一份采集好的 `/tmp/feed-scroll.pftrace` 文件，不需要再去设备上录制 trace，请直接分析里面主线程和后台线程的渲染卡顿瓶颈。",
+    "should_trigger": true,
+    "scenario": "own_single_trigger",
+    "co_installed_skills": [
+      "lynx-trace-record",
+      "lynx-devtool",
+      "rspeedy-bundle-size"
+    ],
+    "expected_skills": ["lynx-trace-analysis"],
+    "forbidden_skills": [
+      "lynx-trace-record",
+      "lynx-devtool",
+      "rspeedy-bundle-size"
+    ]
+  },
+  {
+    "query": "请先用 `lynx-trace-record` 采集一段 Lynx 页面启动的 `.pftrace` 文件，采集完成后立刻用 `lynx-trace-analysis` 分析其中的 FCP 与 diffVdom 耗时。",
+    "should_trigger": true,
+    "scenario": "own_multi_trigger",
+    "co_installed_skills": ["lynx-trace-record", "lynx-recorder"],
+    "expected_skills": ["lynx-trace-record", "lynx-trace-analysis"],
+    "forbidden_skills": ["lynx-recorder"]
   }
 ]

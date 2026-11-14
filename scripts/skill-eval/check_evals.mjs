@@ -4,12 +4,9 @@
 import { existsSync } from 'node:fs';
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { basename, join, resolve } from 'node:path';
+import { pathToFileURL } from 'node:url';
 import { discoverSkillSuites } from './discover_suites.mjs';
-
-main().catch((error) => {
-  console.error(error instanceof Error ? error.message : String(error));
-  process.exitCode = 1;
-});
+import { VALID_SCENARIOS } from './run_trigger_online.mjs';
 
 async function main() {
   const args = parseArgs(process.argv.slice(2));
@@ -93,7 +90,7 @@ function buildSingleSuite(args) {
   };
 }
 
-async function validateSuite(suite) {
+export async function validateSuite(suite) {
   const skillMdPath = join(suite.skillPath, 'SKILL.md');
   const result = {
     errors: [],
@@ -106,6 +103,7 @@ async function validateSuite(suite) {
     task_evals: 0,
     task_expectations: 0,
     trigger_evals: 0,
+    trigger_multi_skill: 0,
     trigger_negative: 0,
     trigger_positive: 0,
   };
@@ -126,10 +124,12 @@ async function validateSuite(suite) {
 
     const trigger = await validateTriggerEvals(
       join(suite.evalPath, 'trigger_eval.json'),
+      skill.name,
     );
     result.trigger_evals = trigger.total;
     result.trigger_positive = trigger.positive;
     result.trigger_negative = trigger.negative;
+    result.trigger_multi_skill = trigger.multiSkill;
 
     result.pass = true;
     result.score = 100;
@@ -237,34 +237,309 @@ async function validateTaskEvals(skillName, path) {
   };
 }
 
-async function validateTriggerEvals(path) {
+function extractSkillEntryName(entry, path, index, field) {
+  if (typeof entry === 'string') {
+    const trimmed = entry.trim();
+    if (!trimmed) {
+      throw new Error(`${path} item #${index} ${field} has empty skill name`);
+    }
+    return trimmed;
+  }
+  assertObject(entry, `${path} item #${index} ${field} entry`);
+  const name = typeof entry.name === 'string' ? entry.name.trim() : '';
+  const desc = typeof entry.description === 'string'
+    ? entry.description.trim()
+    : '';
+  const skillPath = typeof entry.skill_path === 'string'
+    ? entry.skill_path.trim()
+    : '';
+  if (!name) {
+    throw new Error(
+      `${path} item #${index} ${field} entry missing valid \`name\``,
+    );
+  }
+  if (desc.length < 10 && !skillPath) {
+    throw new Error(
+      `${path} item #${index} ${field} entry \`${name}\` missing valid \`description\``,
+    );
+  }
+  return name;
+}
+
+export function validateTriggerEvalItem(item, index, path, skillName) {
+  assertObject(item, `${path} item #${index}`);
+  if (typeof item.query !== 'string' || item.query.trim().length < 10) {
+    throw new Error(`${path} item #${index} query too short`);
+  }
+  if (typeof item.should_trigger !== 'boolean') {
+    throw new Error(
+      `${path} item #${index} should_trigger must be boolean`,
+    );
+  }
+
+  const scenario = item.scenario;
+  if (
+    scenario !== undefined
+    && (typeof scenario !== 'string' || !VALID_SCENARIOS.has(scenario))
+  ) {
+    throw new Error(
+      `${path} item #${index} has invalid scenario \`${scenario}\``,
+    );
+  }
+
+  const coNames = [];
+  if (item.co_installed_skills !== undefined) {
+    if (
+      !Array.isArray(item.co_installed_skills)
+      || item.co_installed_skills.length === 0
+    ) {
+      throw new Error(
+        `${path} item #${index} co_installed_skills must be a non-empty array`,
+      );
+    }
+    for (const entry of item.co_installed_skills) {
+      const name = extractSkillEntryName(
+        entry,
+        path,
+        index,
+        'co_installed_skills',
+      );
+      if (skillName && name === skillName) {
+        throw new Error(
+          `${path} item #${index} co_installed_skills must not duplicate target skill \`${skillName}\``,
+        );
+      }
+      if (coNames.includes(name)) {
+        throw new Error(
+          `${path} item #${index} duplicate skill \`${name}\` in co_installed_skills`,
+        );
+      }
+      coNames.push(name);
+    }
+  }
+
+  const competingNames = [];
+  if (item.competing_skills !== undefined) {
+    if (
+      !Array.isArray(item.competing_skills)
+      || item.competing_skills.length === 0
+    ) {
+      throw new Error(
+        `${path} item #${index} competing_skills must be a non-empty array`,
+      );
+    }
+    for (const entry of item.competing_skills) {
+      const name = extractSkillEntryName(
+        entry,
+        path,
+        index,
+        'competing_skills',
+      );
+      if (skillName && name === skillName) {
+        throw new Error(
+          `${path} item #${index} competing_skills must not duplicate target skill \`${skillName}\``,
+        );
+      }
+      if (coNames.includes(name) || competingNames.includes(name)) {
+        throw new Error(
+          `${path} item #${index} duplicate skill \`${name}\` in competing_skills`,
+        );
+      }
+      competingNames.push(name);
+    }
+  }
+
+  const installedSet = new Set([...coNames, ...competingNames]);
+  if (skillName) installedSet.add(skillName);
+
+  let expectedList = [];
+  if (item.expected_skills !== undefined) {
+    if (
+      !Array.isArray(item.expected_skills)
+      || item.expected_skills.some(
+        (entry) => typeof entry !== 'string' || !entry.trim(),
+      )
+    ) {
+      throw new Error(
+        `${path} item #${index} expected_skills must be an array of strings`,
+      );
+    }
+    expectedList = item.expected_skills.map((entry) => entry.trim());
+    if (skillName) {
+      if (item.should_trigger && !expectedList.includes(skillName)) {
+        throw new Error(
+          `${path} item #${index} has should_trigger=true but target \`${skillName}\` is missing from expected_skills`,
+        );
+      }
+      if (!item.should_trigger && expectedList.includes(skillName)) {
+        throw new Error(
+          `${path} item #${index} has should_trigger=false but target \`${skillName}\` is in expected_skills`,
+        );
+      }
+      const unknownExpected = expectedList.filter(
+        (name) => !installedSet.has(name),
+      );
+      if (unknownExpected.length > 0) {
+        throw new Error(
+          `${path} item #${index} expected_skills references uninstalled skill(s): ${
+            unknownExpected.join(', ')
+          }`,
+        );
+      }
+    }
+  }
+
+  if (item.forbidden_skills !== undefined) {
+    if (
+      !Array.isArray(item.forbidden_skills)
+      || item.forbidden_skills.some(
+        (entry) => typeof entry !== 'string' || !entry.trim(),
+      )
+    ) {
+      throw new Error(
+        `${path} item #${index} forbidden_skills must be an array of strings`,
+      );
+    }
+    const forbiddenList = item.forbidden_skills.map((entry) => entry.trim());
+    const overlap = expectedList.filter((name) => forbiddenList.includes(name));
+    if (overlap.length > 0) {
+      throw new Error(
+        `${path} item #${index} has overlapping expected_skills and forbidden_skills: ${
+          overlap.join(', ')
+        }`,
+      );
+    }
+    if (skillName && item.should_trigger && forbiddenList.includes(skillName)) {
+      throw new Error(
+        `${path} item #${index} has should_trigger=true but target \`${skillName}\` is in forbidden_skills`,
+      );
+    }
+    if (skillName) {
+      const unknownForbidden = forbiddenList.filter(
+        (name) => !installedSet.has(name),
+      );
+      if (unknownForbidden.length > 0) {
+        throw new Error(
+          `${path} item #${index} forbidden_skills references uninstalled skill(s): ${
+            unknownForbidden.join(', ')
+          }`,
+        );
+      }
+    }
+  }
+
+  if (scenario === 'own_multi_trigger') {
+    if (coNames.length === 0) {
+      throw new Error(
+        `${path} item #${index} scenario \`own_multi_trigger\` requires co_installed_skills`,
+      );
+    }
+    if (expectedList.length < 2) {
+      throw new Error(
+        `${path} item #${index} scenario \`own_multi_trigger\` requires at least 2 expected_skills`,
+      );
+    }
+  } else if (scenario === 'own_single_trigger') {
+    if (coNames.length === 0) {
+      throw new Error(
+        `${path} item #${index} scenario \`own_single_trigger\` requires co_installed_skills`,
+      );
+    }
+  } else if (scenario === 'similar_skill_present') {
+    if (competingNames.length === 0) {
+      throw new Error(
+        `${path} item #${index} scenario \`similar_skill_present\` requires competing_skills`,
+      );
+    }
+  } else if (scenario === 'similar_skill_requested') {
+    if (competingNames.length === 0 && coNames.length === 0) {
+      throw new Error(
+        `${path} item #${index} scenario \`similar_skill_requested\` requires competing_skills or co_installed_skills`,
+      );
+    }
+    if (item.should_trigger) {
+      throw new Error(
+        `${path} item #${index} scenario \`similar_skill_requested\` must have should_trigger=false`,
+      );
+    }
+    if (expectedList.length === 0) {
+      throw new Error(
+        `${path} item #${index} scenario \`similar_skill_requested\` requires non-empty expected_skills`,
+      );
+    }
+  }
+
+  const isMultiSkill = coNames.length > 0
+    || competingNames.length > 0
+    || expectedList.length > 1;
+  return {
+    isMultiSkill,
+    shouldTrigger: item.should_trigger,
+  };
+}
+
+export async function validateTriggerEvals(path, skillName) {
   const payload = await readJson(path);
   if (!Array.isArray(payload) || payload.length === 0) {
     throw new Error(`${path} must be a non-empty array`);
   }
 
+  const items = [...payload];
+  const sidecars = [join(resolve(path, '..'), 'trigger_multi_eval.json')];
+  if (skillName) {
+    let dir = resolve(path, '..');
+    while (true) {
+      const candidate = join(
+        dir,
+        'evals',
+        skillName,
+        'trigger_multi_eval.json',
+      );
+      if (existsSync(candidate)) {
+        sidecars.push(candidate);
+        break;
+      }
+      const parent = resolve(dir, '..');
+      if (parent === dir) break;
+      dir = parent;
+    }
+  }
+  const seenSidecars = new Set();
+  for (const sidecarPath of sidecars) {
+    const resolvedSidecar = resolve(sidecarPath);
+    if (seenSidecars.has(resolvedSidecar) || !existsSync(resolvedSidecar)) {
+      continue;
+    }
+    seenSidecars.add(resolvedSidecar);
+    const sidecarPayload = await readJson(resolvedSidecar);
+    if (!Array.isArray(sidecarPayload) || sidecarPayload.length === 0) {
+      throw new Error(`${resolvedSidecar} must be a non-empty array`);
+    }
+    items.push(...sidecarPayload);
+  }
+
   let positive = 0;
   let negative = 0;
-  for (const [index, item] of payload.entries()) {
-    assertObject(item, `${path} item #${index + 1}`);
-    if (typeof item.query !== 'string' || item.query.trim().length < 10) {
-      throw new Error(`${path} item #${index + 1} query too short`);
-    }
-    if (typeof item.should_trigger !== 'boolean') {
-      throw new Error(
-        `${path} item #${index + 1} should_trigger must be boolean`,
-      );
-    }
-    if (item.should_trigger) positive += 1;
+  let multiSkill = 0;
+  for (const [index, item] of items.entries()) {
+    const validated = validateTriggerEvalItem(
+      item,
+      index + 1,
+      path,
+      skillName,
+    );
+    if (validated.shouldTrigger) positive += 1;
     else negative += 1;
+    if (validated.isMultiSkill) multiSkill += 1;
   }
   if (positive === 0 || negative === 0) {
     throw new Error(`${path} must contain both positive and negative cases`);
   }
   return {
+    multiSkill,
     negative,
     positive,
-    total: payload.length,
+    total: items.length,
   };
 }
 
@@ -299,6 +574,7 @@ function printReport(report) {
         + `task_evals=${result.task_evals} `
         + `expectations=${result.task_expectations} `
         + `trigger_evals=${result.trigger_evals} `
+        + `multi_skill=${result.trigger_multi_skill ?? 0} `
         + `score=${result.score.toFixed(1)}`,
     );
     for (const error of result.errors) {
@@ -309,4 +585,14 @@ function printReport(report) {
 
 function round(value) {
   return Math.round(value * 1000) / 1000;
+}
+
+if (
+  process.argv[1]
+  && import.meta.url === pathToFileURL(process.argv[1]).href
+) {
+  main().catch((error) => {
+    console.error(error instanceof Error ? error.message : String(error));
+    process.exitCode = 1;
+  });
 }
