@@ -33,6 +33,23 @@ function parsePort(value: string): number {
   return port;
 }
 
+function hasErrorCode(value: unknown, code: string): boolean {
+  if (typeof value !== 'object' || value === null) return false;
+  const record = value as {
+    code?: unknown;
+    cause?: unknown;
+    errors?: unknown;
+  };
+  if (record.code === code) return true;
+  if (
+    Array.isArray(record.errors)
+    && record.errors.some(item => hasErrorCode(item, code))
+  ) {
+    return true;
+  }
+  return record.cause !== undefined && hasErrorCode(record.cause, code);
+}
+
 const DEFAULT_LIFECYCLE: DaemonCommandLifecycle = {
   ensureRunning: port => DaemonManager.ensureRunning(port),
   stop: port => DaemonManager.kill(port),
@@ -61,9 +78,25 @@ export function registerDaemonCommand(
       DEFAULT_DAEMON_PORT,
     )
     .action(async ({ port }: DaemonCommandOptions) => {
-      const response = await fetchVersion(
-        `http://127.0.0.1:${port}/devtool/connector/version`,
-      );
+      let response: Response;
+      try {
+        response = await fetchVersion(
+          `http://127.0.0.1:${port}/devtool/connector/version`,
+        );
+      } catch (error) {
+        if (hasErrorCode(error, 'ECONNREFUSED')) {
+          throw new Error(
+            `Daemon is not running on port ${port} (connection refused). Run \`agent-lynx daemon start\` to start it.`,
+            { cause: error },
+          );
+        }
+        throw error;
+      }
+      if (!response.ok) {
+        throw new Error(
+          `Daemon status request failed with HTTP ${response.status} on port ${port}.`,
+        );
+      }
       print(JSON.stringify(await response.json(), null, 2));
     });
 

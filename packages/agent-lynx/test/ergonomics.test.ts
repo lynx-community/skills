@@ -6,7 +6,10 @@ import { Connector } from '@lynx-js/devtool-connector';
 import type { CommandClient } from '@lynx-js/devtool-connector/command';
 import { Command, InvalidArgumentError } from 'commander';
 import assert from 'node:assert/strict';
+import { execFile } from 'node:child_process';
+import path from 'node:path';
 import { describe, test } from 'node:test';
+import { promisify } from 'node:util';
 import { registerAppCommand } from '../src/commands/app.ts';
 import { registerCdpCommand } from '../src/commands/cdp.ts';
 import { registerTapCommand } from '../src/commands/tap.ts';
@@ -17,6 +20,9 @@ import {
 } from '../src/commands/utils.ts';
 import { registerWaitForClientCommand } from '../src/commands/wait-for-client.ts';
 import { registerWaitCommand } from '../src/commands/wait.ts';
+import { handleCliError } from '../src/program.ts';
+
+const execFileAsync = promisify(execFile);
 
 describe('duration parsing', () => {
   test('parses ms-default options with bare numbers and explicit suffixes', () => {
@@ -274,6 +280,64 @@ describe('cdp and app params alias and JSON error guidance', () => {
         '{ignoreCache:true}',
       ]),
       /Invalid JSON for params:.*Wrap JSON in single quotes/u,
+    );
+  });
+});
+
+describe('top-level CLI error formatting', () => {
+  test('formats operational errors cleanly unless DEBUG is set', async () => {
+    let cleanStderr = '';
+    const prevCode = process.exitCode;
+    try {
+      process.exitCode = undefined;
+      handleCliError(
+        new Error('No available clients found.'),
+        {},
+        { write: chunk => void (cleanStderr += chunk) },
+      );
+      assert.equal(cleanStderr, 'Error: No available clients found.\n');
+      assert.equal(process.exitCode, 1);
+
+      let debugStderr = '';
+      handleCliError(
+        new Error('with stack'),
+        { DEBUG: 'devtool-mcp-server:*' },
+        { write: chunk => void (debugStderr += chunk) },
+      );
+      assert.match(debugStderr, /Error: with stack\n\s+at /u);
+    } finally {
+      process.exitCode = prevCode;
+    }
+
+    await assert.rejects(
+      execFileAsync(
+        process.execPath,
+        [
+          'src/index.ts',
+          'cdp',
+          '-m',
+          'Page.reload',
+          '{invalid-json}',
+        ],
+        {
+          cwd: path.resolve(import.meta.dirname, '..'),
+          env: {
+            ...process.env,
+            AGENT_LYNX_DISABLE_UPDATE_NOTICE: '1',
+            DEBUG: '',
+          },
+        },
+      ),
+      (err: unknown) => {
+        const failure = err as { code?: number; stderr?: string; };
+        assert.equal(failure.code, 1);
+        assert.match(failure.stderr ?? '', /^Error: Invalid JSON for params:/u);
+        assert.doesNotMatch(
+          failure.stderr ?? '',
+          /node:internal\/modules\/run_main/u,
+        );
+        return true;
+      },
     );
   });
 });
