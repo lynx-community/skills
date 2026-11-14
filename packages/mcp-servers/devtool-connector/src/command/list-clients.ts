@@ -9,7 +9,7 @@ const noClientsSummary = "No Lynx DevTool clients were found.";
 const noClientsHelp = [
   "Try these steps:",
   "1. Make sure the target device/simulator and app are running.",
-  "2. If the app just launched, wait a moment and rerun `list-clients`.",
+  "2. If the app is still launching, run `agent-lynx wait-for-client` instead of polling `list-clients`.",
   "3. If this is unexpected, rerun with `DEBUG='devtool-mcp-server:connector*'` or try `--no-daemon` (HDT/Aiden discovery still takes precedence).",
   "",
   "Run `agent-lynx skills get lynx-devtool`, then read `references/troubleshooting/symptoms.md#list-clients-returns-` relative to the reported Skill directory.",
@@ -33,7 +33,7 @@ export async function listClientsAction(
       reason: "no-clients",
       recoverable: true,
       nextActions: [
-        "Make sure the target device/simulator and app are running, then retry.",
+        "Make sure the target device/simulator and app are running, or run `agent-lynx wait-for-client` while launching.",
         "Retry with `--no-daemon` to run discovery in-process; HDT/Aiden still takes precedence over direct discovery.",
       ],
     });

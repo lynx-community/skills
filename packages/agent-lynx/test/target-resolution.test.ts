@@ -33,6 +33,27 @@ test('default target resolution uses discovered clients and the latest session',
   assert.equal(target.sessionId, '9');
 });
 
+test('default target resolution prefers non-web sessions over higher-numbered web sessions', async (t) => {
+  t.mock.method(Connector.prototype, 'listClients', async () => [
+    { id: 'desktop:1', info: { App: 'Example' } } as Client,
+  ]);
+  t.mock.method(Connector.prototype, 'sendListSessionMessage', async () => [
+    { session_id: 2, type: '', url: 'lynx://legacy' },
+    { session_id: 5, type: 'lynx', url: 'lynx://main' },
+    { session_id: 14, type: 'web', url: 'https://example.test/webview' },
+  ]);
+
+  const mixed = await resolveClientAndSession({ transports: [] }, {});
+  assert.equal(mixed.sessionId, '5');
+
+  t.mock.method(Connector.prototype, 'sendListSessionMessage', async () => [
+    { session_id: 4, type: 'web', url: 'https://example.test/older' },
+    { session_id: 11, type: 'web', url: 'https://example.test/latest' },
+  ]);
+  const webOnly = await resolveClientAndSession({ transports: [] }, {});
+  assert.equal(webOnly.sessionId, '11');
+});
+
 test('default target resolution reports missing clients and sessions without runtime hints', async (t) => {
   t.mock.method(Connector.prototype, 'listClients', async () => []);
   t.mock.method(Connector.prototype, 'sendListSessionMessage', async () => []);
