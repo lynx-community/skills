@@ -30,6 +30,8 @@ export interface OpenAppOptions {
   restart?: boolean | undefined;
   /** Open a deep link instead of the launcher on supported transports; ignored otherwise. */
   schema?: string | undefined;
+  /** Target transport id, so the daemon can skip device discovery. */
+  transportId?: string | undefined;
 }
 
 export interface Transport {
@@ -41,7 +43,7 @@ export interface Transport {
 
   listClients?(): Promise<Client[]>;
 
-  listAvailableApps(deviceId: string): Promise<App[]>;
+  listAvailableApps(deviceId: string, options?: { transportId?: string | undefined }): Promise<App[]>;
 
   openApp(deviceId: string, packageName: string, options?: OpenAppOptions): Promise<void>;
 

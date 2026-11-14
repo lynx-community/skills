@@ -70,6 +70,7 @@ export class DevtoolDaemon {
   #hdtTransports: HDTTransport[];
   #deviceConnections = new Map<string, DeviceConnection>();
   #pendingDeviceConnections = new Map<string, Promise<DeviceConnection>>();
+  #pendingClientDiscovery: Promise<ClientListEntry[] & { transports: string[] }> | null = null;
   #deviceConnectionCleanupTimers = new Map<string, ReturnType<typeof setTimeout>>();
   #wsClients = new Map<number, WsClientSession>();
   #commandControllers = new Set<AbortController>();
@@ -857,10 +858,10 @@ export class DevtoolDaemon {
         }
 
         case "listAvailableApps": {
-          const deviceId = (params as { deviceId?: string } | undefined)?.deviceId;
-          if (!deviceId) throw new Error("deviceId is required");
-          const transport = await this.#findTransportWithDeviceId(deviceId);
-          result = await transport.listAvailableApps(deviceId);
+          const p = (params ?? {}) as { deviceId?: string; transportId?: string };
+          if (!p.deviceId) throw new Error("deviceId is required");
+          const transport = await this.#findTransportWithDeviceId(p.deviceId, p.transportId);
+          result = await transport.listAvailableApps(p.deviceId);
           break;
         }
 
@@ -868,6 +869,7 @@ export class DevtoolDaemon {
           const p = (params ?? {}) as {
             deviceId?: string;
             packageName?: string;
+            transportId?: string;
             withDataCleared?: boolean;
             restart?: boolean;
             schema?: string;
@@ -880,7 +882,7 @@ export class DevtoolDaemon {
             );
           });
           try {
-            const transport = await this.#findTransportWithDeviceId(p.deviceId);
+            const transport = await this.#findTransportWithDeviceId(p.deviceId, p.transportId);
             abortController.signal.throwIfAborted();
             await transport.openApp(p.deviceId, p.packageName, {
               withDataCleared: p.withDataCleared,
@@ -943,6 +945,15 @@ export class DevtoolDaemon {
   }
 
   async #discoverClients(): Promise<ClientListEntry[] & { transports: string[] }> {
+    // Share one in-flight discovery so concurrent callers cannot each run a
+    // full device scan plus port probe.
+    this.#pendingClientDiscovery ??= this.#runClientDiscovery().finally(() => {
+      this.#pendingClientDiscovery = null;
+    });
+    return await this.#pendingClientDiscovery;
+  }
+
+  async #runClientDiscovery(): Promise<ClientListEntry[] & { transports: string[] }> {
     const entries: ClientListEntry[] = [];
     const transports: string[] = [];
     const discoveryFailures: unknown[] = [];
@@ -1236,6 +1247,11 @@ export class DevtoolDaemon {
       const matchedById = this.#transports.find(t => t.id === transportId);
       if (matchedById) return matchedById;
       throw new Error(`Transport with id: ${transportId} not found`);
+    }
+
+    // A pooled connection already proves which transport owns this device.
+    for (const conn of this.#deviceConnections.values()) {
+      if (conn.deviceId === deviceId && !conn.isDisposed) return conn.transport;
     }
 
     for (const transport of this.#transports) {

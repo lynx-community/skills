@@ -62,8 +62,11 @@ export class DaemonTransport implements Transport {
     return result;
   }
 
-  async listAvailableApps(deviceId: string): Promise<App[]> {
-    const result = await this.#controlRequest<App[]>("listAvailableApps", { deviceId });
+  async listAvailableApps(deviceId: string, options?: { transportId?: string | undefined }): Promise<App[]> {
+    const result = await this.#controlRequest<App[]>("listAvailableApps", {
+      deviceId,
+      transportId: options?.transportId,
+    });
     return result;
   }
 
@@ -73,6 +76,7 @@ export class DaemonTransport implements Transport {
       {
         deviceId,
         packageName,
+        transportId: options?.transportId,
         withDataCleared: options?.withDataCleared,
         restart: options?.restart,
         schema: options?.schema,
