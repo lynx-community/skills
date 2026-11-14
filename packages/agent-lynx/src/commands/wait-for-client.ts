@@ -9,7 +9,11 @@ import type {
 import type { Client } from '@lynx-js/devtool-connector/transport';
 import { Command } from 'commander';
 import { logMonitor, MonitorCode } from '../telemetry.ts';
-import { type Context, getCommandClient } from './utils.ts';
+import {
+  type Context,
+  getCommandClient,
+  parseDurationSeconds,
+} from './utils.ts';
 
 interface WaitForClientCommandOptions {
   clientName?: string;
@@ -28,13 +32,8 @@ export interface WaitForClientResult {
 const DEFAULT_TIMEOUT_MS = 30_000;
 const DEFAULT_INTERVAL_MS = 1_000;
 function parseSecondsOption(value: string, optionName: string): number {
-  const seconds = Number(value);
-  if (!Number.isFinite(seconds) || seconds < 0) {
-    throw new Error(
-      `Invalid ${optionName} value: ${value}. Use a non-negative number of seconds.`,
-    );
-  }
-  return seconds * 1_000;
+  const seconds = parseDurationSeconds(value, optionName, { allowZero: true });
+  return Math.round(seconds * 1_000);
 }
 
 function reportListClientsSuccess(
@@ -134,10 +133,14 @@ export function registerWaitForClientCommand(
       '--client-name <name>',
       'Client package/app name to wait for; omit to wait for the first client (e.g. com.lynx.uiapp)',
     )
-    .option('--timeout <seconds>', 'Maximum seconds to wait', '30')
+    .option(
+      '--timeout <seconds>',
+      'Maximum wait duration (bare seconds, or with ms/s/m suffix, e.g. 30 or 30s)',
+      '30',
+    )
     .option(
       '--interval <seconds>',
-      'Seconds between client discovery attempts',
+      'Polling interval (bare seconds, or with ms/s/m suffix, e.g. 1 or 500ms)',
       '1',
     )
     .action(async (options) => {

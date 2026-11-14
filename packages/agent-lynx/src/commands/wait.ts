@@ -8,12 +8,14 @@ import type {
   CommandResult,
 } from '@lynx-js/devtool-connector/command';
 import { Command } from 'commander';
+import { cliPlaceholder } from '../cli-invocation.ts';
 import { fail, runSnapshotCommand } from './result.ts';
 import {
   CLIENT_OPTION,
   type Context,
   getCommandClient,
   JSON_OPTION,
+  parseDurationMs,
   SESSION_OPTION,
 } from './utils.ts';
 
@@ -62,19 +64,25 @@ export function registerWaitCommand(program: Command, context: Context): void {
     .option('--ref <ref>', 'Wait until this ref resolves in a fresh snapshot.')
     .option(
       '--timeout <ms>',
-      'Maximum time to wait in milliseconds.',
-      value => Number.parseInt(value, 10),
+      'Maximum time to wait (bare ms, or with ms/s/m suffix, e.g. 10000 or 10s).',
+      value => parseDurationMs(value, '--timeout', { allowZero: true }),
       10_000,
     )
     .option(
       '--interval <ms>',
-      'Polling interval in milliseconds.',
-      value => Number.parseInt(value, 10),
+      'Polling interval (bare ms, or with ms/s/m suffix, e.g. 500 or 500ms).',
+      value => parseDurationMs(value, '--interval', { allowZero: false }),
       500,
     )
     .option(...CLIENT_OPTION)
     .option(...SESSION_OPTION)
-    .option(...JSON_OPTION);
+    .option(...JSON_OPTION)
+    .addHelpText(
+      'after',
+      `\nExamples:
+  $ ${cliPlaceholder(context)} wait --text "Ready" --timeout 10s
+  $ ${cliPlaceholder(context)} wait --ref @e3 --timeout 5000`,
+    );
   command.action(
     async (options: {
       text?: string;

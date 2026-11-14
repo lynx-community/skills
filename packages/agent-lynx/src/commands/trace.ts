@@ -16,6 +16,7 @@ import {
   CLIENT_OPTION,
   type Context,
   isAbortError,
+  parseDurationSeconds,
   resolveClient,
 } from './utils.ts';
 
@@ -97,13 +98,7 @@ interface TraceCompleteParams {
 }
 
 function parsePositiveSeconds(value: string): number {
-  const seconds = Number(value);
-  if (!Number.isFinite(seconds) || seconds <= 0) {
-    throw new Error(
-      `Invalid --timeout value: ${value}. Use a positive number of seconds.`,
-    );
-  }
-  return seconds;
+  return parseDurationSeconds(value, '--timeout', { allowZero: false });
 }
 
 function parseJSProfileInterval(value: string): number {
@@ -505,7 +500,7 @@ export function registerTraceCommand(program: Command, context: Context): void {
     .option(...CLIENT_OPTION)
     .option(
       '--timeout <seconds>',
-      'Seconds to wait for Tracing.tracingComplete',
+      'Seconds to wait for Tracing.tracingComplete (bare s, or ms/s/m suffix)',
       parsePositiveSeconds,
       DEFAULT_TIMEOUT_SECONDS,
     )
@@ -541,7 +536,7 @@ export function registerTraceCommand(program: Command, context: Context): void {
     )
     .option(
       '--timeout <seconds>',
-      'Total trace download timeout in seconds',
+      'Total trace download timeout (bare s, or ms/s/m suffix)',
       parsePositiveSeconds,
       DEFAULT_TIMEOUT_SECONDS,
     )
