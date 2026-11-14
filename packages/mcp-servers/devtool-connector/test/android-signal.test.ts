@@ -385,6 +385,74 @@ test("Android connect waits for the ADB device before creating the socket", asyn
   await connection[Symbol.asyncDispose]();
 });
 
+test("Android listDevices includes offline devices and honours the configured ADB serials", async (t) => {
+  const previousEnv = process.env["LYNX_DEVTOOL_MCP_TESTING_ADB_DEVICES"];
+  t.after(() => {
+    if (previousEnv === undefined) {
+      delete process.env["LYNX_DEVTOOL_MCP_TESTING_ADB_DEVICES"];
+    } else {
+      process.env["LYNX_DEVTOOL_MCP_TESTING_ADB_DEVICES"] = previousEnv;
+    }
+  });
+  delete process.env["LYNX_DEVTOOL_MCP_TESTING_ADB_DEVICES"];
+
+  const transport = new AndroidTransport();
+  let includeStates: readonly string[] | undefined;
+  Object.defineProperty(transport, "client", {
+    value: {
+      async getDevices(states?: readonly string[]) {
+        includeStates = states;
+        return [{ serial: "device" }, { serial: "unauthorized" }, { serial: "offline" }];
+      },
+    },
+  });
+
+  assert.deepEqual(await transport.listDevices(), [
+    { os: "Android", id: "device" },
+    { os: "Android", id: "unauthorized" },
+    { os: "Android", id: "offline" },
+  ]);
+  assert.deepEqual(includeStates, ["device", "unauthorized", "offline"]);
+
+  process.env["LYNX_DEVTOOL_MCP_TESTING_ADB_DEVICES"] = " offline , other ";
+  assert.deepEqual(await transport.listDevices(), [{ os: "Android", id: "offline" }]);
+});
+
+test("Android concurrent waits for one device share a single ADB wait without cancelling active peers", async () => {
+  const transport = new AndroidTransport();
+  const waits: AbortSignal[] = [];
+  const release = deferred<void>();
+  Object.defineProperty(transport, "client", {
+    value: {
+      async waitFor(_device: unknown, _state: unknown, options?: { signal?: AbortSignal }) {
+        waits.push(options!.signal!);
+        await release.promise;
+      },
+      async createDeviceConnection() {
+        const rawSocket = createRawSocket();
+        rawSocket.close = () => rawSocket.resolveClosed();
+        return rawSocket;
+      },
+    },
+  });
+
+  const abortingCaller = new AbortController();
+  const first = transport.connect({ deviceId: "device", port: 8901, signal: abortingCaller.signal });
+  const second = transport.connect({ deviceId: "device", port: 8902 });
+  await new Promise(resolve => setTimeout(resolve, 10));
+  assert.equal(waits.length, 1);
+
+  abortingCaller.abort(new Error("early abort"));
+  await assert.rejects(first, { message: "early abort" });
+  assert.equal(waits[0]?.aborted, false);
+
+  release.resolve();
+  const connection = await second;
+  assert.equal(waits.length, 1);
+  assert.equal(waits[0]?.aborted, false);
+  await connection[Symbol.asyncDispose]();
+});
+
 test("Android openApp falls through to createAdb when waitFor times out on a missing device", async (t) => {
   const timeoutController = new AbortController();
   const originalTimeout = AbortSignal.timeout.bind(AbortSignal);
