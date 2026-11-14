@@ -23,7 +23,14 @@ const debug = createDebug("devtool-mcp-server:connector:android");
 const APP_ICON_HELPER_REMOTE_PATH = "/data/local/tmp/lynx-connector-app-icon-v1.jar";
 const PNG_SIGNATURE = [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a] as const;
 const SOCKET_GRACEFUL_CLOSE_TIMEOUT_MS = 100;
-const WAIT_FOR_DEVICE_TIMEOUT_MS = 3_000;
+// When a TCP-backed ADB transport (`adb connect <host>:<port>`) drops due to an
+// upstream FIN/RST, AOSP `adb` (`transport.cpp` `ReconnectHandler`) schedules
+// its first reconnect at +250ms and retries every `kDefaultTimeout = 3_000ms`
+// (+3_250ms, +6_250ms, ...), followed by ~250ms for the `[CNXN]` handshake.
+// 8_000ms covers the first three reconnect attempts (+250ms, +3_250ms, +6_250ms)
+// as well as a 5_000ms upstream relay dial/DNS timeout, whereas 3_000ms missed
+// even the second reconnect attempt (+3_250ms).
+const WAIT_FOR_DEVICE_TIMEOUT_MS = 8_000;
 
 function spawnWaitText(adb: Adb, command: string | readonly string[]): Promise<string> {
   return adb.subprocess.noneProtocol.spawn(command).wait().toString();

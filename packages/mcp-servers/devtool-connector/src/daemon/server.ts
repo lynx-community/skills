@@ -43,7 +43,11 @@ const IDLE_TIMEOUT_MS = 300_000;
 /** Grace period before disposing an unsubscribed device connection. */
 const DEVICE_CONN_GRACE_MS = 30_000;
 const DEVICE_DISCOVERY_TIMEOUT_MS = 2_500;
-const DEVICE_CONN_SETUP_TIMEOUT_MS = 5_000;
+const DEVICE_CONN_DISCOVERY_SETUP_TIMEOUT_MS = 5_000;
+// Keep explicit subscription setup above AndroidTransport's 8_000ms
+// wait-for-device window while staying under DaemonTransport's 10_000ms
+// subscribe deadline.
+const DEVICE_CONN_SETUP_TIMEOUT_MS = 9_000;
 
 interface WsClientSession extends DeviceConnectionSubscriber {
   readonly id: number;
@@ -1042,7 +1046,11 @@ export class DevtoolDaemon {
         devices.flatMap((device) =>
           PORTS
             .filter((port) => !existingKeys.has(this.#deviceConnectionKey(transport, device.id, port)))
-            .map((port) => this.#getOrCreateDeviceConnection(transport, device.id, port))
+            .map((port) =>
+              this.#getOrCreateDeviceConnection(transport, device.id, port, {
+                setupTimeoutMs: DEVICE_CONN_DISCOVERY_SETUP_TIMEOUT_MS,
+              })
+            )
         )
       ),
     );
@@ -1087,7 +1095,9 @@ export class DevtoolDaemon {
     transport: Transport,
     deviceId: string,
     port: ClientTarget,
+    options?: { setupTimeoutMs?: number },
   ): Promise<DeviceConnection> {
+    const setupTimeoutMs = options?.setupTimeoutMs ?? DEVICE_CONN_SETUP_TIMEOUT_MS;
     const key = this.#deviceConnectionKey(transport, deviceId, port);
     if (this.#closed) {
       throw new Error(`DevTool daemon closed while acquiring device connection ${key}`);
@@ -1118,8 +1128,8 @@ export class DevtoolDaemon {
       // The signal is passed into transports, so keep the setup deadline clearable.
       // AbortSignal.timeout() would abort later even after this pooled connection succeeds.
       const setupTimeout = setTimeout(() => {
-        setupAbortController.abort(createDeviceConnectionSetupTimeoutError(key));
-      }, DEVICE_CONN_SETUP_TIMEOUT_MS);
+        setupAbortController.abort(createDeviceConnectionSetupTimeoutError(key, setupTimeoutMs));
+      }, setupTimeoutMs);
       const registerAbortController = new AbortController();
       let registerTimeout: ReturnType<typeof setTimeout> | undefined;
       const conn = new DeviceConnection(transport, {
@@ -1292,9 +1302,9 @@ function websocketCloseReason(cause: unknown): string {
   return reason + suffix;
 }
 
-function createDeviceConnectionSetupTimeoutError(key: string): Error {
+function createDeviceConnectionSetupTimeoutError(key: string, timeoutMs = DEVICE_CONN_SETUP_TIMEOUT_MS): Error {
   return new Error(
-    `Timed out setting up device connection ${key} after ${DEVICE_CONN_SETUP_TIMEOUT_MS}ms`,
+    `Timed out setting up device connection ${key} after ${timeoutMs}ms`,
   );
 }
 
