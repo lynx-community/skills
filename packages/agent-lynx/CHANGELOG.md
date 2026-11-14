@@ -1,5 +1,14 @@
 # agent-lynx
 
+## 0.15.2
+
+### Patch Changes
+
+- Use `pnpx` for one-shot agent-lynx commands in the documentation, bundled skills, and Connector CLI guidance. Use `npm_config_registry` for registry overrides so the examples work on pnpm 10 and 11.
+- Wait for a terminal `App.geckoUpdated` event in `agent-lynx gecko fetch`, ignoring premature `onUpdateFinish` notifications and synthetic `fake channel` failures, and exit non-zero when the terminal event reports a non-zero `code`.
+- Updated dependencies
+  - @lynx-js/devtool-connector@0.19.2
+
 ## 0.15.1
 
 ### Patch Changes

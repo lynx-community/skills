@@ -1,5 +1,12 @@
 # @lynx-js/devtool-mcp-server
 
+## 0.17.2
+
+### Patch Changes
+
+- Updated dependencies
+  - @lynx-js/devtool-connector@0.19.2
+
 ## 0.17.1
 
 ### Patch Changes
