@@ -2,6 +2,7 @@
 // Licensed under the Apache License Version 2.0 that can be found in the
 // LICENSE file in the root directory of this source tree.
 import type { Connector } from "../index.ts";
+import type { Session } from "../types.ts";
 import type { CommandObject } from "./contract.ts";
 import { type CommandResult, fail } from "./result.ts";
 
@@ -31,7 +32,7 @@ function targetFailure(action: string, message: string, nextActions: string[]): 
 }
 
 export type ResolvedTarget =
-  | { ok: true; params: CommandObject }
+  | { ok: true; params: CommandObject; sessionType?: Session["type"] }
   | { ok: false; result: CommandResult<never> };
 
 /** Resolve only the client/session target required by an action. */
@@ -59,7 +60,10 @@ export async function resolveTarget(
         result: targetFailure(
           action,
           "No available clients found.",
-          ["Connect a Lynx client, then retry the command.", "Run `agent-lynx list-clients` to verify discovery."],
+          [
+            "Connect a Lynx client or run `agent-lynx wait-for-client` while launching.",
+            "Run `agent-lynx list-clients` to verify discovery.",
+          ],
         ),
       };
     }
@@ -70,6 +74,7 @@ export async function resolveTarget(
   if (requirement === "client") return { ok: true, params: withClient };
 
   let sessionId = numberParam(params, "sessionId");
+  let sessionType: Session["type"] | undefined;
   if (params["sessionId"] !== undefined && sessionId === undefined) {
     return {
       ok: false,
@@ -88,9 +93,16 @@ export async function resolveTarget(
         ),
       };
     }
-    const latest = sessions.reduce((max, session) => session.session_id > max.session_id ? session : max);
+    const nonWebSessions = sessions.filter(session => session.type !== "web");
+    const candidates = nonWebSessions.length > 0 ? nonWebSessions : sessions;
+    const latest = candidates.reduce((max, session) => session.session_id > max.session_id ? session : max);
     sessionId = latest.session_id;
+    sessionType = latest.type;
   }
 
-  return { ok: true, params: { ...withClient, sessionId } };
+  return {
+    ok: true,
+    params: { ...withClient, sessionId },
+    ...(sessionType === undefined ? {} : { sessionType }),
+  };
 }
