@@ -20,7 +20,15 @@ import { openAction } from "./open.ts";
 import { ReactLynxActionError, type ReactLynxCacheSnapshot, ReactLynxController } from "./reactlynx/controller.ts";
 import { parseReactLynxLinkRef } from "./reactlynx/model.ts";
 import type { ReactLynxUpdateKind } from "./reactlynx/types.ts";
-import { normalizeRef, setValue, touchLongPress, touchSwipe, touchTap, validateRef } from "./ref-actions.ts";
+import {
+  normalizeRef,
+  setValue,
+  synchronizeSessionCoordinateMode,
+  touchLongPress,
+  touchSwipe,
+  touchTap,
+  validateRef,
+} from "./ref-actions.ts";
 import { type CommandResult, fail, ok } from "./result.ts";
 import { annotateScreenshot, ScreenshotAnnotationError } from "./screenshot-annotation.ts";
 import { captureScreenshotFrame, type ScreencastFrameMetadata, ScreenshotTimeoutError } from "./screenshot.ts";
@@ -220,6 +228,7 @@ function swipeForDirection(box: Box, direction: Direction, viewport?: Box): { fr
  */
 export class ActionCore {
   #snapshots = new Map<string, SnapshotEntry>();
+  #synchronizedTouchSessions = new Set<string>();
   #reactLynx = new ReactLynxController();
   #handlers = new Map<CommandAction, RegisteredHandler>();
   #streamHandlers = new Map<StreamCommandAction, RegisteredStreamHandler>();
@@ -718,12 +727,18 @@ export class ActionCore {
     for (const key of this.#snapshots.keys()) {
       if (key.startsWith(`${clientId}:`)) this.#snapshots.delete(key);
     }
+    for (const key of this.#synchronizedTouchSessions) {
+      if (key.startsWith(`${clientId}:`)) this.#synchronizedTouchSessions.delete(key);
+    }
     try {
       const capturedFrame = await captureScreenshotFrame(ctx.connector, clientId, sessionId, {
         fullscreen,
         quality: annotate ? 100 : 80,
         signal,
       });
+      if (!fullscreen) {
+        this.#synchronizedTouchSessions.add(snapshotKey);
+      }
       const jpegBase64 = capturedFrame.data;
       let snapshot: CommandData<"screenshot">["snapshot"];
       let frameBounds: Box | undefined;
@@ -844,6 +859,21 @@ export class ActionCore {
     return { ref, snapshot };
   }
 
+  async #ensureTouchCoordinateMode(
+    connector: Connector,
+    clientId: string,
+    sessionId: number,
+    viewport: Box | undefined,
+    signal: AbortSignal,
+  ): Promise<void> {
+    const key = this.#key(clientId, sessionId);
+    if (this.#synchronizedTouchSessions.has(key)) return;
+    if (viewport && viewport.x === 0 && viewport.y === 0) {
+      await synchronizeSessionCoordinateMode(connector, clientId, sessionId, "lynxview", signal);
+    }
+    this.#synchronizedTouchSessions.add(key);
+  }
+
   async #tap(
     params: CommandObject,
     ctx: ActionContext,
@@ -861,6 +891,7 @@ export class ActionCore {
     const validation = await validateRef("tap", ctx.connector, clientId, sessionId, resolved.ref, {}, signal);
     if (!validation.ok) return validation;
 
+    await this.#ensureTouchCoordinateMode(ctx.connector, clientId, sessionId, resolved.snapshot.viewport, signal);
     await touchTap(ctx.connector, clientId, sessionId, resolved.ref.center, signal);
     return this.#withSnapshotAfter("tap", params, ctx, clientId, sessionId, {
       clientId,
@@ -892,6 +923,7 @@ export class ActionCore {
     const validation = await validateRef("long-press", ctx.connector, clientId, sessionId, resolved.ref, {}, signal);
     if (!validation.ok) return validation;
 
+    await this.#ensureTouchCoordinateMode(ctx.connector, clientId, sessionId, resolved.snapshot.viewport, signal);
     await touchLongPress(ctx.connector, clientId, sessionId, resolved.ref.center, duration, signal);
     return this.#withSnapshotAfter("long-press", params, ctx, clientId, sessionId, {
       clientId,
@@ -923,6 +955,7 @@ export class ActionCore {
     }, signal);
     if (!validation.ok) return validation;
 
+    await this.#ensureTouchCoordinateMode(ctx.connector, clientId, sessionId, resolved.snapshot.viewport, signal);
     await touchTap(ctx.connector, clientId, sessionId, resolved.ref.center, signal);
     await setValue(
       ctx.connector,
@@ -983,6 +1016,7 @@ export class ActionCore {
     if (!validation.ok) return validation;
 
     const { from, to } = swipeForDirection(resolved.ref.box, direction, resolved.snapshot.viewport);
+    await this.#ensureTouchCoordinateMode(ctx.connector, clientId, sessionId, resolved.snapshot.viewport, signal);
     await touchSwipe(ctx.connector, clientId, sessionId, from, to, signal, 30);
     return this.#withSnapshotAfter("scroll", params, ctx, clientId, sessionId, {
       clientId,
