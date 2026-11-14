@@ -235,3 +235,71 @@ test("DaemonTransport.openApp uses the caller signal instead of the default 10s 
   await opening;
   assert.equal(deviceTransport.openedOptions?.signal?.aborted, false);
 });
+
+test("transportId routes listAvailableApps and openApp without device discovery", async (t) => {
+  class CountingTransport extends ClientListTransport {
+    override readonly id = "counting";
+    override async listDevices(): Promise<Device[]> {
+      throw new Error("transportId must skip device discovery");
+    }
+  }
+
+  const deviceTransport = new CountingTransport();
+  const daemon = new DevtoolDaemon([deviceTransport]);
+  const port = await daemon.start(0);
+  t.after(() => daemon.close());
+  const transport = new DaemonTransport(`ws://127.0.0.1:${port}/devtool/connector`);
+  const connector = new Connector([transport]);
+
+  assert.deepEqual(
+    await connector.listAvailableApps("device", { transportId: deviceTransport.id }),
+    [],
+  );
+  assert.equal(
+    await connector.openApp("device", "com.lynx.uiapp", {
+      transportId: deviceTransport.id,
+      signal: AbortSignal.timeout(50),
+    }),
+    "client-list:device:8902",
+  );
+});
+
+test("concurrent listClients calls share a single client discovery run", async (t) => {
+  class SlowDiscoveryTransport implements Transport {
+    readonly id = "slow-discovery";
+    listDevices(): Promise<Device[]> {
+      return new Promise((resolve) => setTimeout(() => resolve([{ id: "device", os: "Android" }]), 10));
+    }
+
+    async close(): Promise<void> {
+    }
+
+    async listAvailableApps(): Promise<App[]> {
+      return [];
+    }
+
+    async openApp(): Promise<void> {
+    }
+
+    async connect<TInput = unknown, TOutput = unknown>(): Promise<Connection<TOutput, TInput>> {
+      throw new Error("discovery should not need port probes");
+    }
+  }
+
+  const deviceTransport = new SlowDiscoveryTransport();
+  const daemon = new DevtoolDaemon([deviceTransport]);
+  const port = await daemon.start(0);
+  t.after(() => daemon.close());
+  const transport = new DaemonTransport(`ws://127.0.0.1:${port}/devtool/connector`);
+  const deviceDiscovery = t.mock.method(deviceTransport, "listDevices");
+
+  // Empty because no port registers; the point is that discovery ran once.
+  const results = await Promise.all([
+    transport.listClients(),
+    transport.listClients(),
+    transport.listClients(),
+  ]);
+
+  assert.equal(results[0]?.transports?.includes(deviceTransport.id), true);
+  assert.equal(deviceDiscovery.mock.callCount(), 1);
+});
