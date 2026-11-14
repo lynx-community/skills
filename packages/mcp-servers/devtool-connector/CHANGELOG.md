@@ -1,5 +1,11 @@
 # @lynx-js/devtool-connector
 
+## 0.19.2
+
+### Patch Changes
+
+- Use `pnpx` for one-shot agent-lynx commands in the documentation, bundled skills, and Connector CLI guidance. Use `npm_config_registry` for registry overrides so the examples work on pnpm 10 and 11.
+
 ## 0.19.1
 
 ### Patch Changes
