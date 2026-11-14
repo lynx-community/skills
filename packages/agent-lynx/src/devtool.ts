@@ -59,6 +59,7 @@ import {
   createRootCommand,
   getTelemetryCommandNames,
   isCommandAction,
+  isDaemonOnlyAction,
   isOfflineTraceAction,
 } from './program.ts';
 import { type CliTelemetry, logMonitor, MonitorCode } from './telemetry.ts';
@@ -158,6 +159,7 @@ Examples:
             + 'Retry with network access and without CODEX_SANDBOX_NETWORK_DISABLED=1.',
         );
       }
+      const names = getTelemetryCommandNames(actionCommand);
       if (thisCommand.opts<{ daemon?: boolean; }>().daemon !== false) {
         const ignored = [
           'ADB_SERVER_SOCKET',
@@ -165,11 +167,23 @@ Examples:
           'ANDROID_ADB_SERVER_PORT',
         ].filter(name => env[name] !== undefined);
         if (ignored.length) {
-          process.stderr.write(
-            `Warning: ${ignored.join(', ')} ${
-              ignored.length === 1 ? 'is' : 'are'
-            } ignored in daemon mode. Pass --no-daemon to apply direct transport configuration.\n`,
-          );
+          const verb = ignored.length === 1 ? 'is' : 'are';
+          if (isDaemonOnlyAction(actionCommand)) {
+            const commandLabel = names.subcommand
+              ? `${names.command} ${names.subcommand}`
+              : names.command;
+            process.stderr.write(
+              `Warning: ${
+                ignored.join(', ')
+              } ${verb} ignored in daemon mode, and \`${commandLabel}\` requires the shared daemon (--no-daemon is not supported). Start the daemon with standard local device discovery instead.\n`,
+            );
+          } else {
+            process.stderr.write(
+              `Warning: ${
+                ignored.join(', ')
+              } ${verb} ignored in daemon mode. Pass --no-daemon to apply direct transport configuration.\n`,
+            );
+          }
         }
         context.commandClient = new HttpCommandClient();
         context.transports.push(new DaemonTransport());
@@ -180,7 +194,6 @@ Examples:
           new Connector(transports),
         );
       }
-      const names = getTelemetryCommandNames(actionCommand);
       logMonitor(MonitorCode.START_CLI, {
         d1: names.command,
         d2: actionCommand.getOptionValue('client') ?? '',

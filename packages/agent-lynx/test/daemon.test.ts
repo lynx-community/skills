@@ -149,6 +149,24 @@ test('daemon status propagates fetch failures without lifecycle actions', async 
   assert.deepEqual(fixture.stops, []);
 });
 
+test('daemon status translates ECONNREFUSED into a clean operational message without starting the daemon', async () => {
+  const refused = new TypeError('fetch failed', {
+    cause: Object.assign(new Error('connect ECONNREFUSED 127.0.0.1:21783'), {
+      code: 'ECONNREFUSED',
+    }),
+  });
+  const fixture = createFixture(async () => {
+    throw refused;
+  });
+  await assert.rejects(
+    fixture.program.parseAsync(['node', 'test', 'daemon', 'status']),
+    /Daemon is not running on port 21783.*daemon start/u,
+  );
+  assert.deepEqual(fixture.output, []);
+  assert.deepEqual(fixture.starts, []);
+  assert.deepEqual(fixture.stops, []);
+});
+
 test('daemon status rejects invalid ports before making a request', async () => {
   const fixture = createFixture(async () => {
     assert.fail('must not fetch');
