@@ -3,10 +3,11 @@ description: '安装 agent-lynx、读取自带 skills、连接应用并检查第
 ---
 
 import { Prompt } from '@rspress/core/theme';
+import { PlatformTab, PlatformTabs } from '../../../_ai/platform-tabs';
 
 # 快速开始
 
-## 安装 CLI
+## 1. 安装 CLI
 
 agent-lynx 要求 Node.js 18.19 或更高版本。安装公开的 npm 包：
 
@@ -21,9 +22,80 @@ agent-lynx --help
 pnpx agent-lynx --help
 ```
 
-下文示例使用 `agent-lynx`。如果使用单次运行方式，将其替换为 `pnpx agent-lynx` 即可。
+下文命令使用 `agent-lynx`。如果使用单次运行方式，将其替换为 `pnpx agent-lynx` 即可。
 
-## 让 Agent 读取使用说明
+## 2. 准备与连接设备 {#prepare-device}
+
+选择平台和应用的连接方式。
+
+<PlatformTabs>
+
+<PlatformTab platform="android" label="Android" connection="USB">
+
+1. 安装 Android Platform Tools，在设备上启用 **USB 调试**，用 USB 连接电脑，并在设备上授权调试。
+2. 运行 `adb devices`，确认设备的状态为 `device`。
+3. 启动已启用 Lynx DevTool 的应用，打开一个 Lynx 页面。
+
+也可以从 `list-clients` 取得应用的 `CLIENT_ID`，运行 `agent-lynx open "$BUNDLE_URL" --client "$CLIENT_ID"` 打开页面。
+
+</PlatformTab>
+
+<PlatformTab platform="android" label="Android" connection="Remote">
+
+将 `ADB_ADDRESS` 设为远端 ADB 地址（`host:port`）。从 `adb devices` 选择目标设备，设置 `SERIAL`。下面的 `APP_COMPONENT` 是应用的启动组件（`包名/Activity`），`APP_PACKAGE` 是应用包名，`SCHEMA` 是应用支持的页面链接。
+
+```bash
+adb connect "$ADB_ADDRESS"
+adb devices # Output excerpt: $SERIAL  device
+adb -s "$SERIAL" shell am start -n "$APP_COMPONENT"
+adb -s "$SERIAL" shell am start -a android.intent.action.VIEW -d "'$SCHEMA'" "$APP_PACKAGE"
+```
+
+应用启动后，也可以从 `list-clients` 选择该应用，用 `agent-lynx open "$BUNDLE_URL" --client "$CLIENT_ID"` 打开页面。
+
+</PlatformTab>
+
+<PlatformTab platform="ios" label="iOS" connection="USB">
+
+1. 用 USB 将 iPhone 或 iPad 接到电脑，解锁设备并在设备上信任这台电脑。
+2. 启动已启用 Lynx DevTool 的应用，打开一个 Lynx 页面。
+
+也可以从 `list-clients` 取得应用的 `CLIENT_ID`，运行 `agent-lynx open "$BUNDLE_URL" --client "$CLIENT_ID"` 打开页面。
+
+</PlatformTab>
+
+<PlatformTab platform="ios" label="iOS" connection="Remote">
+
+公开版通过本机的 USB 连接发现 iOS 设备。远程调试时，在连接该设备的电脑上运行 `agent-lynx`，在设备上打开应用和 Lynx 页面，然后在那台电脑上执行下方的检查命令。
+
+也可以从 `list-clients` 取得应用的 `CLIENT_ID`，运行 `agent-lynx open "$BUNDLE_URL" --client "$CLIENT_ID"` 打开页面。
+
+</PlatformTab>
+
+<PlatformTab platform="desktop" label="Desktop">
+
+在本机打开 Desktop 应用，并加载一个 Lynx 页面。
+
+也可以从 `list-clients` 取得应用的 `CLIENT_ID`，运行 `agent-lynx open "$BUNDLE_URL" --client "$CLIENT_ID"` 打开页面。
+
+</PlatformTab>
+
+</PlatformTabs>
+
+## 3. 检查页面 {#inspect-page}
+
+打开 Lynx 页面后，按顺序运行下面的命令。
+
+```bash
+agent-lynx list-clients # Output excerpt: [{ "id": "$CLIENT_ID" }]
+agent-lynx list-sessions --client "$CLIENT_ID" # Output excerpt: [{ "session_id": $SESSION_ID }]
+agent-lynx snapshot --client "$CLIENT_ID" --session "$SESSION_ID"
+agent-lynx screenshot --client "$CLIENT_ID" --session "$SESSION_ID" --annotate -o ./page.jpeg
+```
+
+将 `CLIENT_ID` 设为 `list-clients` 返回的完整 `id`。在 `list-sessions` 的结果中按 URL 选中 Lynx 页面，把它的 `session_id` 赋给 `SESSION_ID`。标注截图会刷新快照，并标出对应的元素引用。接下来可以[检查和操作页面](page-inspection.mdx)。
+
+## 4. 让 Agent 读取使用说明
 
 agent-lynx 自带可供 agent 发现和读取的 skills：
 
@@ -44,18 +116,3 @@ client 和 session。检查页面和控制台，复现问题，修改源码，
 />
 
 也可以在项目的 [AGENTS.md](https://lynxjs.org/zh/ai/agentsmd) 中约定：运行时调试前先读取 `lynx-devtool` 使用说明。
-
-## 连接并检查页面
-
-运行 [Lynx Explorer](https://lynxjs.org/zh/guide/start/quick-start) 或已[集成 DevTool](https://lynxjs.org/zh/guide/start/integrate-lynx-devtool) 的应用，打开 Lynx Debug 和 Lynx DevTool 开关，并打开一个 Lynx 页面。完成对应平台的[设备连接配置](connections.mdx)后，执行：
-
-```bash
-agent-lynx list-clients
-agent-lynx list-sessions --client <clientId>
-agent-lynx snapshot --client <clientId> --session <sessionId>
-agent-lynx screenshot --client <clientId> --session <sessionId> --annotate -o ./page.jpeg
-```
-
-将 ID 替换为查找命令实际返回的值。Client 是运行中的应用，session 是其中的 Lynx view 或调试上下文。设备命令自动共享本地 connector daemon，让后续调用复用连接和元素引用。
-
-快照为元素分配 `@e1` 等引用，标注截图显示相应的元素标记。接着可以[检查和操作页面](page-inspection.mdx)，并用新的快照或截图验证源码修改。遇到错误时，参见[常见问题](troubleshooting.mdx)。
