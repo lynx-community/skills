@@ -34,5 +34,55 @@
   {
     "query": "Lynx 页面滚动卡顿，帮我看 trace 里的 FCP 和渲染流程。",
     "should_trigger": false
+  },
+  {
+    "query": "我的 ReactLynx 项目运行时没有任何问题，只是 tsc 编译报 `Property 'custom-banner' does not exist on type 'JSX.IntrinsicElements'`，只帮我补齐 Lynx TS 类型声明，不需要改组件运行逻辑或分析包体积。",
+    "should_trigger": true,
+    "scenario": "own_single_trigger",
+    "co_installed_skills": [
+      "reactlynx-best-practices",
+      "rspeedy-bundle-size",
+      "lynx-devtool"
+    ],
+    "expected_skills": ["lynx-typescript"],
+    "forbidden_skills": [
+      "reactlynx-best-practices",
+      "rspeedy-bundle-size",
+      "lynx-devtool"
+    ]
+  },
+  {
+    "query": "请同时帮我完成两件事：一是为这个 ReactLynx 组件补齐 GlobalProps 和 MainThreadRef 的 TypeScript 类型声明解决 tsc 报错，二是按 ReactLynx 双线程最佳实践重构它的主线程手势与后台线程通信代码。",
+    "should_trigger": true,
+    "scenario": "own_multi_trigger",
+    "co_installed_skills": ["reactlynx-best-practices", "lynx-tasm-codec"],
+    "expected_skills": ["lynx-typescript", "reactlynx-best-practices"],
+    "forbidden_skills": ["lynx-tasm-codec"]
+  },
+  {
+    "query": "在 Rspeedy + ReactLynx 工程里配置 tsconfig.json 和 rspeedy-env.d.ts，解决 CSS Modules 与 lynx.__globalProps 的 TS 报错。",
+    "should_trigger": true,
+    "scenario": "similar_skill_present",
+    "competing_skills": [
+      {
+        "name": "typescript-strict-config",
+        "description": "Configure tsconfig.json, moduleResolution, strict compiler flags, and ambient .d.ts declarations for generic Node.js, Vite, and React Web applications."
+      }
+    ],
+    "expected_skills": ["lynx-typescript"],
+    "forbidden_skills": ["typescript-strict-config"]
+  },
+  {
+    "query": "这是一个纯 Node.js CLI 工具仓库（与 Lynx 无关），请使用 typescript-strict-config 技能帮我配置 NodeNext 模块解析和严格的 tsconfig.json。",
+    "should_trigger": false,
+    "scenario": "similar_skill_requested",
+    "competing_skills": [
+      {
+        "name": "typescript-strict-config",
+        "description": "Configure tsconfig.json, moduleResolution, strict compiler flags, and ambient .d.ts declarations for generic Node.js, Vite, and React Web applications."
+      }
+    ],
+    "expected_skills": ["typescript-strict-config"],
+    "forbidden_skills": ["lynx-typescript"]
   }
 ]

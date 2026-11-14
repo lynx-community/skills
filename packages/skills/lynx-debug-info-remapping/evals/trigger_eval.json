@@ -30,5 +30,55 @@
   {
     "query": "请分析一下这个 perfetto trace 里的首帧耗时。",
     "should_trigger": false
+  },
+  {
+    "query": "我手里有 `debug-info.json` 和报错里的 `function_id:pc_index`（1024:38），只帮我把它映射回原始源码位置，不需要做 tasm 编解码或连接真机 DevTool。",
+    "should_trigger": true,
+    "scenario": "own_single_trigger",
+    "co_installed_skills": [
+      "lynx-tasm-codec",
+      "lynx-devtool",
+      "rspeedy-bundle-size"
+    ],
+    "expected_skills": ["lynx-debug-info-remapping"],
+    "forbidden_skills": [
+      "lynx-tasm-codec",
+      "lynx-devtool",
+      "rspeedy-bundle-size"
+    ]
+  },
+  {
+    "query": "请先用 `lynx-devtool` 从当前连接的设备上拉取主线程异常日志拿到 `function_id:pc_index`，然后用 `lynx-debug-info-remapping` 结合本地 `debug-info.json` 还原出对应的 TSX 源码行号。",
+    "should_trigger": true,
+    "scenario": "own_multi_trigger",
+    "co_installed_skills": ["lynx-devtool", "lynx-tasm-codec"],
+    "expected_skills": ["lynx-devtool", "lynx-debug-info-remapping"],
+    "forbidden_skills": ["lynx-tasm-codec"]
+  },
+  {
+    "query": "根据提供的 Lynx `debug-info.json` 文件，把 `function_id:pc_index` `204:19` 反解到原始源码文件和行列号。",
+    "should_trigger": true,
+    "scenario": "similar_skill_present",
+    "competing_skills": [
+      {
+        "name": "android-ndk-addr2line",
+        "description": "Symbolicate Android native C/C++ tombstones and lib.so crash addresses using llvm-addr2line and ndk-stack."
+      }
+    ],
+    "expected_skills": ["lynx-debug-info-remapping"],
+    "forbidden_skills": ["android-ndk-addr2line"]
+  },
+  {
+    "query": "这是一份 Android NDK C++ `libc.so` 崩溃 tombstone 偏移地址（不是 Lynx debug-info.json），请使用 `android-ndk-addr2line` 技能通过 llvm-addr2line 还原 C++ 符号。",
+    "should_trigger": false,
+    "scenario": "similar_skill_requested",
+    "competing_skills": [
+      {
+        "name": "android-ndk-addr2line",
+        "description": "Symbolicate Android native C/C++ tombstones and lib.so crash addresses using llvm-addr2line and ndk-stack."
+      }
+    ],
+    "expected_skills": ["android-ndk-addr2line"],
+    "forbidden_skills": ["lynx-debug-info-remapping"]
   }
 ]

@@ -1,0 +1,52 @@
+[
+  {
+    "query": "只帮我查询 `lynx-ui` 中 `Dialog`、`Sheet` 和 `Popover` 组件的选型边界与公开 ref API，不需要审查双线程架构或连接 DevTool。",
+    "should_trigger": true,
+    "scenario": "own_single_trigger",
+    "co_installed_skills": [
+      "reactlynx-best-practices",
+      "lynx-devtool",
+      "lynx-typescript"
+    ],
+    "expected_skills": ["lynx-ui"],
+    "forbidden_skills": [
+      "reactlynx-best-practices",
+      "lynx-devtool",
+      "lynx-typescript"
+    ]
+  },
+  {
+    "query": "我要用 `lynx-ui` 的 `FeedList` 和 `Sheet` 写一个商品页，请先查 `lynx-ui` 对应组件的 props 和 ref 用法，同时按 `reactlynx-best-practices` 规范组织双线程事件与主线程脚本。",
+    "should_trigger": true,
+    "scenario": "own_multi_trigger",
+    "co_installed_skills": ["reactlynx-best-practices", "lynx-tasm-codec"],
+    "expected_skills": ["lynx-ui", "reactlynx-best-practices"],
+    "forbidden_skills": ["lynx-tasm-codec"]
+  },
+  {
+    "query": "在 ReactLynx 项目里使用 `@lynx-js/lynx-ui` 的 `Swiper` 和 `Sheet` 组件时，有哪些 props 和命令式 ref 方法？",
+    "should_trigger": true,
+    "scenario": "similar_skill_present",
+    "competing_skills": [
+      {
+        "name": "shadcn-radix-ui",
+        "description": "Build accessible React Web UI components using shadcn/ui, Radix Primitives, Dialog, Sheet, Popover, and Tailwind CSS."
+      }
+    ],
+    "expected_skills": ["lynx-ui"],
+    "forbidden_skills": ["shadcn-radix-ui"]
+  },
+  {
+    "query": "这是一个 Next.js + Tailwind CSS 浏览器 Web 项目（不是 Lynx），请使用 `shadcn-radix-ui` 技能帮我实现 Radix Dialog 和 Sheet 抽屉组件。",
+    "should_trigger": false,
+    "scenario": "similar_skill_requested",
+    "competing_skills": [
+      {
+        "name": "shadcn-radix-ui",
+        "description": "Build accessible React Web UI components using shadcn/ui, Radix Primitives, Dialog, Sheet, Popover, and Tailwind CSS."
+      }
+    ],
+    "expected_skills": ["shadcn-radix-ui"],
+    "forbidden_skills": ["lynx-ui"]
+  }
+]
