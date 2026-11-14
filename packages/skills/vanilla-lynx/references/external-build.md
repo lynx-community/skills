@@ -1,9 +1,8 @@
 # Build a background-thread external bundle
 
 Use rslib to package plain TypeScript or JavaScript logic into a standalone `.lynx.bundle` for the
-background thread. When answering, state both constraints explicitly: external modules must use
-plain TypeScript or JavaScript, and they must not use ReactLynx or JSX. Do not rely on “plain TS/JS”
-to imply the ReactLynx and JSX prohibition.
+background thread. External modules must use plain TypeScript or JavaScript and must not use
+ReactLynx, JSX, or ReactLynx transforms.
 
 Keep Element PAPI, UI code, and CSS out of this bundle. Load the result from background-thread source with the
 paired `fetchBundle` and `loadScript` flow in
@@ -23,23 +22,16 @@ export function add(left: number, right: number): number {
 
 ## Rslib config
 
-Use this configuration without `pluginReactLynx()` or any ReactLynx transform.
+Register `pluginLynx()` from `@lynx-js/rsbuild-plugin` (without `pluginReactLynx()` or any ReactLynx
+transform) and target `LAYERS.BACKGROUND` from `@lynx-js/lynx-bundle-rslib-config`:
 
 ```js
 // utils.rslib.config.js
-import { defineExternalBundleRslibConfig } from "@lynx-js/lynx-bundle-rslib-config";
-
-const LAYERS = {
-  BACKGROUND: "rslib:background",
-  MAIN_THREAD: "rslib:main-thread",
-};
-
-const pluginRslibLayers = () => ({
-  name: "vanilla:rslib-layers",
-  setup(api) {
-    api.expose(Symbol.for("LAYERS"), LAYERS);
-  },
-});
+import {
+  defineExternalBundleRslibConfig,
+  LAYERS,
+} from "@lynx-js/lynx-bundle-rslib-config";
+import { pluginLynx } from "@lynx-js/rsbuild-plugin";
 
 export default defineExternalBundleRslibConfig({
   id: "utils",
@@ -51,7 +43,7 @@ export default defineExternalBundleRslibConfig({
       },
     },
   },
-  plugins: [pluginRslibLayers()],
+  plugins: [pluginLynx()],
   output: {
     distPath: {
       root: "dist-external-bundle",
@@ -60,10 +52,9 @@ export default defineExternalBundleRslibConfig({
 });
 ```
 
-`api.expose(Symbol.for('LAYERS'), LAYERS)` exposes both layer names to
-`defineExternalBundleRslibConfig`. Setting the entry layer to `LAYERS.BACKGROUND` prevents the
-producer from generating main-thread code. Explicitly preserve both constraints when presenting or
-reviewing this configuration.
+`defineExternalBundleRslibConfig` requires `pluginLynx()` (or a DSL plugin that registers it) so the
+Lynx template encoder and build config are exposed. Setting `layer: LAYERS.BACKGROUND` keeps the
+producer background-only and prevents main-thread chunk generation.
 
 The `source.entry` key is the first `loadScript` argument; the `utils` entry requires
 `loadScript('utils', ...)`.

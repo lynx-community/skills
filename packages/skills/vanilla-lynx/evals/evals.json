@@ -81,7 +81,7 @@
       "expected_output": "A correct background-only external-bundle build and loading flow for plain TypeScript or JavaScript, including the Rslib layer configuration, fetch/load relationship, asynchronous export use, and main-thread UI handoff. Equivalent code organization is acceptable.",
       "expectations": [
         "The external module is plain TypeScript or JavaScript and does not depend on ReactLynx, JSX, or ReactLynx transforms.",
-        "The Rslib setup uses `defineExternalBundleRslibConfig` or an equivalent supported configuration and targets the background layer, including the required layer exposure where applicable.",
+        "The Rslib setup uses `defineExternalBundleRslibConfig` or an equivalent supported configuration, registers `pluginLynx()` (without `pluginReactLynx()`), and targets the background layer via `LAYERS.BACKGROUND` or an equivalent layer setting.",
         "The source entry key and the first `lynx.loadScript` argument refer to the same exported entry. Examples and exact wording are optional.",
         "Fetching and loading happen on the background thread with an absolute bundle URL that the target device can reach and that returns bundle bytes; placeholder domains are not presented as runnable defaults. Success/error handling is present, and the fetched bundle URL is supplied to `loadScript` as needed.",
         "Loaded exports are used after asynchronous loading completes rather than before they are available.",
@@ -172,7 +172,7 @@
       "expected_output": "A correct background-only external-bundle build and loading flow for plain TypeScript or JavaScript, including the Rslib layer configuration, fetch/load relationship, asynchronous export use, and main-thread UI handoff. Equivalent code organization is acceptable.",
       "expectations": [
         "The external module is plain TypeScript or JavaScript and does not depend on ReactLynx, JSX, or ReactLynx transforms.",
-        "The Rslib setup uses `defineExternalBundleRslibConfig` or an equivalent supported configuration and targets the background layer, including the required layer exposure where applicable.",
+        "The Rslib setup uses `defineExternalBundleRslibConfig` or an equivalent supported configuration, registers `pluginLynx()` (without `pluginReactLynx()`), and targets the background layer via `LAYERS.BACKGROUND` or an equivalent layer setting.",
         "The source entry key and the first `lynx.loadScript` argument refer to the same exported entry. Examples and exact wording are optional.",
         "Fetching and loading happen on the background thread with an absolute bundle URL that the target device can reach and that returns bundle bytes; placeholder domains are not presented as runnable defaults. Success/error handling is present, and the fetched bundle URL is supplied to `loadScript` as needed.",
         "Loaded exports are used after asynchronous loading completes rather than before they are available.",

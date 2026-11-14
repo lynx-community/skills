@@ -79,6 +79,10 @@ test('with-skill prompt allows only directed skill resource reads', () => {
   assert.match(prompt, /relevant local skill reference/u);
   assert.match(prompt, /Do not return a plan/u);
   assert.match(prompt, /Write the completed answer now/u);
+  assert.match(
+    prompt,
+    /unless the loaded skill explicitly requires a concise clarification/u,
+  );
   assert.doesNotMatch(
     prompt,
     /do not use extra tools after loading the skill/u,
@@ -90,6 +94,7 @@ test('without-skill prompt still prohibits tools and local docs', () => {
 
   assert.match(prompt, /Do not read local skill files or docs/u);
   assert.match(prompt, /do not use tools/u);
+  assert.match(prompt, /Do not ask follow-up questions\./u);
   assert.match(prompt, /Do not return a plan/u);
 });
 
