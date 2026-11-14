@@ -292,15 +292,23 @@ Object.assign(globalThis, {
 const engine = lynx.getEngine();
 
 let currentState = {};
+let containerView;
 let valueText;
 let rendered = false;
 
-function normalizeData(data) {
+function normalizeInitialData(data) {
   return {
     ...data,
     color: data?.color ?? "red",
     value: data?.value ?? "Hello Lynx!",
   };
+}
+
+function normalizePatch(data) {
+  if (!data || typeof data !== "object" || Array.isArray(data)) {
+    return {};
+  }
+  return data;
 }
 ```
 
@@ -312,20 +320,20 @@ The engine dispatches `__RenderPage` with the initial payload. Process that payl
 function renderPage(data) {
   currentState = data;
 
-  const view = __CreateView(pageId);
-  __SetInlineStyles(view, `color: ${data.color};`);
+  containerView = __CreateView(pageId);
+  __SetInlineStyles(containerView, `color: ${data.color};`);
 
   valueText = __CreateText(pageId);
   __AppendElement(valueText, __CreateRawText(data.value));
-  __AppendElement(view, valueText);
-  __AppendElement(page, view);
+  __AppendElement(containerView, valueText);
+  __AppendElement(page, containerView);
 }
 
 function onRenderPage(event) {
   if (rendered) return;
   rendered = true;
   const [data] = event.data;
-  renderPage(normalizeData(data));
+  renderPage(normalizeInitialData(data));
 }
 
 engine.addEventListener(renderPageEventName, onRenderPage);
@@ -337,7 +345,7 @@ Every update after the initial render mutates the existing tree on the main thre
 
 ### Engine-Driven Update
 
-The engine dispatches `__UpdatePage` with later update payloads. Process the payload, apply the UI mutation, and call `__FlushElementTree()`. The handler may remain a placeholder when the page intentionally does not consume engine-driven updates.
+The engine dispatches `__UpdatePage` with later update payloads. Process only the provided fields so partial updates do not reset omitted fields back to initial defaults, apply the UI mutation, and call `__FlushElementTree()`. The handler may remain a placeholder when the page intentionally does not consume engine-driven updates.
 
 ```javascript
 function updatePage(patch) {
@@ -345,6 +353,10 @@ function updatePage(patch) {
     ...currentState,
     ...patch,
   };
+
+  if (patch.color !== undefined && containerView) {
+    __SetInlineStyles(containerView, `color: ${patch.color};`);
+  }
 
   if (patch.value !== undefined && valueText) {
     __ReplaceElements(
@@ -359,7 +371,7 @@ function updatePage(patch) {
 
 function onUpdatePage(event) {
   const [data] = event.data;
-  updatePage(normalizeData(data));
+  updatePage(normalizePatch(data));
 }
 
 engine.addEventListener(updatePageEventName, onUpdatePage);
@@ -453,6 +465,7 @@ function cleanupEngineLifecycle() {
     cleanupEngineLifecycle,
   );
   clearAllEvents();
+  containerView = undefined;
   valueText = undefined;
 }
 
