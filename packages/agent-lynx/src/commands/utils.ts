@@ -9,6 +9,7 @@ import type {
   SnapshotAfterResult,
 } from '@lynx-js/devtool-connector/command';
 import type { Transport } from '@lynx-js/devtool-connector/transport';
+import { InvalidArgumentError } from 'commander';
 import type { ReadableStream } from 'node:stream/web';
 import { setTimeout as delay } from 'node:timers/promises';
 import { DEFAULT_CLI_PLACEHOLDER } from '../cli-invocation.ts';
@@ -198,6 +199,118 @@ export async function resolveClientAndSession(
  */
 export function isAbortError(err: unknown): boolean {
   return err instanceof Error && err.name === 'AbortError';
+}
+
+export interface ParseDurationOptions {
+  allowZero?: boolean;
+}
+
+const DURATION_PATTERN = /^(\d+(?:\.\d+)?|\.\d+)\s*(ms|s|m)?$/u;
+
+function invalidDurationError(
+  value: string,
+  optionName: string,
+  defaultUnit: 'ms' | 's',
+  allowZero: boolean,
+): InvalidArgumentError {
+  const bound = allowZero ? 'non-negative' : 'positive';
+  const unitLabel = defaultUnit === 'ms' ? 'milliseconds' : 'seconds';
+  const examples = defaultUnit === 'ms'
+    ? '500, 500ms, 10s'
+    : '30, 30s, 500ms';
+  return new InvalidArgumentError(
+    `Invalid ${optionName} value: ${value}. Use a ${bound} number of ${unitLabel} or a duration with ms, s, or m (e.g. ${examples}).`,
+  );
+}
+
+/**
+ * Parse a CLI duration option that defaults bare numbers to milliseconds while
+ * also accepting explicit `ms`, `s`, or `m` suffixes.
+ */
+export function parseDurationMs(
+  value: string,
+  optionName: string,
+  options: ParseDurationOptions = {},
+): number {
+  const allowZero = options.allowZero ?? true;
+  const match = DURATION_PATTERN.exec(value.trim());
+  if (!match) {
+    throw invalidDurationError(value, optionName, 'ms', allowZero);
+  }
+
+  const amount = Number(match[1]);
+  const unit = match[2] ?? 'ms';
+  const multiplier = unit === 'm' ? 60_000 : unit === 's' ? 1_000 : 1;
+  const ms = amount * multiplier;
+  if (!Number.isFinite(ms) || (allowZero ? ms < 0 : ms <= 0)) {
+    throw invalidDurationError(value, optionName, 'ms', allowZero);
+  }
+  if (ms === 0) return 0;
+  const rounded = Math.round(ms);
+  return !allowZero && rounded === 0 ? 1 : rounded;
+}
+
+/**
+ * Parse a CLI duration option that defaults bare numbers to seconds while also
+ * accepting explicit `ms`, `s`, or `m` suffixes.
+ */
+export function parseDurationSeconds(
+  value: string,
+  optionName: string,
+  options: ParseDurationOptions = {},
+): number {
+  const allowZero = options.allowZero ?? true;
+  const match = DURATION_PATTERN.exec(value.trim());
+  if (!match) {
+    throw invalidDurationError(value, optionName, 's', allowZero);
+  }
+
+  const amount = Number(match[1]);
+  const unit = match[2] ?? 's';
+  const seconds = unit === 'm'
+    ? amount * 60
+    : unit === 'ms'
+    ? amount / 1_000
+    : amount;
+  if (!Number.isFinite(seconds) || (allowZero ? seconds < 0 : seconds <= 0)) {
+    throw invalidDurationError(value, optionName, 's', allowZero);
+  }
+  return seconds;
+}
+
+export interface ResolveJsonParamsOptions {
+  label?: string;
+  example?: string;
+}
+
+export function resolveJsonParams(
+  positionalParams: string | undefined,
+  optionParams: string | undefined,
+  options: ResolveJsonParamsOptions = {},
+): unknown {
+  if (
+    positionalParams !== undefined
+    && optionParams !== undefined
+    && positionalParams !== optionParams
+  ) {
+    throw new Error(
+      'Conflicting parameters: pass either positional [params] or -p/--params <json>, not both.',
+    );
+  }
+  const raw = positionalParams ?? optionParams;
+  if (raw === undefined) return {};
+  const label = options.label
+    ?? (positionalParams !== undefined ? 'params' : '--params');
+  const example = options.example ?? '{"ignoreCache":true}';
+  try {
+    return JSON.parse(raw) as unknown;
+  } catch (error) {
+    const reason = error instanceof Error ? error.message : String(error);
+    throw new Error(
+      `Invalid JSON for ${label}: ${reason}. Wrap JSON in single quotes, e.g. '${example}'.`,
+      { cause: error },
+    );
+  }
 }
 
 /**
