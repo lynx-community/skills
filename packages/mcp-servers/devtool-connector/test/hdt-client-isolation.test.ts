@@ -4,7 +4,7 @@
 import assert from "node:assert/strict";
 import { ReadableStream } from "node:stream/web";
 import { test, type TestContext } from "node:test";
-import { setImmediate as nextTurn } from "node:timers/promises";
+import { setImmediate as nextTurn, setTimeout as sleep } from "node:timers/promises";
 import { WebSocket, WebSocketServer } from "ws";
 import { captureScreenshotFrame } from "../src/command/screenshot.ts";
 import { DAEMON_WS_PATH } from "../src/daemon/protocol.ts";
@@ -29,12 +29,14 @@ interface Deferred<T> {
 
 interface ObservedCDPRequest extends CDPRequestMessage {
   id: number;
+  to?: number | undefined;
 }
 
 interface HdtClientHarness {
   clientId: string;
   connector: Connector;
   broadcast(message: unknown): void;
+  disconnectTarget(): void;
   updateTargetPort(port: number): void;
   nextRequest(method: string): Promise<ObservedCDPRequest>;
   onCDPRequest: ((request: ObservedCDPRequest) => void) | undefined;
@@ -73,12 +75,14 @@ async function createHdtClientHarness(
   const waiters = new Map<string, Deferred<ObservedCDPRequest>[]>();
   let onCDPRequest: HdtClientHarness["onCDPRequest"];
   let driverId = 100;
-  let targetPort = TARGET_PORT;
+  let targetPort: number | undefined = TARGET_PORT;
 
   const clientList = () => ({
     event: "ClientList",
     data: [
-      { id: targetPort, info: { App: "TargetApp", debugRouterId: TARGET_ROUTER_ID } },
+      ...(targetPort === undefined
+        ? []
+        : [{ id: targetPort, info: { App: "TargetApp", debugRouterId: TARGET_ROUTER_ID } }]),
       { id: SIBLING_PORT, info: { App: "SiblingApp", debugRouterId: SIBLING_ROUTER_ID } },
     ],
   });
@@ -91,6 +95,7 @@ async function createHdtClientHarness(
     socket.on("message", raw => {
       const message = JSON.parse(raw.toString()) as {
         event?: string;
+        to?: number;
         data?: { type?: string; data?: { message?: unknown } };
       };
 
@@ -108,15 +113,16 @@ async function createHdtClientHarness(
       if (message.event !== "Customized" || message.data?.type !== "CDP") return;
       const cdpMessage = message.data.data?.message as ObservedCDPRequest | undefined;
       if (!cdpMessage || typeof cdpMessage.method !== "string" || cdpMessage.id === undefined) return;
+      const observed: ObservedCDPRequest = { ...cdpMessage, to: message.to };
 
-      const pending = waiters.get(cdpMessage.method)?.shift();
-      if (pending) pending.resolve(cdpMessage);
+      const pending = waiters.get(observed.method)?.shift();
+      if (pending) pending.resolve(observed);
       else {
-        const queue = requests.get(cdpMessage.method) ?? [];
-        queue.push(cdpMessage);
-        requests.set(cdpMessage.method, queue);
+        const queue = requests.get(observed.method) ?? [];
+        queue.push(observed);
+        requests.set(observed.method, queue);
       }
-      onCDPRequest?.(cdpMessage);
+      onCDPRequest?.(observed);
     });
   });
 
@@ -141,10 +147,18 @@ async function createHdtClientHarness(
         if (socket.readyState === WebSocket.OPEN) socket.send(serialized);
       }
     },
+    disconnectTarget() {
+      targetPort = undefined;
+      for (const socket of server.clients) {
+        if (socket.readyState === WebSocket.OPEN) socket.send(JSON.stringify(clientList()));
+      }
+    },
     updateTargetPort(port) {
       targetPort = port;
       // Persistent daemon connections learn route changes through ClientList broadcasts.
-      for (const socket of server.clients) socket.send(JSON.stringify(clientList()));
+      for (const socket of server.clients) {
+        if (socket.readyState === WebSocket.OPEN) socket.send(JSON.stringify(clientList()));
+      }
     },
     nextRequest(method) {
       const queue = requests.get(method);
@@ -334,5 +348,51 @@ for (const viaDaemon of [false, true]) {
         assert.deepEqual(await within(result, `${name} response`), { source: name });
       });
     }
+  });
+
+  test(`${viaDaemon ? "daemon" : "direct"}: stable HDT target recovers across a transient ClientList disconnect gap`, async t => {
+    const harness = await createHdtClientHarness(t, TARGET_ROUTER_ID, viaDaemon);
+
+    // Cold connect while target is temporarily absent from ClientList (e.g. ~350ms ADB flap).
+    harness.disconnectTarget();
+    const observedTo: Array<number | undefined> = [];
+    harness.onCDPRequest = request => {
+      observedTo.push(request.to);
+      if (request.method === "Runtime.evaluate") {
+        harness.broadcast(cdpMessage(request.to, SESSION_ID, {
+          id: request.id,
+          result: { source: `port-${String(request.to)}` },
+        }));
+      }
+    };
+
+    const coldResult = harness.connector.sendCDPMessage<{ source: string }, { expression: string }>(
+      harness.clientId,
+      SESSION_ID,
+      "Runtime.evaluate",
+      { expression: "cold" },
+    );
+    await sleep(120);
+    harness.updateTargetPort(TARGET_PORT);
+    assert.deepEqual(await within(coldResult, "cold connect across transient ClientList gap"), {
+      source: `port-${TARGET_PORT}`,
+    });
+    assert.deepEqual(observedTo, [TARGET_PORT]);
+
+    // Warm pooled/direct follow-up while target drops out of ClientList and reconnects under a new numeric ID.
+    harness.disconnectTarget();
+    await sleep(20);
+    const warmResult = harness.connector.sendCDPMessage<{ source: string }, { expression: string }>(
+      harness.clientId,
+      SESSION_ID,
+      "Runtime.evaluate",
+      { expression: "warm" },
+    );
+    await sleep(120);
+    harness.updateTargetPort(UPDATED_TARGET_PORT);
+    assert.deepEqual(await within(warmResult, "warm route across transient ClientList gap"), {
+      source: `port-${UPDATED_TARGET_PORT}`,
+    });
+    assert.deepEqual(observedTo, [TARGET_PORT, UPDATED_TARGET_PORT]);
   });
 }
