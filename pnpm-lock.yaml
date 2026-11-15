@@ -502,7 +502,7 @@ importers:
   packages/tools/benchx_cli:
     devDependencies:
       tar:
-        specifier: ^7.5.22
+        specifier: ^7.5.23
         version: 7.5.23
 
   packages/tools/perfetto-trace-processor:
@@ -524,7 +524,7 @@ importers:
         specifier: ^0.28.2
         version: 0.28.2
       tar:
-        specifier: ^7.5.22
+        specifier: ^7.5.23
         version: 7.5.23
       typescript:
         specifier: ^5.9.3
