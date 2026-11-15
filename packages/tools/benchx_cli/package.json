@@ -16,7 +16,7 @@
   },
   "dependencies": {},
   "devDependencies": {
-    "tar": "^7.5.22"
+    "tar": "^7.5.23"
   },
   "engines": {
     "node": ">=18"
