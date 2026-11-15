@@ -764,6 +764,63 @@ test("HDTTransport listClients rejects when the server never sends ClientList", 
   assert.equal(wasClosed, true);
 });
 
+test("HDTTransport rejects immediately when ClientList contains an invalid numeric target", async (t) => {
+  const originalCreate = wsStreams.create;
+  t.after(() => {
+    wsStreams.create = originalCreate;
+  });
+
+  const websocketClosed = deferred<void>();
+  let enqueueReadable: ((chunk: string) => void) | undefined;
+  const readable = new ReadableStream<string>({
+    start(controller) {
+      enqueueReadable = chunk => controller.enqueue(chunk);
+      controller.enqueue(JSON.stringify({ event: "Initialize", data: 123 }));
+    },
+  });
+  const writable = new WritableStream<string>({
+    write(chunk) {
+      const message = JSON.parse(chunk) as { event?: string };
+      if (message.event === "Register") {
+        queueMicrotask(() => {
+          enqueueReadable?.(JSON.stringify({ event: "RoomJoined", data: { room: "", id: 123 } }));
+          enqueueReadable?.(JSON.stringify({ event: "ClientList", data: [] }));
+        });
+      } else if (message.event === "ListClients") {
+        queueMicrotask(() => {
+          enqueueReadable?.(JSON.stringify({
+            event: "ClientList",
+            data: [{ id: "invalid", info: { debugRouterId: "router-uuid" } }],
+          }));
+        });
+      }
+      return Promise.resolve();
+    },
+  });
+
+  wsStreams.create = () =>
+    ({
+      opened: Promise.resolve({ readable, writable }),
+      closed: websocketClosed.promise,
+      close() {
+        websocketClosed.resolve();
+      },
+    }) as never;
+
+  const transport = new HDTTransport("ws://127.0.0.1:19783/mdevices/page/android");
+  const startedAt = Date.now();
+  await assert.rejects(
+    () =>
+      transport.connect({
+        deviceId: "HDT-19783",
+        port: "router-uuid",
+        signal: AbortSignal.timeout(5_000),
+      }),
+    /HDT client router-uuid has an invalid numeric target: invalid/,
+  );
+  assert.ok(Date.now() - startedAt < 500);
+});
+
 function deferred<T>() {
   let resolve!: (value: T | PromiseLike<T>) => void;
   let reject!: (reason?: unknown) => void;
