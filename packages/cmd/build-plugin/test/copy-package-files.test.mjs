@@ -9,11 +9,11 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { after, test } from 'node:test';
 
-import { copyPackageFiles } from '../src/lib.ts';
+import { copyPackageFiles, exportPlugin } from '../src/lib.ts';
 
 const tempDirs = [];
 
-async function makePackage(files) {
+async function makePackage(files, name = 'test-package') {
   const dir = await mkdtemp(join(tmpdir(), 'build-plugin-copy-'));
   tempDirs.push(dir);
 
@@ -21,7 +21,7 @@ async function makePackage(files) {
     join(dir, 'package.json'),
     JSON.stringify(
       {
-        name: 'test-package',
+        name,
         version: '1.0.0',
         files,
       },
@@ -58,4 +58,37 @@ test('skips package.json when package files do not explicitly include it', async
 
   assert.equal(existsSync(join(target, 'SKILL.md')), true);
   assert.equal(existsSync(join(target, 'package.json')), false);
+});
+
+test('excludes root README.md and CHANGELOG.md when exporting payloads', async () => {
+  const { source, target } = await makePackage(['SKILL.md', 'CHANGELOG.md']);
+  await writeFile(join(source, 'README.md'), '# Readme\n');
+  await writeFile(join(source, 'CHANGELOG.md'), '# Changelog\n');
+
+  await copyPackageFiles(source, target, true);
+
+  assert.equal(existsSync(join(target, 'SKILL.md')), true);
+  assert.equal(existsSync(join(target, 'README.md')), false);
+  assert.equal(existsSync(join(target, 'CHANGELOG.md')), false);
+});
+
+test('excludes evals and stale files when exporting a skill package', async () => {
+  const { source, target } = await makePackage(
+    ['SKILL.md', 'CHANGELOG.md', 'evals', 'references'],
+    '@lynx-js/skill-example',
+  );
+  await mkdir(join(source, 'evals'), { recursive: true });
+  await mkdir(join(source, 'references'), { recursive: true });
+  await mkdir(join(target, 'evals'), { recursive: true });
+  await writeFile(join(source, 'CHANGELOG.md'), '# Changelog\n');
+  await writeFile(join(source, 'evals', 'evals.json'), '{}\n');
+  await writeFile(join(source, 'references', 'guide.md'), '# Guide\n');
+  await writeFile(join(target, 'evals', 'stale.json'), '{}\n');
+
+  await exportPlugin(source, target);
+
+  assert.equal(existsSync(join(target, 'SKILL.md')), true);
+  assert.equal(existsSync(join(target, 'references', 'guide.md')), true);
+  assert.equal(existsSync(join(target, 'CHANGELOG.md')), false);
+  assert.equal(existsSync(join(target, 'evals')), false);
 });

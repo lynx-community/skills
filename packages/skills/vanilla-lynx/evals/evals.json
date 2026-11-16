@@ -1,6 +1,6 @@
 {
   "skill_name": "vanilla-lynx",
-  "description": "Outcome-based evals for Vanilla Lynx scaffolding, Element PAPI rendering, threading, styling, and external bundles. Equivalent correct implementations and explanations should pass.",
+  "description": "Outcome-based evals for Vanilla Lynx scaffolding, build-free Lynx XML (`.lynxml`) and Rspeedy artifacts, Element PAPI rendering, threading, styling, and external bundles. Equivalent correct implementations and explanations should pass.",
   "evals": [
     {
       "id": 1,
