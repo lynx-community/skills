@@ -18,7 +18,7 @@ Use this skill to author Vanilla Lynx directly with Element PAPI and Lynx Runtim
 ## Core Rules
 
 - Rely only on Lynx-supported ECMAScript built-ins (note that `Intl` is not built in), Element PAPI, and Lynx runtime globals documented by this skill (`lynx`, `SystemInfo`, `console`, timers, `requestAnimationFrame`/`cancelAnimationFrame`, and background-only `NativeModules`/`fetch`). Do not use ReactLynx, JSX, virtual DOM, or undeclared browser/Node globals such as `window`, `document`, `navigator`, `localStorage`, or `performance` (use either `Date.now()` or the `requestAnimationFrame` callback timestamp consistently without mixing the two; `lynx.performance` is for trace/timing observation and has no `.now()`).
-- For a complete authoring request, deliver a complete artifact in the selected format. Never return only an example asset or reference path.
+- For a complete authoring request, deliver the adapted artifact's full contents or write the requested file; never answer only with an example asset/reference path or instructions to read it. When authoring a build-free `.lynxml`, read `references/lynxml.md` and adapt the smallest matching template under `assets/examples/` (for example, `assets/examples/counter.lynxml` for a counter).
 - Keep Element PAPI tree creation, mutation, lifecycle rendering, and UI updates in the main-thread source: `<script thread="main">` for `.lynxml` or `main-thread.ts` for Rspeedy. Never call Element PAPI APIs or `__FlushElementTree()` from the background-thread source; it only sends serializable patches for the main thread to apply and flush.
 - Rely on the SDK flush for initial render; call `__FlushElementTree()` after later UI mutations.
 - Add background-thread source only for heavier business logic, async work, timers, native calls, or data processing. Keep cross-thread payloads serializable.
@@ -43,4 +43,9 @@ than replacing them with generic guidance.
 
 ## Runtime Validation
 
-For a generated `.lynxml`, run `npx http-server .` from the directory containing the unchanged artifact and use an address printed by that server that the target device can reach. For an Rspeedy project, use its configured build and development-server workflow rather than a generic static server. Then use the `lynx-devtool` skill for client discovery, opening the reachable URL, runtime inspection, console logs, screenshots, and interactions. Do not duplicate device-debugging workflow here or present `agent-lynx` as an artifact builder or server.
+Prepare a reachable artifact URL before handing off device validation to `lynx-devtool`:
+
+- For a build-free `.lynxml`, do not run a build step. Run `npx http-server .` from the directory containing the unchanged artifact, keep the server running while Lynx Host opens a URL formed from one of the addresses printed by the server and the artifact filename, then stop it.
+- For an Rspeedy project, use its configured development server (`rspeedy dev`) or build-and-serve workflow rather than a generic static server. Take the actual bundle URL from its output or checked-in configuration instead of guessing host, port, entry, output directory, or bundle path; keep the service running during validation, then stop it.
+
+For device-side client discovery, opening the reachable URL, runtime inspection, console logs, screenshots, and interactions, use the `lynx-devtool` skill. Do not duplicate device-debugging workflow here or present `agent-lynx` as an artifact builder or server.
