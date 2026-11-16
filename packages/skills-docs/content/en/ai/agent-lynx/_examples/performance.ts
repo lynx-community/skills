@@ -20,6 +20,7 @@ export const traceCaptureExample = {
       description:
         'Discover the capture and analysis skills; relevant entries are excerpted here.',
       command: 'agent-lynx skills list',
+      outputLang: 'xml',
       output: `<available_skills>
   <skill>
     <name>lynx-trace-analysis</name>
@@ -48,6 +49,7 @@ Key Scenarios:
       description:
         'Excerpt the start-before-open rule and memory/GC options; use the current CLI trace commands to execute them.',
       command: 'agent-lynx skills get lynx-trace-record',
+      outputLang: 'markdown',
       output: `### Step 2. Start recording:
 Execute the start command **BEFORE** building or opening the page on your device. This ensures you capture the entire first frame of the page. Use the \`--client\` parameter with the client ID from Step 1.
 
@@ -67,6 +69,7 @@ Skill directory: /tmp/agent-lynx-perf-docs-20261030/node_modules/@lynx-js/skill-
         'Start before loading the page, explicitly enable memory data, and keep automatic GC enabled by default.',
       command:
         'agent-lynx trace start --client "$CLIENT_ID" --enable-memory-trace',
+      outputLang: 'jsonc',
       output: `{
   "success": true,
   "started": true,
@@ -84,6 +87,7 @@ Skill directory: /tmp/agent-lynx-perf-docs-20261030/node_modules/@lynx-js/skill-
         'Open the locally built Settings bundle and extract the page list from the response.',
       command:
         "agent-lynx open 'http://127.0.0.1:33227/main.lynx.bundle?fullscreen=true' --client \"$CLIENT_ID\" | jq '.data.data'",
+      outputLang: 'jsonc',
       output: `[
   {
     "session_id": 1,
@@ -101,6 +105,7 @@ Skill directory: /tmp/agent-lynx-perf-docs-20261030/node_modules/@lynx-js/skill-
         'Confirm the target page has appeared before ending the loading capture.',
       command:
         'agent-lynx wait --text Settings --client "$CLIENT_ID" --session 1',
+      outputLang: 'text',
       output:
         'Matched text "Settings" after 296ms. A fresh snapshot was cached.',
       result: 'Page visible',
@@ -112,6 +117,7 @@ Skill directory: /tmp/agent-lynx-perf-docs-20261030/node_modules/@lynx-js/skill-
       description:
         'Stop on the same client, retain the stream handle, and check for data loss.',
       command: 'agent-lynx trace end --client "$CLIENT_ID"',
+      outputLang: 'jsonc',
       output: `{
   "success": true,
   "message": "Tracing completed successfully. Download the stream with \`agent-lynx trace read-data\`.",
@@ -128,6 +134,7 @@ Skill directory: /tmp/agent-lynx-perf-docs-20261030/node_modules/@lynx-js/skill-
         'Save the returned stream 1 locally; analysis can continue without the device after downloading.',
       command:
         'agent-lynx trace read-data --client "$CLIENT_ID" --stream 1 -o ./settings-memory.pftrace',
+      outputLang: 'jsonc',
       output: `{
   "success": true,
   "message": "Trace data saved successfully.",
@@ -149,6 +156,7 @@ Skill directory: /tmp/agent-lynx-perf-docs-20261030/node_modules/@lynx-js/skill-
         'Parse the local file; jq omits the full event inventory while retaining counts and file identity.',
       command:
         "agent-lynx trace event-summary ./settings-memory.pftrace --json | jq 'del(.events)'",
+      outputLang: 'jsonc',
       output: `{
   "success": true,
   "parseSucceeded": true,
@@ -171,6 +179,7 @@ Skill directory: /tmp/agent-lynx-perf-docs-20261030/node_modules/@lynx-js/skill-
         'Check load/DOM-ready events and the memory/GC configuration actually recorded in TRACE_BEGIN. jq formats the validation as compact text.',
       command:
         "agent-lynx trace query ./settings-memory.pftrace --sql \"SELECT name AS evidence, CAST(COUNT(*) AS TEXT) AS value FROM slice WHERE name IN ('LynxLoadTemplate', 'LynxDomReady') GROUP BY name UNION ALL SELECT a.key, a.display_value FROM slice s JOIN args a ON a.arg_set_id = s.arg_set_id WHERE s.name = 'TRACE_BEGIN'\" | jq -r '\"parseSucceeded: \\(.parseSucceeded), truncated: \\(.truncated)\", (.rows[] | \"\\(.evidence): \\(.value)\")'",
+      outputLang: 'text',
       output: `parseSucceeded: true, truncated: false
 LynxDomReady: 1
 LynxLoadTemplate: 1
@@ -198,6 +207,7 @@ export const traceMemoryExample = {
       description:
         'Excerpt the analysis guide index and select memory-analysis for this question.',
       command: 'agent-lynx skills get lynx-trace-analysis',
+      outputLang: 'markdown',
       output: `### KNOWLEDGE BASE
 
 *These are the "Guidebooks" you must load to know **what** to query.*
@@ -224,6 +234,7 @@ Skill directory: /tmp/agent-lynx-perf-docs-20261030/node_modules/@lynx-js/skill-
       description:
         'Read the memory guide from the returned skill directory; the entry workflow and report command are excerpted.',
       command: 'Read $TRACE_SKILL_DIR/references/memory-analysis.md',
+      outputLang: 'markdown',
       output: `## First Action
 
 Classify the request, then perform exactly one first action:
@@ -257,6 +268,7 @@ node <path_to_the_skill>/scripts/trace_query.bundle.cjs memory-analysis \\
         'TRACE_SKILL_DIR is the directory returned by skills get. Select the page by bundle URL and generate HTML; report path, summary, and warnings are excerpted.',
       command:
         'node "$TRACE_SKILL_DIR/scripts/trace_query.bundle.cjs" memory-analysis --path ./settings-memory.pftrace --url main.lynx.bundle --output ./settings-memory-report.html',
+      outputLang: 'text',
       output: `Memory analysis: {
   "valid": true,
   "reportPath": "/tmp/agent-lynx-perf-docs-20261030/settings-memory-report.html",
@@ -290,6 +302,7 @@ export const liveMemoryExample = {
       description:
         'Excerpt global-memory and heap-snapshot instructions; global statistics and page VMs use different session scopes.',
       command: 'agent-lynx skills get lynx-devtool',
+      outputLang: 'markdown',
       output: `#### 15. Take Heap Snapshot
 
 Capture a QuickJS heap snapshot from the current Lynx session and save it as a \`.heapsnapshot\` file.
@@ -334,6 +347,7 @@ Skill directory: /tmp/agent-lynx-perf-docs-20261030/node_modules/@lynx-js/skill-
         'Read the supported CDP method reference to confirm global session -1 and timeoutMs.',
       command:
         'Read $DEVTOOL_SKILL_DIR/references/cdp/memory/Memory.getAllMemoryUsage.md',
+      outputLang: 'markdown',
       output: `# Memory.getAllMemoryUsage
 
 Scope: This is a Lynx global CDP extension. Send it to the global DevTool handler with session ID \`-1\` unless you have a platform-specific reason to override the session.
@@ -352,6 +366,7 @@ Scope: This is a Lynx global CDP extension. Send it to the global DevTool handle
         'Query registered Lynx instances across the app; jq selects global totals and memory categories, preserving collection status.',
       command:
         'agent-lynx cdp --client "$CLIENT_ID" --session -1 --method Memory.getAllMemoryUsage \'{"timeoutMs":50000}\' | jq \'{collectionStatus, completedInstanceCount, expectedInstanceCount, totalBytes, appBytes, ratioToApp, elementNodeCount, elementBytes, viewBytes, mainThreadRuntimeBytes, backgroundThreadRuntimeBytes}\'',
+      outputLang: 'jsonc',
       output: `{
   "collectionStatus": "completed",
   "completedInstanceCount": 1,
@@ -381,6 +396,7 @@ Scope: This is a Lynx global CDP extension. Send it to the global DevTool handle
         'Save the background VM’s JS object graph for later object-type and retainer inspection.',
       command:
         'agent-lynx take-heap-snapshot --client "$CLIENT_ID" --session 2 --thread background -o ./settings-background.heapsnapshot',
+      outputLang: 'text',
       output: 'Heap snapshot saved to ./settings-background.heapsnapshot',
       result: 'Background heap saved',
     },
@@ -392,6 +408,7 @@ Scope: This is a Lynx global CDP extension. Send it to the global DevTool handle
         'Save the main-thread VM separately; the two files represent different runtimes for the same page.',
       command:
         'agent-lynx take-heap-snapshot --client "$CLIENT_ID" --session 2 --thread main -o ./settings-main.heapsnapshot',
+      outputLang: 'text',
       output: 'Heap snapshot saved to ./settings-main.heapsnapshot',
       result: 'Main-thread heap saved',
     },

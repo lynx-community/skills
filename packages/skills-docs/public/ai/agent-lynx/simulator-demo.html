@@ -2091,6 +2091,118 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
       overscroll-behavior: contain;
       scrollbar-width: thin;
     }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        color-scheme: dark;
+        --ink: #e5e7ed;
+        --muted: #a2abba;
+        --line: #383e4a;
+        --demo-bg: #141518;
+        --demo-panel: #1d2027;
+        --demo-toolbar: #262a33;
+      }
+      #simulator-demo[data-active-step] {
+        --accent: var(--step-color, #c4a5ff);
+        --tint: color-mix(in srgb, var(--accent) 14%, var(--demo-panel));
+        --accent-line: color-mix(in srgb, var(--accent) 45%, var(--line));
+      }
+      #simulator-demo[data-active-step="1"] {
+        --step-color: #8ab4ff;
+      }
+      #simulator-demo[data-active-step="2"] {
+        --step-color: #72d9ad;
+      }
+      #simulator-demo[data-active-step="4"] {
+        --step-color: #ffba70;
+      }
+      html,
+      body {
+        background: var(--demo-bg);
+      }
+      .conversation,
+      .editor-window,
+      .editor-code,
+      .editor-tab,
+      .page-window,
+      .snapshot-panel {
+        background: var(--demo-panel);
+        border-color: var(--line);
+      }
+      .user-bubble,
+      .agent-mark,
+      .window-bar,
+      .activity-bar,
+      .editor-titlebar,
+      .editor-tabs,
+      .editor-status,
+      .snapshot-panel-heading,
+      .snapshot-footer {
+        background: var(--demo-toolbar);
+        border-color: var(--line);
+      }
+      .conv-meta {
+        border-color: var(--line);
+      }
+      .editor-main {
+        background: var(--demo-bg);
+      }
+      .editor-tab {
+        border-top-color: var(--accent);
+      }
+      .command-box,
+      .agent-report code,
+      .code-peek,
+      .file-tree,
+      .snapshot,
+      .snapshot-panel-heading,
+      .snapshot-footer button {
+        color: var(--ink);
+      }
+      .agent-mark,
+      .call-select > .icon:first-child,
+      .comment,
+      .speaker,
+      .scene-values,
+      .scene-values small,
+      .read-tool b,
+      .tool-path,
+      .detail-header,
+      .editor-title,
+      .editor-tab,
+      .explorer-heading,
+      .activity-bar > .icon:first-child,
+      .file-row.muted,
+      .editor-status,
+      .line-number,
+      .peek-comment,
+      .code-peek-label,
+      .snapshot-row .ref-token,
+      .snapshot-footer,
+      .window-title {
+        color: var(--muted);
+      }
+      .call:hover .call-select,
+      .file-row:hover,
+      .keyword:hover,
+      .keyword.focused,
+      .read-tool:hover,
+      .read-tool.focused {
+        background: var(--tint);
+        color: var(--accent);
+      }
+      .connections circle {
+        fill: var(--demo-panel);
+      }
+      .peek-key {
+        color: #9dcaff;
+      }
+      .peek-string {
+        color: #a6d990;
+      }
+    }
+    .command-box .keyword {
+      color: var(--accent);
+    }
     </style>
   </head>
   <body>
@@ -2424,9 +2536,9 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
                     </svg>
                   </button>
                   <div class="call-content" id="call-body-3">
-                    <pre class="command-box">agent-lynx <button class="keyword" type="button" data-link="open">open</button> "$PAGE_URL" \
-  --client simulator:localhost:45678 \
-  --simulator-window-height 750 \
+                    <pre class="command-box">agent-lynx <button class="keyword" type="button" data-link="open">open</button> <span class="peek-string">"$PAGE_URL"</span> \
+  <span class="peek-key">--client</span> simulator:localhost:45678 \
+  <span class="peek-key">--simulator-window-height</span> 750 \
   <button class="keyword" type="button" data-link="score">--page-env ./page-env.mjs</button></pre>
                     <div class="scene-values">
                       <small>测试数据</small><button
@@ -2506,7 +2618,7 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
                   </button>
                   <div class="call-content" id="call-body-4" hidden>
                     <pre class="command-box">agent-lynx <button class="keyword" type="button" data-link="snapshot">snapshot</button> \
-  --client simulator:localhost:45678 --session 1
+  <span class="peek-key">--client</span> simulator:localhost:45678 <span class="peek-key">--session</span> 1
 <span class="comment"># ...</span>
 <span class="comment"># </span><button class="keyword" type="button" data-link="node-score">@e6 [text] "268.50"</button>
 <span class="comment"># </span><button class="keyword" type="button" data-link="node-progress">@e25 [text] "LYNX DEMO"</button></pre>
@@ -3077,11 +3189,11 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
       };
       const peek = {
         request:
-          '<div class="code-peek-label">index.tsx</div><div class="code-line"><span class="line-number">5</span><code>import { root, useInitData, useState } from &quot;@lynx-js/react&quot;;</code></div><div class="code-line"><span class="line-number"></span><code class="peek-comment">…</code></div><div class="code-line"><span class="line-number">21</span><code>  const initial = useInitData();</code></div><div class="code-line"><span class="line-number">22</span><code>  const [selectedCard, setSelectedCard] = useState&lt;BankCard&gt;(initial.card ?? {</code></div><div class="code-line"><span class="line-number">23</span><code>    type: &quot;visa&quot;,</code></div><div class="code-line"><span class="line-number">24</span><code>    number: &quot;4558 **** **** 6767&quot;,</code></div><div class="code-line"><span class="line-number">25</span><code>    name: &quot;Alex Quentin&quot;,</code></div><div class="code-line"><span class="line-number">26</span><code>  });</code></div><div class="code-line"><span class="line-number"></span><code class="peek-comment">…</code></div><div class="code-line"><span class="line-number">45</span><code>      &lt;Amount amount={initial.amount ?? &quot;1314&quot;} /&gt;</code></div>',
+          '<div class="code-peek-label">index.tsx</div><div class="code-line"><span class="line-number">5</span><code><span class="peek-key">import</span> { root, useInitData, useState } <span class="peek-key">from</span> <span class="peek-string">&quot;@lynx-js/react&quot;</span>;</code></div><div class="code-line"><span class="line-number"></span><code class="peek-comment">…</code></div><div class="code-line"><span class="line-number">21</span><code>  <span class="peek-key">const</span> initial = useInitData();</code></div><div class="code-line"><span class="line-number">22</span><code>  <span class="peek-key">const</span> [selectedCard, setSelectedCard] = useState&lt;BankCard&gt;(initial.card ?? {</code></div><div class="code-line"><span class="line-number">23</span><code>    type: <span class="peek-string">&quot;visa&quot;</span>,</code></div><div class="code-line"><span class="line-number">24</span><code>    number: <span class="peek-string">&quot;4558 **** **** 6767&quot;</span>,</code></div><div class="code-line"><span class="line-number">25</span><code>    name: <span class="peek-string">&quot;Alex Quentin&quot;</span>,</code></div><div class="code-line"><span class="line-number">26</span><code>  });</code></div><div class="code-line"><span class="line-number"></span><code class="peek-comment">…</code></div><div class="code-line"><span class="line-number">45</span><code>      <span class="peek-key">&lt;Amount</span> amount={initial.amount ?? <span class="peek-string">&quot;1314&quot;</span>} /&gt;</code></div>',
         page:
-          '<div class="code-peek-label">Card.tsx</div><div class="code-line"><span class="line-number">51</span><code>        &lt;view className=&quot;card-number&quot;&gt;</code></div><div class="code-line"><span class="line-number">52</span><code>          &lt;text className=&quot;first-digits&quot;&gt;{firstFour}&lt;/text&gt;</code></div><div class="code-line"><span class="line-number">53</span><code>          &lt;text className=&quot;middle-digits&quot;&gt;**** ****&lt;/text&gt;</code></div><div class="code-line"><span class="line-number">54</span><code>          &lt;text className=&quot;last-digits&quot;&gt;{lastFour}&lt;/text&gt;</code></div><div class="code-line"><span class="line-number"></span><code class="peek-comment">…</code></div><div class="code-line"><span class="line-number">57</span><code>          &lt;text&gt;{selectedCard?.name || &quot;Card holder&quot;}&lt;/text&gt;</code></div>',
+          '<div class="code-peek-label">Card.tsx</div><div class="code-line"><span class="line-number">51</span><code>        <span class="peek-key">&lt;view</span> className=<span class="peek-string">&quot;card-number&quot;</span>&gt;</code></div><div class="code-line"><span class="line-number">52</span><code>          <span class="peek-key">&lt;text</span> className=<span class="peek-string">&quot;first-digits&quot;</span>&gt;{firstFour}<span class="peek-key">&lt;/text</span>&gt;</code></div><div class="code-line"><span class="line-number">53</span><code>          <span class="peek-key">&lt;text</span> className=<span class="peek-string">&quot;middle-digits&quot;</span>&gt;**** ****<span class="peek-key">&lt;/text</span>&gt;</code></div><div class="code-line"><span class="line-number">54</span><code>          <span class="peek-key">&lt;text</span> className=<span class="peek-string">&quot;last-digits&quot;</span>&gt;{lastFour}<span class="peek-key">&lt;/text</span>&gt;</code></div><div class="code-line"><span class="line-number"></span><code class="peek-comment">…</code></div><div class="code-line"><span class="line-number">57</span><code>          <span class="peek-key">&lt;text</span>&gt;{selectedCard?.name || <span class="peek-string">&quot;Card holder&quot;</span>}<span class="peek-key">&lt;/text</span>&gt;</code></div>',
         env:
-          '<div class="code-peek-label">page-env.mjs</div><div class="code-line"><span class="line-number">1</span><code>export default () =&gt; ({</code></div><div class="code-line"><span class="line-number">2</span><code>  templateData: {</code></div><div class="code-line"><span class="line-number">3</span><code>    amount: &quot;268.50&quot;,</code></div><div class="code-line"><span class="line-number">4</span><code>    card: {</code></div><div class="code-line"><span class="line-number">5</span><code>      type: &quot;visa&quot;,</code></div><div class="code-line"><span class="line-number">6</span><code>      number: &quot;4242 **** **** 4242&quot;,</code></div><div class="code-line"><span class="line-number">7</span><code>      name: &quot;LYNX DEMO&quot;,</code></div><div class="code-line"><span class="line-number">8</span><code>    },</code></div><div class="code-line"><span class="line-number">9</span><code>  },</code></div><div class="code-line"><span class="line-number">10</span><code>});</code></div>',
+          '<div class="code-peek-label">page-env.mjs</div><div class="code-line"><span class="line-number">1</span><code><span class="peek-key">export</span> <span class="peek-key">default</span> () =&gt; ({</code></div><div class="code-line"><span class="line-number">2</span><code>  templateData: {</code></div><div class="code-line"><span class="line-number">3</span><code>    amount: <span class="peek-string">&quot;268.50&quot;</span>,</code></div><div class="code-line"><span class="line-number">4</span><code>    card: {</code></div><div class="code-line"><span class="line-number">5</span><code>      type: <span class="peek-string">&quot;visa&quot;</span>,</code></div><div class="code-line"><span class="line-number">6</span><code>      number: <span class="peek-string">&quot;4242 **** **** 4242&quot;</span>,</code></div><div class="code-line"><span class="line-number">7</span><code>      name: <span class="peek-string">&quot;LYNX DEMO&quot;</span>,</code></div><div class="code-line"><span class="line-number">8</span><code>    },</code></div><div class="code-line"><span class="line-number">9</span><code>  },</code></div><div class="code-line"><span class="line-number">10</span><code>});</code></div>',
       };
       let animation = 0;
       // Same continuous SVG guide geometry as lynx-website PR #1748.

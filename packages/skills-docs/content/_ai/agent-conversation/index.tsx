@@ -2,6 +2,7 @@
 // Licensed under the Apache License Version 2.0 that can be found in the
 // LICENSE file in the root directory of this source tree.
 
+import { CodeBlockRuntime as RspressCodeBlockRuntime } from '@rspress/core/theme';
 import {
   Check,
   ChevronRight,
@@ -21,6 +22,7 @@ export type AgentConversationStep =
     kind?: 'command' | 'read';
     description: string;
     command: string;
+    outputLang: string;
     output: string;
     wrapOutput?: boolean;
     result?: string;
@@ -59,6 +61,13 @@ const labels = {
     thought: '思路',
   },
 };
+
+// Rspress ships React 19 declarations, while the docs also run with React 18.
+const CodeBlockRuntime = RspressCodeBlockRuntime as (props: {
+  lang: string;
+  code: string;
+  wrapCode: boolean;
+}) => ReactNode;
 
 /** A scripted conversation. Tool calls disclose their explanation, input, and output. */
 export function AgentConversation({
@@ -219,26 +228,35 @@ export function AgentConversation({
                   />
                 </summary>
                 <div className={styles.toolBody} id={contentId}>
-                  <div className={styles.codeLabel}>{copy.input}</div>
-                  <pre className={styles.input}>
-                    <code>
-                      <span className={styles.comment}>
-                        {step.kind === 'read' ? '// ' : '# '}
-                        {step.description}
-                      </span>
-                      {'\n'}
-                      {step.command}
-                    </code>
-                  </pre>
-                  <div className={styles.codeLabel}>{copy.output}</div>
-                  <pre
-                    className={`${styles.output} ${
-                      step.wrapOutput !== true ? styles.preformatted : ''
-                    }`}
-                    tabIndex={step.wrapOutput !== true ? 0 : undefined}
-                  >
-                    <code>{step.output}</code>
-                  </pre>
+                  {open && (
+                    <>
+                      <div className={styles.codeLabel}>{copy.input}</div>
+                      {step.kind === 'read'
+                        ? (
+                          <pre className={styles.input}>
+                          <code>
+                            <span className={styles.comment}>
+                              {'// '}{step.description}
+                            </span>
+                            {'\n'}{step.command}
+                          </code>
+                          </pre>
+                        )
+                        : (
+                          <CodeBlockRuntime
+                            lang='bash'
+                            code={`# ${step.description}\n${step.command}`}
+                            wrapCode={true}
+                          />
+                        )}
+                      <div className={styles.codeLabel}>{copy.output}</div>
+                      <CodeBlockRuntime
+                        lang={step.outputLang}
+                        code={step.output}
+                        wrapCode={step.wrapOutput === true}
+                      />
+                    </>
+                  )}
                 </div>
               </details>
             );
