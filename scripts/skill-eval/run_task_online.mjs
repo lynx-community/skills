@@ -372,7 +372,7 @@ function buildExecutorPrompt(taskPrompt, skillName) {
   if (skillName) {
     return [
       `Use the available skill named \`${skillName}\` before answering this task.`,
-      'Do not mention the skill in the final answer. Do not ask follow-up questions.',
+      'Do not mention the skill in the final answer. Do not ask follow-up questions unless the loaded skill explicitly requires a concise clarification for an underspecified request instead of guessing.',
       'This is a pure answering task: do not inspect the repository or run shell commands.',
       'After loading the skill, use file-reading tools only for files inside that skill directory that SKILL.md directs you to read. Do not read evals, grading artifacts, or other repository files.',
       'When the task asks to follow official docs, examples, or another source of truth, identify the specific official source and the relevant local skill reference used to adapt it.',
