@@ -37,7 +37,7 @@
   "plugins": [
     "npm:@dprint/typescript@0.100.0",
     "npm:@dprint/json@0.25.2",
-    "npm:dprint-plugin-malva@0.16.0",
+    "npm:dprint-plugin-malva@0.16.1",
     "npm:dprint-plugin-markup@0.27.6",
     "npm:dprint-plugin-yaml@0.6.0",
   ],
