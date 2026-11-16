@@ -221,7 +221,7 @@ export async function runReactLynxSession(
   let rootOrderFrames = 0;
   const envelopeTypes = new Set<string>();
   let snapshotPending = afterSnapshot !== undefined;
-  const wantsTree = outbound.some(frame => {
+  const refreshFrame = outbound.find(frame => {
     try {
       const parsed = JSON.parse(frame.params.data) as { type?: unknown };
       return parsed.type === "refresh";
@@ -229,6 +229,7 @@ export async function runReactLynxSession(
       return false;
     }
   });
+  const wantsTree = refreshFrame !== undefined;
 
   try {
     for await (
@@ -237,6 +238,10 @@ export async function runReactLynxSession(
         maxMs,
         onIdle: () => {
           if (wantsTree && state.tree.size === 0 && (operationFrames > 0 || envelopeTypes.has("attach"))) {
+            if (!inputTerminated && refreshFrame) {
+              if (sendInit) sendInput(buildReactLynxOutboundFrame("init"));
+              sendInput(refreshFrame);
+            }
             return true;
           }
           if (!snapshotPending || !afterSnapshot) return awaitEnvelope;
