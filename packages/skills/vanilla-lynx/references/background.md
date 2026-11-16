@@ -69,7 +69,7 @@ function setupBackground() {
 
 Reuse the same module-level `mainThread` returned by `lynx.getCoreContext()` to dispatch background changes to the main thread. The main thread listens for the corresponding `PatchFromBackground` event through `backgroundThread`, returned by `lynx.getJSContext()`.
 
-Keep background data private to the background runtime. When it changes, compare it with the last synchronized state and dispatch only changed keys in a `PatchFromBackground` event. The background thread must not call Element PAPI APIs or `__FlushElementTree()`; the main thread receives the patch, owns the actual UI mutation, and flushes the update.
+Keep background data private to the background runtime. When it changes, compare top-level entries by reference (`value !== lastSyncedData[key]`) and dispatch only changed keys in a `PatchFromBackground` event. Replace changed top-level values via `setData(...)` instead of mutating nested objects or arrays in place. The background thread must not call Element PAPI APIs or `__FlushElementTree()`; the main thread receives the patch, owns the actual UI mutation, and flushes the update.
 
 ```javascript
 const data = {};
@@ -77,7 +77,7 @@ let lastSyncedData = { ...data };
 let isFirstScreenDataFromMainThread = true;
 
 function getData() {
-  return data;
+  return { ...data };
 }
 
 function dispatchPatchToMainThread() {
