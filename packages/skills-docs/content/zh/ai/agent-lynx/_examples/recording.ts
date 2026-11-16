@@ -18,6 +18,7 @@ export const recorderExample = {
       name: 'agent-lynx skills list',
       description: '节选录制与产物检查 skill：先创建回放文件，再检查其内容。',
       command: 'agent-lynx skills list',
+      outputLang: 'xml',
       output: `<available_skills>
   <skill>
     <name>lynx-recorder</name>
@@ -38,6 +39,7 @@ export const recorderExample = {
       name: 'agent-lynx skills get lynx-recorder',
       description: '节选录制流程：先 start，再打开页面，最后检查 savedFiles。',
       command: 'agent-lynx skills get lynx-recorder',
+      outputLang: 'markdown',
       output: `## Workflow
 
 1. **Start before opening the page.** Run \`recorder start\`. Capture must begin *before* the target page loads so the recording includes \`loadTemplate\`.
@@ -56,6 +58,7 @@ Skill directory: /tmp/agent-lynx-perf-docs-20261030/node_modules/@lynx-js/skill-
       name: 'agent-lynx recorder start',
       description: '先开始 Recorder，确保随后打开页面时的模板加载进入录制。',
       command: 'agent-lynx recorder start --client "$CLIENT_ID"',
+      outputLang: 'jsonc',
       output: `{
   "success": true,
   "started": true,
@@ -72,6 +75,7 @@ Skill directory: /tmp/agent-lynx-perf-docs-20261030/node_modules/@lynx-js/skill-
       description: '录制开始后打开 Settings；从响应中提取新页面的 session 3。',
       command:
         "agent-lynx open 'http://127.0.0.1:33227/main.lynx.bundle?fullscreen=true' --client \"$CLIENT_ID\" | jq '.data.data'",
+      outputLang: 'jsonc',
       output: `[
   {
     "session_id": 2,
@@ -93,6 +97,7 @@ Skill directory: /tmp/agent-lynx-perf-docs-20261030/node_modules/@lynx-js/skill-
       description:
         '读取新页面中的元素引用；这里节选包含 Ocean 按钮的主题区域。',
       command: 'agent-lynx snapshot --client "$CLIENT_ID" --session 3',
+      outputLang: 'text',
       output: `@e1 [scroll-view] @(207,450) {scrollable}
 └─ @e2 [view] @(207,460)
    ├─ @e3 [view] @(207,70)
@@ -118,6 +123,7 @@ Skill directory: /tmp/agent-lynx-perf-docs-20261030/node_modules/@lynx-js/skill-
       name: 'agent-lynx tap @e15',
       description: '在录制期间触发主题切换，让运行时输入进入回放数据。',
       command: 'agent-lynx tap @e15 --client "$CLIENT_ID" --session 3',
+      outputLang: 'text',
       output:
         'Tapped @e15 at (324,206). Re-run `agent-lynx snapshot` before using refs again.',
       result: '已点击 Ocean',
@@ -130,6 +136,7 @@ Skill directory: /tmp/agent-lynx-perf-docs-20261030/node_modules/@lynx-js/skill-
         '结束录制，并读取实际返回的 savedFiles；运行时可能按 session 拆分文件。jq 保留文件路径和完整诊断。',
       command:
         'agent-lynx recorder end --client "$CLIENT_ID" -o ./settings-recording.json | jq \'{success, savedFiles, diagnostics}\'',
+      outputLang: 'jsonc',
       output: `{
   "success": true,
   "savedFiles": [
@@ -170,6 +177,7 @@ Skill directory: /tmp/agent-lynx-perf-docs-20261030/node_modules/@lynx-js/skill-
       name: 'agent-lynx skills get lynx-recorder-fixture',
       description: '节选 fixture 检查入口；该 skill 提供本地解码与摘要脚本。',
       command: 'agent-lynx skills get lynx-recorder-fixture',
+      outputLang: 'markdown',
       output: `## Inspect and edit
 
 The tool requires Python 3 and uses only the standard library. \`decode\`, \`summary\`, and \`roundtrip\` accept a local file or HTTP(S) URL; \`encode\` accepts a local decoded JSON file.
@@ -201,6 +209,7 @@ Skill directory: /tmp/agent-lynx-perf-docs-20261030/node_modules/@lynx-js/skill-
         'FIXTURE_SKILL_DIR 是上一步返回的目录；使用 savedFiles 中的实际文件名，兼容编码后的 TestBench 文件。',
       command:
         'python3 "$FIXTURE_SKILL_DIR/scripts/fixture_tool.py" summary ./settings-recording-session3.json',
+      outputLang: 'text',
       output: `=== TestBench Fixture Summary ===
 
 Top-level keys: ['Action List', 'Invoked Method Data', 'Callback', 'Component List', 'Debug Info', 'SharedData', 'Scripts', 'Config']

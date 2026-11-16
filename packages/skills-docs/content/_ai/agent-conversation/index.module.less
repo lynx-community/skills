@@ -197,6 +197,21 @@
 .toolBody {
   padding: 0 13px 10px;
   border-top: 1px solid var(--conversation-line);
+
+  :global(.rp-codeblock) {
+    margin: 0;
+    --rp-code-block-bg: var(--conversation-soft);
+    --shiki-token-comment: var(--rp-c-text-2);
+    border-radius: 6px;
+  }
+
+  :global(.rp-codeblock__content__scroll-container) {
+    pre code {
+      padding: 8px 12px;
+      font-size: 12px;
+      line-height: 1.5;
+    }
+  }
 }
 
 .codeLabel {
@@ -207,10 +222,13 @@
   font-weight: 550;
 }
 
-.conversation pre {
+.conversation .input {
   margin: 0;
   border: 0;
   border-radius: 0;
+  padding: 0;
+  background: none;
+  color: var(--rp-c-text-1);
   white-space: pre-wrap;
   overflow-wrap: anywhere;
   font: 12px/1.2 var(--rp-font-family-mono, monospace);
@@ -224,31 +242,9 @@
   }
 }
 
-.conversation .input {
-  padding: 0;
-  background: none;
-  color: var(--rp-c-text-1);
-}
 .comment {
   color: var(--rp-c-text-2);
 }
-.conversation .output {
-  padding: 8px 12px;
-  border-radius: 6px;
-  background: var(--conversation-soft);
-}
-
-.conversation .preformatted {
-  overflow-x: auto;
-  overflow-wrap: normal;
-  white-space: pre;
-  scrollbar-width: thin;
-  &:focus-visible {
-    outline: 2px solid var(--rp-c-brand);
-    outline-offset: 2px;
-  }
-}
-
 .answer {
   margin: 16px 0 0;
   p + p {

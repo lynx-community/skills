@@ -113,9 +113,8 @@
     .stage {
       position: relative;
       display: grid;
-      grid-template-columns: minmax(210px, 256px) minmax(300px, 1fr);
+      grid-template-columns: minmax(0, 0.62fr) minmax(0, 1fr);
       gap: 24px;
-      min-width: 534px;
       align-items: stretch;
     }
     .panel {
@@ -301,7 +300,8 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 8px;
+      gap: 4px 8px;
+      flex-wrap: wrap;
       min-height: 39px;
       padding: 7px 12px;
       border-top: 1px solid var(--border);
@@ -409,6 +409,17 @@
     @media (max-width: 560px) {
       .demo {
         padding: 16px 14px 12px;
+      }
+      .stage {
+        gap: 12px;
+      }
+      .panel-heading {
+        gap: 5px;
+        padding-inline: 7px;
+        font-size: 10px;
+      }
+      .image-wrap {
+        width: calc(100% - 12px);
       }
       .intro {
         align-items: flex-start;
@@ -673,11 +684,14 @@
       'use strict';
       const params = new URLSearchParams(location.search);
       const zh = params.get('lang') === 'zh';
-      const dark = params.get('theme') === 'dark'
-        || (!params.has('theme')
-          && matchMedia('(prefers-color-scheme: dark)').matches);
       document.documentElement.lang = zh ? 'zh-CN' : 'en';
-      document.documentElement.dataset.theme = dark ? 'dark' : 'light';
+      const colorScheme = matchMedia('(prefers-color-scheme: dark)');
+      function updateTheme() {
+        document.documentElement.dataset.theme = params.get('theme')
+          ?? (colorScheme.matches ? 'dark' : 'light');
+      }
+      colorScheme.addEventListener('change', updateTheme);
+      updateTheme();
       const copy = zh
         ? {
           title: '看见页面，定位元素',
