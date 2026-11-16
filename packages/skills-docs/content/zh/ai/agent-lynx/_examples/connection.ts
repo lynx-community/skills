@@ -17,6 +17,7 @@ export const connectionExample = {
       description:
         '发现 CLI 自带的 skills，找到与设备调试相关的 lynx-devtool。',
       command: 'agent-lynx skills list',
+      outputLang: 'xml',
       output: `<available_skills>
   <skill>
     <name>lynx-devtool</name>
@@ -32,6 +33,7 @@ export const connectionExample = {
       id: 'skills-get',
       description: '加载使用说明，并取得 skill 的目录和参考文件清单。',
       command: 'agent-lynx skills get lynx-devtool',
+      outputLang: 'xml',
       output: `<skill_content name="lynx-devtool">
 Use the \`agent-lynx\` CLI. The published package is \`agent-lynx\`.
 
@@ -56,6 +58,7 @@ Relative paths in this skill are relative to the skill directory.
       description: '按 skills get 返回的目录，读取设备、应用与页面的发现指南。',
       command:
         'Read("/workspace/node_modules/@lynx-js/skill-lynx-devtool/references/troubleshooting/index.md")',
+      outputLang: 'markdown',
       output: `## Discovery Model
 
 In practice:
@@ -76,6 +79,7 @@ In practice:
       description:
         '默认通过本地 daemon 发现应用；返回值中的 id 是后续调用使用的 client ID。',
       command: 'agent-lynx list-clients',
+      outputLang: 'jsonc',
       output: `[
   {
     "id": "android:1A231FDF6000AB:8901",
@@ -100,6 +104,7 @@ In practice:
       description:
         '使用上一步返回的 client ID 查询页面；session_id 标识这个应用里的调试上下文。',
       command: 'agent-lynx list-sessions --client android:1A231FDF6000AB:8901',
+      outputLang: 'jsonc',
       output: `[
   {
     "session_id": 1,

@@ -18,6 +18,7 @@ export const runtimeErrorExample = {
       description:
         '读取当前页面的元素引用；这里节选主题区域，Ocean 的按钮容器是 @e15。',
       command: 'agent-lynx snapshot --client "$CLIENT_ID" --session 2',
+      outputLang: 'text',
       output: `@e1 [scroll-view] @(207,450) {scrollable}
 └─ @e2 [view] @(207,460)
    ├─ @e3 [view] @(207,70)
@@ -45,6 +46,7 @@ export const runtimeErrorExample = {
         '先保持日志监听运行，再执行下一步点击。下面是这次点击产生的两条错误；收到两条后，监听自动结束。',
       command:
         'agent-lynx get-console --watch --level error --limit 2 --client "$CLIENT_ID" --session 2',
+      outputLang: 'text',
       output:
         `[11:25:29.411Z] [error/background] The following error occurred in the JSRuntime:
     at file://shared/lynx_core.js:2:10030
@@ -71,6 +73,7 @@ export const runtimeErrorExample = {
       description:
         '在日志监听期间点击当前快照中的按钮，让同一次操作的错误进入采集窗口。',
       command: 'agent-lynx tap @e15 --client "$CLIENT_ID" --session 2',
+      outputLang: 'text',
       output:
         'Tapped @e15 at (324,206). Re-run `agent-lynx snapshot` before using refs again.',
       result: '已复现点击',
@@ -87,6 +90,7 @@ export const runtimeErrorExample = {
       description:
         '列出当前后台 VM 的脚本。app-service.js 也在列表中；本次错误对应的是 .lynx/main/background.js。',
       command: 'agent-lynx get-sources --client "$CLIENT_ID" --session 2',
+      outputLang: 'jsonc',
       output: `[
   {
     "scriptId": "1",
@@ -111,6 +115,7 @@ export const runtimeErrorExample = {
         '读取脚本 5 的真实代码，再用 jq 提取 scriptSource 的第 484–491 行，查看调用栈附近的点击回调。',
       command:
         'agent-lynx cdp --thread background --method Debugger.getScriptSource \'{"scriptId":"5"}\' --client "$CLIENT_ID" --session 2 | jq -r \'.scriptSource | split("\\n")[483:491][]\'',
+      outputLang: 'javascript',
       output:
         `        $0: themeNames.map((t)=>/*#__PURE__*/ (0,_lynx_js_react_jsx_dev_runtime__rspack_import_0.jsxDEV)(__snapshot_835da_abf5c_2, {
                 values: [
@@ -135,6 +140,7 @@ export const runtimeErrorExample = {
       description: '读取报错表达式中的配置字段，不修改页面状态。',
       command:
         'agent-lynx evaluate \'lynx.__globalProps.themeNames\' --thread background --client "$CLIENT_ID" --session 2',
+      outputLang: 'jsonc',
       output: `{
   "result": {
     "type": "undefined"
@@ -161,6 +167,7 @@ export const elementSourceExample = {
       description:
         '刷新当前页面的引用；这里节选主题区域，使用包含 Ocean 文本的 @e15 容器。',
       command: 'agent-lynx snapshot --client "$CLIENT_ID" --session 1',
+      outputLang: 'text',
       output: `@e1 [scroll-view] @(207,450) {scrollable}
 └─ @e2 [view] @(207,460)
    ├─ @e3 [view] @(207,70)
@@ -188,6 +195,7 @@ export const elementSourceExample = {
         '根据运行时节点和 UI source-map 元数据，解析该按钮的仓库、源文件、行和列。',
       command:
         'agent-lynx get-source-info @e15 --client "$CLIENT_ID" --session 1',
+      outputLang: 'jsonc',
       output: `{
   "debugMetadataUrl": "http://127.0.0.1:33127/.lynx/main/debug-metadata.json",
   "lazyBundleUrl": null,
@@ -216,6 +224,7 @@ export const elementSourceExample = {
       description:
         '读取本地示例副本中的第 61–80 行；第 69 行是本次复现加入的出错回调。',
       command: 'Read examples/tailwindcss/src/App.tsx:61–80',
+      outputLang: 'tsx',
       output: `    61	            {themeNames.map((t) => (
     62	              <view
     63	                key={t}

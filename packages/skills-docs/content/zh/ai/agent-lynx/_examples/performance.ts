@@ -18,6 +18,7 @@ export const traceCaptureExample = {
       name: 'agent-lynx skills list',
       description: '发现采集和分析 skill；这里只节选相关条目。',
       command: 'agent-lynx skills list',
+      outputLang: 'xml',
       output: `<available_skills>
   <skill>
     <name>lynx-trace-analysis</name>
@@ -46,6 +47,7 @@ Key Scenarios:
       description:
         '节选先录制后打开页面的规则，以及内存与 GC 选项；执行入口使用当前 CLI 的 trace 命令。',
       command: 'agent-lynx skills get lynx-trace-record',
+      outputLang: 'markdown',
       output: `### Step 2. Start recording:
 Execute the start command **BEFORE** building or opening the page on your device. This ensures you capture the entire first frame of the page. Use the \`--client\` parameter with the client ID from Step 1.
 
@@ -65,6 +67,7 @@ Skill directory: /tmp/agent-lynx-perf-docs-20261030/node_modules/@lynx-js/skill-
         '在页面加载前开始采集，显式开启内存数据；自动 GC 保持默认开启。',
       command:
         'agent-lynx trace start --client "$CLIENT_ID" --enable-memory-trace',
+      outputLang: 'jsonc',
       output: `{
   "success": true,
   "started": true,
@@ -81,6 +84,7 @@ Skill directory: /tmp/agent-lynx-perf-docs-20261030/node_modules/@lynx-js/skill-
       description: '打开本地构建的 Settings bundle；从响应中提取页面列表。',
       command:
         "agent-lynx open 'http://127.0.0.1:33227/main.lynx.bundle?fullscreen=true' --client \"$CLIENT_ID\" | jq '.data.data'",
+      outputLang: 'jsonc',
       output: `[
   {
     "session_id": 1,
@@ -97,6 +101,7 @@ Skill directory: /tmp/agent-lynx-perf-docs-20261030/node_modules/@lynx-js/skill-
       description: '确认目标页面已经显示，再结束本次加载采集。',
       command:
         'agent-lynx wait --text Settings --client "$CLIENT_ID" --session 1',
+      outputLang: 'text',
       output:
         'Matched text "Settings" after 296ms. A fresh snapshot was cached.',
       result: '页面已显示',
@@ -108,6 +113,7 @@ Skill directory: /tmp/agent-lynx-perf-docs-20261030/node_modules/@lynx-js/skill-
       description:
         '使用同一 client 停止采集，保留下载句柄，并检查是否丢失数据。',
       command: 'agent-lynx trace end --client "$CLIENT_ID"',
+      outputLang: 'jsonc',
       output: `{
   "success": true,
   "message": "Tracing completed successfully. Download the stream with \`agent-lynx trace read-data\`.",
@@ -124,6 +130,7 @@ Skill directory: /tmp/agent-lynx-perf-docs-20261030/node_modules/@lynx-js/skill-
         '把刚返回的 stream 1 保存到本地；下载完成后即可脱离设备分析。',
       command:
         'agent-lynx trace read-data --client "$CLIENT_ID" --stream 1 -o ./settings-memory.pftrace',
+      outputLang: 'jsonc',
       output: `{
   "success": true,
   "message": "Trace data saved successfully.",
@@ -144,6 +151,7 @@ Skill directory: /tmp/agent-lynx-perf-docs-20261030/node_modules/@lynx-js/skill-
       description: '解析本地文件；用 jq 隐去完整事件清单，保留计数和文件标识。',
       command:
         "agent-lynx trace event-summary ./settings-memory.pftrace --json | jq 'del(.events)'",
+      outputLang: 'jsonc',
       output: `{
   "success": true,
   "parseSucceeded": true,
@@ -166,6 +174,7 @@ Skill directory: /tmp/agent-lynx-perf-docs-20261030/node_modules/@lynx-js/skill-
         '核对加载、DOM 就绪事件，以及 TRACE_BEGIN 中实际记录的内存和 GC 配置。 用 jq 将校验结果显示为紧凑文本。',
       command:
         "agent-lynx trace query ./settings-memory.pftrace --sql \"SELECT name AS evidence, CAST(COUNT(*) AS TEXT) AS value FROM slice WHERE name IN ('LynxLoadTemplate', 'LynxDomReady') GROUP BY name UNION ALL SELECT a.key, a.display_value FROM slice s JOIN args a ON a.arg_set_id = s.arg_set_id WHERE s.name = 'TRACE_BEGIN'\" | jq -r '\"parseSucceeded: \\(.parseSucceeded), truncated: \\(.truncated)\", (.rows[] | \"\\(.evidence): \\(.value)\")'",
+      outputLang: 'text',
       output: `parseSucceeded: true, truncated: false
 LynxDomReady: 1
 LynxLoadTemplate: 1
@@ -192,6 +201,7 @@ export const traceMemoryExample = {
       name: 'agent-lynx skills get lynx-trace-analysis',
       description: '节选分析指南目录；根据问题选择 memory-analysis。',
       command: 'agent-lynx skills get lynx-trace-analysis',
+      outputLang: 'markdown',
       output: `### KNOWLEDGE BASE
 
 *These are the "Guidebooks" you must load to know **what** to query.*
@@ -218,6 +228,7 @@ Skill directory: /tmp/agent-lynx-perf-docs-20261030/node_modules/@lynx-js/skill-
       description:
         '读取 skill 返回目录中的内存指南；这里节选分析入口和报告命令。',
       command: 'Read $TRACE_SKILL_DIR/references/memory-analysis.md',
+      outputLang: 'markdown',
       output: `## First Action
 
 Classify the request, then perform exactly one first action:
@@ -251,6 +262,7 @@ node <path_to_the_skill>/scripts/trace_query.bundle.cjs memory-analysis \\
         'TRACE_SKILL_DIR 是 skills get 返回的目录。按 bundle URL 选择页面，生成 HTML 报告；这里节选报告路径、摘要和警告。',
       command:
         'node "$TRACE_SKILL_DIR/scripts/trace_query.bundle.cjs" memory-analysis --path ./settings-memory.pftrace --url main.lynx.bundle --output ./settings-memory-report.html',
+      outputLang: 'text',
       output: `Memory analysis: {
   "valid": true,
   "reportPath": "/tmp/agent-lynx-perf-docs-20261030/settings-memory-report.html",
@@ -284,6 +296,7 @@ export const liveMemoryExample = {
       description:
         '节选全局内存与 JS 堆快照操作；全局统计和页面 VM 使用不同的 session 范围。',
       command: 'agent-lynx skills get lynx-devtool',
+      outputLang: 'markdown',
       output: `#### 15. Take Heap Snapshot
 
 Capture a QuickJS heap snapshot from the current Lynx session and save it as a \`.heapsnapshot\` file.
@@ -328,6 +341,7 @@ Skill directory: /tmp/agent-lynx-perf-docs-20261030/node_modules/@lynx-js/skill-
         '读取支持的 CDP 方法说明，确认全局 session -1 和 timeoutMs 参数。',
       command:
         'Read $DEVTOOL_SKILL_DIR/references/cdp/memory/Memory.getAllMemoryUsage.md',
+      outputLang: 'markdown',
       output: `# Memory.getAllMemoryUsage
 
 Scope: This is a Lynx global CDP extension. Send it to the global DevTool handler with session ID \`-1\` unless you have a platform-specific reason to override the session.
@@ -346,6 +360,7 @@ Scope: This is a Lynx global CDP extension. Send it to the global DevTool handle
         '查询整个应用中已注册的 Lynx 实例；jq 节选全局总量与内存构成，并保留采集完成状态。',
       command:
         'agent-lynx cdp --client "$CLIENT_ID" --session -1 --method Memory.getAllMemoryUsage \'{"timeoutMs":50000}\' | jq \'{collectionStatus, completedInstanceCount, expectedInstanceCount, totalBytes, appBytes, ratioToApp, elementNodeCount, elementBytes, viewBytes, mainThreadRuntimeBytes, backgroundThreadRuntimeBytes}\'',
+      outputLang: 'jsonc',
       output: `{
   "collectionStatus": "completed",
   "completedInstanceCount": 1,
@@ -374,6 +389,7 @@ Scope: This is a Lynx global CDP extension. Send it to the global DevTool handle
       description: '保存后台 VM 的 JS 对象图，供后续检查对象类型和引用链。',
       command:
         'agent-lynx take-heap-snapshot --client "$CLIENT_ID" --session 2 --thread background -o ./settings-background.heapsnapshot',
+      outputLang: 'text',
       output: 'Heap snapshot saved to ./settings-background.heapsnapshot',
       result: '后台堆快照已保存',
     },
@@ -384,6 +400,7 @@ Scope: This is a Lynx global CDP extension. Send it to the global DevTool handle
       description: '另存主线程 VM 快照；两个文件对应同一页面的不同运行时。',
       command:
         'agent-lynx take-heap-snapshot --client "$CLIENT_ID" --session 2 --thread main -o ./settings-main.heapsnapshot',
+      outputLang: 'text',
       output: 'Heap snapshot saved to ./settings-main.heapsnapshot',
       result: '主线程堆快照已保存',
     },

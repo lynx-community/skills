@@ -31,6 +31,7 @@ export const themeExample = {
       id: 'theme-snapshot-before',
       description: '检查上一节选中的页面。这里只展示与主题切换有关的快照分支。',
       command: `agent-lynx snapshot ${target}`,
+      outputLang: 'text',
       output: themeSnapshot,
       wrapOutput: false,
       result: '找到 Ocean 按钮',
@@ -41,6 +42,7 @@ export const themeExample = {
       id: 'theme-style-before',
       description: '读取页面根容器的计算样式，留作切换后的对照。',
       command: `agent-lynx get style @e1 --property background-color ${target}`,
+      outputLang: 'text',
       output: 'background-color: rgba(9, 9, 11, 1)',
       result: '记录当前背景色',
     },
@@ -55,6 +57,7 @@ export const themeExample = {
       description:
         '点击当前快照中的 Ocean 按钮，并刷新 daemon 缓存的元素引用。',
       command: `agent-lynx tap @e15 --snapshot ${target}`,
+      outputLang: 'text',
       output: 'Tapped @e15 at (324,182). Snapshot refreshed with 69 refs.',
       result: '已点击并刷新快照',
     },
@@ -68,6 +71,7 @@ export const themeExample = {
       description:
         '读取操作后的元素树。主题切换后结构相同，这里仍节选主题分支。',
       command: `agent-lynx snapshot ${target}`,
+      outputLang: 'text',
       output: themeSnapshot,
       wrapOutput: false,
       result: '确认最新元素引用',
@@ -77,6 +81,7 @@ export const themeExample = {
       id: 'theme-style-after',
       description: '使用新快照中的根节点读取背景色，核对主题是否发生变化。',
       command: `agent-lynx get style @e1 --property background-color ${target}`,
+      outputLang: 'text',
       output: 'background-color: rgba(15, 23, 42, 1)',
       result: '背景色已改变',
       defaultOpen: true,
@@ -97,6 +102,7 @@ export const scrollExample = {
       description: '完整快照也包含屏幕外的节点。这里只展示页面底部的分支。',
       command: `agent-lynx snapshot ${target}`,
       wrapOutput: false,
+      outputLang: 'text',
       output: `@e1 [scroll-view] @(207,426) {scrollable}
 └─ @e2 [view] @(207,436)
    ├─ …
@@ -121,6 +127,7 @@ export const scrollExample = {
       id: 'scroll-down',
       description: '滚动最新快照中标为 scrollable 的容器，并刷新元素引用。',
       command: `agent-lynx scroll @e1 --direction down --snapshot ${target}`,
+      outputLang: 'text',
       output: 'Scrolled @e1 down. Snapshot refreshed with 69 refs.',
       result: '已向下滚动',
     },
@@ -131,6 +138,7 @@ export const scrollExample = {
         '读取滚动后的可见元素。底部节点已进入视口，以下节选对应分支。',
       command: `agent-lynx snapshot --visible-only ${target}`,
       wrapOutput: false,
+      outputLang: 'text',
       output: `@e1 [scroll-view] @(207,426) {scrollable}
 └─ @e2 [view] @(207,376)
    ├─ …

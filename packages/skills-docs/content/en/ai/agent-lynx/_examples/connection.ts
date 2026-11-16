@@ -19,6 +19,7 @@ export const connectionExample = {
       description:
         'Discover the bundled skills and find lynx-devtool for device debugging.',
       command: 'agent-lynx skills list',
+      outputLang: 'xml',
       output: `<available_skills>
   <skill>
     <name>lynx-devtool</name>
@@ -35,6 +36,7 @@ export const connectionExample = {
       description:
         'Load the instructions and get the skill directory and reference file list.',
       command: 'agent-lynx skills get lynx-devtool',
+      outputLang: 'xml',
       output: `<skill_content name="lynx-devtool">
 Use the \`agent-lynx\` CLI. The published package is \`agent-lynx\`.
 
@@ -60,6 +62,7 @@ Relative paths in this skill are relative to the skill directory.
         'Read the discovery guide relative to the directory returned by skills get.',
       command:
         'Read("/workspace/node_modules/@lynx-js/skill-lynx-devtool/references/troubleshooting/index.md")',
+      outputLang: 'markdown',
       output: `## Discovery Model
 
 In practice:
@@ -81,6 +84,7 @@ In practice:
       description:
         'Discover apps through the local daemon. The returned id is the client ID for subsequent calls.',
       command: 'agent-lynx list-clients',
+      outputLang: 'jsonc',
       output: `[
   {
     "id": "android:1A231FDF6000AB:8901",
@@ -105,6 +109,7 @@ In practice:
       description:
         'Use the client ID from the previous result. Each session_id identifies a debugging context in that app.',
       command: 'agent-lynx list-sessions --client android:1A231FDF6000AB:8901',
+      outputLang: 'jsonc',
       output: `[
   {
     "session_id": 1,

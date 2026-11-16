@@ -34,6 +34,7 @@ export const themeExample = {
       description:
         'Inspect the page selected in the connection guide. This excerpt shows the theme controls.',
       command: `agent-lynx snapshot ${target}`,
+      outputLang: 'text',
       output: themeSnapshot,
       wrapOutput: false,
       result: 'Ocean button found',
@@ -45,6 +46,7 @@ export const themeExample = {
       description:
         'Read the root container’s computed style to compare with the result after switching themes.',
       command: `agent-lynx get style @e1 --property background-color ${target}`,
+      outputLang: 'text',
       output: 'background-color: rgba(9, 9, 11, 1)',
       result: 'Current color recorded',
     },
@@ -59,6 +61,7 @@ export const themeExample = {
       description:
         'Tap the Ocean button from the current snapshot and refresh the refs cached by the daemon.',
       command: `agent-lynx tap @e15 --snapshot ${target}`,
+      outputLang: 'text',
       output: 'Tapped @e15 at (324,182). Snapshot refreshed with 69 refs.',
       result: 'Tapped; snapshot refreshed',
     },
@@ -73,6 +76,7 @@ export const themeExample = {
       description:
         'Read the tree after the action. The theme change preserves its structure; this excerpt shows the same branch.',
       command: `agent-lynx snapshot ${target}`,
+      outputLang: 'text',
       output: themeSnapshot,
       wrapOutput: false,
       result: 'Fresh refs confirmed',
@@ -83,6 +87,7 @@ export const themeExample = {
       description:
         'Use the root ref from the new snapshot to check whether the background color changed.',
       command: `agent-lynx get style @e1 --property background-color ${target}`,
+      outputLang: 'text',
       output: 'background-color: rgba(15, 23, 42, 1)',
       result: 'Background color changed',
       defaultOpen: true,
@@ -106,6 +111,7 @@ export const scrollExample = {
         'The full snapshot includes offscreen nodes. This excerpt shows the bottom of the page.',
       command: `agent-lynx snapshot ${target}`,
       wrapOutput: false,
+      outputLang: 'text',
       output: `@e1 [scroll-view] @(207,426) {scrollable}
 └─ @e2 [view] @(207,436)
    ├─ …
@@ -131,6 +137,7 @@ export const scrollExample = {
       description:
         'Scroll the container marked scrollable in the latest snapshot, then refresh the refs.',
       command: `agent-lynx scroll @e1 --direction down --snapshot ${target}`,
+      outputLang: 'text',
       output: 'Scrolled @e1 down. Snapshot refreshed with 69 refs.',
       result: 'Scrolled down',
     },
@@ -141,6 +148,7 @@ export const scrollExample = {
         'Read the visible elements after scrolling. This excerpt shows the bottom nodes now inside the viewport.',
       command: `agent-lynx snapshot --visible-only ${target}`,
       wrapOutput: false,
+      outputLang: 'text',
       output: `@e1 [scroll-view] @(207,426) {scrollable}
 └─ @e2 [view] @(207,376)
    ├─ …

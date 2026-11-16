@@ -19,6 +19,7 @@ export const runtimeErrorExample = {
       description:
         'Read the current element refs. This excerpt shows the theme controls; @e15 is the Ocean button container.',
       command: 'agent-lynx snapshot --client "$CLIENT_ID" --session 2',
+      outputLang: 'text',
       output: `@e1 [scroll-view] @(207,450) {scrollable}
 └─ @e2 [view] @(207,460)
    ├─ @e3 [view] @(207,70)
@@ -46,6 +47,7 @@ export const runtimeErrorExample = {
         'Keep this watcher running while the next tap executes. These are the two errors from that tap; the watcher exits after receiving both.',
       command:
         'agent-lynx get-console --watch --level error --limit 2 --client "$CLIENT_ID" --session 2',
+      outputLang: 'text',
       output:
         `[11:25:29.411Z] [error/background] The following error occurred in the JSRuntime:
     at file://shared/lynx_core.js:2:10030
@@ -72,6 +74,7 @@ export const runtimeErrorExample = {
       description:
         'Tap the button from the current snapshot while the console watcher is listening, so the capture covers this action.',
       command: 'agent-lynx tap @e15 --client "$CLIENT_ID" --session 2',
+      outputLang: 'text',
       output:
         'Tapped @e15 at (324,206). Re-run `agent-lynx snapshot` before using refs again.',
       result: 'Tap reproduced',
@@ -88,6 +91,7 @@ export const runtimeErrorExample = {
       description:
         'List the scripts in the current background VM. app-service.js is present too; this error points to .lynx/main/background.js.',
       command: 'agent-lynx get-sources --client "$CLIENT_ID" --session 2',
+      outputLang: 'jsonc',
       output: `[
   {
     "scriptId": "1",
@@ -112,6 +116,7 @@ export const runtimeErrorExample = {
         'Read the actual source for script 5, then use jq to extract lines 484–491 of scriptSource around the failing callback.',
       command:
         'agent-lynx cdp --thread background --method Debugger.getScriptSource \'{"scriptId":"5"}\' --client "$CLIENT_ID" --session 2 | jq -r \'.scriptSource | split("\\n")[483:491][]\'',
+      outputLang: 'javascript',
       output:
         `        $0: themeNames.map((t)=>/*#__PURE__*/ (0,_lynx_js_react_jsx_dev_runtime__rspack_import_0.jsxDEV)(__snapshot_835da_abf5c_2, {
                 values: [
@@ -137,6 +142,7 @@ export const runtimeErrorExample = {
         'Read the configuration field used by the failing expression without changing page state.',
       command:
         'agent-lynx evaluate \'lynx.__globalProps.themeNames\' --thread background --client "$CLIENT_ID" --session 2',
+      outputLang: 'jsonc',
       output: `{
   "result": {
     "type": "undefined"
@@ -163,6 +169,7 @@ export const elementSourceExample = {
       description:
         'Refresh the page refs. This excerpt shows the theme controls; @e15 contains the Ocean label.',
       command: 'agent-lynx snapshot --client "$CLIENT_ID" --session 1',
+      outputLang: 'text',
       output: `@e1 [scroll-view] @(207,450) {scrollable}
 └─ @e2 [view] @(207,460)
    ├─ @e3 [view] @(207,70)
@@ -190,6 +197,7 @@ export const elementSourceExample = {
         'Resolve the button’s repository, source file, line, and column using the runtime node and UI source-map metadata.',
       command:
         'agent-lynx get-source-info @e15 --client "$CLIENT_ID" --session 1',
+      outputLang: 'jsonc',
       output: `{
   "debugMetadataUrl": "http://127.0.0.1:33127/.lynx/main/debug-metadata.json",
   "lazyBundleUrl": null,
@@ -218,6 +226,7 @@ export const elementSourceExample = {
       description:
         'Read lines 61–80 of the local example checkout. Line 69 contains the failing handler introduced for this reproduction.',
       command: 'Read examples/tailwindcss/src/App.tsx:61–80',
+      outputLang: 'tsx',
       output: `    61	            {themeNames.map((t) => (
     62	              <view
     63	                key={t}

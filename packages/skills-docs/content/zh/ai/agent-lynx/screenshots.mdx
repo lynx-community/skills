@@ -20,9 +20,7 @@ agent-lynx screenshot --annotate -o ./page.jpeg
 下面的示意图来自在 Lynx Explorer 中运行的 [Tailwind CSS 示例](https://github.com/lynx-family/lynx-examples/tree/3b019cec94b0e7b83e2239dd52839365fdd76522/examples/tailwindcss)。悬停、点击或用键盘聚焦任一连线目标，即可同时高亮截图中的标注框和 snapshot 中的引用。
 
 <DemoFrame
-  src={(theme) =>
-    `${withBase('/ai/agent-lynx/annotated-screenshot.html')}?theme=${theme}&lang=zh`
-  }
+  src={`${withBase('/ai/agent-lynx/annotated-screenshot.html')}?lang=zh`}
   title="标注截图与 snapshot 引用的对应关系"
   height={750}
 />

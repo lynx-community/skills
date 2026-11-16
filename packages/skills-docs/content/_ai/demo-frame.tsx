@@ -6,7 +6,7 @@ import { useDark } from '@rspress/core/runtime';
 import { type CSSProperties, useEffect, useRef, useState } from 'react';
 
 interface DemoFrameProps {
-  src: string | ((theme: 'light' | 'dark') => string);
+  src: string;
   title: string;
   height?: CSSProperties['height'];
 }
@@ -14,9 +14,6 @@ interface DemoFrameProps {
 /** The packaged illustrations share the site's origin, theme, and content width. */
 export function DemoFrame({ src, title, height = 500 }: DemoFrameProps) {
   const isDark = useDark();
-  const iframeSrc = typeof src === 'function'
-    ? src(isDark ? 'dark' : 'light')
-    : src;
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const [measured, setMeasured] = useState<{ src: string; height: number; }>();
 
@@ -33,9 +30,9 @@ export function DemoFrame({ src, title, height = 500 }: DemoFrameProps) {
         const nextHeight = Math.ceil(body.getBoundingClientRect().height) + 2;
         if (nextHeight <= 2) return;
         setMeasured((previous) =>
-          previous?.src === iframeSrc && previous.height === nextHeight
+          previous?.src === src && previous.height === nextHeight
             ? previous
-            : { src: iframeSrc, height: nextHeight }
+            : { src: src, height: nextHeight }
         );
       };
       observer = new ResizeObserver(measure);
@@ -48,13 +45,13 @@ export function DemoFrame({ src, title, height = 500 }: DemoFrameProps) {
       iframe.removeEventListener('load', observe);
       observer?.disconnect();
     };
-  }, [iframeSrc]);
+  }, [src]);
 
   return (
     <div
       style={{
         overflow: 'hidden',
-        height: measured?.src === iframeSrc ? measured.height : height,
+        height: measured?.src === src ? measured.height : height,
         position: 'relative',
         borderRadius: '8px',
         border: '1px solid var(--semi-color-border, var(--rp-c-divider))',
@@ -63,11 +60,12 @@ export function DemoFrame({ src, title, height = 500 }: DemoFrameProps) {
     >
       <iframe
         ref={iframeRef}
-        src={iframeSrc}
+        src={src}
         title={title}
         sandbox='allow-scripts allow-same-origin'
         style={{
           display: 'block',
+          colorScheme: isDark ? 'dark' : 'light',
           width: '100%',
           height: '100%',
           border: 'none',

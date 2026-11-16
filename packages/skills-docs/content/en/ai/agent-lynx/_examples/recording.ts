@@ -20,6 +20,7 @@ export const recorderExample = {
       description:
         'Excerpt the recording and fixture skills: first create a replay file, then inspect it.',
       command: 'agent-lynx skills list',
+      outputLang: 'xml',
       output: `<available_skills>
   <skill>
     <name>lynx-recorder</name>
@@ -41,6 +42,7 @@ export const recorderExample = {
       description:
         'Excerpt the workflow: start first, open the page, then check savedFiles.',
       command: 'agent-lynx skills get lynx-recorder',
+      outputLang: 'markdown',
       output: `## Workflow
 
 1. **Start before opening the page.** Run \`recorder start\`. Capture must begin *before* the target page loads so the recording includes \`loadTemplate\`.
@@ -60,6 +62,7 @@ Skill directory: /tmp/agent-lynx-perf-docs-20261030/node_modules/@lynx-js/skill-
       description:
         'Start Recorder so the next page’s template load is included.',
       command: 'agent-lynx recorder start --client "$CLIENT_ID"',
+      outputLang: 'jsonc',
       output: `{
   "success": true,
   "started": true,
@@ -77,6 +80,7 @@ Skill directory: /tmp/agent-lynx-perf-docs-20261030/node_modules/@lynx-js/skill-
         'Open Settings after recording starts and select the new page’s session 3 from the response.',
       command:
         "agent-lynx open 'http://127.0.0.1:33227/main.lynx.bundle?fullscreen=true' --client \"$CLIENT_ID\" | jq '.data.data'",
+      outputLang: 'jsonc',
       output: `[
   {
     "session_id": 2,
@@ -98,6 +102,7 @@ Skill directory: /tmp/agent-lynx-perf-docs-20261030/node_modules/@lynx-js/skill-
       description:
         'Read fresh element refs in the new page; the theme controls including Ocean are excerpted.',
       command: 'agent-lynx snapshot --client "$CLIENT_ID" --session 3',
+      outputLang: 'text',
       output: `@e1 [scroll-view] @(207,450) {scrollable}
 └─ @e2 [view] @(207,460)
    ├─ @e3 [view] @(207,70)
@@ -124,6 +129,7 @@ Skill directory: /tmp/agent-lynx-perf-docs-20261030/node_modules/@lynx-js/skill-
       description:
         'Switch themes during recording so the runtime input is included in the replay data.',
       command: 'agent-lynx tap @e15 --client "$CLIENT_ID" --session 3',
+      outputLang: 'text',
       output:
         'Tapped @e15 at (324,206). Re-run `agent-lynx snapshot` before using refs again.',
       result: 'Ocean tapped',
@@ -136,6 +142,7 @@ Skill directory: /tmp/agent-lynx-perf-docs-20261030/node_modules/@lynx-js/skill-
         'Stop recording and use the returned savedFiles; the runtime may split files by session. jq retains paths and complete diagnostics.',
       command:
         'agent-lynx recorder end --client "$CLIENT_ID" -o ./settings-recording.json | jq \'{success, savedFiles, diagnostics}\'',
+      outputLang: 'jsonc',
       output: `{
   "success": true,
   "savedFiles": [
@@ -177,6 +184,7 @@ Skill directory: /tmp/agent-lynx-perf-docs-20261030/node_modules/@lynx-js/skill-
       description:
         'Excerpt the fixture inspection entry point; this skill provides local decoding and summary tools.',
       command: 'agent-lynx skills get lynx-recorder-fixture',
+      outputLang: 'markdown',
       output: `## Inspect and edit
 
 The tool requires Python 3 and uses only the standard library. \`decode\`, \`summary\`, and \`roundtrip\` accept a local file or HTTP(S) URL; \`encode\` accepts a local decoded JSON file.
@@ -208,6 +216,7 @@ Skill directory: /tmp/agent-lynx-perf-docs-20261030/node_modules/@lynx-js/skill-
         'FIXTURE_SKILL_DIR is the directory returned above. Use the actual savedFiles filename; the tool also handles encoded TestBench files.',
       command:
         'python3 "$FIXTURE_SKILL_DIR/scripts/fixture_tool.py" summary ./settings-recording-session3.json',
+      outputLang: 'text',
       output: `=== TestBench Fixture Summary ===
 
 Top-level keys: ['Action List', 'Invoked Method Data', 'Callback', 'Component List', 'Debug Info', 'SharedData', 'Scripts', 'Config']
