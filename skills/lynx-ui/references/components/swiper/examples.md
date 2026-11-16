@@ -25,7 +25,7 @@ const alignArr: ['start', 'center', 'end'] = ['start', 'center', 'end']
 
 const INITIAL_INDEX = 2
 
-function SwiperEntry(): JSX.Element {
+function SwiperEntry() {
   const [itemWidthsIndex, setItemWidthsIndex] = useState<number>(0)
   const [alignIndex, setAlignIndex] = useState<number>(1)
   const [currentIndex, setCurrentIndex] = useState<number>(INITIAL_INDEX)
@@ -138,7 +138,7 @@ const itemWidths = [250, 350, 400]
 const alignArr: ['start', 'center', 'end'] = ['start', 'center', 'end']
 const INITIAL_INDEX = 0
 
-function SwiperEntry(): JSX.Element {
+function SwiperEntry() {
   const [itemWidthsIndex, setItemWidthsIndex] = useState<number>(0)
   const [alignIndex, setAlignIndex] = useState<number>(1)
   const [currentIndex, setCurrentIndex] = useState<number>(INITIAL_INDEX)
@@ -265,7 +265,7 @@ const itemWidths = [250, 350, 400]
 const alignArr: ['start', 'center', 'end'] = ['start', 'center', 'end']
 const INITIAL_INDEX = 0
 
-function SwiperEntry(): JSX.Element {
+function SwiperEntry() {
   const [itemWidthsIndex, setItemWidthsIndex] = useState<number>(0)
   const [alignIndex, setAlignIndex] = useState<number>(1)
   const [currentIndex, setCurrentIndex] = useState<number>(INITIAL_INDEX)
@@ -503,7 +503,7 @@ function customAnimationFirstScreen(value: number, _index: number) {
   }
 }
 
-function SwiperEntry(): JSX.Element {
+function SwiperEntry() {
   const swiperRef = useRef<SwiperRef>(null)
   const [currentIndex, setCurrentIndex] = useState(0)
 
@@ -625,7 +625,7 @@ function customAnimationFirstScreen(value: number, _index: number) {
   }
 }
 
-function SwiperEntry(): JSX.Element {
+function SwiperEntry() {
   const swiperRef = useRef<SwiperRef>(null)
   const [currentIndex, setCurrentIndex] = useState(0)
 
@@ -820,7 +820,7 @@ const alignArr: ['start', 'center', 'end'] = ['start', 'center', 'end']
 
 const INITIAL_INDEX = 2
 
-function SwiperEntry(): JSX.Element {
+function SwiperEntry() {
   const [itemWidthsIndex, _setItemWidthsIndex] = useState<number>(0)
   const [alignIndex, _setAlignIndex] = useState<number>(1)
   const [currentIndex, setCurrentIndex] = useState<number>(INITIAL_INDEX)
@@ -1063,7 +1063,7 @@ const getContainerWidth = () => {
  * REPRODUCES: Swipe the empty swiper before data loads (within 1 second)
  * Result: Swiper shows wrong position (index -1, -2 loop placeholders instead of starting at 0)
  */
-function EmptyDataWithAutoPlay(): JSX.Element {
+function EmptyDataWithAutoPlay() {
   const [data, setData] = useState<number[]>([])
   const [currentIndex, setCurrentIndex] = useState<number>(0)
   const [onChangeLog, setOnChangeLog] = useState<string[]>([])
@@ -1156,7 +1156,7 @@ function EmptyDataWithAutoPlay(): JSX.Element {
  * Note: Just clicking SwipeNext button doesn't reproduce - must use swipe gesture
  * Observe: Visual shows wrong position, but callbacks report correct values
  */
-function EmptyDataWithManualSwipe(): JSX.Element {
+function EmptyDataWithManualSwipe() {
   const [data, setData] = useState<number[]>([])
   const [currentIndex, setCurrentIndex] = useState<number>(0)
   const [onChangeLog, setOnChangeLog] = useState<string[]>([])
@@ -1272,7 +1272,7 @@ function EmptyDataWithManualSwipe(): JSX.Element {
 /**
  * Scenario 3: Data becomes empty during use
  */
-function DataBecomesEmpty(): JSX.Element {
+function DataBecomesEmpty() {
   const [data, setData] = useState<number[]>(DEFAULT_DATA)
   const [_currentIndex, setCurrentIndex] = useState<number>(0)
   const swiperRef = useRef<SwiperRef>(null)
@@ -1330,7 +1330,7 @@ function DataBecomesEmpty(): JSX.Element {
 /**
  * Scenario 4: Reset with corrupted prevIndexRef
  */
-function ResetWithCorruptedIndex(): JSX.Element {
+function ResetWithCorruptedIndex() {
   const [data, setData] = useState<number[]>([])
   const [swiperKey, setSwiperKey] = useState<string>('key-1')
   const swiperRef = useRef<SwiperRef>(null)
@@ -1386,7 +1386,7 @@ function ResetWithCorruptedIndex(): JSX.Element {
   )
 }
 
-function EmptyDataBugExample(): JSX.Element {
+function EmptyDataBugExample() {
   return (
     <scroll-view class='container lunaris-dark' scroll-orientation='vertical'>
       <text class='main-title'>Empty Data Bug Reproduction</text>
@@ -1686,7 +1686,7 @@ const itemArr: number[] = [1, 2, 3, 4, 5, 6, 7]
 const itemWidths = [250, 350, 400]
 const alignArr: ['start', 'center', 'end'] = ['start', 'center', 'end']
 
-function SwiperEntry(): JSX.Element {
+function SwiperEntry() {
   const [itemWidthsIndex, setItemWidthsIndex] = useState<number>(0)
   const [alignIndex, setAlignIndex] = useState<number>(0)
   const [currentIndex, setCurrentIndex] = useState<number>(0)
@@ -1860,7 +1860,7 @@ function customAnimationFirstScreen(value: number, _index: number) {
   }
 }
 
-function SwiperEntry(): JSX.Element {
+function SwiperEntry() {
   const swiperRef = useRef<SwiperRef>(null)
   const [currentIndex, setCurrentIndex] = useState(0)
 
@@ -1937,7 +1937,7 @@ const itemArr: number[] = [1, 2, 3, 4, 5, 6, 7]
 const itemWidths = [250, 350, 400]
 const alignArr: ['start', 'center', 'end'] = ['start', 'center', 'end']
 
-function SwiperEntry(): JSX.Element {
+function SwiperEntry() {
   const [itemWidthsIndex, setItemWidthsIndex] = useState<number>(0)
   const [alignIndex, setAlignIndex] = useState<number>(0)
   const [currentIndex, setCurrentIndex] = useState<number>(0)
@@ -2049,7 +2049,7 @@ const itemArr: number[] = [1, 2, 3, 4, 5, 6, 7]
 const itemWidths = [250, 350, 400]
 const alignArr: ['start', 'center', 'end'] = ['start', 'center', 'end']
 
-function SwiperEntry(): JSX.Element {
+function SwiperEntry() {
   const [itemWidthsIndex, setItemWidthsIndex] = useState<number>(0)
   const [alignIndex, setAlignIndex] = useState<number>(0)
   const [currentIndex, setCurrentIndex] = useState<number>(0)
@@ -2161,7 +2161,7 @@ const itemArr: number[] = [1, 2, 3, 4, 5, 6, 7, 8]
 const itemWidths = [250, 350, 400]
 const alignArr: ['start', 'center', 'end'] = ['start', 'center', 'end']
 
-function SwiperEntry(): JSX.Element {
+function SwiperEntry() {
   const [itemWidthsIndex, setItemWidthsIndex] = useState<number>(0)
   const [alignIndex, setAlignIndex] = useState<number>(0)
   const [currentIndex, setCurrentIndex] = useState<number>(0)

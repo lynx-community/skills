@@ -39,6 +39,7 @@ When a task combines components, check [component-composition.md](./component-co
 - [Swiper](#swiper)
 - [Switch](#switch)
 - [TabGroup](#tabgroup)
+- [Toast](#toast)
 - [ViewPager](#viewpager)
 
 ## Components
@@ -249,6 +250,15 @@ When a task combines components, check [component-composition.md](./component-co
 - [Guide](./components/tab-group/guide.md)
 - [API](./components/tab-group/api.md)
 - [Examples](./components/tab-group/examples.md)
+
+### `Toast`
+
+- Choose when: The UI needs lightweight, transient, non-blocking feedback after an action or state change.
+- Avoid when: The message requires a blocking decision, persistent interaction, or anchored context; use Dialog or Popover.
+- [Official docs](https://lynxjs.org/next/lynx-ui/components/toast.html)
+- [Guide](./components/toast/guide.md)
+- [API](./components/toast/api.md)
+- [Examples](./components/toast/examples.md)
 
 ### `ViewPager`
 
