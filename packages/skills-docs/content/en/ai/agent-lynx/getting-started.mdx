@@ -1,12 +1,13 @@
 ---
-description: 'Install agent-lynx, load its bundled skills, connect an app, and inspect your first page.'
+description: 'Install agent-lynx, connect a device, inspect a Lynx page, and load the DevTool skill.'
 ---
 
 import { Prompt } from '@rspress/core/theme';
+import { PlatformTab, PlatformTabs } from '../../../_ai/platform-tabs';
 
 # Getting Started
 
-## Install the CLI
+## 1. Install the CLI
 
 agent-lynx requires Node.js 18.19 or later. Install the public npm package:
 
@@ -21,9 +22,80 @@ If you have pnpm, you can run the CLI without a global installation:
 pnpx agent-lynx --help
 ```
 
-The examples below use `agent-lynx`. Replace it with `pnpx agent-lynx` if you use the one-shot command.
+The following commands use `agent-lynx`. Replace it with `pnpx agent-lynx` if you use the one-shot command.
 
-## Give Your Agent the Instructions
+## 2. Prepare and Connect a Device {#prepare-device}
+
+Choose a platform and how to connect to the app.
+
+<PlatformTabs>
+
+<PlatformTab platform="android" label="Android" connection="USB">
+
+1. Install Android Platform Tools, enable **USB debugging** on the device, and connect it over USB. Accept the debugging prompt on the device.
+2. Run `adb devices` and check that its status is `device`.
+3. Open the app with Lynx DevTool enabled and load a Lynx page.
+
+You can also get the app’s `CLIENT_ID` from `list-clients` and open the page with `agent-lynx open "$BUNDLE_URL" --client "$CLIENT_ID"`.
+
+</PlatformTab>
+
+<PlatformTab platform="android" label="Android" connection="Remote">
+
+Set `ADB_ADDRESS` to the remote ADB address (`host:port`). Choose a device from `adb devices` and set `SERIAL`. Use the app’s launch component (`package/Activity`) as `APP_COMPONENT`, its package as `APP_PACKAGE`, and a page link it handles as `SCHEMA`.
+
+```bash
+adb connect "$ADB_ADDRESS"
+adb devices # Output excerpt: $SERIAL  device
+adb -s "$SERIAL" shell am start -n "$APP_COMPONENT"
+adb -s "$SERIAL" shell am start -a android.intent.action.VIEW -d "'$SCHEMA'" "$APP_PACKAGE"
+```
+
+Once the app is running, you can also select it from `list-clients` and open the page with `agent-lynx open "$BUNDLE_URL" --client "$CLIENT_ID"`.
+
+</PlatformTab>
+
+<PlatformTab platform="ios" label="iOS" connection="USB">
+
+1. Connect the iPhone or iPad to your computer over USB, unlock it, and trust the computer on the device.
+2. Open the app with Lynx DevTool enabled and load a Lynx page.
+
+You can also get the app’s `CLIENT_ID` from `list-clients` and open the page with `agent-lynx open "$BUNDLE_URL" --client "$CLIENT_ID"`.
+
+</PlatformTab>
+
+<PlatformTab platform="ios" label="iOS" connection="Remote">
+
+The public CLI discovers iOS devices over USB. For a remote device, run `agent-lynx` and the inspection commands below on the computer connected to it. Open a Lynx page in the app on the device.
+
+You can also get the app’s `CLIENT_ID` from `list-clients` and open the page with `agent-lynx open "$BUNDLE_URL" --client "$CLIENT_ID"`.
+
+</PlatformTab>
+
+<PlatformTab platform="desktop" label="Desktop">
+
+Open your Desktop app on this computer and load a Lynx page.
+
+You can also get the app’s `CLIENT_ID` from `list-clients` and open the page with `agent-lynx open "$BUNDLE_URL" --client "$CLIENT_ID"`.
+
+</PlatformTab>
+
+</PlatformTabs>
+
+## 3. Inspect the Page {#inspect-page}
+
+After opening a Lynx page, run these commands in order.
+
+```bash
+agent-lynx list-clients # Output excerpt: [{ "id": "$CLIENT_ID" }]
+agent-lynx list-sessions --client "$CLIENT_ID" # Output excerpt: [{ "session_id": $SESSION_ID }]
+agent-lynx snapshot --client "$CLIENT_ID" --session "$SESSION_ID"
+agent-lynx screenshot --client "$CLIENT_ID" --session "$SESSION_ID" --annotate -o ./page.jpeg
+```
+
+Set `CLIENT_ID` to the full `id` returned by `list-clients`. In the `list-sessions` output, choose the Lynx page by URL and set `SESSION_ID` to its `session_id`. The annotated screenshot refreshes the snapshot and labels the elements with their refs. Next, try [Page Inspection and Interaction](page-inspection.mdx).
+
+## 4. Give Your Agent the Instructions
 
 agent-lynx ships with skills that the agent can discover and read directly:
 
@@ -43,18 +115,3 @@ fix the source code, and verify the result with a fresh screenshot.`}
 />
 
 You can also add the instruction to read `lynx-devtool` before runtime debugging to your project's [AGENTS.md](https://lynxjs.org/ai/agentsmd).
-
-## Connect and Check a Page
-
-Run [Lynx Explorer](https://lynxjs.org/guide/start/quick-start) or your app with [DevTool integrated](https://lynxjs.org/guide/start/integrate-lynx-devtool), enable Lynx Debug and Lynx DevTool, and open a Lynx page. Complete the [device connection setup](connections.mdx) for your platform, then run:
-
-```bash
-agent-lynx list-clients
-agent-lynx list-sessions --client <clientId>
-agent-lynx snapshot --client <clientId> --session <sessionId>
-agent-lynx screenshot --client <clientId> --session <sessionId> --annotate -o ./page.jpeg
-```
-
-Replace the IDs with those returned by the discovery commands. A client is the running app; a session is a Lynx view or debugging context within it. Device commands automatically share a local connector daemon so subsequent calls can reuse the connection and refs.
-
-The snapshot gives elements refs such as `@e1`; the annotated screenshot labels the same elements. Continue with [Page Inspection and Interaction](page-inspection.mdx), then use a fresh snapshot or screenshot to verify your source changes. For errors, see [Troubleshooting](troubleshooting.mdx).
