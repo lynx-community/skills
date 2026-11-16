@@ -13,6 +13,7 @@ valid filenames and explicit plugin entries are acceptable.
 ```text
 my-vanilla-lynx-app/
   package.json
+  tsconfig.json
   lynx.config.ts
   src/
     main-thread.ts
@@ -36,9 +37,37 @@ my-vanilla-lynx-app/
     "@lynx-js/rspeedy": "latest",
     "@lynx-js/type-element-api": "latest",
     "@lynx-js/types": "latest",
-    "@lynx-js/vanilla-rsbuild-plugin": "latest"
+    "@lynx-js/vanilla-rsbuild-plugin": "latest",
+    "typescript": "latest"
   }
 }
+```
+
+## tsconfig.json
+
+```json
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "strict": true,
+    "isolatedModules": true,
+    "skipLibCheck": true,
+    "noEmit": true
+  },
+  "include": ["src", "lynx.config.ts"]
+}
+```
+
+## src/rspeedy-env.d.ts
+
+`@lynx-js/rspeedy/client` provides asset/module declarations, while `@lynx-js/types` and `@lynx-js/type-element-api` declare the `lynx` runtime and Element PAPI globals:
+
+```ts
+/// <reference types="@lynx-js/rspeedy/client" />
+/// <reference types="@lynx-js/types" />
+/// <reference types="@lynx-js/type-element-api" />
 ```
 
 ## lynx.config.ts
@@ -72,4 +101,4 @@ With this convention-based layout, the plugin discovers sibling `background.ts` 
 
 ## Example Usage
 
-For a complete published reference example, see [`@lynx-example/vanilla`](https://www.npmjs.com/package/@lynx-example/vanilla).
+For a published Vanilla Lynx source-layout reference, see [`@lynx-example/vanilla`](https://www.npmjs.com/package/@lynx-example/vanilla) (it builds directly with Rsbuild via `rsbuild.config.ts` and `pluginLynx()`, whereas Rspeedy projects use `lynx.config.ts` above).

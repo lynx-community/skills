@@ -50,6 +50,7 @@ const backgroundDestroyEventName = "BackgroundDestroy";
 const renderPageEventName = "__RenderPage";
 const destroyLifetimeEventName = "__DestroyLifetime";
 
+// Public demo bundle built with entry key "index" exporting { example, add, minus }.
 const bundleUrl =
   "https://lf3-static.bytednsdoc.com/obj/eden-cn/hkhkeh7nupqbo/rspeedy/example.template.js";
 
