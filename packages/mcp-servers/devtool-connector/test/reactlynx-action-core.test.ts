@@ -662,7 +662,66 @@ test("ReactLynx tree waits across idle for the remount operation_v2 when refresh
   assert.equal(tree.ok, true, tree.error?.message);
   if (!tree.ok) return;
   const treeData = tree.data as CommandData<"reactlynx-tree">;
-  assert.deepEqual(outbound.map(envelope => envelope.type), ["init", "refresh"]);
+  assert.deepEqual(outbound.map(envelope => envelope.type), ["init", "refresh", "init", "refresh"]);
   assert.equal(treeData.nodes.some(node => node.id === 99), false);
+  assert.deepEqual(treeData.labels, [2, 3, 4, 5]);
+});
+
+test("ReactLynx tree re-requests refresh across idle when initial attach arrives before mount", async () => {
+  const outbound: OutboundEnvelope[] = [];
+  let refreshCount = 0;
+  const connector = {
+    async sendCDPStream(
+      _clientId: string,
+      _sessionId: number,
+      input: ReadableStream<{ method: string; params?: unknown }>,
+    ) {
+      let outputController: ReadableStreamDefaultController<unknown> | undefined;
+      const output = new ReadableStream<unknown>({
+        start(controller) {
+          outputController = controller;
+        },
+      });
+      const inputClosed = (async () => {
+        try {
+          for await (const frame of input) {
+            const params = frame.params as { data?: string } | undefined;
+            const envelope = JSON.parse(params?.data ?? "null") as OutboundEnvelope;
+            outbound.push(envelope);
+            if (envelope.type === "refresh") {
+              refreshCount += 1;
+              if (refreshCount === 1) {
+                outputController?.enqueue(vmEvent("attach", { id: 1, supports: {} }));
+                outputController?.enqueue(vmEvent("root-order", []));
+              } else {
+                outputController?.enqueue(vmEvent("operation_v2", componentTree()));
+                outputController?.enqueue(vmEvent("root-order", [1]));
+              }
+            }
+          }
+        } catch {
+          // Stream closed by consumer after tree capture.
+        }
+      })();
+      return Object.assign(output, {
+        inputClosed,
+        async [Symbol.asyncDispose]() {
+          try {
+            outputController?.close();
+          } catch {
+            // Output may already be closed.
+          }
+          await inputClosed;
+        },
+      });
+    },
+  } as unknown as Connector;
+
+  const core = new ActionCore();
+  const tree = await core.execute("reactlynx-tree", TARGET, { connector });
+  assert.equal(tree.ok, true, tree.error?.message);
+  if (!tree.ok) return;
+  const treeData = tree.data as CommandData<"reactlynx-tree">;
+  assert.equal(refreshCount, 2);
   assert.deepEqual(treeData.labels, [2, 3, 4, 5]);
 });
