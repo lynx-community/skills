@@ -63,6 +63,7 @@ export class DesktopTransport implements Transport {
     debug(`connect: connecting to 127.0.0.1:${numericPort}`);
 
     const socket = net.createConnection({ host: "127.0.0.1", port: numericPort, signal });
+    socket.setNoDelay?.(true);
     const socketClosed = socket.closed
       ? Promise.resolve()
       : new Promise<void>(resolve => socket.once("close", resolve));

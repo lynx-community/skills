@@ -36,6 +36,7 @@ test("DesktopTransport waits for the socket to close before disposal settles", a
   socket.finishClose();
   await disposal;
   assert.equal(socket.destroyCalls, 1);
+  assert.deepEqual(socket.noDelayCalls, [true]);
 });
 
 test("DesktopTransport preserves a connect error after socket cleanup", async (t) => {
@@ -68,8 +69,14 @@ test("DesktopTransport preserves a connect error after socket cleanup", async (t
 class DeferredCloseSocket extends Duplex {
   connecting = false;
   destroyCalls = 0;
+  readonly noDelayCalls: Array<boolean | undefined> = [];
   readonly destroyStarted = Promise.withResolvers<void>();
   #finishDestroy: ((error?: Error | null) => void) | undefined;
+
+  setNoDelay(noDelay?: boolean): this {
+    this.noDelayCalls.push(noDelay);
+    return this;
+  }
 
   override _read(): void {}
 

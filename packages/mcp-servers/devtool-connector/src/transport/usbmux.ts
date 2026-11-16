@@ -130,6 +130,7 @@ export class Usbmux {
     signal?: AbortSignal,
   ): Promise<{ socket: net.Socket; response: R; tail: Buffer }> {
     const socket = net.createConnection(this.connectOptions);
+    socket.setNoDelay?.(true);
 
     if (signal) {
       const abortHandler = () => socket.destroy();
