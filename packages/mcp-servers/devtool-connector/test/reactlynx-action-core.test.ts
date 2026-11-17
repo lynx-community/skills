@@ -213,7 +213,11 @@ function createHarness(options: { refreshDelayMs?: number; respondToInspect?: bo
               );
             } else if (envelope.type === "element-picked") {
               const uniqueId = (envelope.data as { uniqueId?: number } | null)?.uniqueId;
-              if (uniqueId === 104) outputController?.enqueue(vmEvent("element-picked-vnode-id", { id: 4 }));
+              if (uniqueId === 104) {
+                outputController?.enqueue(vmEvent("element-picked-vnode-id", { id: 4 }));
+              } else {
+                outputController?.close();
+              }
             } else if (envelope.type === "highlight") {
               const id = envelope.data as number;
               if (id === 4) {
@@ -402,6 +406,27 @@ test("ReactLynx component-to-element link requires an explicit DOM snapshot", as
   assert.equal(result.ok, false);
   assert.equal(result.error?.reason, "no-snapshot");
   assert.equal(harness.outbound.some(envelope => envelope.type === "highlight"), false);
+});
+
+test("ReactLynx element-to-component link failure suggests reactlynx tree without nonexistent --refresh", async () => {
+  const harness = createHarness();
+  const core = new ActionCore();
+  const snapshot = await core.execute("snapshot", TARGET, { connector: harness.connector });
+  assert.equal(snapshot.ok, true, snapshot.error?.message);
+
+  const result = await core.execute(
+    "reactlynx-link",
+    { ...TARGET, ref: "@e1" },
+    { connector: harness.connector },
+  );
+
+  assert.equal(result.ok, false);
+  assert.equal(result.error?.reason, "reactlynx-component-not-found");
+  assert.ok(result.error?.nextActions.some(action => action.includes("agent-lynx reactlynx tree")));
+  assert.equal(
+    result.error?.nextActions.some(action => action.includes("tree --refresh")),
+    false,
+  );
 });
 
 test("ReactLynx protocol ignores a valid optional commit-stats payload", () => {
