@@ -42,28 +42,26 @@ The context endpoints are paired across threads. An event dispatched through one
 | Main → Background | main: `lynx.getJSContext()`         | background: `lynx.getCoreContext()` |
 | Background → Main | background: `lynx.getCoreContext()` | main: `lynx.getJSContext()`         |
 
-The same stored cross-thread bridge in each script handles both directions. When answering, show
-both runnable dispatch paths and both matching listener paths; a direction table or commented-out
-dispatch is not sufficient.
+The same stored cross-thread bridge in each script handles both directions—dispatching outbound messages and listening for inbound messages:
 
 ```javascript
 // Main-thread source
 const destroyLifetimeEventName = "__DestroyLifetime";
 const backgroundDestroyEventName = "BackgroundDestroy";
-const eventToBackgroundName = "EventToBackground";
-const eventToMainName = "EventToMain";
+const dispatchEventToBackgroundName = "DispatchEventToBackground";
+const patchFromBackgroundName = "PatchFromBackground";
 
 const engine = lynx.getEngine();
 const backgroundThreadBridge = lynx.getJSContext();
 
-function dispatchEventToBackground(serializableData) {
+function dispatchEventToBackground(handlerName, data) {
   backgroundThreadBridge.dispatchEvent({
-    type: eventToBackgroundName,
-    data: serializableData,
+    type: dispatchEventToBackgroundName,
+    data: { handlerName, data },
   });
 }
 
-function handleEventFromBackground(event) {
+function handlePatchFromBackground(event) {
   applyBackgroundPatch(event.data);
 }
 
@@ -73,56 +71,61 @@ function handleDestroyLifetime() {
     data: {},
   });
   backgroundThreadBridge.removeEventListener(
-    eventToMainName,
-    handleEventFromBackground,
+    patchFromBackgroundName,
+    handlePatchFromBackground,
   );
   engine.removeEventListener(destroyLifetimeEventName, handleDestroyLifetime);
 }
 
 backgroundThreadBridge.addEventListener(
-  eventToMainName,
-  handleEventFromBackground,
+  patchFromBackgroundName,
+  handlePatchFromBackground,
 );
 engine.addEventListener(destroyLifetimeEventName, handleDestroyLifetime);
 
-dispatchEventToBackground({ task: "computeSummary", values: [1, 2, 3] });
+dispatchEventToBackground("computeSummary", [{ value: 1 }, { value: 2 }]);
 ```
 
 ```javascript
 // Background-thread source
 const backgroundDestroyEventName = "BackgroundDestroy";
-const eventToBackgroundName = "EventToBackground";
-const eventToMainName = "EventToMain";
+const dispatchEventToBackgroundName = "DispatchEventToBackground";
+const patchFromBackgroundName = "PatchFromBackground";
 
 const mainThreadBridge = lynx.getCoreContext();
 
-function handleEventFromMain(event) {
-  const result = runBackgroundTask(event.data);
-  dispatchEventToMain({ result });
+function handleTaskFromMain(event) {
+  const payload = event.data;
+  if (!payload || typeof payload.handlerName !== "string") return;
+  const total = runBackgroundTask(payload.handlerName, payload.data);
+  dispatchPatchToMain({ total });
 }
 
-function dispatchEventToMain(serializableData) {
+function dispatchPatchToMain(serializablePatch) {
   mainThreadBridge.dispatchEvent({
-    type: eventToMainName,
-    data: serializableData,
+    type: patchFromBackgroundName,
+    data: serializablePatch,
   });
 }
 
-function handleDestroyLifetime() {
+function handleBackgroundDestroy() {
   mainThreadBridge.removeEventListener(
-    eventToBackgroundName,
-    handleEventFromMain,
+    dispatchEventToBackgroundName,
+    handleTaskFromMain,
   );
   mainThreadBridge.removeEventListener(
     backgroundDestroyEventName,
-    handleDestroyLifetime,
+    handleBackgroundDestroy,
   );
 }
 
-mainThreadBridge.addEventListener(eventToBackgroundName, handleEventFromMain);
+mainThreadBridge.addEventListener(
+  dispatchEventToBackgroundName,
+  handleTaskFromMain,
+);
 mainThreadBridge.addEventListener(
   backgroundDestroyEventName,
-  handleDestroyLifetime,
+  handleBackgroundDestroy,
 );
 ```
 
@@ -132,10 +135,9 @@ mainThreadBridge.addEventListener(
 - Pair the main script's `lynx.getJSContext()` endpoint with the background script's `lynx.getCoreContext()` endpoint.
 - Never register a long-lived or cross-thread listener with an inline callback; it cannot be removed with the same handler reference.
 - Add and remove a listener with the same event name and handler reference.
-- Bind cleanup to `__DestroyLifetime` on `lynx.getEngine()`. The main thread dispatches a separate app-defined destroy event such as `BackgroundDestroy` to the background endpoint, then removes its listeners; the background removes its listeners when that app event arrives. Do not reuse an Engine lifecycle name as the cross-thread protocol or present an unregistered `cleanup()` function as completed teardown.
-- Explicitly state that every cross-thread payload must be small and serializable. Use
-  JSON-compatible primitives, arrays, and plain objects; never send functions or Element PAPI node
-  handles.
+- Bind cleanup to `__DestroyLifetime` on `lynx.getEngine()`. The main thread dispatches a separate app-defined destroy event such as `BackgroundDestroy` to the background endpoint, then removes its listeners; the background removes its listeners when that app event arrives. Do not reuse an Engine lifecycle name as the cross-thread protocol or leave `cleanup()` unregistered.
+- Keep every cross-thread payload small and serializable: use JSON-compatible primitives, arrays,
+  and plain objects, and never send functions or Element PAPI node handles.
 
 ## Thread-Local Events
 

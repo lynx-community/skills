@@ -2,15 +2,7 @@
 
 Add background-thread source when a Vanilla Lynx app needs to handle heavier work: `<script thread="background">` for `.lynxml` or `background.ts` for Rspeedy. The background thread responds to messages from the main thread, owns background state, and runs tasks such as async requests, timers, native calls, data processing, or other business logic.
 
-Read `event.md` for `lynx.getJSContext()`, `lynx.getCoreContext()`, and event environment APIs.
-
-## Table of Contents
-
-- [Role](#role)
-- [Listen for Messages dispatched from Main Thread](#listen-for-messages-dispatched-from-main-thread)
-- [Dispatch Patches to the Main Thread](#dispatch-patches-to-the-main-thread)
-- [Handle Background Tasks](#handle-background-tasks)
-- [Data Guardrails](#data-guardrails)
+Read [`event.md`](event.md) for `lynx.getJSContext()`, `lynx.getCoreContext()`, and event environment APIs.
 
 ## Role
 
