@@ -175,6 +175,91 @@ describe('get-source-info', () => {
     assert.deepEqual(JSON.parse(output[0]!), sourceInfo);
   });
 
+  test('supports --json envelope for both @eN refs and numeric nodeIds', async (t) => {
+    const sourceInfo = {
+      nodeId: 13,
+      tag: 'view',
+      nodeIndex: 42,
+      debugMetadataUrl:
+        'https://example.com/get-source-info.debug-metadata.json',
+      lazyBundleUrl: null,
+      repo: 'lynx-community/skills',
+      source: 'src/App.tsx',
+      line: 32,
+      column: 5,
+      status: 'mapped' as const,
+      reason: null,
+    };
+    const commandClient = {
+      async execute(action: string) {
+        return { ok: true as const, action, data: sourceInfo };
+      },
+      async *stream() {
+        yield await Promise.reject<never>(new Error('unused'));
+      },
+    } as CommandClient;
+    const output: string[] = [];
+    t.mock.method(console, 'log', (line: string) => output.push(line));
+
+    const program = new Command().option('--no-daemon').exitOverride();
+    registerGetSourceInfoCommand(program, {
+      transports: [],
+      commandClient,
+      getSourceInfo: async () => sourceInfo,
+    });
+
+    await program.parseAsync([
+      'node',
+      'test',
+      'get-source-info',
+      '@e3',
+      '--client',
+      'test-client',
+      '--session',
+      '7',
+      '--json',
+    ]);
+    assert.deepEqual(JSON.parse(output.at(-1)!), {
+      ok: true,
+      action: 'get-source-info',
+      data: sourceInfo,
+    });
+
+    await program.parseAsync([
+      'node',
+      'test',
+      '--no-daemon',
+      'get-source-info',
+      '@e3',
+      '--json',
+    ]);
+    const noDaemonEnvelope = JSON.parse(output.at(-1)!) as {
+      ok: boolean;
+      error?: { reason?: string; };
+    };
+    assert.equal(noDaemonEnvelope.ok, false);
+    assert.equal(noDaemonEnvelope.error?.reason, 'unsupported-option');
+    process.exitCode = undefined;
+
+    await program.parseAsync([
+      'node',
+      'test',
+      '--no-daemon',
+      'get-source-info',
+      '13',
+      '--client',
+      'test-client',
+      '--session',
+      '7',
+      '--json',
+    ]);
+    assert.deepEqual(JSON.parse(output.at(-1)!), {
+      ok: true,
+      action: 'get-source-info',
+      data: sourceInfo,
+    });
+  });
+
   test('snapshot ref rejects --no-daemon before calling ActionCore', async (t) => {
     let executeCalls = 0;
     const commandClient = {
