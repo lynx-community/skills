@@ -75,6 +75,61 @@ test('daemon mode warns when direct transport environment is ignored', async (t)
   assert.deepEqual(closed, zeroCloses({ daemon: 1 }));
 });
 
+test('daemon-only commands warn without suggesting --no-daemon when direct transport env is set', async (t) => {
+  const closed = trackCloses(t);
+  t.mock.method(console, 'log', () => undefined);
+  t.mock.method(console, 'error', () => undefined);
+  const previousExitCode = process.exitCode;
+  t.after(() => {
+    process.exitCode = previousExitCode;
+  });
+
+  for (
+    const args of [
+      ['snapshot'],
+      ['get', 'text', '@e1'],
+      ['reactlynx', 'tree'],
+      ['get-source-info', '@e3'],
+    ]
+  ) {
+    let stderr = '';
+    const restore = t.mock.method(process.stderr, 'write', (chunk: unknown) => {
+      stderr += String(chunk);
+      return true;
+    });
+    const program = createProgram({
+      env: { ANDROID_ADB_SERVER_PORT: '5038' },
+    });
+    // Override leaf action so no daemon HTTP call is attempted
+    let leaf = program;
+    for (const token of args) {
+      const sub = leaf.commands.find(cmd => cmd.name() === token);
+      if (sub) leaf = sub;
+    }
+    leaf.action(() => undefined);
+    await program.parseAsync(['node', 'test', ...args]);
+    restore.mock.restore();
+
+    assert.match(stderr, /requires the shared daemon/u);
+    assert.doesNotMatch(stderr, /Pass --no-daemon/u);
+  }
+
+  let numericStderr = '';
+  t.mock.method(process.stderr, 'write', (chunk: unknown) => {
+    numericStderr += String(chunk);
+    return true;
+  });
+  const numericProgram = createProgram({
+    env: { ANDROID_ADB_SERVER_PORT: '5038' },
+  });
+  numericProgram.commands
+    .find(cmd => cmd.name() === 'get-source-info')
+    ?.action(() => undefined);
+  await numericProgram.parseAsync(['node', 'test', 'get-source-info', '13']);
+  assert.match(numericStderr, /Pass --no-daemon/u);
+  assert.ok(closed.daemon >= 1);
+});
+
 test('direct mode consumes transport environment without warning', async (t) => {
   let stderr = '';
   t.mock.method(process.stderr, 'write', (chunk: unknown) => {
