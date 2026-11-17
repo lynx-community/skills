@@ -13,6 +13,7 @@ import {
   formatSnapshotRefresh,
   getCommandClient,
   JSON_OPTION,
+  parseDurationMs,
   SESSION_OPTION,
   SNAPSHOT_AFTER_OPTION,
 } from './utils.ts';
@@ -72,8 +73,8 @@ export function registerTapCommand(program: Command, context: Context): void {
     )
     .option(
       '--duration <ms>',
-      'Hold duration in milliseconds.',
-      value => Number.parseInt(value, 10),
+      'Hold duration (bare ms, or with ms/s/m suffix, e.g. 600 or 1s).',
+      value => parseDurationMs(value, '--duration', { allowZero: true }),
       600,
     )
     .option(...CLIENT_OPTION)
