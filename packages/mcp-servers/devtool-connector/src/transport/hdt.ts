@@ -230,7 +230,7 @@ export class HDTTransport implements Transport {
             },
           },
           undefined,
-          { highWaterMark: 16 },
+          { highWaterMark: 1024 },
         ),
       ),
       writable,
