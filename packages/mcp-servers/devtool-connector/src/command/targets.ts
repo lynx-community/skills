@@ -59,7 +59,10 @@ export async function resolveTarget(
         result: targetFailure(
           action,
           "No available clients found.",
-          ["Connect a Lynx client, then retry the command.", "Run `agent-lynx list-clients` to verify discovery."],
+          [
+            "Connect a Lynx client or run `agent-lynx wait-for-client` while launching.",
+            "Run `agent-lynx list-clients` to verify discovery.",
+          ],
         ),
       };
     }
