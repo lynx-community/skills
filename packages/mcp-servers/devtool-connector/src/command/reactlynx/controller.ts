@@ -550,7 +550,7 @@ export class ReactLynxController {
         + "or the App-side identity mapping may not be ready.",
       {
         reason: "reactlynx-component-not-found",
-        nextActions: ["Retry after the page has settled, or run `agent-lynx reactlynx tree --refresh`."],
+        nextActions: ["Retry after the page has settled, or run `agent-lynx reactlynx tree`."],
       },
     );
   }
