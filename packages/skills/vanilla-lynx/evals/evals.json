@@ -98,7 +98,7 @@
         "The button listener uses the runtime event name `tap`, not the template or JSX attributes `bindtap` or `catchtap`, and supplies all four Element PAPI listener arguments.",
         "Listener cleanup reuses the corresponding node, event name, handler, and options.",
         "The Image receives `defer-src-invalidation` before its initial `src`, and later logic avoids assigning the same source redundantly.",
-        "The passive overlay uses the `user-interaction-enabled` element attribute rather than a CSS `user-interaction-enabled` or browser `pointer-events` declaration.",
+        "The passive overlay disables hit testing with the boolean `user-interaction-enabled` element attribute on the Element PAPI node (or Lynx 3.5+ CSS `pointer-events: none` when targeting Lynx >= 3.5); `user-interaction-enabled` is never emitted as a CSS property.",
         "The later image-source mutation stays on the main thread and is followed by `__FlushElementTree()`."
       ],
       "files": []

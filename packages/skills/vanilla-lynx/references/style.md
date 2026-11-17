@@ -7,7 +7,7 @@ Use this reference when writing or reviewing Vanilla Lynx styles, either a `.lyn
 - Apply classes with `__SetClasses()` or `__AddClass()`. Reserve `__SetInlineStyles()` for runtime-computed values; browser DOM and CSSOM style APIs are unavailable.
 - Encode state, hierarchy, and item position in explicit class names so styles never depend on structural selectors.
 - For a build-free `.lynxml` targeting Lynx 3.5 or newer, use `pointer-events: none` for a passive overlay and `pointer-events: auto` to restore hit testing.
-- For the Rspeedy output format, set `__SetAttribute(node, "user-interaction-enabled", false)` in the main-thread source instead. `user-interaction-enabled` is an Element attribute with a boolean value, never a CSS property.
+- In Rspeedy main-thread code (or when targeting older Lynx versions without CSS `pointer-events` support), set `__SetAttribute(node, "user-interaction-enabled", false)` on the Element PAPI node instead. `user-interaction-enabled` is an Element attribute with a boolean value, never a CSS property.
 
 ## Strict Authoring Rules
 
@@ -89,4 +89,4 @@ When that pattern does not fit the layout, use `vw` or `vh` directly, or calcula
 
 ## Source Documentation
 
-For detailed rules, see `skills/using-lynx-api-docs/lynx-vs-web/css-differences.md` and `skills/using-lynx-api-docs/lynx-vs-web/unsupported-features.md` in [`@lynx-js/lynx-api-docs`](https://www.npmjs.com/package/@lynx-js/lynx-api-docs).
+For standalone CSS property or compatibility lookups, prefer the companion `lynx-api-docs` and `lynx-check-css-support` skills when available; the authoritative CSS difference docs originate from `skills/using-lynx-api-docs/lynx-vs-web/css-differences.md` and `skills/using-lynx-api-docs/lynx-vs-web/unsupported-features.md` in [`@lynx-js/lynx-api-docs`](https://www.npmjs.com/package/@lynx-js/lynx-api-docs).

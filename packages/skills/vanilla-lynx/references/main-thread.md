@@ -2,7 +2,7 @@
 
 Use this reference when writing main-thread source: `<script thread="main">` for `.lynxml` or `main-thread.ts` for Rspeedy. The main-thread source owns Element PAPI tree creation, node mutation, lifecycle rendering, and UI flushes.
 
-Read `event.md` for `lynx.getEngine()` and event environment APIs. If the page needs a background thread, read [`background.md`](background.md).
+Read [`event.md`](event.md) for `lynx.getEngine()` and event environment APIs. If the page needs a background thread, read [`background.md`](background.md).
 
 ## Table of Contents
 
@@ -33,99 +33,39 @@ All Element PAPI APIs available on the main thread can be found in [`@lynx-js/ty
 
 Treat `ElementRef` as an opaque main-thread handle. Never read or write its properties, enumerate it, clone or spread it, serialize it, or attach application state to it. Use Element PAPI APIs to inspect or mutate element state, and use `__ElementIsEqual` to compare node references.
 
-### Create APIs
+### Create and Tree APIs
 
-Create the page root with the fixed call `__CreatePage("0", 0)`. Then obtain `pageId` from `__GetElementUniqueID(page)` and pass it as the first argument to `__CreateView`, `__CreateScrollView`, `__CreateText`, and `__CreateImage`. Do not inline `__CreatePage` inside `__GetElementUniqueID`; retain the Page so it can own every top-level UI node. `__CreateRawText` takes visible text instead.
+Create the page root with the fixed call `__CreatePage("0", 0)`. Obtain `pageId` from `__GetElementUniqueID(page)` and pass it as the first argument to `__CreateView`, `__CreateScrollView`, `__CreateText`, and `__CreateImage`. Do not inline `__CreatePage` inside `__GetElementUniqueID`; retain `page` so it owns every top-level UI node. `__CreateRawText` takes visible text instead.
 
-| API                                                | Parameters                                                                     | Use                                                       |
-| -------------------------------------------------- | ------------------------------------------------------------------------------ | --------------------------------------------------------- |
-| `__CreatePage("0", 0)`                            | Always pass the literal values `"0"` and `0`.                                 | Create the page root.                                     |
-| `__CreateScrollView(pageId: number)`               | `pageId` is the page root's unique id.                                         | Create a scrollable container node.                       |
-| `__CreateView(pageId: number)`                     | `pageId` is the page root's unique id.                                         | Create a container node.                                  |
-| `__CreateImage(pageId: number)`                    | `pageId` is the page root's unique id.                                         | Create an image node.                                     |
-| `__CreateText(pageId: number)`                     | `pageId` is the page root's unique id.                                         | Create a text element that can contain raw-text children. |
-| `__CreateRawText(text: string)`                    | `text` is the visible string.                                                  | Create text content to append under a text element.       |
+| API                                                                                                                                          | Contract & Use                                                                                                 |
+| -------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
+| `__CreatePage("0", 0)`                                                                                                                       | Always pass literal `"0"` and `0` to create the page root.                                                     |
+| `__CreateScrollView(pageId)` / `__CreateView(pageId)` / `__CreateImage(pageId)` / `__CreateText(pageId)`                                     | Create scrollable, container, image, or text nodes owned by `pageId`.                                          |
+| `__CreateRawText(text: string)`                                                                                                              | Create an immutable text leaf to append directly under a Text node.                                            |
+| `__AppendElement(parent: ElementRef, child: ElementRef)`                                                                                     | Attach `child` under `parent` (use for initial children when `parent` is empty).                               |
+| `__ReplaceElements(parent: ElementRef, inserted: ElementRef \| ElementRef[] \| undefined, removed: ElementRef \| ElementRef[] \| undefined)` | Replace `removed` children under `parent` with `inserted` (each accepts a single node, array, or `undefined`). |
+| `__GetChildren(parent: ElementRef)`                                                                                                          | Read direct children before subtree replacement or listener cleanup.                                           |
 
-### Tree APIs
-
-| API                                                                                                                                          | Parameters                                                                                        | Use                                                |
-| -------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------- | -------------------------------------------------- |
-| `__AppendElement(parent: ElementRef, child: ElementRef)`                                                                                     | `parent` receives the node; `child` is the node to append.                                        | Attach a child node.                               |
-| `__ReplaceElements(parent: ElementRef, inserted: ElementRef \| ElementRef[] \| undefined, removed: ElementRef \| ElementRef[] \| undefined)` | `parent` owns the range; `inserted` and `removed` each accept one node, an array, or `undefined`. | Replace child nodes during updates.                |
-| `__GetChildren(parent: ElementRef)`                                                                                                          | `parent` is the node whose direct children are requested.                                         | Inspect child nodes before replacement or cleanup. |
-
-For portable subtree replacement, pass node arrays and read the current children from the parent:
+For portable subtree replacement, pass node arrays and read current children from the parent:
 
 ```javascript
 __ReplaceElements(parent, [nextChild], __GetChildren(parent));
 ```
 
-Use `__AppendElement` for the first child when the parent is still empty.
+### Node Property, Event, and Utility APIs
 
-### Element ID APIs
+| API                                                                                                                                         | Contract & Use                                                                                                                     |
+| ------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| `__SetID(node: ElementRef, id: string \| null)` / `__GetID(node: ElementRef)`                                                               | Set (`string` or `null`) or read a stable element id.                                                                              |
+| `__SetClasses(node: ElementRef, classes: string \| undefined)` / `__AddClass(node: ElementRef, className: string)` / `__GetClasses(node)`   | Replace all classes (`undefined` clears), append one class, or read applied class names (`string[]`).                              |
+| `__SetInlineStyles(node: ElementRef, styles: unknown)` / `__GetInlineStyles(node: ElementRef)`                                              | Apply runtime-computed inline styles (typed as `unknown`) or read the inline style string.                                         |
+| `__SetAttribute(node: ElementRef, name: string, value: any)` / `__GetAttributeByName(node: ElementRef, name: string)`                       | Set or read a named element attribute.                                                                                             |
+| `__SetDataset(node: ElementRef, dataset: Record<string, unknown> \| undefined)` / `__AddDataset(node, key, value)` / `__GetDataset(node)`   | Replace the complete dataset record (never pass `(node, key, value)` to `__SetDataset`), add one dataset entry, or read dataset.   |
+| `__AddEventListener(node: ElementRef, eventName: string, handler: ElementEventCallback \| string, options: ElementEventListenerOptions)`    | Bind a main-thread UI event. All 4 arguments are required; pass `{}` when no listener options are needed.                          |
+| `__RemoveEventListener(node: ElementRef, eventName: string, handler: ElementEventCallback \| string, options: ElementEventListenerOptions)` | Remove a node listener during replacement or teardown using the matching 4-argument tuple.                                         |
+| `__GetElementUniqueID(node: ElementRef)` / `__ElementIsEqual(left: ElementRef, right: ElementRef)`                                          | Obtain numeric `pageId` or compare opaque `ElementRef` handles.                                                                    |
 
-| API                                             | Parameters                                                         | Use                                      |
-| ----------------------------------------------- | ------------------------------------------------------------------ | ---------------------------------------- |
-| `__SetID(node: ElementRef, id: string \| null)` | `node` is the target; `id` accepts an element-id string or `null`. | Set a stable element id.                 |
-| `__GetID(node: ElementRef)`                     | `node` is the target.                                              | Get the element's stable id as a string. |
-
-### Class APIs
-
-| API                                                            | Parameters                                                                                                 | Use                                                     |
-| -------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------- | ------------------------------------------------------- |
-| `__SetClasses(node: ElementRef, classes: string \| undefined)` | `node` is the target; `classes` is the complete class string, or `undefined` when there is no class value. | Replace the node's applied classes.                     |
-| `__GetClasses(node: ElementRef)`                               | `node` is the target.                                                                                      | Get the applied class names as a string array.          |
-| `__AddClass(node: ElementRef, className: string)`              | `node` is the target; `className` is the class name to add.                                                | Add a styling class without replacing existing classes. |
-
-### Inline Style APIs
-
-| API                                                    | Parameters                                                                                                                 | Use                                       |
-| ------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------- |
-| `__SetInlineStyles(node: ElementRef, styles: unknown)` | `node` is the target; `styles` is the runtime style payload. The type package intentionally leaves its shape as `unknown`. | Apply runtime-computed inline styles.     |
-| `__GetInlineStyles(node: ElementRef)`                  | `node` is the target.                                                                                                      | Get the node's inline styles as a string. |
-
-### Attribute APIs
-
-| API                                                          | Parameters                                                                   | Use                            |
-| ------------------------------------------------------------ | ---------------------------------------------------------------------------- | ------------------------------ |
-| `__SetAttribute(node: ElementRef, name: string, value: any)` | `node` is the target; `name` identifies the attribute; `value` is its value. | Set a node attribute.          |
-| `__GetAttributeByName(node: ElementRef, name: string)`       | `node` is the target; `name` identifies the attribute.                       | Get the named attribute value. |
-
-### Dataset APIs
-
-| API                                                                             | Parameters                                                                          | Use                                            |
-| ------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------- | ---------------------------------------------- |
-| `__SetDataset(node: ElementRef, dataset: Record<string, unknown> \| undefined)` | `node` is the target; `dataset` accepts a complete dataset record or `undefined`.   | Set dataset metadata used by events or lookup. |
-| `__GetDataset(node: ElementRef)`                                                | `node` is the target.                                                               | Get the complete dataset record.               |
-| `__AddDataset(node: ElementRef, key: string, value: unknown)`                   | `node` is the target; `key` names one dataset entry; `value` is that entry's value. | Add one dataset entry.                         |
-
-### Event Listener APIs
-
-| API                                                                                                                                         | Parameters                                                                                                                                                                                                                                                                                                 | Use                                          |
-| ------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------- |
-| `__AddEventListener(node: ElementRef, eventName: string, handler: ElementEventCallback \| string, options: ElementEventListenerOptions)`    | `node` is the event target; `eventName` identifies the event; `handler` is an `(event: ElementEvent) => void` function or string value; `options` is required even though its `capture`, `once`, `passive`, `signal`, `closure_type`, and `bind_type` fields are optional. Pass `{}` when none are needed. | Bind a UI event on the main thread.          |
-| `__RemoveEventListener(node: ElementRef, eventName: string, handler: ElementEventCallback \| string, options: ElementEventListenerOptions)` | Pass the corresponding target, event name, handler, and options used when adding the listener. All four parameters are required.                                                                                                                                                                           | Remove a node event listener during cleanup. |
-
-### Runtime Utility APIs
-
-| API                                                     | Parameters                                                         | Use                                               |
-| ------------------------------------------------------- | ------------------------------------------------------------------ | ------------------------------------------------- |
-| `__GetElementUniqueID(node: ElementRef)`                | `node` is the Element PAPI node whose numeric unique id is needed. | Get the `pageId` passed to element-creation APIs. |
-| `__ElementIsEqual(left: ElementRef, right: ElementRef)` | `left` and `right` are the two node references to compare.         | Compare Element PAPI node references.             |
-
-Do not use these APIs in main-thread examples or apps:
-
-- `__CreateFor`
-- `__CreateIf`
-- `__UpdateIfNodeIndex`
-- `__UpdateForChildCount`
-- `__SetLepusInitData`
-- `__CreateStyleObject`
-- `__SetStyleObject`
-- `__UpdateStyleObject`
-- `__AddEvent`
-
-Do not use `__AddEvent` to bind UI events. Use `__AddEventListener` and pair it with matching `__RemoveEventListener` cleanup.
+Do not call compiler-only or legacy PAPIs (`__CreateFor`, `__CreateIf`, `__UpdateIfNodeIndex`, `__UpdateForChildCount`, `__SetLepusInitData`, `__CreateStyleObject`, `__SetStyleObject`, `__UpdateStyleObject`, or `__AddEvent`) in Vanilla Lynx main-thread code.
 
 ## Build the Tree
 
@@ -379,34 +319,22 @@ engine.addEventListener(updatePageEventName, onUpdatePage);
 
 ### Background-Driven Update
 
-For complex tasks that need a background thread, read [`background.md`](background.md). Keep this reference focused on the main-thread side: dispatch task requests to the background thread, then listen for background patches and update the UI on the main thread.
-
-The event names below mirror [`background.md`](background.md) for the example only. Real apps can choose their own shared event names.
-
-In the main-thread script, use `const backgroundThread = lynx.getJSContext()` so the cross-thread target is explicit, then reuse it for both directions: dispatch events to background and add or remove listeners for events sent back from background. The background counterpart similarly uses `const mainThread = lynx.getCoreContext()`.
+See [`event.md`](event.md) for cross-thread bridge pairing (`lynx.getJSContext()` on main ↔ `lynx.getCoreContext()` on background) and [`background.md`](background.md) for the background task/state handler. On the main thread, reuse one `lynx.getJSContext()` bridge to dispatch tasks/data, apply incoming `PatchFromBackground` updates with `__FlushElementTree()`, and forward `BackgroundDestroy` before removing listeners:
 
 ```javascript
-const patchFromBackgroundEventName = "PatchFromBackground";
-const updateDataFromMainThreadEventName = "UpdateDataFromMainThread";
-const dispatchEventToBackgroundEventName = "DispatchEventToBackground";
-const backgroundDestroyEventName = "BackgroundDestroy";
-
 const backgroundThread = lynx.getJSContext();
 
 function dispatchDataToBackground(data) {
   backgroundThread.dispatchEvent({
-    type: updateDataFromMainThreadEventName,
+    type: "UpdateDataFromMainThread",
     data,
   });
 }
 
 function dispatchEventToBackground(handlerName, data) {
   backgroundThread.dispatchEvent({
-    type: dispatchEventToBackgroundEventName,
-    data: {
-      handlerName,
-      data,
-    },
+    type: "DispatchEventToBackground",
+    data: { handlerName, data },
   });
 }
 
@@ -414,11 +342,7 @@ function onBackgroundPatch(event) {
   const patch = event.data;
   if (!patch || typeof patch !== "object" || Array.isArray(patch)) return;
 
-  currentState = {
-    ...currentState,
-    ...patch,
-  };
-
+  currentState = { ...currentState, ...patch };
   if (patch.total !== undefined && valueText) {
     __ReplaceElements(
       valueText,
@@ -430,27 +354,16 @@ function onBackgroundPatch(event) {
 }
 
 function cleanupBackgroundBridge() {
-  backgroundThread.dispatchEvent({
-    type: backgroundDestroyEventName,
-    data: {},
-  });
-  backgroundThread.removeEventListener(
-    patchFromBackgroundEventName,
-    onBackgroundPatch,
-  );
+  backgroundThread.dispatchEvent({ type: "BackgroundDestroy", data: {} });
+  backgroundThread.removeEventListener("PatchFromBackground", onBackgroundPatch);
   engine.removeEventListener(destroyLifetimeEventName, cleanupBackgroundBridge);
 }
 
-backgroundThread.addEventListener(
-  patchFromBackgroundEventName,
-  onBackgroundPatch,
-);
+backgroundThread.addEventListener("PatchFromBackground", onBackgroundPatch);
 engine.addEventListener(destroyLifetimeEventName, cleanupBackgroundBridge);
-
-dispatchEventToBackground("computeSummary", [{ value: 3 }, { value: 4 }]);
 ```
 
-Call `dispatchDataToBackground(processedData)` after processing Engine render or update data. Dispatch the app-defined `BackgroundDestroy` event before removing the bridge so the background script can release its listeners; keep `__DestroyLifetime` reserved for the Engine lifecycle.
+Call `dispatchDataToBackground(processedData)` when background state needs Engine render/update data, and keep `__DestroyLifetime` reserved for `lynx.getEngine()`.
 
 ## Lifecycle Cleanup
 
