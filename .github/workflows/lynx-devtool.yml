@@ -31,7 +31,7 @@ env:
   # Generic Lynx page for connector / mcp-server tools.
   SWIPER_BUNDLE_URL: https://lynxjs.org/lynx-examples/swiper/dist/Swiper.lynx.bundle
   # ReactLynx page bundled with @lynx-js/preact-devtools for reactlynx tooling.
-  REACT_DEVTOOL_BUNDLE_URL: https://unpkg.com/@lynx-example/react-devtool@0.2.0/dist/main.lynx.bundle
+  REACT_DEVTOOL_BUNDLE_URL: https://unpkg.com/@lynx-example/react-devtool@0.3.2/dist/main.lynx.bundle
 
 jobs:
   e2e:
