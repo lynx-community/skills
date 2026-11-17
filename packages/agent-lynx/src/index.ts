@@ -5,6 +5,7 @@
 import 'core-js/modules/es.promise.with-resolvers.js';
 import pkg from '../package.json' with { type: 'json' };
 import { createProgram } from './devtool.ts';
+import { handleCliError } from './program.ts';
 import { resolveUpdateNotice, withUpdateNotice } from './update-notice.ts';
 
 await withUpdateNotice(
@@ -14,6 +15,10 @@ await withUpdateNotice(
       resolveUpdateNotice({ currentVersion: pkg.version, env: process.env }),
   },
   async () => {
-    await createProgram({ env: process.env }).parseAsync(process.argv);
+    await createProgram({ env: process.env })
+      .parseAsync(process.argv)
+      .catch(error => {
+        handleCliError(error, process.env);
+      });
   },
 );
