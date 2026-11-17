@@ -821,6 +821,95 @@ test("HDTTransport rejects immediately when ClientList contains an invalid numer
   assert.ok(Date.now() - startedAt < 500);
 });
 
+test("HDTTransport delivers large CDP event bursts without stalling before reader attaches", async (t) => {
+  const server = new WebSocketServer({ port: 0, path: "/mdevices/page/android" });
+  t.after(() => {
+    for (const socket of server.clients) socket.terminate();
+    server.close();
+  });
+  const address = server.address();
+  assert.ok(address && typeof address !== "string");
+
+  const chunkCount = 120;
+  server.on("connection", (socket) => {
+    socket.send(JSON.stringify({ event: "Initialize", data: 123 }));
+    socket.on("message", (raw) => {
+      const message = JSON.parse(raw.toString()) as {
+        event?: string;
+        data?: { type?: string; data?: { message?: { id?: number } } };
+      };
+      if (message.event === "Register") {
+        socket.send(JSON.stringify({ event: "RoomJoined", data: { room: "", id: 123 } }));
+        socket.send(JSON.stringify({
+          event: "ClientList",
+          data: [{ id: 2, info: { App: "Aweme", debugRouterId: "router-uuid" } }],
+        }));
+      } else if (message.event === "ListClients") {
+        socket.send(JSON.stringify({
+          event: "ClientList",
+          data: [{ id: 2, info: { App: "Aweme", debugRouterId: "router-uuid" } }],
+        }));
+      } else if (message.event === "Customized" && message.data?.type === "CDP") {
+        for (let i = 0; i < chunkCount; i++) {
+          socket.send(JSON.stringify({
+            event: "Customized",
+            data: {
+              type: "CDP",
+              sender: 2,
+              data: {
+                session_id: 3,
+                message: JSON.stringify({
+                  method: "HeapProfiler.addHeapSnapshotChunk",
+                  params: { chunk: `chunk-${i}` },
+                  sessionId: "Main",
+                }),
+              },
+            },
+          }));
+        }
+        socket.send(JSON.stringify({
+          event: "Customized",
+          data: {
+            type: "CDP",
+            sender: 2,
+            data: {
+              session_id: 3,
+              message: JSON.stringify({ id: message.data.data?.message?.id ?? 1, result: {} }),
+            },
+          },
+        }));
+      }
+    });
+  });
+
+  const transport = new HDTTransport(`ws://127.0.0.1:${address.port}/mdevices/page/android`);
+  t.after(() => transport.close());
+  const connector = new Connector([transport]);
+  const clientId = ClientId.serialize(transport.id, transport.id, "router-uuid");
+
+  const stream = await connector.sendCDPStream(
+    clientId,
+    3,
+    ReadableStream.from([{ method: "HeapProfiler.takeHeapSnapshot", params: { reportProgress: true } }]),
+  );
+  await sleep(30);
+
+  let receivedChunks = 0;
+  let sawResult = false;
+  await using disposableStream = stream;
+  for await (const raw of disposableStream) {
+    const msg = raw as { method?: string; id?: number };
+    if (msg.method === "HeapProfiler.addHeapSnapshotChunk") receivedChunks += 1;
+    if (typeof msg.id === "number") {
+      sawResult = true;
+      break;
+    }
+  }
+
+  assert.equal(receivedChunks, chunkCount);
+  assert.equal(sawResult, true);
+});
+
 function deferred<T>() {
   let resolve!: (value: T | PromiseLike<T>) => void;
   let reject!: (reason?: unknown) => void;
