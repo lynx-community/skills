@@ -68,6 +68,31 @@ export function isOfflineTraceAction(command: Command): boolean {
     && (command.name() === 'query' || command.name() === 'event-summary');
 }
 
+const DAEMON_ONLY_LEAF_COMMANDS = new Set([
+  'snapshot',
+  'screenshot',
+  'tap',
+  'long-press',
+  'fill',
+  'clear',
+  'scroll',
+  'wait',
+]);
+
+export function isDaemonOnlyAction(command: Command): boolean {
+  if (DAEMON_ONLY_LEAF_COMMANDS.has(command.name())) return true;
+  if (
+    isCommandAction(command, 'get') || isCommandAction(command, 'reactlynx')
+  ) {
+    return true;
+  }
+  if (command.name() === 'get-source-info') {
+    const target = command.processedArgs[0] ?? command.args[0];
+    return typeof target === 'string' && target.trim().startsWith('@');
+  }
+  return false;
+}
+
 export function handleCliError(
   error: unknown,
   env: NodeJS.ProcessEnv = process.env,
