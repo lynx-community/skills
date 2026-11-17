@@ -3,6 +3,7 @@
 // LICENSE file in the root directory of this source tree.
 import { setTimeout as delay } from "node:timers/promises";
 import type { Connector } from "../index.ts";
+import type { Session } from "../types.ts";
 import type {
   CommandAction,
   CommandData,
@@ -140,6 +141,54 @@ function isUnsupportedCdpMethod(error: unknown): boolean {
   if (!(error instanceof Error) || typeof error.cause !== "object" || error.cause === null) return false;
   const response = error.cause as { error?: { code?: unknown } };
   return response.error?.code === -32601;
+}
+
+function mayBeWebSessionFailure(error: unknown): boolean {
+  if (error instanceof ReactLynxActionError) {
+    return error.reason !== "bad-params";
+  }
+  if (isUnsupportedCdpMethod(error)) return true;
+  const message = error instanceof Error ? error.message : String(error);
+  return /wasn't found|method not found|not supported|CDP request error/iu.test(message);
+}
+
+async function resolveWebSessionFailure(
+  action: string,
+  params: CommandObject | undefined,
+  knownSessionType: Session["type"] | undefined,
+  connector: Connector,
+  error: unknown,
+): Promise<CommandResult<never> | undefined> {
+  if (!params || !mayBeWebSessionFailure(error)) return undefined;
+  const clientId = str(params, "clientId");
+  const sessionId = num(params, "sessionId");
+  if (!clientId || sessionId === undefined) return undefined;
+
+  let sessionType = knownSessionType;
+  if (sessionType === undefined && typeof connector.sendListSessionMessage === "function") {
+    try {
+      const sessions = await connector.sendListSessionMessage(clientId);
+      sessionType = sessions.find(session => session.session_id === sessionId)?.type;
+    } catch {
+      return undefined;
+    }
+  }
+  if (sessionType !== "web") return undefined;
+
+  const detail = error instanceof Error && error.message ? ` (${error.message})` : "";
+  return fail(
+    action,
+    `Session ${sessionId} on ${clientId} is a WebView session (type: "web"), whereas \`${action}\` and Snapshot @eN actions require a LynxView session.${detail}`,
+    {
+      cause: error,
+      reason: "unsupported-target",
+      recoverable: true,
+      nextActions: [
+        `Run \`agent-lynx list-sessions --client ${clientId}\` and pass \`-s <sessionId>\` for a LynxView session (type: "lynx").`,
+        `For WebView inspection on session ${sessionId}, use standard Web CDP domains via \`agent-lynx cdp --client ${clientId} -s ${sessionId} -m <method>\`.`,
+      ],
+    },
+  );
 }
 
 function sameSnapshotNode(left: SnapshotRef, right: SnapshotRef): boolean {
@@ -304,10 +353,14 @@ export class ActionCore {
     }
 
     const actionSignal = signal ?? new AbortController().signal;
+    let resolvedParams: CommandObject | undefined;
+    let resolvedSessionType: Session["type"] | undefined;
     try {
       actionSignal.throwIfAborted();
       const target = await resolveTarget(action, params, ctx.connector, registration.target);
       if (!target.ok) return target.result;
+      resolvedParams = target.params;
+      resolvedSessionType = target.sessionType;
       if (
         ["tap", "long-press", "fill", "clear", "scroll"].includes(action)
         && invalidBoolean(target.params, "snapshotAfter")
@@ -322,6 +375,16 @@ export class ActionCore {
           reason: "aborted",
           recoverable: true,
         });
+      }
+      if (registration.target === "session") {
+        const webFailure = await resolveWebSessionFailure(
+          action,
+          resolvedParams,
+          resolvedSessionType,
+          ctx.connector,
+          error,
+        );
+        if (webFailure) return webFailure;
       }
       if (error instanceof ReactLynxActionError) {
         return fail(action, error.message, {
@@ -353,6 +416,8 @@ export class ActionCore {
       return;
     }
 
+    let resolvedParams: CommandObject | undefined;
+    let resolvedSessionType: Session["type"] | undefined;
     try {
       signal.throwIfAborted();
       const target = await resolveTarget(action, params, ctx.connector, registration.target);
@@ -360,9 +425,24 @@ export class ActionCore {
         yield target.result;
         return;
       }
+      resolvedParams = target.params;
+      resolvedSessionType = target.sessionType;
       yield* registration.handler(target.params, ctx, signal);
     } catch (error) {
       if (signal.aborted) return;
+      if (registration.target === "session") {
+        const webFailure = await resolveWebSessionFailure(
+          action,
+          resolvedParams,
+          resolvedSessionType,
+          ctx.connector,
+          error,
+        );
+        if (webFailure) {
+          yield webFailure;
+          return;
+        }
+      }
       yield fail(action, error instanceof Error ? error.message : String(error), {
         cause: error,
         recoverable: true,

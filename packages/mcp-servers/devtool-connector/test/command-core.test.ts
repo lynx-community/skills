@@ -1305,5 +1305,74 @@ describe("ActionCore", () => {
     const noClients = await core.execute("snapshot", {}, { connector: fakeConnector() });
     assert.equal(noClients.error?.reason, "target-not-found");
     assert.equal(noClients.error?.message, "No available clients found.");
+    assert.ok(noClients.error?.nextActions.some(action => action.includes("wait-for-client")));
+  });
+
+  test("prefers the latest non-web session over a higher-numbered web session when sessionId is omitted", async () => {
+    const core = new ActionCore();
+    const connector = fakeConnector({
+      clients: [{ id: "device:8901", info: {} }],
+      sessions: [
+        { session_id: 2, type: "", url: "lynx://legacy" },
+        { session_id: 5, type: "lynx", url: "lynx://latest-lynx" },
+        { session_id: 12, type: "web", url: "https://example.test/webview" },
+      ],
+    });
+
+    const result = await core.execute("snapshot", {}, { connector });
+    assert.equal(result.ok, true);
+    assert.equal((result.data as { sessionId: number }).sessionId, 5);
+  });
+
+  test("diagnoses WebView sessions when Lynx-specific CDP methods fail on type=web", async () => {
+    const core = new ActionCore();
+    const webError = new Error("CDP request error: 'DOM.getDocumentWithBoxModel' wasn't found", {
+      cause: { id: 1, error: { code: -32601, message: "'DOM.getDocumentWithBoxModel' wasn't found" } },
+    });
+    const connector = {
+      async listClients() {
+        return [{ id: "device:8901", info: {} }];
+      },
+      async sendListSessionMessage() {
+        return [{ session_id: 12, type: "web" as const, url: "https://example.test/webview" }];
+      },
+      async sendCDPMessage(_clientId: string, _sessionId: number, method: string) {
+        if (method === "DOM.getDocumentWithBoxModel") throw webError;
+        return {};
+      },
+    } as unknown as Connector;
+
+    const autoSelected = await core.execute("snapshot", {}, { connector });
+    assert.equal(autoSelected.ok, false);
+    assert.equal(autoSelected.error?.reason, "unsupported-target");
+    assert.match(autoSelected.error?.message ?? "", /WebView session \(type: "web"\)/u);
+    assert.ok(
+      autoSelected.error?.nextActions.some(action => action.includes("list-sessions --client device:8901")),
+    );
+
+    const explicitSession = await core.execute(
+      "snapshot",
+      { clientId: "device:8901", sessionId: 12 },
+      { connector },
+    );
+    assert.equal(explicitSession.ok, false);
+    assert.equal(explicitSession.error?.reason, "unsupported-target");
+    assert.match(explicitSession.error?.message ?? "", /Session 12 on device:8901 is a WebView session/u);
+
+    const streamEvents = [];
+    for await (
+      const event of core.stream(
+        "wait",
+        { clientId: "device:8901", sessionId: 12, text: "Ready", timeout: 50, interval: 10 },
+        { connector },
+        new AbortController().signal,
+      )
+    ) {
+      streamEvents.push(event);
+    }
+    assert.equal(streamEvents.length, 1);
+    assert.equal(streamEvents[0]?.ok, false);
+    assert.equal(streamEvents[0]?.error?.reason, "unsupported-target");
+    assert.match(streamEvents[0]?.error?.message ?? "", /WebView session \(type: "web"\)/u);
   });
 });

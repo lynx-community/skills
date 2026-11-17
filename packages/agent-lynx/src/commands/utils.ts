@@ -134,7 +134,9 @@ export async function getLatestSession(
   if (!sessions || sessions.length === 0) {
     throw new Error(`No available sessions found for client: ${clientId}`);
   }
-  const latestSession = sessions.reduce((max, session) =>
+  const nonWebSessions = sessions.filter(session => session.type !== 'web');
+  const candidates = nonWebSessions.length > 0 ? nonWebSessions : sessions;
+  const latestSession = candidates.reduce((max, session) =>
     Number(session.session_id) > Number(max.session_id) ? session : max
   );
   logMonitor(MonitorCode.UTILS_GET_LATEST_SESSION_SUCCESS, {
