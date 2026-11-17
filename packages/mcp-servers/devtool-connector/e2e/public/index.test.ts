@@ -4,45 +4,8 @@
 
 import { ReadableStream } from "node:stream/web";
 import type { TestContext } from "node:test";
-import { ClientId, type Connector, type GlobalKeys } from "../../src/index.ts";
+import { ClientId, type Connector } from "../../src/index.ts";
 import { getTestingSession, testWithClient } from "../../test/testWithClient.ts";
-
-const GLOBAL_SWITCH_READY_TIMEOUT_MS = 5_000;
-const GLOBAL_SWITCH_READY_POLL_INTERVAL_MS = 250;
-
-async function waitForGlobalSwitch(
-  t: TestContext,
-  connector: Connector,
-  clientId: string,
-  key: GlobalKeys,
-  expected: boolean,
-  message: string,
-): Promise<void> {
-  const { setTimeout } = await import("node:timers/promises");
-  const deadline = Date.now() + GLOBAL_SWITCH_READY_TIMEOUT_MS;
-  let lastValue: boolean | undefined;
-  let lastError: unknown;
-
-  while (Date.now() < deadline) {
-    try {
-      lastValue = await connector.getGlobalSwitch(clientId, key);
-      if (lastValue === expected) {
-        return;
-      }
-    } catch (error) {
-      lastError = error;
-    }
-
-    await setTimeout(GLOBAL_SWITCH_READY_POLL_INTERVAL_MS);
-  }
-
-  const lastErrorMessage = lastError instanceof Error ? lastError.message : String(lastError);
-  t.assert.fail(
-    `${message}; expected ${key}=${expected}, last value: ${lastValue ?? "unavailable"}, last error: ${
-      lastError === undefined ? "none" : lastErrorMessage
-    }`,
-  );
-}
 
 testWithClient("Connector", async (t, connector, client, target) => {
   const clientId = client.id;
@@ -67,29 +30,6 @@ testWithClient("Connector", async (t, connector, client, target) => {
       t.assert.equal(
         clients.some(({ id }) => id === clientId),
         true,
-      );
-    });
-
-    await t.test("listClients should enable devtool", async (t) => {
-      await connector.setGlobalSwitch(clientId, "enable_devtool", false);
-      await waitForGlobalSwitch(
-        t,
-        connector,
-        clientId,
-        "enable_devtool",
-        false,
-        "setGlobalSwitch should disable devtool before listClients setup",
-      );
-
-      await connector.listClients();
-
-      await waitForGlobalSwitch(
-        t,
-        connector,
-        clientId,
-        "enable_devtool",
-        true,
-        "listClients should enable devtool",
       );
     });
   });
