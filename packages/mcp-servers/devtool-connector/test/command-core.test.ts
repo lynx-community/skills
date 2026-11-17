@@ -1305,5 +1305,6 @@ describe("ActionCore", () => {
     const noClients = await core.execute("snapshot", {}, { connector: fakeConnector() });
     assert.equal(noClients.error?.reason, "target-not-found");
     assert.equal(noClients.error?.message, "No available clients found.");
+    assert.ok(noClients.error?.nextActions.some(action => action.includes("wait-for-client")));
   });
 });
