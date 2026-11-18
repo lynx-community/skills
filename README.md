@@ -20,6 +20,17 @@ A collection of [Agent skills](https://agentskills.io/) for [Lynx](https://lynxj
 
 ## Installation
 
+### Claude Code
+
+The `lynx` plugin bundles Lynx development skills, the public Docs MCP server, and session startup guidance. Install it from the Marketplace on the `release` branch.
+
+```bash
+claude plugin marketplace add 'lynx-community/skills#release'
+claude plugin install lynx@lynx-agent-skills
+```
+
+### Agent Skills CLI
+
 ```bash
 npx skills add lynx-community/skills
 ```

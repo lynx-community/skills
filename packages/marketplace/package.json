@@ -12,6 +12,7 @@
     "build": "build-marketplace build --output-dir ../.. && node ./export-skills.mjs ../.."
   },
   "dependencies": {
+    "@lynx-js/ai-plugin-lynx": "workspace:*",
     "@lynx-js/ai-plugin-lynx-debug": "workspace:*",
     "@lynx-js/ai-plugin-reactlynx": "workspace:*",
     "@lynx-js/skill-agent-lynx": "workspace:*",

@@ -1,0 +1,55 @@
+{
+  "name": "@lynx-js/ai-plugin-lynx",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Skills, documentation, and debugging for Lynx development",
+  "license": "Apache-2.0",
+  "author": {
+    "name": "Lynx"
+  },
+  "type": "module",
+  "exports": {
+    "./startup-reminder": "./scripts/startup-reminder.mjs",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    ".claude-plugin",
+    "skills",
+    "scripts",
+    "hooks",
+    ".mcp.json"
+  ],
+  "scripts": {
+    "build": "rslib build && build-plugin"
+  },
+  "dependencies": {
+    "@lynx-js/skill-agent-lynx": "workspace:*",
+    "@lynx-js/skill-lynx-api-docs": "workspace:*",
+    "@lynx-js/skill-lynx-check-css-support": "workspace:*",
+    "@lynx-js/skill-lynx-debug-info-remapping": "workspace:*",
+    "@lynx-js/skill-lynx-devtool": "workspace:*",
+    "@lynx-js/skill-lynx-recorder": "workspace:*",
+    "@lynx-js/skill-lynx-recorder-fixture": "workspace:*",
+    "@lynx-js/skill-lynx-tasm-codec": "workspace:*",
+    "@lynx-js/skill-lynx-trace-analysis": "0.0.12",
+    "@lynx-js/skill-lynx-trace-record": "0.0.6",
+    "@lynx-js/skill-lynx-typescript": "workspace:*",
+    "@lynx-js/skill-lynx-ui": "3.133.13",
+    "@lynx-js/skill-reactlynx-best-practices": "workspace:*",
+    "@lynx-js/skill-rspeedy-bundle-size": "workspace:*",
+    "@lynx-js/skill-vanilla-lynx": "workspace:*"
+  },
+  "devDependencies": {
+    "@rslib/core": "catalog:rstack",
+    "@types/node": "^24.19.2",
+    "build-plugin": "workspace:*",
+    "commander": "^13.1.0",
+    "typescript": "^5.9.3"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "claudePlugin": {
+    "category": "development"
+  }
+}
