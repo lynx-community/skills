@@ -44,7 +44,7 @@ jobs:
       - name: Export to dist
         run: |
           mkdir -p dist
-          npx build-marketplace export ./dist
+          pnpm --filter @lynx-js/marketplace-lynx-agent-skills exec build-plugin -C "$PWD" export --skip-build "$PWD/dist"
           cp README.md CONTRIBUTING.md dist/
           tree ./dist
 

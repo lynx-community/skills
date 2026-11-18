@@ -9,7 +9,7 @@ import { resolve } from 'node:path';
 import { exportPlugin } from 'build-plugin';
 import { Command } from 'commander';
 
-async function buildMarketplace(pkgDir: string) {
+async function buildMarketplace(pkgDir: string, outputDir: string) {
   const pkgPath = `${pkgDir}/package.json`;
 
   // Read package.json to get the marketplace name
@@ -28,7 +28,7 @@ async function buildMarketplace(pkgDir: string) {
   > = [];
 
   // Clean plugins output directory before rebuilding
-  await rm(resolve(pkgDir, 'plugins'), { recursive: true, force: true });
+  await rm(resolve(outputDir, 'plugins'), { recursive: true, force: true });
 
   // PLUGINS
   for (const dep in dependencies) {
@@ -36,7 +36,7 @@ async function buildMarketplace(pkgDir: string) {
       const name = dep.replace(/^@lynx-js\/ai-plugin-/, '');
       const source = resolve(pkgDir, 'node_modules', dep);
 
-      await exportPlugin(source, resolve(pkgDir, 'plugins', name));
+      await exportPlugin(source, resolve(outputDir, 'plugins', name));
 
       const pluginMeta = JSON.parse(
         readFileSync(`${source}/package.json`, 'utf-8'),
@@ -68,7 +68,7 @@ async function buildMarketplace(pkgDir: string) {
   }\n`;
 
   // .claude-plugin/marketplace.json
-  const claudePluginDir = resolve(pkgDir, '.claude-plugin');
+  const claudePluginDir = resolve(outputDir, '.claude-plugin');
   await mkdir(claudePluginDir, { recursive: true });
   await writeFile(
     resolve(claudePluginDir, 'marketplace.json'),
@@ -83,11 +83,15 @@ program
   .description('A helper script for build your claude plugin marketplace')
   .option('-C, --cwd <cwd>', 'Set current working directory', process.cwd());
 
-program.action(async () => {
-  const { cwd } = program.opts<{ cwd: string; }>();
-  const pkgDir = resolve(process.cwd(), cwd);
-  await buildMarketplace(pkgDir);
-});
+program
+  .command('build', { isDefault: true })
+  .description('Build your Marketplace')
+  .option('--output-dir <dir>', 'Write generated files to this directory')
+  .action(async (options: { outputDir?: string; }) => {
+    const { cwd } = program.opts<{ cwd: string; }>();
+    const pkgDir = resolve(cwd);
+    await buildMarketplace(pkgDir, resolve(options.outputDir ?? pkgDir));
+  });
 
 program
   .command('export')
@@ -97,7 +101,7 @@ program
     const { cwd } = program.opts<{ cwd: string; }>();
     const pkgDir = resolve(process.cwd(), cwd);
     if (!options.skipBuild) {
-      await buildMarketplace(pkgDir);
+      await buildMarketplace(pkgDir, pkgDir);
     }
     await exportPlugin(pkgDir, resolve(process.cwd(), targetDir));
   });
