@@ -1,0 +1,926 @@
+## Examples
+
+### Basic
+
+```tsx
+// Copyright 2026 The Lynx Authors. All rights reserved.
+// Licensed under the Apache License Version 2.0 that can be found in the
+// LICENSE file in the root directory of this source tree.
+
+import { root, useState } from '@lynx-js/react'
+
+import {
+  SliderIndicator,
+  SliderRoot,
+  SliderThumb,
+  SliderTrack,
+} from '@lynx-js/lynx-ui'
+
+import { formatPercentage } from '../shared/formatPercentage'
+
+import './index.css'
+
+function App() {
+  const [variantValue, setVariantValue] = useState(0.68)
+  const [rtlValue, setRtlValue] = useState(0.4)
+
+  return (
+    <view className='demo-container lunaris-dark luna-gradient-berry'>
+      <view className='demo-canvas'>
+        <view className='section'>
+          <text className='title'>Variant</text>
+          <text className='desc'>
+            A slider with a bordered thumb and a filled thumb side by side.
+          </text>
+
+          <view className='row'>
+            <text className='slider-label'>
+              {formatPercentage(variantValue)}
+            </text>
+            <SliderRoot
+              className='slider-root'
+              defaultValue={0.68}
+              onValueChange={(value: number) => {
+                setVariantValue(value)
+              }}
+            >
+              <SliderTrack className='slider-track'>
+                <SliderIndicator className='slider-indicator' />
+                <SliderThumb className='slider-thumb-wrapper'>
+                  <view className='slider-thumb-pill' />
+                </SliderThumb>
+              </SliderTrack>
+            </SliderRoot>
+          </view>
+
+          <view className='row'>
+            <text className='slider-label disabled'>Disabled</text>
+            <SliderRoot
+              className='slider-root'
+              defaultValue={0.45}
+              disabled
+            >
+              <SliderTrack className='slider-track'>
+                <SliderIndicator className='slider-indicator' />
+                <SliderThumb className='slider-thumb-wrapper'>
+                  <view className='slider-thumb' />
+                </SliderThumb>
+              </SliderTrack>
+            </SliderRoot>
+          </view>
+        </view>
+
+        <view className='section'>
+          <text className='title'>RTL</text>
+          <text className='desc'>
+            A slider with `enableRTL` and CSS `direction: rtl`. The indicator
+            grows from right to left.
+          </text>
+
+          <view className='row rtl-card'>
+            <text className='slider-label'>
+              {formatPercentage(rtlValue)}
+            </text>
+            <SliderRoot
+              className='slider-root'
+              enableRTL
+              defaultValue={0.4}
+              onValueChange={(value: number) => {
+                setRtlValue(value)
+              }}
+            >
+              <SliderTrack className='slider-track'>
+                <SliderIndicator className='slider-indicator' />
+                <SliderThumb className='slider-thumb-wrapper'>
+                  <view className='slider-thumb' />
+                </SliderThumb>
+              </SliderTrack>
+            </SliderRoot>
+          </view>
+        </view>
+      </view>
+    </view>
+  )
+}
+
+root.render(<App />)
+
+export default App
+```
+
+### Controlled
+
+```tsx
+// Copyright 2026 The Lynx Authors. All rights reserved.
+// Licensed under the Apache License Version 2.0 that can be found in the
+// LICENSE file in the root directory of this source tree.
+
+import { root, useState } from '@lynx-js/react'
+
+import {
+  SliderIndicator,
+  SliderRoot,
+  SliderThumb,
+  SliderTrack,
+} from '@lynx-js/lynx-ui'
+
+import { formatPercentage } from '../shared/formatPercentage'
+import { OptionChipRow } from '../shared/OptionChipRow'
+
+import './index.css'
+
+const PRESET_VALUES = [0, 0.25, 0.5, 0.75, 1]
+
+function App() {
+  const [value, setValue] = useState(0.32)
+  const [primitiveDragging, setPrimitiveDragging] = useState(false)
+  const [steppedValue, setSteppedValue] = useState(0.5)
+
+  return (
+    <view className='demo-container lunaris-dark luna-gradient-berry'>
+      <view className='demo-canvas'>
+        <view className='section'>
+          <text className='title'>Controlled</text>
+          <text className='desc'>
+            Pass `value` and `onValueChange` to fully control the slider from
+            the outside. Use preset chips to jump to specific values.
+          </text>
+
+          <view className='row'>
+            <text className='slider-label'>
+              {primitiveDragging
+                ? 'Dragging...'
+                : formatPercentage(value)}
+            </text>
+            <SliderRoot
+              className='slider-root'
+              value={value}
+              onDragging={() => {
+                setPrimitiveDragging(true)
+              }}
+              onValueChange={(v: number) => {
+                setValue(v)
+              }}
+              onValueCommit={() => {
+                setPrimitiveDragging(false)
+              }}
+            >
+              <SliderTrack className='slider-track'>
+                <SliderIndicator className='slider-indicator' />
+                <SliderThumb className='slider-thumb-wrapper'>
+                  <view className='slider-thumb' />
+                </SliderThumb>
+              </SliderTrack>
+            </SliderRoot>
+
+            <OptionChipRow
+              options={PRESET_VALUES}
+              getKey={(preset) => `preset-${preset}`}
+              getLabel={(preset) => formatPercentage(preset)}
+              isSelected={(preset) => Math.abs(preset - value) < 0.001}
+              onSelect={(preset) => {
+                setPrimitiveDragging(false)
+                setValue(preset)
+              }}
+            />
+          </view>
+        </view>
+
+        <view className='section'>
+          <text className='title'>Stepped</text>
+          <text className='desc'>
+            A slider with `step={0.1}` that snaps to 10% increments.
+          </text>
+
+          <view className='row'>
+            <text className='slider-label'>
+              {formatPercentage(steppedValue)} — Step: 10%
+            </text>
+            <SliderRoot
+              className='slider-root'
+              value={steppedValue}
+              step={0.1}
+              onValueChange={(value: number) => {
+                setSteppedValue(value)
+              }}
+            >
+              <SliderTrack className='slider-track'>
+                <SliderIndicator className='slider-indicator' />
+                <SliderThumb className='slider-thumb-wrapper'>
+                  <view className='slider-thumb' />
+                </SliderThumb>
+              </SliderTrack>
+            </SliderRoot>
+          </view>
+        </view>
+      </view>
+    </view>
+  )
+}
+
+root.render(<App />)
+
+export default App
+```
+
+### DynamicWidth
+
+```tsx
+// Copyright 2026 The Lynx Authors. All rights reserved.
+// Licensed under the Apache License Version 2.0 that can be found in the
+// LICENSE file in the root directory of this source tree.
+
+import { root, useState } from '@lynx-js/react'
+
+import {
+  SliderIndicator,
+  SliderRoot,
+  SliderThumb,
+  SliderTrack,
+} from '@lynx-js/lynx-ui'
+
+import { formatPercentage } from '../shared/formatPercentage'
+import { OptionChipRow } from '../shared/OptionChipRow'
+
+import './index.css'
+
+const WIDTH_RATIOS = [0.56, 0.68, 0.8, 0.92, 1]
+const DEMO_CONTAINER_HORIZONTAL_PADDING = 72
+
+function App() {
+  const [widthIndex, setWidthIndex] = useState(2)
+  const [value, setValue] = useState(0.5)
+  const screenWidth = lynx.__globalProps.screenWidth
+    ?? SystemInfo.pixelWidth / SystemInfo.pixelRatio
+  const availableCanvasWidth = Math.max(
+    screenWidth - DEMO_CONTAINER_HORIZONTAL_PADDING,
+    0,
+  )
+  const maxCanvasWidth = Math.min(
+    420,
+    availableCanvasWidth,
+  )
+  const widths = WIDTH_RATIOS.map((ratio) => {
+    return Math.round((maxCanvasWidth * ratio) / 10) * 10
+  })
+  const currentWidth = widths[widthIndex] ?? widths[widths.length - 1]
+
+  return (
+    <view className='demo-container lunaris-dark luna-gradient-berry'>
+      <view className='demo-canvas' style={{ width: `${currentWidth}px` }}>
+        <view className='section'>
+          <text className='title'>Dynamic Width</text>
+          <text className='desc'>
+            Tap the buttons below to change the slider container width. This
+            tests the track layout measurement updating correctly.
+          </text>
+
+          <view className='row'>
+            <text className='slider-label'>
+              {formatPercentage(value)} — {currentWidth}px
+            </text>
+            <SliderRoot
+              className='slider-root'
+              defaultValue={0.5}
+              onValueChange={(v: number) => {
+                setValue(v)
+              }}
+            >
+              <SliderTrack className='slider-track'>
+                <SliderIndicator className='slider-indicator' />
+                <SliderThumb className='slider-thumb-wrapper'>
+                  <view className='slider-thumb' />
+                </SliderThumb>
+              </SliderTrack>
+            </SliderRoot>
+
+            <OptionChipRow
+              options={widths}
+              getKey={(width, index) => `width-${index}-${width}`}
+              getLabel={(width) => `${width}px`}
+              isSelected={(_, index) => index === widthIndex}
+              onSelect={(_, index) => {
+                setWidthIndex(index)
+              }}
+            />
+          </view>
+        </view>
+      </view>
+    </view>
+  )
+}
+
+root.render(<App />)
+
+export default App
+```
+
+### Facade
+
+```tsx
+// Copyright 2026 The Lynx Authors. All rights reserved.
+// Licensed under the Apache License Version 2.0 that can be found in the
+// LICENSE file in the root directory of this source tree.
+
+import { forwardRef, memo, root, useState } from '@lynx-js/react'
+import type { ForwardedRef, ReactNode } from '@lynx-js/react'
+
+import {
+  SliderIndicator,
+  SliderRoot,
+  SliderThumb,
+  SliderTrack,
+} from '@lynx-js/lynx-ui'
+import type { SliderRef, SliderRootProps } from '@lynx-js/lynx-ui'
+
+import { formatPercentage } from '../shared/formatPercentage'
+
+import './index.css'
+
+interface SliderProps extends Omit<SliderRootProps, 'children'> {
+  thumb?: ReactNode
+  trackClassName?: string
+  indicatorClassName?: string
+  thumbWrapperClassName?: string
+}
+
+const Slider = memo(
+  forwardRef(function Slider(
+    props: SliderProps,
+    ref: ForwardedRef<SliderRef>,
+  ) {
+    const {
+      thumb,
+      trackClassName,
+      indicatorClassName,
+      thumbWrapperClassName,
+      ...rootProps
+    } = props
+
+    return (
+      <SliderRoot ref={ref} {...rootProps}>
+        <SliderTrack className={trackClassName}>
+          <SliderIndicator className={indicatorClassName} />
+          <SliderThumb className={thumbWrapperClassName}>
+            {thumb}
+          </SliderThumb>
+        </SliderTrack>
+      </SliderRoot>
+    )
+  }),
+)
+
+function App() {
+  const [defaultValue, setDefaultValue] = useState(0.4)
+  const [pillValue, setPillValue] = useState(0.72)
+
+  return (
+    <view className='demo-container lunaris-dark luna-gradient-berry'>
+      <view className='demo-canvas'>
+        <view className='section'>
+          <text className='title'>Facade</text>
+          <text className='desc'>
+            A single-component wrapper built from Slider primitives. This
+            example shows how to compose your own facade for simple use cases.
+          </text>
+
+          <view className='row'>
+            <text className='slider-label'>
+              {formatPercentage(defaultValue)}
+            </text>
+            <Slider
+              className='slider-root'
+              defaultValue={0.4}
+              trackClassName='slider-track'
+              indicatorClassName='slider-indicator'
+              thumbWrapperClassName='slider-thumb-wrapper'
+              thumb={<view className='slider-thumb' />}
+              onValueChange={(value: number) => {
+                setDefaultValue(value)
+              }}
+            />
+          </view>
+
+          <view className='row'>
+            <text className='slider-label'>
+              {formatPercentage(pillValue)}
+            </text>
+            <Slider
+              className='slider-root'
+              defaultValue={0.72}
+              trackClassName='slider-track'
+              indicatorClassName='slider-indicator'
+              thumbWrapperClassName='slider-thumb-wrapper'
+              thumb={<view className='slider-thumb-pill' />}
+              onValueChange={(value: number) => {
+                setPillValue(value)
+              }}
+            />
+          </view>
+
+          <view className='row'>
+            <text className='slider-label disabled'>Disabled</text>
+            <Slider
+              className='slider-root'
+              defaultValue={0.45}
+              disabled
+              trackClassName='slider-track'
+              indicatorClassName='slider-indicator'
+              thumbWrapperClassName='slider-thumb-wrapper'
+              thumb={<view className='slider-thumb' />}
+            />
+          </view>
+        </view>
+      </view>
+    </view>
+  )
+}
+
+root.render(<App />)
+
+export default App
+```
+
+### PriceRange
+
+```tsx
+// Copyright 2026 The Lynx Authors. All rights reserved.
+// Licensed under the Apache License Version 2.0 that can be found in the
+// LICENSE file in the root directory of this source tree.
+
+import { root, useState } from '@lynx-js/react'
+
+import {
+  SliderIndicator,
+  SliderRoot,
+  SliderThumb,
+  SliderTrack,
+} from '@lynx-js/lynx-ui'
+import type { SliderRangeValue } from '@lynx-js/lynx-ui'
+
+import {
+  INITIAL_RANGE,
+  MAX_PRICE,
+  MIN_PRICE,
+  formatPriceRange,
+  ratioToPrice,
+  toSliderRange,
+} from './data'
+import type { PriceRange, VehiclePreset } from './data'
+import { PricePresets } from './PricePresets'
+import './index.css'
+
+function App() {
+  const [range, setRange] = useState<SliderRangeValue>(INITIAL_RANGE)
+  const [committedRange, setCommittedRange] = useState<SliderRangeValue>(
+    INITIAL_RANGE,
+  )
+  const [dragging, setDragging] = useState(false)
+
+  const displayedPrices: PriceRange = [
+    ratioToPrice(range[0]),
+    ratioToPrice(range[1]),
+  ]
+  const committedPrices: PriceRange = [
+    ratioToPrice(committedRange[0]),
+    ratioToPrice(committedRange[1]),
+  ]
+
+  const selectPreset = (preset: VehiclePreset) => {
+    const nextRange = toSliderRange(preset.prices)
+    setRange(nextRange)
+    setCommittedRange(nextRange)
+    setDragging(false)
+  }
+
+  return (
+    <view className='demo-container lunaris-dark luna-gradient-berry'>
+      <view className='demo-canvas card'>
+        <view className='header'>
+          <text className='heading'>
+            Selected price range
+          </text>
+          <text className='status'>
+            {dragging
+              ? 'Adjusting price range'
+              : `Confirmed ${formatPriceRange(committedPrices)}`}
+          </text>
+        </view>
+
+        <view className='selection'>
+          <text className='selection-label'>Price range</text>
+          <text className='selection-value'>
+            {formatPriceRange(displayedPrices)}
+          </text>
+        </view>
+
+        <view className='slider-section'>
+          <SliderRoot
+            className='slider'
+            value={range}
+            step={1 / (MAX_PRICE - MIN_PRICE)}
+            onDragging={() => {
+              setDragging((active) => !active)
+            }}
+            onValueChange={(nextValue) => {
+              setRange(nextValue)
+            }}
+            onValueCommit={(nextValue) => {
+              setRange(nextValue)
+              setCommittedRange(nextValue)
+              setDragging(false)
+            }}
+          >
+            <SliderTrack className='slider-track'>
+              <SliderIndicator className='slider-indicator' />
+              <SliderThumb index={0} className='slider-thumb'>
+                <text className='thumb-label'>
+                  ${displayedPrices[0]}
+                </text>
+                <view className='thumb-dot' />
+              </SliderThumb>
+              <SliderThumb index={1} className='slider-thumb'>
+                <text className='thumb-label'>
+                  ${displayedPrices[1]}
+                </text>
+                <view className='thumb-dot' />
+              </SliderThumb>
+            </SliderTrack>
+          </SliderRoot>
+
+          <view className='endpoints'>
+            <text className='endpoint'>${MIN_PRICE}</text>
+            <text className='endpoint'>${MAX_PRICE}</text>
+          </view>
+        </view>
+
+        <PricePresets
+          selectedPrices={displayedPrices}
+          onSelect={selectPreset}
+        />
+      </view>
+    </view>
+  )
+}
+
+root.render(<App />)
+
+export default App
+```
+
+### Progress
+
+```tsx
+// Copyright 2026 The Lynx Authors. All rights reserved.
+// Licensed under the Apache License Version 2.0 that can be found in the
+// LICENSE file in the root directory of this source tree.
+
+import { root, useEffect, useRef, useState } from '@lynx-js/react'
+
+import { SliderIndicator, SliderRoot, SliderTrack } from '@lynx-js/lynx-ui'
+
+import { formatPercentage } from '../shared/formatPercentage'
+
+import './index.css'
+
+function App() {
+  const [downloadProgress, setDownloadProgress] = useState(0)
+  const [uploadProgress, setUploadProgress] = useState(0)
+  const downloadTimer = useRef<ReturnType<typeof setInterval> | null>(null)
+  const uploadTimer = useRef<ReturnType<typeof setInterval> | null>(null)
+
+  useEffect(() => {
+    downloadTimer.current = setInterval(() => {
+      setDownloadProgress((prev) => {
+        if (prev >= 1) return 0
+        return Math.min(prev + 0.02, 1)
+      })
+    }, 80)
+
+    uploadTimer.current = setInterval(() => {
+      setUploadProgress((prev) => {
+        if (prev >= 1) return 0
+        return Math.min(prev + 0.01, 1)
+      })
+    }, 100)
+
+    return () => {
+      if (downloadTimer.current) clearInterval(downloadTimer.current)
+      if (uploadTimer.current) clearInterval(uploadTimer.current)
+    }
+  }, [])
+
+  return (
+    <view className='demo-container lunaris-dark luna-gradient-berry'>
+      <view className='demo-canvas'>
+        <view className='section'>
+          <text className='title'>Progress (No Thumb)</text>
+          <text className='desc'>
+            SliderRoot + SliderIndicator without SliderThumb, used as a
+            read-only progress indicator.
+          </text>
+
+          <view className='progress-row'>
+            <view className='progress-meta'>
+              <text className='progress-label'>Downloading...</text>
+              <text className='progress-value'>
+                {formatPercentage(downloadProgress)}
+              </text>
+            </view>
+            <SliderRoot
+              className='progress-root'
+              value={downloadProgress}
+              disabled
+            >
+              <SliderTrack className='progress-track'>
+                <SliderIndicator className='progress-indicator' />
+              </SliderTrack>
+            </SliderRoot>
+          </view>
+
+          <view className='progress-row'>
+            <view className='progress-meta'>
+              <text className='progress-label'>Uploading...</text>
+              <text className='progress-value'>
+                {formatPercentage(uploadProgress)}
+              </text>
+            </view>
+            <SliderRoot
+              className='progress-root'
+              value={uploadProgress}
+              disabled
+            >
+              <SliderTrack className='progress-track'>
+                <SliderIndicator className='progress-indicator progress-indicator-secondary' />
+              </SliderTrack>
+            </SliderRoot>
+          </view>
+        </view>
+
+        <view className='section'>
+          <text className='title'>Static Progress</text>
+          <text className='desc'>
+            Fixed progress values showing various completion states.
+          </text>
+
+          <view className='progress-row'>
+            {[0.25, 0.5, 0.75, 1].map((v) => (
+              <view key={`static-${v}`} className='static-row'>
+                <text className='static-label'>{formatPercentage(v)}</text>
+                <view className='static-bar-wrapper'>
+                  <SliderRoot
+                    className='progress-root'
+                    value={v}
+                    disabled
+                  >
+                    <SliderTrack className='progress-track'>
+                      <SliderIndicator className='progress-indicator' />
+                    </SliderTrack>
+                  </SliderRoot>
+                </view>
+              </view>
+            ))}
+          </view>
+        </view>
+      </view>
+    </view>
+  )
+}
+
+root.render(<App />)
+
+export default App
+```
+
+### Shapes
+
+```tsx
+// Copyright 2026 The Lynx Authors. All rights reserved.
+// Licensed under the Apache License Version 2.0 that can be found in the
+// LICENSE file in the root directory of this source tree.
+
+import { root, useState } from '@lynx-js/react'
+
+import {
+  SliderIndicator,
+  SliderRoot,
+  SliderThumb,
+  SliderTrack,
+} from '@lynx-js/lynx-ui'
+
+import { formatPercentage } from '../shared/formatPercentage'
+
+import './index.css'
+
+function App() {
+  const [fullValue, setFullValue] = useState(0.4)
+  const [gradientValue, setGradientValue] = useState(0.55)
+  const [secondaryValue, setSecondaryValue] = useState(0.65)
+  const [invertedRingValue, setInvertedRingValue] = useState(0.35)
+  const [pillValue, setPillValue] = useState(0.5)
+
+  return (
+    <view className='demo-container lunaris-dark luna-gradient-berry'>
+      <view className='demo-canvas'>
+        <view className='section'>
+          <text className='title'>Shapes</text>
+          <text className='desc'>
+            Different visual shapes for thick sliders: full dot, ring, inverted
+            ring, and pill.
+          </text>
+
+          <view className='row'>
+            <text className='slider-label'>
+              {formatPercentage(fullValue)} — Full
+            </text>
+            <SliderRoot
+              className='slider-root'
+              defaultValue={0.4}
+              onValueChange={(value: number) => {
+                setFullValue(value)
+              }}
+            >
+              <SliderTrack className='slider-track'>
+                <SliderIndicator className='slider-indicator' />
+                <SliderThumb className='slider-thumb-wrapper'>
+                  <view className='slider-thumb-dot' />
+                </SliderThumb>
+              </SliderTrack>
+            </SliderRoot>
+          </view>
+
+          <view className='row'>
+            <text className='slider-label'>
+              {formatPercentage(gradientValue)} — Gradient
+            </text>
+            <SliderRoot
+              className='slider-root'
+              defaultValue={0.55}
+              onValueChange={(value: number) => {
+                setGradientValue(value)
+              }}
+            >
+              <SliderTrack className='slider-track slider-track-gradient'>
+                <SliderIndicator className='slider-indicator slider-indicator-gradient' />
+                <SliderThumb className='slider-thumb-wrapper slider-thumb-wrapper-gradient'>
+                  <view className='slider-thumb-dot'>
+                    <view className='slider-thumb-dot-ring' />
+                  </view>
+                </SliderThumb>
+              </SliderTrack>
+            </SliderRoot>
+          </view>
+
+          <view className='row'>
+            <text className='slider-label'>
+              {formatPercentage(secondaryValue)} — Ring
+            </text>
+            <SliderRoot
+              className='slider-root'
+              defaultValue={0.65}
+              onValueChange={(value: number) => {
+                setSecondaryValue(value)
+              }}
+            >
+              <SliderTrack className='slider-track slider-track-secondary'>
+                <SliderIndicator className='slider-indicator slider-indicator-secondary' />
+                <SliderThumb className='slider-thumb-wrapper'>
+                  <view className='slider-thumb-ring' />
+                </SliderThumb>
+              </SliderTrack>
+            </SliderRoot>
+          </view>
+
+          <view className='row'>
+            <text className='slider-label'>
+              {formatPercentage(invertedRingValue)} — Inverted Ring
+            </text>
+            <SliderRoot
+              className='slider-root'
+              defaultValue={0.35}
+              onValueChange={(value: number) => {
+                setInvertedRingValue(value)
+              }}
+            >
+              <SliderTrack className='slider-track slider-track-inverted'>
+                <SliderIndicator className='slider-indicator' />
+                <SliderThumb className='slider-thumb-wrapper'>
+                  <view className='slider-thumb-ring-inverted'>
+                    <view className='slider-thumb-dot-ring-inverted' />
+                  </view>
+                </SliderThumb>
+              </SliderTrack>
+            </SliderRoot>
+          </view>
+
+          <view className='row'>
+            <text className='slider-label'>
+              {formatPercentage(pillValue)} — Pill
+            </text>
+            <SliderRoot
+              className='slider-root-pill'
+              defaultValue={0.5}
+              onValueChange={(value: number) => {
+                setPillValue(value)
+              }}
+            >
+              <SliderTrack className='slider-track-pill'>
+                <SliderIndicator className='slider-indicator-pill' />
+                <SliderThumb className='slider-thumb-pill-wrapper'>
+                  <view className='slider-thumb-bar' />
+                </SliderThumb>
+              </SliderTrack>
+            </SliderRoot>
+          </view>
+        </view>
+      </view>
+    </view>
+  )
+}
+
+root.render(<App />)
+
+export default App
+```
+
+### WithScrollView
+
+```tsx
+// Copyright 2026 The Lynx Authors. All rights reserved.
+// Licensed under the Apache License Version 2.0 that can be found in the
+// LICENSE file in the root directory of this source tree.
+
+import { root, useState } from '@lynx-js/react'
+
+import {
+  SliderIndicator,
+  SliderRoot,
+  SliderThumb,
+  SliderTrack,
+} from '@lynx-js/lynx-ui'
+
+import { formatPercentage } from '../shared/formatPercentage'
+
+import './index.css'
+
+const VERTICAL_ITEMS = Array.from({ length: 8 }, (_, i) => i)
+
+function SliderCard({ index }: { index: number }) {
+  const [value, setValue] = useState(0.5)
+
+  return (
+    <view className='card'>
+      <text className='card-title'>Slider {index + 1}</text>
+      <text className='card-value'>{formatPercentage(value)}</text>
+      <SliderRoot
+        className='slider-root'
+        defaultValue={0.5}
+        onValueChange={(v: number) => {
+          setValue(v)
+        }}
+      >
+        <SliderTrack className='slider-track'>
+          <SliderIndicator className='slider-indicator' />
+          <SliderThumb className='slider-thumb-wrapper'>
+            <view className='slider-thumb' />
+          </SliderThumb>
+        </SliderTrack>
+      </SliderRoot>
+    </view>
+  )
+}
+
+function App() {
+  return (
+    <view className='demo-container lunaris-dark'>
+      <text className='header'>Slider in Nested ScrollView</text>
+      <scroll-view
+        scroll-orientation='vertical'
+        className='vertical-scroll'
+      >
+        <view className='vertical-scroll-content'>
+          {VERTICAL_ITEMS.map((i) => (
+            <view className='horizontal-section' key={`section-${i}`}>
+              <text className='section-title'>Section {i + 1}</text>
+              <scroll-view
+                scroll-orientation='horizontal'
+                className='horizontal-scroll'
+              >
+                <view className='horizontal-content'>
+                  <SliderCard index={i * 3} />
+                  <SliderCard index={i * 3 + 1} />
+                  <SliderCard index={i * 3 + 2} />
+                </view>
+              </scroll-view>
+            </view>
+          ))}
+        </view>
+      </scroll-view>
+    </view>
+  )
+}
+
+root.render(<App />)
+
+export default App
+```

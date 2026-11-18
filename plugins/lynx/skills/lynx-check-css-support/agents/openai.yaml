@@ -1,0 +1,4 @@
+interface:
+  display_name: "Lynx CSS Support Check"
+  short_description: "Check CSS support by backend and Lynx version"
+  default_prompt: "Use $lynx-check-css-support to determine whether a Lynx CSS property or feature is supported for specified backends and Lynx versions."

@@ -1,0 +1,11 @@
+{
+  "name": "outline",
+  "id": 124,
+  "type": "complex",
+  "default_value": "medium none black",
+  "version": "1.0",
+  "author": "liyun",
+  "consumption_status": "skip",
+  "desc": "",
+  "is_shorthand": true
+}

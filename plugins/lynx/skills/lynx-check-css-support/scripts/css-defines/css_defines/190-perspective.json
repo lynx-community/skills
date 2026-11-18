@@ -1,0 +1,78 @@
+{
+  "name": "perspective",
+  "id": 190,
+  "type": "length",
+  "default_value": "none",
+  "version": "2.1",
+  "author": "wujintian",
+  "consumption_status": "layout-wanted",
+  "desc": "The perspective CSS property determines the distance between the z=0 plane and the user in order to give a 3D-positioned element some perspective.",
+  "values": [
+    {
+      "value": "number",
+      "version": "2.1",
+      "desc": ""
+    },
+    {
+      "value": "vw",
+      "version": "2.1",
+      "desc": ""
+    },
+    {
+      "value": "vh",
+      "version": "2.1",
+      "desc": ""
+    },
+    {
+      "value": "default",
+      "version": "2.1",
+      "desc": ""
+    },
+    {
+      "value": "px",
+      "version": "2.1",
+      "desc": ""
+    }
+  ],
+  "is_shorthand": false,
+  "compat_data": {
+    "perspective": {
+      "__compat": {
+        "lynx_path": "api/css/properties/perspective",
+        "mdn_url": "https://developer.mozilla.org/zh-CN/docs/Web/CSS/perspective",
+        "spec_url": [],
+        "status": {
+          "deprecated": false,
+          "experimental": false
+        },
+        "support": {
+          "android": {
+            "version_added": "1.0"
+          },
+          "ios": {
+            "version_added": "1.0"
+          },
+          "harmony": {
+            "version_added": "3.4"
+          },
+          "clay_android": {
+            "version_added": "1.0"
+          },
+          "clay_ios": {
+            "version_added": "1.0"
+          },
+          "clay_macos": {
+            "version_added": "1.0"
+          },
+          "clay_windows": {
+            "version_added": "1.0"
+          },
+          "web_lynx": {
+            "version_added": true,
+            "notes": "It takes effect on all its descendants."
+          }
+        }
+      }
+    }
+  }
+}

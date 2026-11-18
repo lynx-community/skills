@@ -1,0 +1,53 @@
+{
+  "name": "linear-weight-sum",
+  "id": 79,
+  "type": "number",
+  "default_value": "0",
+  "version": "1.0",
+  "author": "zhangmin",
+  "consumption_status": "layout-only",
+  "desc": "Child element's weight sum in linear.",
+  "compat_data": {
+    "linear-weight-sum": {
+      "__compat": {
+        "description": "Child element's weight sum in linear layout.",
+        "lynx_path": "api/css/properties/linear-weight-sum",
+        "spec_url": [],
+        "status": {
+          "deprecated": false,
+          "experimental": false
+        },
+        "support": {
+          "android": {
+            "version_added": "1.0"
+          },
+          "ios": {
+            "version_added": "1.0"
+          },
+          "harmony": {
+            "version_added": "3.4"
+          },
+          "clay_android": {
+            "version_added": "1.0"
+          },
+          "clay_ios": {
+            "version_added": "1.0"
+          },
+          "clay_macos": {
+            "version_added": "1.0"
+          },
+          "clay_windows": {
+            "version_added": "1.0"
+          },
+          "web_lynx": {
+            "version_added": true,
+            "partial_implementation": true,
+            "notes": "Do not support this property on the inline style"
+          }
+        }
+      }
+    }
+  },
+  "is_shorthand": false,
+  "formal_syntax": "<number>"
+}

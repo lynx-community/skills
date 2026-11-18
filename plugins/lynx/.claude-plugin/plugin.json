@@ -1,0 +1,8 @@
+{
+  "name": "lynx",
+  "version": "0.1.0",
+  "description": "Skills, documentation, and debugging for Lynx development",
+  "author": {
+    "name": "Lynx"
+  }
+}

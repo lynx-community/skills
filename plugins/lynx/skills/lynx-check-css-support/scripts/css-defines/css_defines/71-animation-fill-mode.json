@@ -1,0 +1,72 @@
+{
+  "name": "animation-fill-mode",
+  "id": 71,
+  "type": "complex",
+  "default_value": "none",
+  "version": "1.0",
+  "desc": "`animation-fill-mode` property sets how a CSS animation applies styles to its target before and after its execution.",
+  "author": "liyanbo, linxiaosong",
+  "consumption_status": "skip",
+  "values": [
+    {
+      "value": "none",
+      "version": "1.0",
+      "desc": ""
+    },
+    {
+      "value": "forwards",
+      "version": "1.0",
+      "desc": ""
+    },
+    {
+      "value": "backwards",
+      "version": "1.0",
+      "desc": ""
+    },
+    {
+      "value": "both",
+      "version": "1.0",
+      "desc": ""
+    }
+  ],
+  "is_shorthand": false,
+  "compat_data": {
+    "animation-fill-mode": {
+      "__compat": {
+        "lynx_path": "api/css/properties/animation-fill-mode",
+        "mdn_url": "https://developer.mozilla.org/zh-CN/docs/Web/CSS/animation-fill-mode",
+        "spec_url": [],
+        "status": {
+          "deprecated": false,
+          "experimental": false
+        },
+        "support": {
+          "android": {
+            "version_added": "1.0"
+          },
+          "ios": {
+            "version_added": "1.0"
+          },
+          "harmony": {
+            "version_added": "3.4"
+          },
+          "clay_android": {
+            "version_added": "1.0"
+          },
+          "clay_ios": {
+            "version_added": "1.0"
+          },
+          "clay_macos": {
+            "version_added": "1.0"
+          },
+          "clay_windows": {
+            "version_added": "1.0"
+          },
+          "web_lynx": {
+            "version_added": true
+          }
+        }
+      }
+    }
+  }
+}

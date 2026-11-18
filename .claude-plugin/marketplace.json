@@ -7,6 +7,12 @@
   },
   "plugins": [
     {
+      "name": "lynx",
+      "description": "Skills, documentation, and debugging for Lynx development",
+      "source": "./plugins/lynx",
+      "category": "development"
+    },
+    {
       "name": "lynx-debug",
       "description": "Debug Agent For Lynx",
       "source": "./plugins/lynx-debug",

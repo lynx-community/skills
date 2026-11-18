@@ -68,10 +68,10 @@ If the user uses `rspeedy build` and there is no `.rspeedy` folder, remind them 
 
 ### 3. Run the remapping script
 
-For each `function_id:pc_index` pair in the stack trace, run the remapping script.
+Set `SKILL_DIR` to the directory containing this `SKILL.md` and `DEBUG_INFO` to the path of `debug-info.json`. Run the bundled script for each `function_id:pc_index` pair.
 
 ```bash
-node ${CLAUDE_PLUGIN_ROOT}/skills/debug-info-remapping/scripts/index.mjs $PROJECT_DIR/[dist]/.rspeedy/[main]/debug-info.json $function_id $pc_index
+node "$SKILL_DIR/scripts/index.mjs" "$DEBUG_INFO" "$function_id" "$pc_index"
 ```
 
 ### 4. Output the Remapped Position

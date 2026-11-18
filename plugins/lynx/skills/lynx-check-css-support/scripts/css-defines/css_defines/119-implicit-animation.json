@@ -1,0 +1,11 @@
+{
+  "name": "implicit-animation",
+  "id": 119,
+  "type": "bool",
+  "default_value": "true",
+  "version": "1.0",
+  "author": "zhangmin",
+  "consumption_status": "skip",
+  "desc": "",
+  "is_shorthand": false
+}

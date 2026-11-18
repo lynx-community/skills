@@ -1,0 +1,76 @@
+{
+  "name": "flex-direction",
+  "id": 53,
+  "type": "enum",
+  "default_value": "row",
+  "version": "1.0",
+  "author": "wangzhixuan",
+  "consumption_status": "layout-only",
+  "desc": "The `flex-direction` CSS property sets how flex items are placed in the flex container defining the main axis and the direction.",
+  "values": [
+    {
+      "value": "column",
+      "version": "1.0",
+      "desc": ""
+    },
+    {
+      "value": "row",
+      "version": "1.0",
+      "desc": ""
+    },
+    {
+      "value": "row-reverse",
+      "version": "1.0",
+      "desc": ""
+    },
+    {
+      "value": "column-reverse",
+      "version": "1.0",
+      "desc": ""
+    }
+  ],
+  "compat_data": {
+    "flex-direction": {
+      "__compat": {
+        "lynx_path": "api/css/properties/flex-direction",
+        "mdn_url": "https://developer.mozilla.org/zh-CN/docs/Web/CSS/flex-direction",
+        "spec_url": [],
+        "status": {
+          "deprecated": false,
+          "experimental": false
+        },
+        "support": {
+          "android": {
+            "notes": "",
+            "version_added": "1.0"
+          },
+          "ios": {
+            "notes": "",
+            "version_added": "1.0"
+          },
+          "harmony": {
+            "notes": "",
+            "version_added": "3.4"
+          },
+          "clay_android": {
+            "version_added": "1.0"
+          },
+          "clay_ios": {
+            "version_added": "1.0"
+          },
+          "clay_macos": {
+            "version_added": "1.0"
+          },
+          "clay_windows": {
+            "version_added": "1.0"
+          },
+          "web_lynx": {
+            "version_added": true
+          }
+        }
+      }
+    }
+  },
+  "is_shorthand": false,
+  "formal_syntax": "row | row-reverse | column | column-reverse"
+}

@@ -1,0 +1,32 @@
+{
+  "name": "layout-animation-delete-timing-function",
+  "id": 88,
+  "type": "timing-function",
+  "default_value": "linear",
+  "version": "1.0",
+  "author": "liyanbo",
+  "consumption_status": "skip",
+  "keywords": [
+    "linear",
+    "ease-in",
+    "ease-out",
+    "ease-in-ease-out",
+    "ease",
+    "ease-in-out",
+    "square-bezier",
+    "cubic-bezier"
+  ],
+  "desc": "",
+  "is_shorthand": false,
+  "compat_data": {
+    "layout-animation-delete-timing-function": {
+      "__compat": {
+        "status": {
+          "deprecated": true,
+          "experimental": false
+        },
+        "support": {}
+      }
+    }
+  }
+}

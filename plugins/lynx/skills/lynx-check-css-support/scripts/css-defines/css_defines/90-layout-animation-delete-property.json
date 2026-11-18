@@ -1,0 +1,28 @@
+{
+  "name": "layout-animation-delete-property",
+  "id": 90,
+  "type": "animation-property",
+  "default_value": "opacity",
+  "version": "1.0",
+  "author": "liyanbo",
+  "consumption_status": "skip",
+  "keywords": [
+    "opacity",
+    "scaleX",
+    "scaleY",
+    "scaleXY"
+  ],
+  "desc": "",
+  "is_shorthand": false,
+  "compat_data": {
+    "layout-animation-delete-property": {
+      "__compat": {
+        "status": {
+          "deprecated": true,
+          "experimental": false
+        },
+        "support": {}
+      }
+    }
+  }
+}

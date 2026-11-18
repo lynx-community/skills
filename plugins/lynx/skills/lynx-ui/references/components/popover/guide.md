@@ -1,0 +1,227 @@
+# Lynx UI Popover SKILL
+
+`lynx-ui-popover` is a headless primitive for building accessible, positioned floating elements. It handles the complex logic of positioning, stacking context, and enter/exit animations via `usePresence`.
+
+## 1. Core Capabilities
+
+- **Headless & Composable**: Provides raw functional components (`Root`, `Trigger`, `Positioner`, `Content`) that you compose to build custom UIs.
+- **Auto Positioning**: The `PopoverPositioner` automatically calculates coordinates to anchor the popover to the trigger.
+- **Presence Animations**: Integrated with `usePresence` lifecycle. Components mount/unmount with `entering`/`leaving` states, allowing for CSS animations.
+- **Robust Visibility Modes**: Supports **Controlled** (external state) and **Uncontrolled** (internal state) modes with predictable behavior.
+
+## 2. Behavior Contract
+
+### Visibility Modes
+
+- **Controlled**: Parent passes `show` prop and handles `onVisibleChange` callback.
+- **Uncontrolled**: Parent passes `defaultShow`; component manages internal state.
+
+### Presence Lifecycle
+
+- **States**: Transitions through `Entering` -> `DelayedEntering` -> `Entered` -> `Leaving` -> `Left`.
+- **Animation Safety**: Handles animation/transition **start**, **end**, and **cancel** events to ensure state never stalls.
+- **Debugging**: Enable `debugLog={true}` on `PopoverRoot` to trace lifecycle state changes in the console.
+
+### Interactions
+
+- **Trigger**: Toggles visibility on click/tap.
+- **Backdrop**: Closes popover (sets visibility to `false`) on tap. Without
+  motion content, it is disabled during busy lifecycle states.
+
+## 3. AI Coding Guide
+
+### Minimal Usable Example
+
+**Crucial**: Wrap `Content` and `Arrow` inside `PopoverPositioner`. Apply layout/animation styles to `Positioner`, and visual styles (background, border) to `Content`.
+
+```tsx
+import {
+  PopoverRoot,
+  PopoverTrigger,
+  PopoverPositioner,
+  PopoverContent,
+  PopoverArrow,
+  PopoverBackdrop,
+} from '@lynx-js/lynx-ui'
+import './style.css'
+
+export default function App() {
+  return (
+    <PopoverRoot>
+      <PopoverTrigger className='trigger'>
+        <text>Open Popover</text>
+      </PopoverTrigger>
+
+      {/* Positioner handles layout and animation */}
+      <PopoverPositioner className='popover-positioner' placement='bottom'>
+        <PopoverBackdrop className='popover-backdrop' />
+        {/* Content handles visual appearance */}
+        <PopoverContent className='popover-content'>
+          <text>My Popover</text>
+          <PopoverArrow className='popover-arrow' />
+        </PopoverContent>
+      </PopoverPositioner>
+    </PopoverRoot>
+  )
+}
+```
+
+### Recommended Prompt Formula
+
+> **Goal**: Build a lynx-ui Popover using [controlled|uncontrolled] mode.
+> **Components**: Include [Trigger], [Positioner], [Content], and optional [Backdrop/Anchor/Arrow].
+> **Behavior**: Define transition [name] and set [debugLog on/off].
+> **Styling Requirements**:
+>
+> 1. **DO** set `opacity: 0` / `scale(0)` on `.ui-closed` class (prevents flashing after exit animation).
+> 2. Use CSS keyframes or transitions for enter/exit.
+
+## 4. Use Cases & Best Practices
+
+### Scenario 1: Animation Best Practices (Prevent Flashing)
+
+**Problem (Exit Flash)**: When the exit animation finishes, the `ui-leaving` class is removed immediately, but the element might remain visible for one frame before `visibility: hidden` is applied.
+**Solution**: Explicitly hide the element in the `ui-closed` state.
+
+```css
+/* style.css */
+.popover-positioner {
+  display: flex;
+}
+
+/* Entering State: Mounted -> Visible */
+.popover-positioner.ui-entering {
+  animation: fade-in 0.2s ease-out forwards;
+}
+
+/* Leaving State: Visible -> Unmounted */
+.popover-positioner.ui-leaving {
+  animation: fade-out 0.2s ease-in forwards;
+}
+
+/* Closed State: Hidden */
+/* Crucial: Prevents a flash of unstyled content after exit animation ends but before unmount */
+.popover-positioner.ui-closed {
+  opacity: 0;
+  transform: scale(0);
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes fade-out {
+  from {
+    opacity: 1;
+    transform: scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+}
+```
+
+### Scenario 2: Synchronized Arrow Animation
+
+**Problem**: If you animate `PopoverContent` but `PopoverArrow` is outside or has its own animation, they might detach or look disconnected during scale/fade.
+**Solution**: Apply the animation class to their common parent, `PopoverPositioner`.
+
+```tsx
+<PopoverPositioner className='popover-anim-container'>
+  <PopoverContent className='popover-visual-box'>
+    <text>Content</text>
+  </PopoverContent>
+  <PopoverArrow />
+</PopoverPositioner>
+```
+
+## 5. FAQ
+
+**Q: Why doesn't the Arrow animate with the Content?**
+A: Ensure you are animating the `PopoverPositioner` (which contains both), not just the `PopoverContent`.
+
+**Q: Can I use CSS Transitions instead of Animations?**
+A: Yes, and it is often smoother for simple fades because transitions interpolate from the _current_ value when interrupted, whereas animations reset.
+
+## 6. Sub Components
+
+- **PopoverRoot**: Context provider, manages visibility state.
+- **PopoverTrigger**: The element that toggles the popover.
+- **PopoverPositioner**: The floating container that positions itself relative to the trigger. **Apply animations here.**
+- **PopoverContent**: The visual box for your content.
+- **PopoverArrow**: The triangle pointing to the trigger.
+- **PopoverBackdrop**: An overlay behind the popover (often used for dimming or click-outside).
+
+## Custom Rectangular Arrows
+
+Use a downward-pointing custom child and describe its original dimensions:
+
+```tsx
+<PopoverContent className='bubble'>
+  <view>{children}</view>
+  <PopoverArrow size={{ width: 32, height: 11 }} offset={16}>
+    <svg className='arrow-artwork' content={downwardArrowSvg} overlap={false} />
+  </PopoverArrow>
+</PopoverContent>
+```
+
+Set `.arrow-artwork` to 32px wide and 11px high. The positioning box is
+32 × 11 for top/bottom and 11 × 32 for left/right; protrusion stays 11px.
+Do not swap the input dimensions or rotate the child for horizontal placement.
+The caller's `placementOffset` is additional to this protrusion.
+
+Keep the arrow a direct child of `PopoverContent`. Its coordinates are
+relative to the bubble, so a centered inner wrapper can introduce an offset.
+For an accurately sized arrow, set `offset` to the larger adjacent corner
+radius in pixels. Padding is an edge constraint, not a fixed shift from the
+anchor. Small bubbles may clamp it; the design system must choose a fallback
+when the arrow cannot fit between the corners. The primitive preserves the
+bubble's radius.
+
+Numeric `size` retains its square box and protrusion. Without children, object
+sizes still use the larger dimension for the default border triangle. With
+children, object sizes now use the actual rectangle instead of the former
+maximum-dimension square. Custom children do not receive triangle borders.
+
+See [the arrow alignment example](../../apps/examples/Popover/ArrowAlignment/README.md)
+for native comparisons and design-system integration guidance.
+
+## Motion-driven Content
+
+Use `PopoverMotionContent` in place of `PopoverContent` when motion should
+control entry and exit. Keep the positioner and content mounted and toggle
+`PopoverRoot` visibility so the exit can finish. Bundlers that support tree
+shaking can omit the motion engine when the motion content is unused, although
+the popover package still installs it as a dependency.
+
+```tsx
+<PopoverMotionContent
+  motion={{
+    initial: { opacity: 0, scale: 0.8 },
+    open: { opacity: 1, scale: 1 },
+    close: { opacity: 0, scale: 0.8 },
+    transition: { type: 'spring', stiffness: 300, damping: 30 },
+  }}
+>
+  {content}
+  <PopoverArrow size={8} />
+</PopoverMotionContent>
+```
+
+Motion owns `opacity` when an opacity target is supplied, and `transform` when
+any transform target is supplied. Do not animate an owned property with CSS on
+the same node. Other style properties remain available to the consumer. The
+default transform origin is the arrow tip, or the corresponding content edge
+when no arrow is present. Use one motion content per root. Omitted target
+values retain their current values. Set a shared `transition` in `motion`, or
+override it on each target; tween duration is in seconds. See the Motion
+example for a complete composition. Motion content allows the trigger and
+backdrop to respond while entry or exit is running so the animation can reverse.

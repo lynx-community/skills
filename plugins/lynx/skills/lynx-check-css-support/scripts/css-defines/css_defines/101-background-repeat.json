@@ -1,0 +1,82 @@
+{
+  "name": "background-repeat",
+  "id": 101,
+  "type": "complex",
+  "default_value": "no-repeat",
+  "version": "1.0",
+  "author": "tangruiwen",
+  "consumption_status": "skip",
+  "desc": "The `background-repeat` CSS property sets how background images are repeated.",
+  "values": [
+    {
+      "value": "no-repeat",
+      "version": "1.0",
+      "desc": ""
+    },
+    {
+      "value": "repeat-x",
+      "version": "1.0",
+      "desc": ""
+    },
+    {
+      "value": "repeat-y",
+      "version": "1.0",
+      "desc": ""
+    },
+    {
+      "value": "repeat",
+      "version": "1.0",
+      "desc": ""
+    },
+    {
+      "value": "round",
+      "version": "1.0",
+      "desc": ""
+    },
+    {
+      "value": "space",
+      "version": "1.0",
+      "desc": ""
+    }
+  ],
+  "is_shorthand": false,
+  "compat_data": {
+    "background-repeat": {
+      "__compat": {
+        "lynx_path": "api/css/properties/background-repeat",
+        "mdn_url": "https://developer.mozilla.org/zh-CN/docs/Web/CSS/background-repeat",
+        "spec_url": [],
+        "status": {
+          "deprecated": false,
+          "experimental": false
+        },
+        "support": {
+          "android": {
+            "version_added": "1.0"
+          },
+          "ios": {
+            "version_added": "1.0"
+          },
+          "harmony": {
+            "version_added": "3.4"
+          },
+          "clay_android": {
+            "version_added": "1.0"
+          },
+          "clay_ios": {
+            "version_added": "1.0"
+          },
+          "clay_macos": {
+            "version_added": "1.0"
+          },
+          "clay_windows": {
+            "version_added": "1.0"
+          },
+          "web_lynx": {
+            "version_added": true
+          }
+        }
+      }
+    }
+  }
+}
