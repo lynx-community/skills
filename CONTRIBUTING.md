@@ -10,16 +10,15 @@ Use Node 24 and the pnpm version pinned in [package.json](package.json):
 corepack enable
 pnpm install --frozen-lockfile
 pnpm turbo build
-pnpm run build
 ```
 
-`turbo build` builds workspace packages; the root build exports the Marketplace. For a focused change, use the affected package's build and test scripts.
+`pnpm turbo build` builds workspace packages, including the Marketplace. Use `pnpm build` to regenerate Marketplace output after building its dependencies. For a focused change, use the affected package's build and test scripts.
 
 ## Skills and Plugins
 
 - Skills live in `packages/skills/` and use `@lynx-js/skill-*` names. Declare the payload in the package's `files`; agents need `SKILL.md` and any referenced resources, not a checkout of this repository.
 - Plugins live in `packages/plugins/` and use `@lynx-js/ai-plugin-*` names. Declare Skill dependencies and use the existing builder for generated manifests and aggregated payloads.
-- Root [dependencies](package.json) select the Skills and Plugins exported to `release`. Use an existing package with the same delivery mode as a starting point, then inspect the [Plugin builder](packages/cmd/build-plugin/src/main.ts), [Marketplace builder](packages/cmd/build-marketplace/src/main.ts) and [Skill exporter](export-skills.mjs) for current behavior.
+- The [Marketplace package](packages/marketplace/package.json) selects the Skills and Plugins exported to `release`. Use an existing package with the same delivery mode as a starting point, then inspect the [Plugin builder](packages/cmd/build-plugin/src/main.ts), [Marketplace builder](packages/cmd/build-marketplace/src/main.ts) and [Skill exporter](packages/marketplace/export-skills.mjs) for current behavior.
 - Keep eval definitions outside the exported agent instructions. See [scripts/skill-eval](scripts/skill-eval) and the affected Skill's eval fixtures for the supported layout and checks.
 
 Keep README files brief. Follow [AGENTS.md](AGENTS.md) for writing guidance, local constraints and validation. Do not hand-edit generated files or copy a full manifest/tool inventory into documentation.

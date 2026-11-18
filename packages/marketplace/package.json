@@ -1,0 +1,39 @@
+{
+  "name": "@lynx-js/marketplace-lynx-agent-skills",
+  "version": "0.1.1",
+  "private": true,
+  "description": "Lynx skills",
+  "license": "Apache-2.0",
+  "author": {
+    "name": "lynx"
+  },
+  "type": "module",
+  "scripts": {
+    "build": "build-marketplace build --output-dir ../.. && node ./export-skills.mjs ../.."
+  },
+  "dependencies": {
+    "@lynx-js/ai-plugin-lynx-debug": "workspace:*",
+    "@lynx-js/ai-plugin-reactlynx": "workspace:*",
+    "@lynx-js/skill-habitat-usage": "workspace:*",
+    "@lynx-js/skill-lynx-a2ui": "workspace:*",
+    "@lynx-js/skill-lynx-api-docs": "workspace:*",
+    "@lynx-js/skill-lynx-check-css-support": "workspace:*",
+    "@lynx-js/skill-lynx-debug-info-remapping": "workspace:*",
+    "@lynx-js/skill-lynx-devtool": "workspace:*",
+    "@lynx-js/skill-lynx-openui": "0.0.3",
+    "@lynx-js/skill-lynx-recorder": "workspace:*",
+    "@lynx-js/skill-lynx-recorder-fixture": "workspace:*",
+    "@lynx-js/skill-lynx-tasm-codec": "workspace:*",
+    "@lynx-js/skill-lynx-trace-analysis": "0.0.12",
+    "@lynx-js/skill-lynx-trace-record": "0.0.6",
+    "@lynx-js/skill-lynx-typescript": "workspace:*",
+    "@lynx-js/skill-lynx-ui": "3.133.13",
+    "@lynx-js/skill-reactlynx-best-practices": "workspace:*",
+    "@lynx-js/skill-rspeedy-bundle-size": "workspace:*",
+    "@lynx-js/skill-vanilla-lynx": "workspace:*"
+  },
+  "devDependencies": {
+    "build-marketplace": "workspace:*",
+    "build-plugin": "workspace:*"
+  }
+}

@@ -5,6 +5,14 @@
     "build": {
       "dependsOn": ["^build"]
     },
+    "@lynx-js/marketplace-lynx-agent-skills#build": {
+      "dependsOn": ["^build"],
+      "outputs": [
+        "$TURBO_ROOT$/plugins/**",
+        "$TURBO_ROOT$/skills/**",
+        "$TURBO_ROOT$/.claude-plugin/**"
+      ]
+    },
     "dev": {
       "persistent": true,
       "cache": false
