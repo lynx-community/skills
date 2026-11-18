@@ -7397,6 +7397,7 @@ const GLOBAL_HINTS = {
     __MarkTiming: TIMING_PIPELINE_GLOBAL_HINT,
     __OnPipelineStart: TIMING_PIPELINE_GLOBAL_HINT,
     __SetStaticStyle: '`__SetStaticStyle` is a legacy Radon global not registered on the Fiber main thread; use `__AddInlineStyle` or `__SetInlineStyles`.',
+    __globalProps: 'Bare `__globalProps` is not a Fiber global; read initial host GlobalProps from `lynx.__globalProps` and listen for `__UpdateGlobalProps` on `lynx.getEngine()` in `<script thread="main">`.',
     document: '`document` is undefined in Lynx. Create and mutate UI nodes in `<script thread="main">` with Element PAPI (`__CreatePage`, `__CreateView`, `__CreateText`, etc.).',
     exports: "CommonJS `exports` is not part of raw `.lynxml` scripts; load external bundles with `lynx.fetchBundle()` and `lynx.loadScript()`.",
     getElementById: 'Bare `getElementById` is not installed as a global; use `lynx.getElementById(id)` on `<script thread="background">` or Element PAPI handles on `<script thread="main">`.',
@@ -7411,6 +7412,7 @@ const GLOBAL_HINTS = {
     queueMicrotask: 'Global `queueMicrotask` is not defined across Lynx runtimes; use `Promise.resolve().then(...)` (or `lynx.queueMicrotask(...)` on the background thread).',
     require: "CommonJS `require` is not supported in `.lynxml` scripts; load external background bundles with `lynx.fetchBundle()` and `lynx.loadScript()`.",
     self: '`self` is undefined in Lynx; use `globalThis`.',
+    updateGlobalProps: '`updateGlobalProps` is not a Lynx runtime global; read initial values from `lynx.__globalProps` and listen for `__UpdateGlobalProps` on `lynx.getEngine()` in `<script thread="main">`.',
     window: '`window` is undefined in Lynx; use `globalThis` for global scope or `lynx` / `SystemInfo` for runtime APIs.'
 };
 function isASCIIWhitespace(ch) {

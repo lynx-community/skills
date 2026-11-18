@@ -190,15 +190,18 @@ In particular, `lynx.getCoreContext()` in the main script is a self-loop and doe
 
 The following names are engine-defined and must not be customized:
 
-| Event               | Meaning                | Main-thread responsibility                                          |
-| ------------------- | ---------------------- | ------------------------------------------------------------------- |
-| `__RenderPage`      | Initial render payload | Process the payload and create the Element PAPI tree                |
-| `__UpdatePage`      | Later update payload   | Apply the update and call `__FlushElementTree()`                    |
-| `__DestroyLifetime` | LynxView teardown      | Remove listeners and dispatch an app-defined destroy event to the background when present |
+| Event                 | Meaning                     | Main-thread responsibility                                                                            |
+| --------------------- | --------------------------- | ----------------------------------------------------------------------------------------------------- |
+| `__RenderPage`        | Initial render payload      | Process initial page data (and `lynx.__globalProps ?? {}` when used) and create the Element PAPI tree |
+| `__UpdatePage`        | Later page-data payload     | Apply the update and call `__FlushElementTree()`                                                      |
+| `__UpdateGlobalProps` | Later `GlobalProps` payload | Read `const [globalProps] = event.data`, apply UI changes, and call `__FlushElementTree()`            |
+| `__DestroyLifetime`   | LynxView teardown           | Remove listeners and dispatch an app-defined destroy event to the background when present             |
 
 Lifecycle handlers may use the event payload when the page depends on engine-provided data, but
-they may ignore it when the implementation does not need that data. An empty `__UpdatePage`
-placeholder is acceptable when engine-driven updates are intentionally unused.
+they may ignore it when the implementation does not need that data. Empty `__UpdatePage` and
+`__UpdateGlobalProps` placeholders are acceptable when engine-driven page data or `GlobalProps`
+updates are intentionally unused, and prevent Native hosts from falling back to missing
+`globalThis.updatePage` or `globalThis.updateGlobalProps` functions when the host dispatches updates.
 
 ## App Event Names
 
@@ -219,7 +222,7 @@ The main thread owns every Element PAPI mutation and UI flush. The background th
 | ---------------------------------------------------------------------- | ------------------------------------------------------------------------------------ |
 | Bind Element PAPI node events                                          | [`main-thread.md#bind-element-events`](main-thread.md#bind-element-events)           |
 | Handle the initial Engine render                                       | [`main-thread.md#render`](main-thread.md#render)                                     |
-| Handle later Engine updates                                            | [`main-thread.md#engine-driven-update`](main-thread.md#engine-driven-update)         |
+| Handle later Engine page-data or `GlobalProps` updates                 | [`main-thread.md#engine-driven-update`](main-thread.md#engine-driven-update)         |
 | Handle Engine lifetime cleanup                                         | [`main-thread.md#lifecycle-cleanup`](main-thread.md#lifecycle-cleanup)               |
 | Dispatch background tasks, data, and destroy or apply returned patches | [`main-thread.md#background-driven-update`](main-thread.md#background-driven-update) |
 | Receive main-thread messages, run heavier work, and return patches     | [`background.md`](background.md)                                                     |
