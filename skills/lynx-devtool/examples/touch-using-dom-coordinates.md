@@ -1,6 +1,6 @@
 # Touch Using DOM Coordinates
 
-This example shows the recommended flow: get the target point from CDP DOM methods and pass that same point to `Input.emulateTouchFromMouseEvent`.
+For ordinary interactive tapping, prefer `agent-lynx snapshot` and `agent-lynx tap @eN` (see [Snapshot and Ref Actions](../references/snapshot.md)). Use this low-level CDP flow only when raw coordinate control or custom gesture sequencing is needed: get the target point from CDP DOM methods and pass that same point to `Input.emulateTouchFromMouseEvent`.
 
 ## Why this works
 

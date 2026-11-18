@@ -1,8 +1,8 @@
 # Screenshot Coordinates Are Not Click Coordinates
 
-Screenshots are useful for seeing what is on screen, but they are not the source of click coordinates.
+Plain screenshots (`take-screenshot` or unannotated `screenshot`) are useful for visual inspection, but raw pixel coordinates should not be passed to `Input.emulateTouchFromMouseEvent`.
 
-For click automation, use CDP DOM methods instead.
+For agent click automation, prefer `agent-lynx snapshot` or `agent-lynx screenshot --annotate` (where label `[N]` maps directly to `agent-lynx tap @eN`; see [Annotated Screenshots](../references/screenshot-annotate.md)). When raw CDP touch events are needed, compute coordinates from CDP DOM methods instead.
 
 ## Recommended replacement
 
