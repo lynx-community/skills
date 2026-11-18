@@ -157,6 +157,9 @@ importers:
       '@lynx-js/ai-plugin-reactlynx':
         specifier: workspace:*
         version: link:../plugins/reactlynx
+      '@lynx-js/skill-agent-lynx':
+        specifier: workspace:*
+        version: link:../skills/agent-lynx
       '@lynx-js/skill-habitat-usage':
         specifier: workspace:*
         version: link:../skills/habitat-usage
@@ -391,6 +394,8 @@ importers:
       typescript:
         specifier: ^7.0.2
         version: 7.0.2
+
+  packages/skills/agent-lynx: {}
 
   packages/skills/habitat-usage:
     devDependencies:

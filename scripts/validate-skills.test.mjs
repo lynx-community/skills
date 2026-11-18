@@ -16,6 +16,10 @@ const SKILLS_DIR = new URL('../skills', import.meta.url).pathname;
 // When a skill here is fixed, remove it from this list so future
 // regressions will be caught.
 const SKIP_LIST = new Map([
+  [
+    'agent-lynx',
+    "preserve the CLI router's agent-lynx identity pending a dedicated naming mechanism",
+  ],
   ['habitat-usage', 'name does not start with an allowed prefix'],
 ]);
 

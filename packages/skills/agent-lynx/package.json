@@ -1,0 +1,19 @@
+{
+  "name": "@lynx-js/skill-agent-lynx",
+  "version": "0.0.0",
+  "description": "Route Lynx development and diagnosis to live agent-lynx Skills and commands",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/lynx-community/skills.git",
+    "directory": "packages/skills/agent-lynx"
+  },
+  "license": "Apache-2.0",
+  "type": "module",
+  "files": [
+    "SKILL.md",
+    "agents"
+  ],
+  "publishConfig": {
+    "access": "public"
+  }
+}
