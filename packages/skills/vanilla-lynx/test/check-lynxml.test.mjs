@@ -276,6 +276,8 @@ test('enforces thread boundaries, forbidden compiler PAPIs, and Fiber PAPI calib
     '__CreateGestureDetector();',
     '__GetComputedStyles(page);',
     'processData({});',
+    'void __globalProps;',
+    'updateGlobalProps({});',
     'void width;',
     '</script>',
     '<script thread="background">',
@@ -336,51 +338,68 @@ test('enforces thread boundaries, forbidden compiler PAPIs, and Fiber PAPI calib
         symbol: 'processData',
       },
       {
-        line: 19,
+        line: 11,
+        code: 'undeclared-global',
+        thread: 'main',
+        symbol: '__globalProps',
+      },
+      {
+        line: 12,
+        code: 'undeclared-global',
+        thread: 'main',
+        symbol: 'updateGlobalProps',
+      },
+      {
+        line: 21,
         code: 'wrong-thread-global',
         thread: 'background',
         symbol: '__FlushElementTree',
       },
       {
-        line: 20,
+        line: 22,
         code: 'undeclared-global',
         thread: 'background',
         symbol: 'fetch',
       },
       {
-        line: 21,
+        line: 23,
         code: 'undeclared-global',
         thread: 'background',
         symbol: 'getElementById',
       },
       {
-        line: 22,
+        line: 24,
         code: 'undeclared-global',
         thread: 'background',
         symbol: 'URL',
       },
       {
-        line: 23,
+        line: 25,
         code: 'undeclared-global',
         thread: 'background',
         symbol: 'TextCodecHelper',
       },
       {
-        line: 24,
+        line: 26,
         code: 'undeclared-global',
         thread: 'background',
         symbol: 'TextDecoder',
       },
       {
-        line: 25,
+        line: 27,
         code: 'undeclared-global',
         thread: 'background',
         symbol: 'LynxJSBI',
       },
     ],
   );
-  assert.match(result.issues[6]?.hint ?? '', /bare identifier/);
-  assert.doesNotMatch(result.issues[10]?.hint ?? '', /TextCodecHelper/);
+  assert.match(result.issues[5]?.hint ?? '', /lynx\.__globalProps/);
+  assert.match(result.issues[5]?.hint ?? '', /__UpdateGlobalProps/);
+  assert.match(result.issues[6]?.hint ?? '', /lynx\.__globalProps/);
+  assert.match(result.issues[6]?.hint ?? '', /__UpdateGlobalProps/);
+  assert.doesNotMatch(result.issues[6]?.hint ?? '', /globalThis/);
+  assert.match(result.issues[8]?.hint ?? '', /bare identifier/);
+  assert.doesNotMatch(result.issues[12]?.hint ?? '', /TextCodecHelper/);
 });
 
 test('models background factory wrapper parameters, this receiver, and brace boundaries', () => {

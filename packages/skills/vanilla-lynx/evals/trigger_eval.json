@@ -16,6 +16,10 @@
     "should_trigger": true
   },
   {
+    "query": "Vanilla Lynx 的 main-thread.ts 怎么读取初始 GlobalProps 并监听 __UpdateGlobalProps 更新主题？",
+    "should_trigger": true
+  },
+  {
     "query": "Vanilla Lynx 双线程数据同步里，后台线程怎么执行更新并把 patch 发回 main thread 更新 UI？",
     "should_trigger": true
   },
