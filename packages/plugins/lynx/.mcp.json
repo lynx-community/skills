@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "lynx-docs": {
+      "command": "npx",
+      "args": ["-y", "@lynx-js/docs-mcp-server@latest"]
+    }
+  }
+}

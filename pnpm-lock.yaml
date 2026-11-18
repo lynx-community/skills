@@ -151,6 +151,9 @@ importers:
 
   packages/marketplace:
     dependencies:
+      '@lynx-js/ai-plugin-lynx':
+        specifier: workspace:*
+        version: link:../plugins/lynx
       '@lynx-js/ai-plugin-lynx-debug':
         specifier: workspace:*
         version: link:../plugins/lynx-debug
@@ -329,6 +332,70 @@ importers:
       typescript:
         specifier: ^6.0.3
         version: 6.0.3
+
+  packages/plugins/lynx:
+    dependencies:
+      '@lynx-js/skill-agent-lynx':
+        specifier: workspace:*
+        version: link:../../skills/agent-lynx
+      '@lynx-js/skill-lynx-api-docs':
+        specifier: workspace:*
+        version: link:../../skills/lynx-api-docs
+      '@lynx-js/skill-lynx-check-css-support':
+        specifier: workspace:*
+        version: link:../../skills/lynx-check-css-support
+      '@lynx-js/skill-lynx-debug-info-remapping':
+        specifier: workspace:*
+        version: link:../../skills/lynx-debug-info-remapping
+      '@lynx-js/skill-lynx-devtool':
+        specifier: workspace:*
+        version: link:../../skills/lynx-devtool
+      '@lynx-js/skill-lynx-recorder':
+        specifier: workspace:*
+        version: link:../../skills/lynx-recorder
+      '@lynx-js/skill-lynx-recorder-fixture':
+        specifier: workspace:*
+        version: link:../../skills/lynx-recorder-fixture
+      '@lynx-js/skill-lynx-tasm-codec':
+        specifier: workspace:*
+        version: link:../../skills/lynx-tasm-codec
+      '@lynx-js/skill-lynx-trace-analysis':
+        specifier: 0.0.12
+        version: 0.0.12
+      '@lynx-js/skill-lynx-trace-record':
+        specifier: 0.0.6
+        version: 0.0.6
+      '@lynx-js/skill-lynx-typescript':
+        specifier: workspace:*
+        version: link:../../skills/lynx-typescript
+      '@lynx-js/skill-lynx-ui':
+        specifier: 3.133.13
+        version: 3.133.13
+      '@lynx-js/skill-reactlynx-best-practices':
+        specifier: workspace:*
+        version: link:../../skills/reactlynx-best-practices
+      '@lynx-js/skill-rspeedy-bundle-size':
+        specifier: workspace:*
+        version: link:../../skills/rspeedy-bundle-size
+      '@lynx-js/skill-vanilla-lynx':
+        specifier: workspace:*
+        version: link:../../skills/vanilla-lynx
+    devDependencies:
+      '@rslib/core':
+        specifier: catalog:rstack
+        version: 1.0.7(@microsoft/api-extractor@7.60.1(@types/node@24.19.2))(core-js@3.51.0)(typescript@5.9.3)
+      '@types/node':
+        specifier: ^24.19.2
+        version: 24.19.2
+      build-plugin:
+        specifier: workspace:*
+        version: link:../../cmd/build-plugin
+      commander:
+        specifier: ^13.1.0
+        version: 13.1.0
+      typescript:
+        specifier: ^5.9.3
+        version: 5.9.3
 
   packages/plugins/lynx-debug:
     dependencies:

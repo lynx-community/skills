@@ -1,0 +1,42 @@
+[
+  {
+    "query": "Use agent-lynx to find which debugging and recording capabilities are available for this Lynx app.",
+    "should_trigger": true
+  },
+  {
+    "query": "A Lynx page is blank on Android. Help me choose a debugging route and inspect its console logs.",
+    "should_trigger": true
+  },
+  {
+    "query": "I already recorded two Lynx traces. Help me find the right capability to diagnose the performance regression.",
+    "should_trigger": true
+  },
+  {
+    "query": "I need to record a Lynx interaction and update a mock response in the resulting Recorder fixture.",
+    "should_trigger": true
+  },
+  {
+    "query": "This template.js is a compiled Lynx template. Help me find the capability to decode it into inspection JSON.",
+    "should_trigger": true
+  },
+  {
+    "query": "The agent-lynx catalog has no CSS compatibility entry. Find the right Skill in the public Lynx Skills repository.",
+    "should_trigger": true
+  },
+  {
+    "query": "Explain ReactLynx useEffect semantics for this sample. I only need a conceptual explanation.",
+    "should_trigger": false
+  },
+  {
+    "query": "Add a responsive navigation bar to my React web app.",
+    "should_trigger": false
+  },
+  {
+    "query": "Help me fix a code signing error for my native Swift app in Xcode.",
+    "should_trigger": false
+  },
+  {
+    "query": "What do lynxes eat and where do they live?",
+    "should_trigger": false
+  }
+]

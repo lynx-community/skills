@@ -1,0 +1,54 @@
+{
+  "skill_name": "agent-lynx",
+  "evals": [
+    {
+      "id": 1,
+      "name": "live-catalog-over-static-hints",
+      "prompt": "I need to analyze an existing Lynx performance trace. In this simulated environment, agent-lynx is on PATH and its live catalog only lists lynx-performance-review for analyzing existing traces and lynx-trace-record for collecting new ones. Give the exact commands to discover and load the appropriate Skill, plus the handoff for analyzing this recorded trace. Answer from the simulated catalog.",
+      "expected_output": "Lists the live catalog, loads lynx-performance-review, and hands the existing trace to its instructions.",
+      "files": [],
+      "expectations": [
+        "Uses agent-lynx skills list as the first Skill discovery step.",
+        "Uses agent-lynx skills get lynx-performance-review based on the description returned in the live catalog.",
+        "Hands the recorded trace to the selected Skill's analysis instructions."
+      ]
+    },
+    {
+      "id": 2,
+      "name": "temporary-public-cli-invocation",
+      "prompt": "I want to discover the Lynx capability for inspecting console logs. agent-lynx is absent from PATH and the environment has npm. The simulated catalog returns lynx-devtool for console logs. Give me only the commands to discover and load the Skill in this situation. I need a temporary invocation that leaves the project and global installations as they are.",
+      "expected_output": "Gives the temporary public npm commands to list Skills and load lynx-devtool.",
+      "files": [],
+      "expectations": [
+        "Uses npx --yes agent-lynx@latest skills list to discover the available capabilities.",
+        "Uses npx --yes agent-lynx@latest skills get lynx-devtool to load the matching Skill.",
+        "Keeps both commands on the same temporary public CLI path and leaves project and global installations alone."
+      ]
+    },
+    {
+      "id": 3,
+      "name": "public-repository-fallback",
+      "prompt": "I need to check CSS property support for a Lynx version. The simulated agent-lynx catalog has DevTool and Recorder entries and no CSS compatibility Skill. The public Lynx Skills release contains skills/lynx-check-css-support/SKILL.md and its bundled resources. Name the files to read next and state what you would tell me if neither discovery source is readable. Use the simulated results in your answer.",
+      "expected_output": "Loads the CSS compatibility Skill directly from the public repository and describes how to report failed discovery.",
+      "files": [],
+      "expectations": [
+        "Uses the catalog result to decide that the matching Skill must be discovered outside the CLI.",
+        "Reads skills/lynx-check-css-support/SKILL.md and its required bundled resources from lynx-community/skills.",
+        "Uses the repository path for the repository-only Skill throughout the answer.",
+        "Reports which discovery sources could not be read if both lookups fail and leaves the compatibility result undetermined."
+      ]
+    },
+    {
+      "id": 4,
+      "name": "reuse-loaded-recorder-fixture-skill",
+      "prompt": "I only need to update a mock response in an existing Lynx Recorder fixture. The current catalog lists lynx-recorder, lynx-recorder-fixture, and lynx-devtool. The lynx-recorder-fixture instructions were already loaded for this fixture earlier in this session and the catalog has stayed the same. Tell me how you would continue the edit.",
+      "expected_output": "Reuses the already loaded fixture editing instructions and keeps the work focused on the existing fixture.",
+      "files": [],
+      "expectations": [
+        "Chooses lynx-recorder-fixture for changing mock data in the supplied fixture.",
+        "Reuses the already loaded instructions for that unchanged Skill.",
+        "Uses the specialist instructions for editing and checking the existing fixture."
+      ]
+    }
+  ]
+}

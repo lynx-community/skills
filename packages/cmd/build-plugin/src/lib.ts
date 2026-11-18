@@ -133,6 +133,7 @@ export async function buildPlugin(pkgDir: string) {
         name: pkg.name.replace(/^@lynx-js\/ai-plugin-/, ''),
         version: pkg.version,
         description: pkg.description || '',
+        author: pkg.author,
       },
       null,
       2,
