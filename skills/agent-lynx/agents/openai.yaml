@@ -1,0 +1,4 @@
+interface:
+  display_name: "agent-lynx"
+  short_description: "Debug Lynx apps, devices, traces, memory, and templates"
+  default_prompt: "Use $agent-lynx to help with my Lynx task through its CLI and the relevant sub-skills for debugging, performance traces, recordings and fixtures, memory, or TASM templates."
