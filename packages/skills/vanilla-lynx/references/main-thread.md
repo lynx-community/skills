@@ -21,8 +21,8 @@ Read [`event.md`](event.md) for `lynx.getEngine()` and event environment APIs. I
 - Create the page root and child nodes with Element PAPI APIs.
 - Apply classes, attributes, inline styles, datasets, and child relationships.
 - Bind lightweight node events on the main thread and remove those listeners during cleanup.
-- Render initial data from `__RenderPage`.
-- Apply later engine data from `__UpdatePage` to the UI tree.
+- Render initial data from `__RenderPage` (and initial host `lynx.__globalProps ?? {}` when needed).
+- Apply later engine data from `__UpdatePage` and `__UpdateGlobalProps` to the UI tree.
 - Register `__DestroyLifetime` to remove runtime and node listeners.
 - Rely on the SDK default flush for initial `renderPage`; call `__FlushElementTree()` after later UI mutations.
 - For background-thread workflows, heavy business logic, timers, async requests, or native calls, read [`background.md`](background.md).
@@ -221,6 +221,7 @@ The render and update examples below share this module-scope setup:
 ```javascript
 const renderPageEventName = "__RenderPage";
 const updatePageEventName = "__UpdatePage";
+const updateGlobalPropsEventName = "__UpdateGlobalProps";
 const destroyLifetimeEventName = "__DestroyLifetime";
 
 Object.assign(globalThis, {
@@ -250,15 +251,22 @@ function normalizePatch(data) {
   }
   return data;
 }
+
+let currentGlobalProps = normalizePatch(lynx.__globalProps);
 ```
 
 Currently, Lynx SDK requires a `processData` implementation on `globalThis`. The main-thread script can instead assign its own data-processing function when native initialization data needs normalization.
 
-The engine dispatches `__RenderPage` with the initial payload. Process that payload and create the initial Element PAPI tree in `renderPage`. The handler may ignore its payload when the implementation does not need engine-provided data. Do not call `__FlushElementTree()` solely for this initial render; rely on the SDK default flush.
+Initial host `GlobalProps` are exposed on `lynx.__globalProps` before `__RenderPage` runs (normalize with `lynx.__globalProps ?? {}`; never read bare `__globalProps`, which is not a Fiber global). The engine dispatches `__RenderPage` with the initial page-data payload. Process that payload and create the initial Element PAPI tree in `renderPage`. The handler may ignore its payload when the implementation does not need engine-provided data. Do not call `__FlushElementTree()` solely for this initial render; rely on the SDK default flush.
 
 ```javascript
-function renderPage(data) {
+function applyTheme(globalProps) {
+  __SetClasses(page, globalProps.theme === "dark" ? "page page-dark" : "page");
+}
+
+function renderPage(data, globalProps) {
   currentState = data;
+  applyTheme(globalProps);
 
   containerView = __CreateView(pageId);
   __SetInlineStyles(containerView, `color: ${data.color};`);
@@ -273,7 +281,7 @@ function onRenderPage(event) {
   if (rendered) return;
   rendered = true;
   const [data] = event.data;
-  renderPage(normalizeInitialData(data));
+  renderPage(normalizeInitialData(data), currentGlobalProps);
 }
 
 engine.addEventListener(renderPageEventName, onRenderPage);
@@ -285,7 +293,11 @@ Every update after the initial render mutates the existing tree on the main thre
 
 ### Engine-Driven Update
 
-The engine dispatches `__UpdatePage` with later update payloads. Process only the provided fields so partial updates do not reset omitted fields back to initial defaults, apply the UI mutation, and call `__FlushElementTree()`. The handler may remain a placeholder when the page intentionally does not consume engine-driven updates.
+The engine dispatches `__UpdatePage` with later page-data payloads and `__UpdateGlobalProps` with later host `GlobalProps` payloads:
+
+- In `__UpdatePage`, process only the provided fields so partial updates do not reset omitted fields back to initial defaults, apply the UI mutation, and call `__FlushElementTree()`.
+- In `__UpdateGlobalProps`, read `const [globalProps] = event.data` rather than re-reading `lynx.__globalProps` alone (Web dispatches `event.data` without reassigning `lynx.__globalProps` in place), shallow-merge onto `currentGlobalProps` so partial host updates (for example on Web or Harmony) preserve omitted keys, apply the UI mutation, and call `__FlushElementTree()`.
+- Either handler may remain a no-op placeholder on `lynx.getEngine()` when the page intentionally does not consume that update channel, preventing Native hosts from falling back to missing `globalThis.updatePage` or `globalThis.updateGlobalProps` functions.
 
 ```javascript
 function updatePage(patch) {
@@ -310,11 +322,24 @@ function updatePage(patch) {
 }
 
 function onUpdatePage(event) {
+  if (!rendered) return;
   const [data] = event.data;
   updatePage(normalizePatch(data));
 }
 
+function onUpdateGlobalProps(event) {
+  const [globalProps] = event.data;
+  currentGlobalProps = {
+    ...currentGlobalProps,
+    ...normalizePatch(globalProps),
+  };
+  if (!rendered) return;
+  applyTheme(currentGlobalProps);
+  __FlushElementTree();
+}
+
 engine.addEventListener(updatePageEventName, onUpdatePage);
+engine.addEventListener(updateGlobalPropsEventName, onUpdateGlobalProps);
 ```
 
 ### Background-Driven Update
@@ -363,16 +388,17 @@ backgroundThread.addEventListener("PatchFromBackground", onBackgroundPatch);
 engine.addEventListener(destroyLifetimeEventName, cleanupBackgroundBridge);
 ```
 
-Call `dispatchDataToBackground(processedData)` when background state needs Engine render/update data, and keep `__DestroyLifetime` reserved for `lynx.getEngine()`.
+Call `dispatchDataToBackground(processedData)` when background state needs Engine render/update or `GlobalProps` data, and keep `__DestroyLifetime` reserved for `lynx.getEngine()`.
 
 ## Lifecycle Cleanup
 
-The engine dispatches `__DestroyLifetime` when the LynxView is torn down. Remove the render and update listeners, remove Element PAPI node listeners, and release retained node references. Background-thread workflows also keep the bridge cleanup shown in [Background-Driven Update](#background-driven-update), which forwards the destroy event before removing its listener.
+The engine dispatches `__DestroyLifetime` when the LynxView is torn down. Remove the render, update, and `GlobalProps` listeners, remove Element PAPI node listeners, and release retained node references. Background-thread workflows also keep the bridge cleanup shown in [Background-Driven Update](#background-driven-update), which forwards the destroy event before removing its listener.
 
 ```javascript
 function cleanupEngineLifecycle() {
   engine.removeEventListener(renderPageEventName, onRenderPage);
   engine.removeEventListener(updatePageEventName, onUpdatePage);
+  engine.removeEventListener(updateGlobalPropsEventName, onUpdateGlobalProps);
   engine.removeEventListener(
     destroyLifetimeEventName,
     cleanupEngineLifecycle,

@@ -193,6 +193,19 @@
         "The response does not introduce ReactLynx, JSX, Canvas, or WebGL."
       ],
       "files": []
+    },
+    {
+      "id": 14,
+      "name": "main-thread-global-props-lifecycle",
+      "prompt": "Vanilla Lynx 的 main-thread.ts 怎么读取初始 GlobalProps，并在宿主调用 updateGlobalProps 时响应 __UpdateGlobalProps 切换深浅色主题？请给出关键代码和清理逻辑，不要 ReactLynx。",
+      "expected_output": "A main-thread Vanilla Lynx snippet that reads initial GlobalProps from `lynx.__globalProps`, subscribes to `__UpdateGlobalProps` on `lynx.getEngine()`, reads `[globalProps]` from `event.data`, applies Element PAPI updates followed by `__FlushElementTree()`, and removes the listener on `__DestroyLifetime`.",
+      "expectations": [
+        "Initial host GlobalProps are read from `lynx.__globalProps` (with safe fallback when unset) rather than bare `__globalProps`.",
+        "Later GlobalProps updates subscribe to `__UpdateGlobalProps` on `lynx.getEngine()` and extract the payload from `event.data` (for example `const [globalProps] = event.data` or `event.data?.[0]`) rather than relying solely on re-reading `lynx.__globalProps`.",
+        "Initial rendering relies on the SDK flush, while `__UpdateGlobalProps` UI mutations call `__FlushElementTree()`.",
+        "Cleanup removes the `__UpdateGlobalProps` listener on `__DestroyLifetime` using the matching `lynx.getEngine()` context and handler reference."
+      ],
+      "files": []
     }
   ]
 }
