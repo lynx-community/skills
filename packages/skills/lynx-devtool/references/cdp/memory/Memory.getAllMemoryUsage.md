@@ -46,6 +46,16 @@ agent-lynx cdp -s -1 -m Memory.getAllMemoryUsage
 agent-lynx cdp -s -1 -m Memory.getAllMemoryUsage '{"timeoutMs":50000}'
 ```
 
-The CLI prints the raw `Memory.getAllMemoryUsage` response. Agents using the Lynx DevTool skill should apply the reporting rules in `SKILL.md` when a user asks for a human-readable summary or Top 5 breakdown.
+The CLI prints the raw `Memory.getAllMemoryUsage` response (do not expect derived `summary`, `topMemoryItems`, or `topInstances` wrapper fields).
 
-The DevTool MCP server also exposes this method as `Memory_getAllMemoryUsage`.
+When the DevTool MCP server is available, prefer the `Memory_getAllMemoryUsage` MCP tool for the same raw payload.
+
+### Agent Reporting Standard
+
+When summarizing `Memory.getAllMemoryUsage` for a user:
+
+1. Save the complete raw JSON to a file when requested or when the payload is too large to show inline.
+2. Format sizes in binary units (`KiB`, `MiB`, `GiB`) and ratios (`ratioToApp`, contribution shares) as percentages, each with two decimal places.
+3. Report this global summary first: `collectionStatus`, `${completedInstanceCount}/${expectedInstanceCount}` Lynx instances, `totalBytes`, `appBytes`, `ratioToApp`, `elementNodeCount`, `viewBytes`, `mainThreadRuntimeBytes`, and `backgroundThreadRuntimeBytes`.
+4. Report **Top 5 Memory Contributors** sorted by bytes descending across all `instances[i]`, considering `backgroundThreadRuntimeBytes`, `mainThreadRuntimeBytes`, `elementBytes`, each `viewDetail[category].sizeBytes`, and an `other view memory` remainder when `viewBytes` exceeds the sum of `viewDetail[*].sizeBytes`. Include rank, category/kind, size, `% of totalBytes`, `% of instance.totalBytes`, `instanceId`, and `url`.
+5. Report **Instances** sorted by `instance.totalBytes` descending with `instanceId`, `url`, `totalBytes`, `mainThreadRuntimeBytes`, `backgroundThreadRuntimeBytes`, `viewBytes`, `elementBytes`, and a compact `viewDetail` summary (e.g. `image=12 / 4.15 MiB`). Do not invent missing fields.
