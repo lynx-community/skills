@@ -1,0 +1,33 @@
+{
+  "name": "@lynx-js/pi-plugin-lynx",
+  "version": "0.1.0",
+  "description": "Pi Agent plugin for Lynx development",
+  "keywords": [
+    "lynx",
+    "reactlynx",
+    "lynx-js",
+    "mobile",
+    "pi",
+    "pi-package"
+  ],
+  "repository": {
+    "url": "https://github.com/lynx-community/skills"
+  },
+  "type": "module",
+  "main": "./extension.mjs",
+  "files": [
+    "extension.mjs",
+    "README.md"
+  ],
+  "dependencies": {
+    "@lynx-js/ai-plugin-lynx": "workspace:*"
+  },
+  "engines": {
+    "node": ">=18.17"
+  },
+  "pi": {
+    "extensions": [
+      "extension.mjs"
+    ]
+  }
+}
