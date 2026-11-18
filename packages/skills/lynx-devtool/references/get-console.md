@@ -14,10 +14,11 @@ agent-lynx get-console [options]
 - `-s, --session <sessionId>`: Session ID. If not provided, the command will attempt to discover the latest session (with the largest session ID).
 - `--offset <number>`: The number of console messages to skip before returning results. Default is `0`.
 - `--limit <number>`: The maximum number of console messages to return. Values are clamped between 1 and 100.
-- `--include-stack-traces`: By default, only error messages include stack traces. Set this flag to include stack traces for all message types.
+- `--include-stack-traces`: Include available stack traces for non-error messages in formatted output. Errors include available stacks by default.
 - `--level <levels>`: A comma-separated list of log levels to filter. Default is `info,log,warning,error`.
 - `--thread <thread...>`: Target VM thread(s): `background` or `main`. If omitted, the command collects logs from both threads.
 - `-w, --watch`: Stream console logs as they arrive, printing each message immediately, until interrupted with `Ctrl+C` or `--limit` is reached. Without this flag, the command uses the short-window behavior described below.
+- `-j, --json`: Output the raw `Runtime.consoleAPICalled` params. The default mode emits a JSON array. `--watch` emits one JSON object per line (NDJSON). Each event includes `type` (the log level) and `args`, along with any fields supplied by the runtime, such as `timestamp`, `executionContextId`, `stackTrace`, `url`, and `consoleTag`. A `consoleTag` of `"Lepus"` marks the main thread. JSON always preserves available stack traces.
 
 ## Behavior
 
@@ -31,14 +32,13 @@ Watch mode (`--watch`): the command streams console messages as they arrive, pri
 - The process is interrupted with `Ctrl+C`, or
 - The `--limit` is reached.
 
-`--offset`, `--level`, `--include-stack-traces` and `--thread` apply in both modes.
+`--offset`, `--level`, and `--thread` apply with and without `--watch`. `--include-stack-traces` affects formatted text output.
 
 By default, the command enables both background and main-thread runtimes to capture logs from both VMs.
 
 ## Output
 
-The output is formatted text where each line represents a console message. The format is:
-`- [<type>/<thread>]: <message>`
+Formatted text starts each message with `[HH:MM:SS.sssZ] [<type>/<thread>] <message>`. The UTC prefix is omitted when the runtime provides no valid timestamp.
 
 Thread label mapping:
 
