@@ -156,10 +156,6 @@ export function registerGetConsoleCommand(program: Command, context: Context) {
       const requests = [
         { method: 'Page.enable' },
         { method: 'Page.getResourceTree' },
-        ...thread.map((t: string) => ({
-          method: 'Debugger.enable',
-          sessionId: t === 'main' ? 'Main' : undefined,
-        })),
         ...thread.flatMap((t: string) => [
           {
             method: 'Runtime.disable',

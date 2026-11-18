@@ -172,6 +172,11 @@ for (const watch of [false, true]) {
           for await (const req of inputStream) {
             requests.push(req);
           }
+          assert.equal(
+            requests.some((r) => r.method === 'Debugger.enable'),
+            false,
+            'get-console must not send Debugger.enable or trigger full scriptParsed bursts',
+          );
           const pageEnable = requests.find((r) => r.method === 'Page.enable');
           const runtimeEnable = requests.find(
             (r) => r.method === 'Runtime.enable',
