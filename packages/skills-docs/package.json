@@ -19,7 +19,7 @@
     "manifest.json"
   ],
   "scripts": {
-    "build": "tsc --noEmit && node --test test/package.test.mjs",
+    "build": "tsc --noEmit && node --test test/*.test.mjs",
     "test": "node --test test/*.test.mjs",
     "dev": "rspress dev",
     "build:preview": "rspress build",
