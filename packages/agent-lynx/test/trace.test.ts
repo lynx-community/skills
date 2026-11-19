@@ -207,6 +207,75 @@ describe('runTraceStart', () => {
     ]);
   });
 
+  test('skips client discovery for an Android client ID', async () => {
+    const connector = createMockConnector({ debugMode: false });
+
+    const result = await runTraceStart(
+      connector,
+      'android:emulator-5554:8901',
+      {
+        enableSystrace: true,
+        includedCategories: ['*'],
+        excludedCategories: ['*'],
+        enableMemoryTrace: false,
+        forceGC: true,
+        enableAutoHeapSnapshot: false,
+        sharedGroupId: '',
+        jsProfileInterval: -1,
+        jsProfileType: 'quickjs',
+      },
+    );
+
+    assert.equal(result.restartRequired, true);
+    assert.deepEqual(connector.calls.map(call => call.method), [
+      'getGlobalSwitch',
+      'setGlobalSwitch',
+    ]);
+    assert.deepEqual(connector.calls[0]?.args, ['enable_debug_mode']);
+    assert.equal(
+      connector.calls.filter(call => call.method === 'listClients').length,
+      0,
+    );
+  });
+
+  test('skips client discovery for an iOS client ID', async () => {
+    const connector = createMockConnector({
+      appProcessName: 'com.example.app',
+      debugMode: false,
+    });
+
+    const result = await runTraceStart(
+      connector,
+      'ios:00008110-001:8901',
+      {
+        enableSystrace: true,
+        includedCategories: ['*'],
+        excludedCategories: ['*'],
+        enableMemoryTrace: false,
+        forceGC: true,
+        enableAutoHeapSnapshot: false,
+        sharedGroupId: '',
+        jsProfileInterval: -1,
+        jsProfileType: 'quickjs',
+      },
+    );
+
+    assert.equal(result.started, true);
+    assert.deepEqual(connector.calls.map(call => call.method), [
+      'sendCDPMessage',
+    ]);
+    assert.equal(
+      connector.calls.filter(call =>
+        call.method === 'getGlobalSwitch' || call.method === 'setGlobalSwitch'
+      ).length,
+      0,
+    );
+    assert.equal(
+      connector.calls.filter(call => call.method === 'listClients').length,
+      0,
+    );
+  });
+
   test('adds a supported-runtime hint for unavailable tracing', async () => {
     const connector = createMockConnector({
       startError: new Error(
