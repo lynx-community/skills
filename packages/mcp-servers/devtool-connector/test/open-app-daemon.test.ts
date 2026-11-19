@@ -4,12 +4,12 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { DevtoolDaemon } from "../src/daemon/server.ts";
-import { Connector } from "../src/index.ts";
+import { Connector, Platform } from "../src/index.ts";
 import { DaemonTransport } from "../src/transport/daemon.ts";
 import type { App, Client, Connection, Device, OpenAppOptions, Transport } from "../src/transport/transport.ts";
 
 class ClientListTransport implements Transport {
-  readonly id = "client-list";
+  readonly id: string = "client-list";
   #openedPackageName: string | null = null;
   listClientsCalls = 0;
   openedOptions: OpenAppOptions | undefined;
@@ -234,4 +234,72 @@ test("DaemonTransport.openApp uses the caller signal instead of the default 10s 
 
   await opening;
   assert.equal(deviceTransport.openedOptions?.signal?.aborted, false);
+});
+
+test("platform routes listAvailableApps and openApp without device discovery", async (t) => {
+  class CountingTransport extends ClientListTransport {
+    override readonly id = Platform.Android;
+    override async listDevices(): Promise<Device[]> {
+      throw new Error("platform must skip device discovery");
+    }
+  }
+
+  const deviceTransport = new CountingTransport();
+  const daemon = new DevtoolDaemon([deviceTransport]);
+  const port = await daemon.start(0);
+  t.after(() => daemon.close());
+  const transport = new DaemonTransport(`ws://127.0.0.1:${port}/devtool/connector`);
+  const connector = new Connector([transport]);
+
+  assert.deepEqual(
+    await connector.listAvailableApps("device", { platform: Platform.Android }),
+    [],
+  );
+  assert.equal(
+    await connector.openApp("device", "com.lynx.uiapp", {
+      platform: Platform.Android,
+      signal: AbortSignal.timeout(50),
+    }),
+    "client-list:device:8902",
+  );
+});
+
+test("concurrent listClients calls share a single client discovery run", async (t) => {
+  class SlowDiscoveryTransport implements Transport {
+    readonly id = "slow-discovery";
+    listDevices(): Promise<Device[]> {
+      return new Promise((resolve) => setTimeout(() => resolve([{ id: "device", os: "Android" }]), 10));
+    }
+
+    async close(): Promise<void> {
+    }
+
+    async listAvailableApps(): Promise<App[]> {
+      return [];
+    }
+
+    async openApp(): Promise<void> {
+    }
+
+    async connect<TInput = unknown, TOutput = unknown>(): Promise<Connection<TOutput, TInput>> {
+      throw new Error("discovery should not need port probes");
+    }
+  }
+
+  const deviceTransport = new SlowDiscoveryTransport();
+  const daemon = new DevtoolDaemon([deviceTransport]);
+  const port = await daemon.start(0);
+  t.after(() => daemon.close());
+  const transport = new DaemonTransport(`ws://127.0.0.1:${port}/devtool/connector`);
+  const deviceDiscovery = t.mock.method(deviceTransport, "listDevices");
+
+  // Empty because no port registers; the point is that discovery ran once.
+  const results = await Promise.all([
+    transport.listClients(),
+    transport.listClients(),
+    transport.listClients(),
+  ]);
+
+  assert.equal(results[0]?.transports?.includes(deviceTransport.id), true);
+  assert.equal(deviceDiscovery.mock.callCount(), 1);
 });

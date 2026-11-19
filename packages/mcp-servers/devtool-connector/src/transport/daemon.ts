@@ -14,6 +14,7 @@ import {
   type ClientList,
   type Connection,
   type Device,
+  type ListAvailableAppsOptions,
   type OpenAppOptions,
   type Transport,
   type TransportConnectOptions,
@@ -62,17 +63,21 @@ export class DaemonTransport implements Transport {
     return result;
   }
 
-  async listAvailableApps(deviceId: string): Promise<App[]> {
-    const result = await this.#controlRequest<App[]>("listAvailableApps", { deviceId });
+  async listAvailableApps(deviceId: string, options?: ListAvailableAppsOptions<string>): Promise<App[]> {
+    const result = await this.#controlRequest<App[]>("listAvailableApps", {
+      deviceId,
+      platform: options?.platform,
+    });
     return result;
   }
 
-  async openApp(deviceId: string, packageName: string, options?: OpenAppOptions): Promise<void> {
+  async openApp(deviceId: string, packageName: string, options?: OpenAppOptions<string>): Promise<void> {
     await this.#controlRequest(
       "openApp",
       {
         deviceId,
         packageName,
+        platform: options?.platform,
         withDataCleared: options?.withDataCleared,
         restart: options?.restart,
         schema: options?.schema,

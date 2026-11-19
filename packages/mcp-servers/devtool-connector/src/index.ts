@@ -27,7 +27,9 @@ import {
   type ClientList,
   type Connection,
   type Device,
+  type ListAvailableAppsOptions,
   type OpenAppOptions,
+  Platform,
   type Transport,
   type TransportConnectOptions,
   withTransports,
@@ -67,7 +69,8 @@ interface OutputStream<O> extends AsyncDisposable, ReadableStream<O> {
   inputClosed: Promise<void>;
 }
 
-export { ClientId };
+export { ClientId, Platform };
+export type { ListAvailableAppsOptions, OpenAppOptions };
 
 type Pipeline = {
   input: TransformStream[];
@@ -99,7 +102,7 @@ function isNonEmptyListSessionResponse(response: Response): response is ListSess
   return isListSessionResponse(response) && response.data.data.length > 0;
 }
 
-export class Connector {
+export class Connector<TPlatform extends string = Platform> {
   #transports: Transport[];
   #hdtTransports: HDTTransport[];
   #daemonTransports: DaemonTransport[];
@@ -266,14 +269,17 @@ export class Connector {
       .flatMap(({ value }) => value);
   }
 
-  async listAvailableApps(deviceId: string): Promise<App[]> {
-    const transport = await this.#findTransportWithDeviceId(deviceId);
+  async listAvailableApps(deviceId: string, options?: ListAvailableAppsOptions<TPlatform>): Promise<App[]> {
+    const transport = await this.#findTransportWithDeviceId(deviceId, options?.platform);
 
-    return await transport.listAvailableApps(deviceId);
+    return await transport.listAvailableApps(
+      deviceId,
+      options?.platform === undefined ? undefined : { platform: options.platform },
+    );
   }
 
-  async openApp(deviceId: string, packageName: string, options?: OpenAppOptions): Promise<string> {
-    const transport = await this.#findTransportWithDeviceId(deviceId);
+  async openApp(deviceId: string, packageName: string, options?: OpenAppOptions<TPlatform>): Promise<string> {
+    const transport = await this.#findTransportWithDeviceId(deviceId, options?.platform);
 
     await transport.openApp(deviceId, packageName, options);
 

@@ -9,6 +9,7 @@ import {
   type Connection,
   type Device,
   type OpenAppOptions,
+  Platform,
   requireNumericPort,
   type Transport,
   type TransportConnectOptions,
@@ -18,7 +19,7 @@ import { Usbmux } from "./usbmux.ts";
 const debug = createDebug("devtool-mcp-server:connector:ios");
 
 export class iOSTransport implements Transport {
-  readonly id = "ios";
+  readonly id: Platform = Platform.iOS;
   #client: Usbmux;
 
   constructor(options?: NetConnectOpts) {
@@ -83,7 +84,7 @@ export class iOSTransport implements Transport {
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  async openApp(_: string, __?: string, ___?: OpenAppOptions): Promise<void> {
+  async openApp(_: string, __?: string, ___?: OpenAppOptions<string>): Promise<void> {
     throw new Error("Not implemented");
   }
 }
