@@ -1,5 +1,23 @@
 # @lynx-js/devtool-connector
 
+## 0.19.2
+
+### Patch Changes
+
+- Use `pnpx` for one-shot agent-lynx commands in the documentation, bundled skills, and Connector CLI guidance. Use `npm_config_registry` for registry overrides so the examples work on pnpm 10 and 11.
+- Updated dependency `@rslib/core` to `^1.0.7`.
+- Updated dependency `ws` to `^8.23.0`.
+- Add daemon-managed Lynx Simulator commands and JSON/JavaScript page environments, with public runtime packages installed on first use.
+  
+  Support windowless device pixel ratio and visible-window background color options in `agent-lynx open`.
+  
+  Include the Lynx Simulator Skill, page-environment examples, and extension guides in the CLI and standalone Skill distribution.
+- Raise the `HDTTransport` output stream buffer `highWaterMark` so multi-chunk CDP bursts (such as `HeapProfiler.takeHeapSnapshot`) are not prematurely paused before the consumer drains them.
+- Recommend `agent-lynx wait-for-client` when `list-clients` or default target resolution finds no active clients.
+- Enable `TCP_NODELAY` (`setNoDelay(true)`) on `DesktopTransport` and `Usbmux` TCP sockets to avoid Nagle buffering delays on small Peertalk frames.
+- Remove the nonexistent `--refresh` flag from the `reactlynx link` component-not-found recovery hint.
+- Simplify `HDTTransport` client-list resolution, target routing, and registration hooks, and wait across transient `ClientList` reconnect gaps when resolving or routing to a stable `debugRouterId`.
+
 ## 0.19.1
 
 ### Patch Changes

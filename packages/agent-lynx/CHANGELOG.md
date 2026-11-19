@@ -1,5 +1,21 @@
 # agent-lynx
 
+## 0.15.2
+
+### Patch Changes
+
+- Use `pnpx` for one-shot agent-lynx commands in the documentation, bundled skills, and Connector CLI guidance. Use `npm_config_registry` for registry overrides so the examples work on pnpm 10 and 11.
+- Updated dependency `@rslib/core` to `^1.0.7`.
+- Add daemon-managed Lynx Simulator commands and JSON/JavaScript page environments, with public runtime packages installed on first use.
+  
+  Support windowless device pixel ratio and visible-window background color options in `agent-lynx open`.
+  
+  Include the Lynx Simulator Skill, page-environment examples, and extension guides in the CLI and standalone Skill distribution.
+- Support `--json` on `agent-lynx get-source-info` for both `@eN` refs and numeric `nodeId` targets.
+- Avoid sending redundant `Debugger.enable` requests during `get-console` so console capture and `--watch` streaming are not stalled by full script-parse bursts.
+- Updated dependencies
+  - @lynx-js/devtool-connector@0.19.2
+
 ## 0.15.1
 
 ### Patch Changes

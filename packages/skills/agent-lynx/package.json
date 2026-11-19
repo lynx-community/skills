@@ -1,6 +1,6 @@
 {
   "name": "@lynx-js/skill-agent-lynx",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "description": "Route Lynx development and diagnosis to live agent-lynx Skills and commands",
   "repository": {
     "type": "git",
