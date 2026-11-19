@@ -3,12 +3,19 @@ description: 'Lynx for your agent: the knowledge and tools to build, debug, and 
 ---
 
 import { AgentLynxArchitecture } from '../../../_ai/agent-lynx-architecture';
+import { AgentLynxSkills } from '../../../_ai/agent-lynx-skills';
 
 # agent-lynx
 
 [agent-lynx](https://github.com/lynx-community/skills/tree/main/packages/agent-lynx) — **Lynx for your agent**: the knowledge and tools to build, debug, and verify Lynx apps.
 
 It combines a CLI, a typed Connector API, and bundled skills. Agents can inspect and operate a running page, diagnose performance and memory issues, record page runtime state for replay, and use runtime feedback to verify code changes.
+
+## One CLI and Its Companion Skills
+
+The CLI provides commands; Skills describe how to use them for a task. The `agent-lynx` Skill routes the request to the relevant Skill. Select a command or Skill below to highlight its connections.
+
+<AgentLynxSkills locale="en" />
 
 ## How It Connects to Your App
 

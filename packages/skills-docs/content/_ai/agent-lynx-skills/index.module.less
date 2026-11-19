@@ -1,0 +1,269 @@
+// Copyright 2026 The Lynx Authors. All rights reserved.
+// Licensed under the Apache License Version 2.0 that can be found in the
+// LICENSE file in the root directory of this source tree.
+
+.figure {
+  --graph-blue: #6c95cd;
+  // Use the document shell's brand color, with purple for unthemed embeds.
+  --graph-accent: var(--rp-c-brand, #9471d5);
+  margin: 24px 0;
+  overflow: hidden;
+  border: 1px solid var(--rp-c-divider);
+  border-radius: 12px;
+  background: var(--rp-c-bg);
+  color: var(--rp-c-text-1);
+}
+.toolbar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px 16px;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--rp-c-divider);
+  color: var(--rp-c-text-2);
+  font-size: 11px;
+  line-height: 1.6;
+}
+.counts {
+  white-space: nowrap;
+}
+.counts strong {
+  color: var(--rp-c-text-1);
+  font-size: 13px;
+}
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+}
+.legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+.legend i {
+  display: inline-block;
+  width: 19px;
+  border-top: 2px solid;
+}
+.provides {
+  color: var(--rp-c-divider);
+}
+.uses {
+  color: var(--graph-blue);
+}
+.routes {
+  color: var(--graph-accent);
+}
+.controls {
+  display: flex;
+  gap: 4px;
+  margin-left: auto;
+}
+.controls button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 28px;
+  height: 28px;
+  padding: 0 7px;
+  border: 1px solid var(--rp-c-divider);
+  border-radius: 6px;
+  background: var(--rp-c-bg);
+  color: var(--rp-c-text-1);
+  font: inherit;
+  cursor: pointer;
+  &:hover {
+    background: var(--rp-c-bg-soft);
+  }
+  &:disabled {
+    opacity: 0.4;
+    cursor: default;
+  }
+  &:focus-visible {
+    outline: 2px solid var(--graph-accent);
+    outline-offset: 2px;
+  }
+}
+.diagram {
+  display: block;
+  width: 100%;
+  height: auto;
+  user-select: none;
+}
+.diagram text {
+  fill: var(--rp-c-text-1);
+}
+.eyebrow {
+  font-size: 20px;
+  font-weight: 600;
+}
+.diagram .gridCaption {
+  font-size: 14px;
+  fill: var(--rp-c-text-2);
+}
+.boundary {
+  fill: color-mix(in srgb, var(--graph-blue) 4%, var(--rp-c-bg));
+  stroke: color-mix(in srgb, var(--rp-c-text-2) 65%, transparent);
+  stroke-width: 2;
+  stroke-dasharray: 9 8;
+}
+.routeBoundary {
+  stroke: var(--graph-accent);
+}
+.cliLink {
+  fill: none;
+  stroke: color-mix(in srgb, var(--graph-blue) 40%, var(--rp-c-bg));
+  stroke-width: 1.5;
+}
+.edge {
+  fill: none;
+  stroke: var(--graph-blue);
+  stroke-width: 1.2;
+  opacity: 0.24;
+  pointer-events: none;
+}
+.edgeActive {
+  stroke-width: 2.6;
+  opacity: 0.9;
+}
+.edgeDim {
+  opacity: 0.045;
+}
+.node {
+  cursor: pointer;
+}
+.node:focus-visible, .port:focus-visible, .cli:focus-visible {
+  outline: 2px solid var(--graph-blue);
+  outline-offset: 3px;
+}
+.dim {
+  opacity: 0.15;
+}
+.cli {
+  cursor: pointer;
+}
+.cli rect {
+  fill: #152b43;
+}
+.cli .cliShadow {
+  fill: color-mix(in srgb, var(--graph-blue) 30%, var(--rp-c-bg));
+}
+.cli text {
+  fill: #fff;
+  font: 600 22px var(--rp-font-family-mono, monospace);
+}
+.cli .cliSubtitle {
+  fill: #b5c7db;
+  font: 16px var(--rp-font-family-base, sans-serif);
+}
+.command rect {
+  fill: var(--rp-c-bg);
+  stroke: color-mix(in srgb, var(--graph-blue) 45%, var(--rp-c-bg));
+  stroke-width: 1.25;
+}
+.command text {
+  font: 16px var(--rp-font-family-mono, monospace);
+}
+.command .commandCount {
+  fill: var(--rp-c-text-2);
+  font-size: 14px;
+}
+.face {
+  fill: var(--rp-c-bg);
+  stroke: color-mix(in srgb, var(--graph-blue) 70%, var(--rp-c-bg));
+  stroke-width: 1.5;
+}
+.depth {
+  fill: color-mix(in srgb, var(--graph-blue) 40%, var(--rp-c-bg));
+  stroke: var(--graph-blue);
+  stroke-width: 1;
+}
+.active .face, .command.active rect {
+  stroke: var(--graph-blue);
+  stroke-width: 2;
+}
+.command.active rect {
+  fill: color-mix(in srgb, var(--graph-blue) 10%, var(--rp-c-bg));
+}
+.skillName {
+  font: 600 19px var(--rp-font-family-mono, monospace);
+}
+.diagram .meta {
+  font-size: 14px;
+  fill: var(--rp-c-text-2);
+}
+.noCommands .face {
+  stroke: color-mix(in srgb, var(--graph-blue) 35%, var(--rp-c-bg));
+}
+.noCommands .depth {
+  fill: color-mix(in srgb, var(--graph-blue) 15%, var(--rp-c-bg));
+  stroke: color-mix(in srgb, var(--graph-blue) 35%, var(--rp-c-bg));
+}
+.noCommands .skillName {
+  fill: var(--rp-c-text-2);
+}
+.port {
+  cursor: pointer;
+}
+.port circle {
+  fill: var(--graph-blue);
+  stroke: var(--rp-c-bg);
+  stroke-width: 1;
+}
+.port text {
+  font: 15.5px var(--rp-font-family-mono, monospace);
+  fill: var(--rp-c-text-2);
+}
+.port:hover text, .port:focus-visible text {
+  fill: var(--rp-c-text-1);
+}
+.router .face {
+  fill: color-mix(in srgb, var(--graph-accent) 8%, var(--rp-c-bg));
+  stroke: var(--graph-accent);
+  stroke-width: 1.8;
+}
+.router .depth {
+  fill: color-mix(in srgb, var(--graph-accent) 35%, var(--rp-c-bg));
+  stroke: none;
+}
+.router .routerName {
+  font: 600 30px var(--rp-font-family-mono, monospace);
+  fill: var(--graph-accent);
+}
+.router .routerKicker {
+  font: 600 14px var(--rp-font-family-mono, monospace);
+  fill: var(--graph-accent);
+  letter-spacing: 1px;
+}
+.router .routerSubtitle {
+  font-size: 19px;
+  fill: var(--graph-accent);
+}
+.router .port circle {
+  fill: var(--graph-accent);
+}
+.route, .arrow {
+  fill: none;
+  stroke: var(--graph-accent);
+  stroke-width: 3;
+}
+.arrow {
+  stroke-width: 1.8;
+}
+.diagram .routeLabel {
+  fill: var(--graph-accent);
+  font-size: 21px;
+  font-weight: 600;
+}
+
+@media (max-width: 560px) {
+  .toolbar {
+    padding: 10px;
+    gap: 8px;
+  }
+  .legend {
+    order: 3;
+    flex-basis: 100%;
+  }
+}

@@ -1,0 +1,145 @@
+{
+  "edition": "public",
+  "catalog": {
+    "en": "lynx-community/skills · Agent Skills",
+    "zh": "lynx-community/skills · Agent Skills"
+  },
+  "skillBaseUrl": "https://github.com/lynx-community/skills/blob/release/skills/",
+  "commands": [
+    "skills",
+    "trace",
+    "recorder",
+    "tasm",
+    "list-clients",
+    "wait-for-client",
+    "list-sessions",
+    "open",
+    "snapshot",
+    "screenshot",
+    "tap/long-press/scroll",
+    "fill/clear",
+    "wait/get",
+    "get-source-info",
+    "get-console",
+    "evaluate",
+    "inspect",
+    "reactlynx",
+    "global-switch",
+    "app",
+    "daemon",
+    "cdp",
+    "get-sources",
+    "take-heap-snapshot"
+  ],
+  "skills": [
+    {
+      "name": "agent-lynx",
+      "commands": [
+        "skills"
+      ]
+    },
+    {
+      "name": "habitat-usage",
+      "commands": []
+    },
+    {
+      "name": "lynx-a2ui",
+      "commands": []
+    },
+    {
+      "name": "lynx-api-docs",
+      "commands": []
+    },
+    {
+      "name": "lynx-check-css-support",
+      "commands": []
+    },
+    {
+      "name": "lynx-debug-info-remapping",
+      "commands": []
+    },
+    {
+      "name": "lynx-devtool",
+      "commands": [
+        "skills",
+        "trace",
+        "tasm",
+        "list-clients",
+        "wait-for-client",
+        "list-sessions",
+        "open",
+        "snapshot",
+        "screenshot",
+        "tap/long-press/scroll",
+        "fill/clear",
+        "wait/get",
+        "get-source-info",
+        "get-console",
+        "evaluate",
+        "inspect",
+        "reactlynx",
+        "global-switch",
+        "app",
+        "daemon",
+        "cdp",
+        "get-sources",
+        "take-heap-snapshot"
+      ]
+    },
+    {
+      "name": "lynx-openui",
+      "commands": []
+    },
+    {
+      "name": "lynx-recorder",
+      "commands": [
+        "recorder"
+      ]
+    },
+    {
+      "name": "lynx-recorder-fixture",
+      "commands": [
+        "recorder",
+        "list-clients",
+        "open",
+        "screenshot"
+      ]
+    },
+    {
+      "name": "lynx-tasm-codec",
+      "commands": [
+        "tasm"
+      ]
+    },
+    {
+      "name": "lynx-trace-analysis",
+      "commands": []
+    },
+    {
+      "name": "lynx-trace-record",
+      "commands": [
+        "trace"
+      ]
+    },
+    {
+      "name": "lynx-typescript",
+      "commands": []
+    },
+    {
+      "name": "lynx-ui",
+      "commands": []
+    },
+    {
+      "name": "reactlynx-best-practices",
+      "commands": []
+    },
+    {
+      "name": "rspeedy-bundle-size",
+      "commands": []
+    },
+    {
+      "name": "vanilla-lynx",
+      "commands": []
+    }
+  ]
+}
