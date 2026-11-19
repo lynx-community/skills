@@ -266,14 +266,20 @@ export class Connector {
       .flatMap(({ value }) => value);
   }
 
-  async listAvailableApps(deviceId: string): Promise<App[]> {
-    const transport = await this.#findTransportWithDeviceId(deviceId);
+  async listAvailableApps(
+    deviceId: string,
+    options?: { transportId?: string | undefined },
+  ): Promise<App[]> {
+    const transport = await this.#findTransportWithDeviceId(deviceId, options?.transportId);
 
-    return await transport.listAvailableApps(deviceId);
+    return await transport.listAvailableApps(
+      deviceId,
+      options?.transportId === undefined ? undefined : { transportId: options.transportId },
+    );
   }
 
   async openApp(deviceId: string, packageName: string, options?: OpenAppOptions): Promise<string> {
-    const transport = await this.#findTransportWithDeviceId(deviceId);
+    const transport = await this.#findTransportWithDeviceId(deviceId, options?.transportId);
 
     await transport.openApp(deviceId, packageName, options);
 
