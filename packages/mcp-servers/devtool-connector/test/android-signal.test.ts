@@ -388,10 +388,17 @@ test("Android connect waits for the ADB device before creating the socket", asyn
 test("Android openApp falls through to createAdb when waitFor times out on a missing device", async (t) => {
   const timeoutController = new AbortController();
   const originalTimeout = AbortSignal.timeout.bind(AbortSignal);
+  let requestedTimeoutMs: number | undefined;
   t.mock.method(
     AbortSignal,
     "timeout",
-    (delay: number) => delay === 3_000 ? timeoutController.signal : originalTimeout(delay),
+    (delay: number) => {
+      if (delay === 8_000) {
+        requestedTimeoutMs = delay;
+        return timeoutController.signal;
+      }
+      return originalTimeout(delay);
+    },
   );
 
   const transport = new AndroidTransport();
@@ -414,6 +421,7 @@ test("Android openApp falls through to createAdb when waitFor times out on a mis
       message: "device 'foo.bar' not found",
     },
   );
+  assert.equal(requestedTimeoutMs, 8_000);
 });
 
 test("Android direct discovery and request disposal succeed over AdbServerNodeJsClient", async () => {
