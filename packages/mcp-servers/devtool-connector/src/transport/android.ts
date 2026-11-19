@@ -23,7 +23,6 @@ const debug = createDebug("devtool-mcp-server:connector:android");
 const APP_ICON_HELPER_REMOTE_PATH = "/data/local/tmp/lynx-connector-app-icon-v1.jar";
 const PNG_SIGNATURE = [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a] as const;
 const SOCKET_GRACEFUL_CLOSE_TIMEOUT_MS = 100;
-const WAIT_FOR_DEVICE_TIMEOUT_MS = 3_000;
 
 function spawnWaitText(adb: Adb, command: string | readonly string[]): Promise<string> {
   return adb.subprocess.noneProtocol.spawn(command).wait().toString();
@@ -62,18 +61,7 @@ export class AndroidTransport implements Transport {
     debug("Android transport closed");
   }
 
-  async #waitForDevice(deviceId: string, signal?: AbortSignal): Promise<void> {
-    const timeoutSignal = AbortSignal.timeout(WAIT_FOR_DEVICE_TIMEOUT_MS);
-    const waitSignal = signal ? AbortSignal.any([signal, timeoutSignal]) : timeoutSignal;
-    try {
-      await this.client.waitFor({ serial: deviceId }, "device", { signal: waitSignal });
-    } catch (err) {
-      if (!timeoutSignal.aborted || signal?.aborted) throw err;
-    }
-  }
-
-  async #withAdb<T>(deviceId: string, signal: AbortSignal | undefined, fn: (adb: Adb) => Promise<T>): Promise<T> {
-    await this.#waitForDevice(deviceId, signal);
+  async #withAdb<T>(deviceId: string, fn: (adb: Adb) => Promise<T>): Promise<T> {
     const adb = await this.client.createAdb({ serial: deviceId });
     try {
       return await fn(adb);
@@ -91,7 +79,6 @@ export class AndroidTransport implements Transport {
     const closeController = new AbortController();
     const socketSignal = signal ? AbortSignal.any([signal, closeController.signal]) : closeController.signal;
 
-    await this.#waitForDevice(deviceId, socketSignal);
     const socket = await this.client.createDeviceConnection(
       { serial: deviceId },
       service,
@@ -143,7 +130,7 @@ export class AndroidTransport implements Transport {
   }
 
   async listAvailableApps(deviceId: string): Promise<App[]> {
-    return this.#withAdb(deviceId, undefined, async (adb) => {
+    return this.#withAdb(deviceId, async (adb) => {
       const output = await spawnWaitText(adb, ["pm", "list", "packages", "-3"]);
       return output
         .split("\n")
@@ -161,7 +148,7 @@ export class AndroidTransport implements Transport {
       throw new TypeError(`Invalid Android package name: ${packageName}`);
     }
 
-    return this.#withAdb(deviceId, undefined, async (adb) => {
+    return this.#withAdb(deviceId, async (adb) => {
       let deployment = this.#appIconHelperDeployments.get(deviceId);
       if (!deployment) {
         deployment = adb.sync.write({
@@ -200,9 +187,9 @@ export class AndroidTransport implements Transport {
   async openApp(
     deviceId: string,
     packageName: string,
-    { withDataCleared, schema, restart = true, signal }: OpenAppOptions = {},
+    { withDataCleared, schema, restart = true }: OpenAppOptions = {},
   ): Promise<void> {
-    await this.#withAdb(deviceId, signal, async (adb) => {
+    await this.#withAdb(deviceId, async (adb) => {
       const pmOutput = await spawnWaitText(adb, ["pm", "list", "packages", packageName]);
       if (!pmOutput.split("\n").some(line => line.trim() === `package:${packageName}`)) {
         throw new Error(`package ${packageName} not found`);
