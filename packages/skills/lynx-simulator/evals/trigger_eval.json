@@ -1,0 +1,13 @@
+[
+  { "query": "在本机打开 ./dist/main.lynx.bundle，mock 用户信息并截张图。", "should_trigger": true },
+  {
+    "query": "帮我编写 page-env.mjs，异步提供初始数据、globalProps 和 JSB mock；只交付文件，不用启动页面。",
+    "should_trigger": true
+  },
+  { "query": "启动一个 390x844 的 windowless Lynx Simulator，保留进程给我调试。", "should_trigger": true },
+  { "query": "把 Recorder fixture 整理为带 page-env 的可编辑 Lynx Simulator 用例。", "should_trigger": true },
+  { "query": "只解码这个 Recorder fixture，看看接口返回，不需要启动模拟器。", "should_trigger": false },
+  { "query": "查看已连接安卓手机上 Lynx 页面的 console 日志。", "should_trigger": false },
+  { "query": "帮我租一台云端 iPhone，打开测试应用。", "should_trigger": false },
+  { "query": "启动 Xcode 的 iOS Simulator 测试 Swift 应用。", "should_trigger": false }
+]

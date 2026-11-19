@@ -8,11 +8,14 @@ import { createDebug } from "obug";
 import { type WebSocket, WebSocketServer } from "ws";
 import { throwClientDiscoveryFailures } from "../client-discovery-errors.ts";
 import { ClientId, type ClientTarget } from "../client-id.ts";
+import type { CommandObject } from "../command/contract.ts";
 import { ActionCore } from "../command/core.ts";
 import { decodeCommandQuery } from "../command/query.ts";
+import { type CommandResult, fail, ok } from "../command/result.ts";
 import { Connector } from "../index.ts";
 import { DaemonTransport } from "../transport/daemon.ts";
 import { HDTTransport } from "../transport/hdt.ts";
+import { LynxSimulatorTransport } from "../transport/simulator.ts";
 import { type Device, type Transport, withTransports } from "../transport/transport.ts";
 import { DeviceConnection, type DeviceConnectionSubscriber } from "./device-connection.ts";
 import {
@@ -434,18 +437,57 @@ export class DevtoolDaemon {
         return;
       }
 
-      const result = await this.actionCore.execute(
-        action,
-        params,
-        { connector: this.#requireCommandConnector() },
-        controller.signal,
-      );
+      const result = await this.#executeCommand(action, params, controller.signal);
       if (!controller.signal.aborted && !res.destroyed) this.#sendJson(res, 200, result);
     } finally {
       req.off("aborted", onDisconnect);
       res.off("close", onDisconnect);
       this.#commandControllers.delete(controller);
       if (controller.signal.aborted && !res.destroyed && !res.writableEnded) res.destroy();
+    }
+  }
+
+  async #executeCommand(action: string, params: CommandObject, signal: AbortSignal): Promise<CommandResult> {
+    const context = { connector: this.#requireCommandConnector() };
+    if (!action.startsWith("simulator-")) return this.actionCore.execute(action, params, context, signal);
+    try {
+      const simulator = this.#transports.find(transport => transport instanceof LynxSimulatorTransport);
+      if (!simulator) throw new Error("Lynx Simulator transport is unavailable.");
+      const clientId = typeof params["clientId"] === "string" ? params["clientId"] : "";
+      switch (action) {
+        case "simulator-run":
+          return ok(
+            action,
+            await simulator.run(context.connector, signal, params["ttlMs"] as number | undefined, {
+              jsb: params["jsb"],
+              nativeExtensions: params["nativeExtensions"],
+              lynxtronVersion: params["lynxtronVersion"],
+            }),
+          );
+        case "simulator-list":
+          return ok(action, simulator.list());
+        case "simulator-get": {
+          const info = simulator.get(clientId);
+          let sessionsError: string | undefined;
+          const sessions = info.status === "running"
+            ? await context.connector.sendListSessionMessage(clientId).catch((error: unknown) => {
+              sessionsError = error instanceof Error ? error.message : String(error);
+              return [];
+            })
+            : [];
+          return ok(action, { ...simulator.get(clientId), sessions, ...(sessionsError ? { sessionsError } : {}) });
+        }
+        case "simulator-logs":
+          return ok(action, await simulator.logs(clientId, params["offset"] as number | undefined));
+        case "simulator-wait":
+          return ok(action, await simulator.wait(clientId, params["timeoutMs"] as number, signal));
+        case "simulator-stop":
+          return ok(action, await simulator.stop(clientId));
+        default:
+          throw new Error(`Unknown Lynx Simulator action: ${action}`);
+      }
+    } catch (error) {
+      return fail(action, error instanceof Error ? error.message : String(error));
     }
   }
 

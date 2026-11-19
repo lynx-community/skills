@@ -42,6 +42,7 @@ import {
   registerReactLynxCommand,
   registerScreenshotCommand,
   registerScrollCommand,
+  registerSimulatorCommand,
   registerSkillsCommand,
   type RegisterSkillsCommandOptions,
   registerSnapshotCommand,
@@ -158,6 +159,7 @@ Examples:
             + 'Retry with network access and without CODEX_SANDBOX_NETWORK_DISABLED=1.',
         );
       }
+      if (isCommandAction(actionCommand, 'simulator')) return;
       if (thisCommand.opts<{ daemon?: boolean; }>().daemon !== false) {
         const ignored = [
           'ADB_SERVER_SOCKET',
@@ -193,7 +195,8 @@ Examples:
     })
     .hook('postAction', (_thisCommand, actionCommand) => {
       if (
-        isCommandAction(actionCommand, 'skills')
+        isCommandAction(actionCommand, 'simulator')
+        || isCommandAction(actionCommand, 'skills')
         || isCommandAction(actionCommand, 'tasm')
         || isCommandAction(actionCommand, 'daemon')
         || isOfflineTraceAction(actionCommand)
@@ -238,5 +241,6 @@ Examples:
   registerEndCommand(record, context);
   program.commandsGroup('Local Daemon:');
   registerDaemonCommand(program, options.daemonCommand);
+  registerSimulatorCommand(program);
   return program;
 }

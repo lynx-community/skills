@@ -52,7 +52,8 @@
     "public"
   ],
   "scripts": {
-    "build": "rslib build",
+    "build": "pnpm run build:simulator && rslib build",
+    "build:simulator": "node scripts/simulator/build.mjs",
     "test": "node --test --test-concurrency=1 \"test/**/*.test.ts\"",
     "test:e2e": "node --test --test-concurrency=1 'e2e/**/*.test.ts'",
     "test:e2e:public": "node --test --test-concurrency=1 'e2e/public/**/*.test.ts'",
@@ -70,6 +71,7 @@
     "@types/ws": "^8.18.2",
     "@yume-chan/adb-server-node-tcp": "catalog:adb",
     "@yume-chan/stream-extra": "catalog:adb",
+    "@zigc/cli": "0.17.0",
     "dprint": "^0.64.3",
     "jpeg-js": "^0.4.4",
     "obug": "^2.2.1",

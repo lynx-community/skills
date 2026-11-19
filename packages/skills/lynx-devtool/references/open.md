@@ -11,6 +11,14 @@ agent-lynx open <url> [--client <clientId>]
 - `<url>`: Target URL to open.
 - `-c, --client <clientId>`: Target client ID. Defaults to the first available client when omitted.
 
+For Lynx Simulator bundles, page environments, and window dimensions, use the
+`lynx-simulator` Skill (`agent-lynx skills get lynx-simulator`). `open` accepts
+`--page-env <path-or-url>`, `--simulator-window-width <pixels>`,
+`--simulator-window-height <pixels>`, and `--simulator-windowless` for these clients.
+
+- `--simulator-dpr <factor>` sets the device pixel ratio in windowless mode. It accepts a positive finite number.
+- `--simulator-window-background-color <color>` sets the macOS window background behind transparent page areas, for example `'#f5f5f5'`. Windowless mode ignores this option.
+
 ## Output
 
 Prints the `SessionList` response as JSON. Refresh `list-sessions` if you need the newly created session ID for follow-up commands.

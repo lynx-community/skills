@@ -1,0 +1,16 @@
+{
+  "name": "@example/simulator-host-elements",
+  "version": "0.1.0",
+  "description": "Example loader for a compiled Lynxtron Extension Module",
+  "exports": {
+    ".": "./index.cjs"
+  },
+  "main": "./index.cjs",
+  "files": ["index.cjs", "prebuilds/**/*.node"],
+  "peerDependencies": {
+    "@lynx-js/lynxtron": "0.0.31"
+  },
+  "engines": {
+    "node": ">=22.18.0"
+  }
+}

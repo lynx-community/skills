@@ -1,0 +1,10 @@
+{
+  // Preserve the shared examples' source formatting in both distributions.
+  "typescript": {},
+  "json": { "packageJson.applyConventions": true },
+  "includes": ["**/*.{mjs,cjs,json,jsonc}"],
+  "plugins": [
+    "npm:@dprint/typescript@0.101.0",
+    "npm:@dprint/json@0.25.2",
+  ],
+}

@@ -6,7 +6,11 @@
     "build": {
       "dependsOn": ["^build"],
       "inputs": ["$TURBO_DEFAULT$", "$TURBO_ROOT$/tsconfig.json"],
-      "outputs": ["dist/**"],
+      "outputs": ["dist/**", "public/simulator/*.so", "public/simulator/*.dylib"],
+    },
+    "build:simulator": {
+      "inputs": ["package.json", "scripts/simulator/**"],
+      "outputs": ["public/simulator/*.so", "public/simulator/*.dylib"],
     },
   },
 }

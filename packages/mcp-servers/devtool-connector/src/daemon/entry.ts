@@ -9,6 +9,7 @@ import { AndroidTransport } from "../transport/android.ts";
 import { DesktopTransport } from "../transport/desktop.ts";
 import { HDTTransport } from "../transport/hdt.ts";
 import { iOSTransport } from "../transport/ios.ts";
+import { LynxSimulatorTransport } from "../transport/simulator.ts";
 import { DEFAULT_DAEMON_PORT } from "./manager.ts";
 import { DevtoolDaemon } from "./server.ts";
 
@@ -30,6 +31,7 @@ const daemon = new DevtoolDaemon(
     new iOSTransport(),
     new DesktopTransport(),
     ...HDTTransport.createTransports(),
+    new LynxSimulatorTransport(),
   ],
   {
     onIdle: () => {
