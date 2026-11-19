@@ -425,12 +425,22 @@ export function AgentLynxSkills({ locale = 'en' }: { locale?: 'en' | 'zh'; }) {
             aria-label={`${card.name}: ${card.commands.length} ${copy.commands}`}
             aria-pressed={pressed('skill', card.name)}
           >
-            <rect
-              x={card.x + card.depth}
-              y={card.y + card.depth}
-              width={card.width}
-              height={card.height}
-              rx={10}
+            {/* Preserve the side-face outline from the original Python diagram. */}
+            <path
+              d={`M ${card.x + card.width} ${card.y + 8}
+                L ${card.x + card.width + card.depth} ${card.y + 8 + card.depth}
+                V ${card.y + card.height + card.depth - 8}
+                Q ${card.x + card.width + card.depth} ${
+                  card.y + card.height + card.depth
+                }
+                  ${card.x + card.width + card.depth - 8} ${
+                    card.y + card.height + card.depth
+                  }
+                H ${card.x + 10 + card.depth}
+                L ${card.x + 10} ${card.y + card.height}
+                H ${card.x + card.width - 8}
+                Q ${card.x + card.width} ${card.y + card.height}
+                  ${card.x + card.width} ${card.y + card.height - 8} Z`}
               className={styles.depth}
             />
             <rect
