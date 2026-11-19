@@ -1,6 +1,6 @@
 {
   "name": "agent-lynx",
-  "version": "0.15.1",
+  "version": "0.15.2",
   "description": "Agent-friendly Lynx DevTool CLI for inspecting and operating Lynx applications.",
   "repository": {
     "type": "git",

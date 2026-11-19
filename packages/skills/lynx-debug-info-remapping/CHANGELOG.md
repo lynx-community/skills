@@ -1,5 +1,11 @@
 # @lynx-js/skill-debug-info-remapping
 
+## 0.0.5
+
+### Patch Changes
+
+- Run the debug-info remapping script from the installed Skill directory and include the Skill's Apache-2.0 license in its package.
+
 ## 0.0.4
 
 ### Patch Changes

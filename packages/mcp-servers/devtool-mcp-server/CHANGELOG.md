@@ -1,5 +1,13 @@
 # @lynx-js/devtool-mcp-server
 
+## 0.17.2
+
+### Patch Changes
+
+- Updated dependency `@rslib/core` to `^1.0.7`.
+- Updated dependencies
+  - @lynx-js/devtool-connector@0.19.2
+
 ## 0.17.1
 
 ### Patch Changes

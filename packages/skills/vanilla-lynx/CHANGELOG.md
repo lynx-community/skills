@@ -1,5 +1,15 @@
 # @lynx-js/skill-vanilla-lynx
 
+## 0.2.3
+
+### Patch Changes
+
+- Updated dependency `@rslib/core` to `^1.0.7`.
+- Document initial `lynx.__globalProps` reads and `__UpdateGlobalProps` engine lifecycle handling in `vanilla-lynx`, and add `.lynxml` static-validator hints for bare `__globalProps` and `updateGlobalProps`.
+- Upstream `.lynxml` template authoring and runtime-validation guidance into `@lynx-js/skill-vanilla-lynx` (`SKILL.md`), declare `Apache-2.0` package license metadata, and shrink internal `vanilla-lynx` overlay replacements to internal-only Canvas and package mappings.
+- Align `vanilla-lynx` external-bundle Rslib guidance with `@lynx-js/lynx-bundle-rslib-config` (`pluginLynx()` + exported `LAYERS`), add missing Rspeedy TypeScript declarations (`tsconfig.json` and `rspeedy-env.d.ts`), and prevent partial main-thread updates from resetting existing state fields.
+- Streamline `vanilla-lynx` reference docs by compacting repetitive Element PAPI parameter tables, deduplicating cross-thread bridge prose across `main-thread.md` and `event.md`, unifying app event names, and clarifying hit-testing and companion CSS skill routing in `style.md`.
+
 ## 0.2.2
 
 ### Patch Changes

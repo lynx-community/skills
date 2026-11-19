@@ -1,5 +1,17 @@
 # @lynx-js/skill-lynx-devtool
 
+## 0.15.2
+
+### Patch Changes
+
+- Use `pnpx` for one-shot agent-lynx commands in the documentation, bundled skills, and Connector CLI guidance. Use `npm_config_registry` for registry overrides so the examples work on pnpm 10 and 11.
+- Add daemon-managed Lynx Simulator commands and JSON/JavaScript page environments, with public runtime packages installed on first use.
+  
+  Support windowless device pixel ratio and visible-window background color options in `agent-lynx open`.
+  
+  Include the Lynx Simulator Skill, page-environment examples, and extension guides in the CLI and standalone Skill distribution.
+- Split `lynx-devtool` command references into per-subcommand `.md` files for progressive disclosure and align command and CDP workflow guidance.
+
 ## 0.15.1
 
 No changes in this release.
