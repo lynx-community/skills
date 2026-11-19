@@ -31,6 +31,9 @@ const SOCKET_GRACEFUL_CLOSE_TIMEOUT_MS = 100;
 // as well as a 5_000ms upstream relay dial/DNS timeout, whereas 3_000ms missed
 // even the second reconnect attempt (+3_250ms).
 const WAIT_FOR_DEVICE_TIMEOUT_MS = 8_000;
+// An ADB handshake can fail with these reasons when a TCP-backed transport
+// dropped between `waitFor` resolving and the host switching to the device.
+const TRANSIENT_ADB_DISCONNECT = /^(?:closed|device offline|device '.*' not found)$/iu;
 
 interface PendingDeviceWait {
   readonly controller: AbortController;
@@ -41,6 +44,12 @@ interface PendingDeviceWait {
 
 function spawnWaitText(adb: Adb, command: string | readonly string[]): Promise<string> {
   return adb.subprocess.noneProtocol.spawn(command).wait().toString();
+}
+
+function isTransientAdbDisconnect(error: unknown): boolean {
+  const message = error instanceof Error ? error.message.trim() : String(error).trim();
+  return (error as NodeJS.ErrnoException | null)?.code === "closed"
+    || TRANSIENT_ADB_DISCONNECT.test(message);
 }
 
 export interface AppIcon {
@@ -158,7 +167,14 @@ export class AndroidTransport implements Transport {
       { serial: deviceId },
       service,
       { signal: socketSignal },
-    );
+    )
+      // No bytes have been exchanged yet, so retry once after the device
+      // reconnects. Port-level refusals (`cannot connect`) are not retried.
+      .catch(async (error: unknown) => {
+        if (!isTransientAdbDisconnect(error) || socketSignal.aborted) throw error;
+        await this.#waitForDevice(deviceId, socketSignal);
+        return this.client.createDeviceConnection({ serial: deviceId }, service, { signal: socketSignal });
+      });
 
     const socketClosed = Promise.resolve(socket.closed).catch(() => {});
     let closePromise: Promise<void> | undefined;
