@@ -1,0 +1,2161 @@
+/* Copyright 2026 The Lynx Authors. All rights reserved.
+ * Licensed under the Apache License Version 2.0 that can be found in the
+ * LICENSE file in the root directory of this source tree. */
+
+.demo {
+  color-scheme: light;
+  --ink: #302d33;
+  --muted: #99929b;
+  --line: #e7e4e8;
+  --accent: #e47f67;
+  --tint: #fff8f5;
+  --mono:
+    ui-monospace,
+    "SFMono-Regular",
+    Consolas,
+    "Liberation Mono",
+    monospace;
+}
+.demo :global(*) {
+  box-sizing: border-box;
+}
+.demo {
+  width: 100%;
+  max-width: 100%;
+  margin: 0;
+  background: #fff;
+}
+.demo {
+  font-family:
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    "PingFang SC",
+    "Microsoft YaHei",
+    "Noto Sans CJK SC",
+    sans-serif;
+  color: var(--ink);
+  -webkit-font-smoothing: antialiased;
+  font-size: 13px;
+}
+.demo :global(button) {
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  background: none;
+  border: 0;
+  padding: 0;
+}
+.demo :global(button:focus-visible) {
+  outline: 2px solid #d98e76;
+  outline-offset: 3px;
+}
+.demo :global(svg) {
+  display: block;
+  flex: none;
+}
+.demo :global(svg.icon) {
+  width: 16px;
+  height: 16px;
+  stroke-width: 1.7;
+}
+.demo :global(button svg) {
+  pointer-events: none;
+}
+.demo :global([hidden]) {
+  display: none !important;
+}
+.demo :global(pre),
+.demo :global(p) {
+  margin: 0;
+}
+/* Code in the illustration uses editor styling, not the site's inline-code pills. */
+.demo :global(.code-line code),
+.demo :global(.agent-report code) {
+  padding: 0;
+  margin: 0;
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+}
+.demo :global(#simulator-demo) {
+  --conversation-font-size: 12px;
+  width: 100%;
+  max-width: 1320px;
+  margin: 0 auto;
+  padding: 14px 16px 12px;
+}
+.demo :global(.workspace) {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1.12fr) minmax(0, 1fr);
+  column-gap: 32px;
+  align-items: start;
+  min-height: 580px;
+}
+.demo :global(.conversation) {
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: #fff;
+  min-width: 0;
+  position: relative;
+  z-index: 2;
+  min-height: 560px;
+}
+.demo :global(.conv-header) {
+  height: 39px;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  border-bottom: 1px solid var(--line);
+  padding: 0 17px;
+  font-size: 13px;
+  font-weight: 550;
+}
+.demo :global(.conv-header .icon) {
+  width: 17px;
+  height: 17px;
+}
+.demo :global(.conv-meta) {
+  margin-left: 3px;
+  padding-left: 11px;
+  border-left: 1px solid #dedade;
+  font-size: 11px;
+  color: var(--muted);
+  font-weight: 400;
+}
+.demo :global(.conversation-body) {
+  padding: 13px 15px 14px;
+}
+.demo :global(.user-bubble) {
+  width: fit-content;
+  max-width: calc(100% - 31px);
+  margin: 0 0 var(--bubble-gap) auto;
+  padding: 8px 12px 9px;
+  background: #f5f4f5;
+  border-radius: 12px 12px 3px 12px;
+  font-size: var(--conversation-font-size);
+  line-height: 1.55;
+}
+.demo :global(.speaker) {
+  display: block;
+  font-size: 10px;
+  color: #928c95;
+  margin-bottom: 3px;
+}
+.demo :global(.agent-line) {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  height: 25px;
+  margin: 0 0 var(--agent-gap);
+  font-size: 13px;
+  font-weight: 600;
+}
+.demo :global(.agent-mark) {
+  display: grid;
+  place-items: center;
+  width: 25px;
+  height: 25px;
+  border: 1px solid #f0c4b8;
+  border-radius: 7px;
+  background: #fff9f6;
+  color: #df755f;
+}
+.demo :global(.agent-mark .icon) {
+  width: 17px;
+  height: 17px;
+  stroke-width: 1.8;
+}
+.demo :global(.exchange + .exchange) {
+  margin-top: var(--exchange-gap);
+}
+.demo :global(.assistant-prose) {
+  margin: 0 0 var(--prose-gap);
+  font-family: inherit;
+  font-size: var(--conversation-font-size);
+  font-weight: 400;
+  line-height: 1.55;
+  color: var(--ink);
+}
+.demo :global(.call) {
+  border: 1px solid transparent;
+  border-radius: 8px;
+  transition: background 0.15s, border-color 0.15s;
+}
+.demo :global(.call.active) {
+  border-color: #f0c4b8;
+  background: #fff9f6;
+}
+.demo :global(.call-select) {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  width: 100%;
+  min-height: 30px;
+  padding: 5px 8px;
+  text-align: left;
+  border-radius: 7px;
+}
+.demo :global(.call-select > .icon:first-child) {
+  width: 15px;
+  height: 15px;
+  color: #928891;
+}
+.demo :global(.command-label) {
+  font: 11.5px/1.45 var(--mono);
+  white-space: nowrap;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.demo :global(.natural-label) {
+  font-family: inherit;
+  font-size: 12px;
+}
+.demo :global(.call-check) {
+  color: #8b9b92;
+  margin-left: auto;
+}
+.demo :global(.call-check .icon) {
+  width: 13px;
+  height: 13px;
+}
+.demo :global(.call-select .chevron) {
+  width: 12px;
+  height: 12px;
+  color: #a99da6;
+  transition: transform 0.15s;
+}
+.demo :global(.call.active .chevron) {
+  transform: rotate(90deg);
+  color: #dc826a;
+}
+.demo :global(.call-content) {
+  padding: 2px 10px 9px 32px;
+}
+.demo :global(.command-box) {
+  font: 10.5px/1.8 var(--mono);
+  color: #625768;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.demo :global(.comment) {
+  color: #9d909d;
+}
+.demo :global(.keyword) {
+  font: inherit;
+  border-bottom: 1px dotted #d5a592;
+  line-height: inherit;
+  border-radius: 2px;
+  color: inherit;
+}
+.demo :global(.keyword:hover),
+.demo :global(.keyword.focused) {
+  color: #b75e44;
+  background: #fceadf;
+}
+.demo :global(.scene-values) {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 5px;
+  font: 10.5px/1.7 var(--mono);
+  color: #9a8290;
+}
+.demo :global(.scene-values small) {
+  font: 10px/1.7 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  color: #aa9ca5;
+}
+.demo :global(.read-list) {
+  display: grid;
+  gap: var(--read-gap);
+}
+.demo :global(.read-tool) {
+  display: flex;
+  gap: 9px;
+  align-items: center;
+  min-height: var(--read-height);
+  padding: var(--read-padding) 4px;
+  border-radius: 4px;
+  text-align: left;
+  font: 10.5px/1.6 var(--mono);
+  width: 100%;
+}
+.demo :global(.read-tool b) {
+  font: 500 10px/1.6 var(--mono);
+  color: #8c727e;
+  width: 32px;
+  flex: none;
+}
+.demo :global(.tool-path) {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: #8a7c8d;
+}
+.demo :global(.read-tool:hover),
+.demo :global(.read-tool.focused) {
+  background: #fcece4;
+}
+.demo :global(.read-tool .icon) {
+  width: 12px;
+  height: 12px;
+  color: #b6a5ae;
+  margin-left: auto;
+}
+.demo :global(.agent-report) {
+  margin: var(--report-gap) 0 0;
+  font-family: inherit;
+  font-size: var(--conversation-font-size);
+  font-weight: 400;
+  line-height: 1.55;
+  color: var(--ink);
+}
+.demo :global(.agent-report strong) {
+  font-weight: 600;
+  white-space: nowrap;
+}
+.demo :global(.agent-report code) {
+  font: 11px var(--mono);
+  white-space: nowrap;
+  color: #635568;
+}
+.demo :global(.detail) {
+  min-width: 0;
+  position: relative;
+  padding-top: 3px;
+}
+.demo :global(.detail-header) {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  height: 33px;
+  padding: 0 2px 8px;
+  color: #867b89;
+  font-size: 12px;
+}
+.demo :global(.detail-index) {
+  font: 9px var(--mono);
+  color: #b0a5b1;
+}
+.demo :global(.scene) {
+  position: relative;
+  min-height: 535px;
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+}
+.demo :global(.scene-open) {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 1px 0 0;
+}
+.demo :global(.page-window) {
+  width: 252px;
+  background: #fff;
+  border: 1px solid #d5d3d6;
+  border-radius: 13px;
+  overflow: clip;
+  box-shadow: 0 4px 14px #21182312;
+  isolation: isolate;
+  flex: none;
+}
+.demo :global(.window-bar) {
+  height: 24px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 7px;
+  background: #fff;
+  border-bottom: 1px solid #dedde0;
+}
+.demo :global(.traffic) {
+  display: flex;
+  gap: 5px;
+  align-items: center;
+}
+.demo :global(.traffic span) {
+  width: 8px;
+  height: 8px;
+  background: #dedede;
+  border: 1px solid #d4d4d4;
+  border-radius: 50%;
+}
+.demo :global(.window-title) {
+  font-size: 9px;
+  font-weight: 650;
+  color: #b3b3b3;
+  white-space: nowrap;
+}
+.demo :global(.page-screen) {
+  width: 100%;
+  aspect-ratio: var(--page-ratio);
+  position: relative;
+  overflow: clip;
+  background: #050605;
+}
+.demo :global(.page-image) {
+  display: block;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: auto;
+  max-width: none;
+  pointer-events: none;
+  user-select: none;
+}
+.demo :global(.page-spot) {
+  position: absolute;
+  box-sizing: border-box;
+  border: 1.5px solid #eda78e;
+  opacity: 0;
+  pointer-events: none;
+  z-index: 2;
+  transition: opacity 0.15s;
+}
+.demo :global(.page-spot.linked) {
+  opacity: 1;
+}
+.demo :global(.page-spot.focused) {
+  border-color: #e9987b;
+  box-shadow: 0 0 0 2px #efa68d22;
+}
+.demo :global(.page-spot.score) {
+  left: var(--score-left);
+  top: var(--score-top);
+  width: var(--score-width);
+  height: var(--score-height);
+  border-radius: 999px;
+}
+.demo :global(.page-spot.progress) {
+  left: var(--progress-left);
+  top: var(--progress-top);
+  width: var(--progress-width);
+  height: var(--progress-height);
+  border-radius: 5px;
+}
+.demo :global(.scene-dock) {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding-top: 185px;
+}
+.demo :global(.dock) {
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  gap: 11px;
+  padding: 13px 15px 20px;
+  border: 1px solid #dddce1;
+  border-radius: 20px;
+  background: #f4f4f6;
+  box-shadow: 0 8px 18px #26232c0a;
+}
+.demo :global(.app-placeholder) {
+  width: 43px;
+  height: 43px;
+  border-radius: 11px;
+  display: grid;
+  place-items: center;
+  background: #e2e2e7;
+  border: 1px solid #d7d7de;
+  color: #b8b8c2;
+}
+.demo :global(.app-placeholder:nth-child(2)) {
+  background: #e8e8ec;
+  color: #bfc0c8;
+}
+.demo :global(.app-placeholder:nth-child(3)) {
+  background: #dedee5;
+  color: #b2b2bf;
+}
+.demo :global(.app-placeholder .icon) {
+  width: 22px;
+  height: 22px;
+  stroke-width: 1.4;
+  opacity: 0.7;
+}
+.demo :global(.runtime-wrap) {
+  position: relative;
+  padding: 0 2px;
+  margin-left: 4px;
+}
+.demo :global(.runtime-icon) {
+  width: 62px;
+  height: 62px;
+  border-radius: 16px;
+  background-image: var(--runtime-image, none);
+  background-size: 78% 78%;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-color: #dedddd;
+  box-shadow: 0 3px 7px #2222;
+}
+.demo :global(.runtime-wrap:after) {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: -12px;
+  width: 5px;
+  height: 5px;
+  background: #5d5b65;
+  border-radius: 50%;
+  transform: translateX(-50%);
+}
+.demo :global(.dock-tip) {
+  position: absolute;
+  bottom: 82px;
+  left: 50%;
+  transform: translateX(-50%);
+  white-space: nowrap;
+  padding: 7px 11px;
+  font-size: 12px;
+  font-weight: 500;
+  color: #52505a;
+  background: #f1f1f4;
+  border: 1px solid #dedde3;
+  border-radius: 9px;
+  box-shadow: 0 3px 6px #33333305;
+}
+.demo :global(.dock-tip:after) {
+  content: "";
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  bottom: -5px;
+  left: calc(50% - 4px);
+  background: #f1f1f4;
+  border-right: 1px solid #dedde3;
+  border-bottom: 1px solid #dedde3;
+  transform: rotate(45deg);
+}
+.demo :global(.scene-editor) {
+  padding: 20px 8px 0;
+}
+.demo :global(.editor-heading) {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 0 4px 14px;
+  color: #84798a;
+  font: 10px var(--mono);
+}
+.demo :global(.editor-heading strong) {
+  font-weight: 500;
+  font-size: 11px;
+}
+.demo :global(.branch) {
+  color: #b3a7b6;
+  font-size: 9px;
+}
+.demo :global(.file-tree) {
+  font: 11px/1.6 var(--mono);
+  color: #807387;
+}
+.demo :global(.file-row) {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 26px;
+  position: relative;
+  padding: 3px 6px;
+  border-radius: 5px;
+  text-align: left;
+  max-width: 100%;
+}
+.demo :global(.file-row .icon) {
+  width: 13px;
+  height: 13px;
+  color: #b4a7bb;
+}
+.demo :global(.file-row .caret) {
+  color: #b1a5b6;
+  width: 12px;
+  text-align: center;
+  font-size: 11px;
+}
+.demo :global(.file-row .file-name) {
+  white-space: nowrap;
+}
+.demo :global(.file-row.depth1) {
+  margin-left: 16px;
+}
+.demo :global(.file-row.depth2) {
+  margin-left: 32px;
+}
+.demo :global(.file-row.depth3) {
+  margin-left: 48px;
+}
+.demo :global(.file-row.muted) {
+  color: #b5a8bc;
+}
+.demo :global(.file-row.interactive) {
+  width: max-content;
+  max-width: calc(100% - 32px);
+  border: 1px solid transparent;
+  padding: 3px 7px;
+}
+.demo :global(.type-ts),
+.demo :global(.type-js) {
+  font: 600 9px var(--mono);
+  width: 18px;
+  flex: none;
+  line-height: 18px;
+  text-align: center;
+}
+.demo :global(.type-ts) {
+  color: #80a3bb;
+}
+.demo :global(.type-js) {
+  color: #b49b61;
+}
+.demo :global(.file-row.env-file) {
+  margin: 14px 0 0 16px;
+  min-height: 30px;
+  padding: 5px 10px;
+  gap: 8px;
+  width: max-content;
+  max-width: calc(100% - 16px);
+  border: 1px solid transparent;
+  border-radius: 6px;
+}
+.demo :global(.file-row.linked),
+.demo :global(.file-row.focused) {
+  border-color: #e7b4a1;
+  background: #fff9f5;
+}
+.demo :global(.file-row:hover) {
+  background: #fcf5f1;
+}
+.demo :global(.code-peek) {
+  margin: 22px 0 0 23px;
+  padding-left: 13px;
+  border-left: 2px solid #eee8ef;
+  font: 10.5px/1.9 var(--mono);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  color: #9c86a6;
+}
+.demo :global(.code-peek-label) {
+  font: 9px/1.5 var(--mono);
+  color: #b6a8bd;
+  margin-bottom: 8px;
+}
+.demo :global(.peek-key) {
+  color: #94749d;
+}
+.demo :global(.peek-string) {
+  color: #83a094;
+}
+.demo :global(.scene-snapshot) {
+  padding: 20px 6px 0;
+}
+.demo :global(.snapshot-heading) {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font: 10px var(--mono);
+  color: #a196ab;
+  padding: 0 2px 17px;
+}
+.demo :global(.snapshot-tree),
+.demo :global(.tree-children) {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.demo :global(.snapshot-tree) {
+  font: 11px/26px var(--mono);
+  color: #91819f;
+}
+.demo :global(.tree-node) {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 26px;
+  width: max-content;
+  max-width: 100%;
+  padding: 0 5px;
+  border: 1px solid transparent;
+  border-radius: 5px;
+  text-align: left;
+  line-height: 24px;
+  white-space: nowrap;
+}
+.demo :global(.tree-ref) {
+  color: #a17cb3;
+  flex: none;
+}
+.demo :global(.tree-type) {
+  font-size: 9px;
+  color: #b0a3bb;
+  flex: none;
+}
+.demo :global(.tree-text) {
+  color: #74637e;
+  white-space: nowrap;
+}
+.demo :global(.tree-ellipsis) {
+  color: #b3a7bd;
+}
+.demo :global(.tree-children) {
+  padding-left: 22px;
+  margin-left: 9px;
+}
+.demo :global(.tree-children > li) {
+  position: relative;
+  padding: 0;
+  margin: 0;
+}
+.demo :global(.tree-children > li:before) {
+  content: "";
+  position: absolute;
+  left: -16px;
+  top: 0;
+  bottom: 0;
+  border-left: 1px solid #d6cddb;
+}
+.demo :global(.tree-children > li:after) {
+  content: "";
+  position: absolute;
+  left: -16px;
+  top: 13px;
+  width: 12px;
+  border-top: 1px solid #d6cddb;
+}
+.demo :global(.tree-children > li:last-child:before) {
+  bottom: auto;
+  height: 14px;
+}
+.demo :global(.tree-node.linked),
+.demo :global(.tree-node.focused) {
+  border-color: #e9baa7;
+  background: #fff8f3;
+}
+.demo :global(.tree-node:hover) {
+  background: #fff8f3;
+}
+.demo :global(.snapshot-tree .tree-node .node-flags) {
+  font: 8px var(--mono);
+  color: #a2ada0;
+  margin-left: 3px;
+}
+.demo :global(.connections) {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 4;
+  pointer-events: none;
+  overflow: visible;
+}
+.demo :global(.connections path) {
+  fill: none;
+  stroke: #d9b19f;
+  stroke-width: 1.35;
+  stroke-linecap: round;
+}
+.demo :global(.connections path.focused) {
+  stroke: #d89174;
+  stroke-width: 1.8;
+}
+.demo :global(.connections .dim) {
+  opacity: 0.25;
+}
+.demo :global(.connections circle) {
+  fill: #fff;
+  stroke: #d7a18c;
+  stroke-width: 1.3;
+}
+.demo :global(.media-error) {
+  font-size: 11px;
+  color: #8d7985;
+  margin: 8px 0 0;
+  line-height: 1.5;
+}
+.demo :global(.media-error button) {
+  border-bottom: 1px dotted #ac8c9b;
+  margin-left: 8px;
+}
+.demo :global(.screen-reader) {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+}
+@container simulator-demo (min-width: 1100px) {
+  .demo :global(#simulator-demo) {
+    --conversation-font-size: 13px;
+    padding: 22px 28px;
+  }
+  .demo :global(.workspace) {
+    column-gap: 48px;
+    grid-template-columns: minmax(0, 1.06fr) minmax(0, 1fr);
+  }
+  .demo :global(.conversation-body) {
+    padding: 16px 20px;
+  }
+  .demo :global(.command-label) {
+    font-size: 12px;
+  }
+  .demo :global(.command-box) {
+    font-size: 11px;
+  }
+  .demo :global(.file-tree) {
+    font-size: 12px;
+  }
+  .demo :global(.snapshot-tree) {
+    font-size: 12px;
+  }
+  .demo :global(.tree-type) {
+    font-size: 10px;
+  }
+  .demo :global(.tree-node) {
+    min-height: 28px;
+    line-height: 26px;
+  }
+  .demo :global(.tree-children > li:after) {
+    top: 14px;
+  }
+  .demo :global(.tree-children > li:last-child:before) {
+    height: 15px;
+  }
+}
+@container simulator-demo (max-width: 850px) {
+  .demo :global(#simulator-demo) {
+    padding: 10px 8px;
+  }
+  .demo :global(.workspace) {
+    column-gap: 24px;
+    grid-template-columns: minmax(0, 1.14fr) minmax(0, 1fr);
+  }
+  .demo :global(.conversation-body) {
+    padding: 11px 11px 13px;
+  }
+  .demo :global(.call-content) {
+    padding-left: 28px;
+  }
+  .demo :global(.call-select) {
+    gap: 7px;
+    padding-left: 7px;
+  }
+  .demo :global(.command-label) {
+    font-size: 11px;
+  }
+  .demo :global(.command-box) {
+    font-size: 10px;
+  }
+  .demo :global(.user-bubble) {
+    margin-left: auto;
+    max-width: calc(100% - 25px);
+  }
+  .demo :global(.scene-editor) {
+    padding-left: 2px;
+    padding-right: 0;
+  }
+  .demo :global(.file-tree) {
+    font-size: 10.5px;
+  }
+  .demo :global(.file-row.depth3) {
+    margin-left: 41px;
+  }
+  .demo :global(.scene-snapshot) {
+    padding-left: 0;
+    padding-right: 0;
+  }
+  .demo :global(.snapshot-tree) {
+    font-size: 10px;
+  }
+  .demo :global(.tree-type) {
+    font-size: 8px;
+  }
+  .demo :global(.tree-node) {
+    gap: 5px;
+  }
+  .demo :global(.tree-children) {
+    padding-left: 19px;
+    margin-left: 6px;
+  }
+  .demo :global(.page-window) {
+    width: 244px;
+  }
+  .demo :global(.dock) {
+    gap: 8px;
+    padding-left: 11px;
+    padding-right: 11px;
+  }
+  .demo :global(.app-placeholder) {
+    width: 37px;
+    height: 37px;
+  }
+  .demo :global(.runtime-icon) {
+    width: 58px;
+    height: 58px;
+    background-size: 313px 204.7px;
+    background-position: -217.5px -126.3px;
+  }
+  .demo :global(.dock-tip) {
+    font-size: 11px;
+  }
+}
+@container simulator-demo (max-width: 680px) {
+  .demo :global(#simulator-demo) {
+    padding: 12px;
+  }
+  .demo :global(.workspace) {
+    display: block;
+    min-height: 0;
+  }
+  .demo :global(.conversation) {
+    min-height: 0;
+  }
+  .demo :global(.detail) {
+    margin-top: 20px;
+  }
+  .demo :global(.scene) {
+    min-height: 535px;
+  }
+  .demo :global(.scene-editor),
+  .demo :global(.scene-snapshot) {
+    padding-left: 14px;
+    padding-right: 14px;
+  }
+  .demo :global(.scene-dock) {
+    min-height: 350px;
+    padding-top: 120px;
+  }
+  .demo :global(.connections) {
+    display: none;
+  }
+  .demo :global(.conversation-body) {
+    padding: 14px;
+  }
+  .demo :global(.command-label) {
+    font-size: 12px;
+  }
+  .demo :global(.command-box) {
+    font-size: 11px;
+  }
+  .demo :global(.snapshot-tree) {
+    font-size: 11px;
+  }
+  .demo :global(.tree-type) {
+    font-size: 9px;
+  }
+  .demo :global(.file-tree) {
+    font-size: 11px;
+  }
+  .demo :global(.scene-open) {
+    padding-top: 8px;
+  }
+  .demo :global(.page-window) {
+    width: 252px;
+  }
+  .demo :global(.detail-header) {
+    padding-left: 8px;
+    padding-right: 8px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .demo :global(*) {
+    transition: none !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* One native surface per scene; the surrounding detail area stays unframed. */
+.demo {
+  --ink: #282c34;
+  --muted: #8a909c;
+  --line: #e3e6eb;
+  --mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", Consolas, monospace;
+}
+.demo :global(#simulator-demo) {
+  --accent: #7c3aed;
+  --tint: #f8f5ff;
+  --accent-line: #d2bdf7;
+}
+
+.demo :global(button:focus-visible) {
+  outline-color: var(--accent);
+}
+.demo :global(.agent-mark) {
+  border-color: #dce1e8;
+  background: #f8f9fb;
+  color: #536174;
+}
+.demo :global(.call.active) {
+  border-color: var(--accent-line);
+  background: var(--tint);
+}
+.demo :global(.call.active .call-select > .icon:first-child),
+.demo :global(.call.active .chevron) {
+  color: var(--accent);
+}
+.demo :global(.call-select:hover) {
+  background: #f6f7f980;
+}
+.demo :global(.command-box) {
+  color: #515968;
+}
+.demo :global(.comment) {
+  color: #9098a4;
+}
+.demo :global(.assistant-prose),
+.demo :global(.agent-report) {
+  color: var(--ink);
+}
+.demo :global(.speaker) {
+  color: #8c929c;
+}
+.demo :global(.keyword) {
+  border-bottom-color: var(--accent-line);
+}
+.demo :global(.keyword:hover),
+.demo :global(.keyword.focused),
+.demo :global(.read-tool:hover),
+.demo :global(.read-tool.focused) {
+  color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 9%, white);
+}
+.demo :global(.scene-values) {
+  color: #69788b;
+}
+.demo :global(.scene-values small) {
+  color: #8c949f;
+}
+.demo :global(.read-tool b),
+.demo :global(.tool-path) {
+  color: #737c8a;
+}
+.demo :global(.read-tool .icon) {
+  color: #9ba6b4;
+}
+.demo :global(.detail-header) {
+  color: #727b89;
+}
+.demo :global(.detail-index) {
+  color: var(--accent);
+  opacity: 0.85;
+}
+.demo :global(.page-spot) {
+  border-color: var(--accent);
+}
+.demo :global(.page-spot.focused) {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 17%, transparent);
+}
+.demo :global(.connections path) {
+  stroke: var(--accent);
+  opacity: 0.58;
+  stroke-width: 1.35;
+}
+.demo :global(.connections path.focused) {
+  stroke: var(--accent);
+  opacity: 1;
+  stroke-width: 1.8;
+}
+.demo :global(.connections circle) {
+  stroke: var(--accent);
+  opacity: 0.75;
+  fill: white;
+}
+.demo :global(.connections .dim) {
+  opacity: 0.17;
+}
+
+/* The macOS desktop is a single, wide surface with its own menu bar and Dock. */
+.demo :global(.scene-dock) {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+}
+.demo :global(.mac-desktop) {
+  position: relative;
+  width: 100%;
+  height: 342px;
+  overflow: hidden;
+  border-radius: 10px;
+  background:
+    radial-gradient(ellipse at 100% 110%, #079cd0 0, transparent 55%),
+    radial-gradient(ellipse at -10% 70%, #1666c6 0, transparent 55%),
+    radial-gradient(ellipse at 95% -20%, #2468d0 0, transparent 65%),
+    linear-gradient(135deg, #0c2c76, #082b72 55%, #0875b8);
+  box-shadow: 0 5px 18px #16325a16;
+}
+.demo :global(.mac-desktop:before) {
+  content: "";
+  position: absolute;
+  inset: -35% -80% 5% -35%;
+  border-radius: 50%;
+  border: 1px solid #75d7ff13;
+  box-shadow: 0 25px 70px #061b7450, 0 55px 120px #4b9fff1a;
+  transform: rotate(-25deg);
+}
+.demo :global(.desktop-menubar) {
+  position: absolute;
+  inset: 0 0 auto;
+  height: 23px;
+  padding: 0 12px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 9px;
+  color: #eef4ff;
+  background: #062f6f36;
+  backdrop-filter: blur(12px);
+  box-shadow: 0 1px #d7e7ff12;
+}
+.demo :global(.desktop-menubar strong) {
+  font-weight: 600;
+}
+.demo :global(.desktop-menu-icons) {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+.demo :global(.desktop-menu-icons .icon) {
+  width: 12px;
+  height: 12px;
+  stroke-width: 1.75;
+}
+.demo :global(.dock) {
+  position: absolute;
+  left: 50%;
+  bottom: 23px;
+  transform: translateX(-50%);
+  gap: 11px;
+  padding: 12px 15px 21px;
+  border: 1px solid #e9f1ff80;
+  border-radius: 19px;
+  background: #d4e2ff35;
+  box-shadow: inset 0 1px #fff5, 0 8px 26px #031e5d40;
+  backdrop-filter: blur(24px);
+}
+.demo :global(.app-placeholder) {
+  width: 42px;
+  height: 42px;
+  border: 1px solid #d4e3ff70;
+  border-radius: 11px;
+  background: #dce9ffb0;
+  color: #4670a3;
+  box-shadow: 0 2px 4px #00244e17;
+}
+.demo :global(.app-placeholder:nth-child(2)) {
+  background: #e4e8f4bd;
+  color: #687a9f;
+}
+.demo :global(.app-placeholder:nth-child(3)) {
+  background: #cbddf2ba;
+  color: #577995;
+}
+.demo :global(.app-placeholder .icon) {
+  width: 22px;
+  height: 22px;
+  stroke-width: 1.5;
+  opacity: 0.8;
+}
+.demo :global(.runtime-wrap) {
+  margin-left: 2px;
+}
+.demo :global(.runtime-icon) {
+  outline: 1px solid #fffa;
+  box-shadow: 0 4px 9px #00153940;
+}
+.demo :global(.runtime-wrap:after) {
+  background: #0b204e;
+}
+.demo :global(.dock-tip) {
+  bottom: 83px;
+  color: #1d304b;
+  background: #e0ebf9f0;
+  border-color: #f4f8ffb0;
+  box-shadow: 0 3px 8px #052a5e20;
+  font-size: 11px;
+  padding: 7px 10px;
+  border-radius: 8px;
+}
+.demo :global(.dock-tip:after) {
+  background: #e0ebf9;
+  border-color: #f4f8ffb0;
+}
+
+/* Compact light editor: activity bar, Explorer, file tab, code preview, status. */
+.demo :global(.scene-editor) {
+  padding: 1px 0 0;
+}
+.demo :global(.editor-window) {
+  height: 506px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid #d9dfe7;
+  border-radius: 9px;
+  background: #fff;
+  box-shadow: 0 3px 12px #1c294411;
+}
+.demo :global(.editor-titlebar) {
+  height: 30px;
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 10px;
+  background: #f4f5f7;
+  border-bottom: 1px solid #e0e4e9;
+  position: relative;
+}
+.demo :global(.editor-titlebar .traffic) {
+  gap: 5px;
+}
+.demo :global(.editor-titlebar .traffic span) {
+  width: 8px;
+  height: 8px;
+  background: #ff6058;
+  border-color: #e8524b;
+}
+.demo :global(.editor-titlebar .traffic span:nth-child(2)) {
+  background: #ffbd2e;
+  border-color: #e3a823;
+}
+.demo :global(.editor-titlebar .traffic span:nth-child(3)) {
+  background: #28c840;
+  border-color: #25b93b;
+}
+.demo :global(.editor-title) {
+  position: absolute;
+  left: 70px;
+  right: 39px;
+  text-align: center;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font: 9px var(--mono);
+  color: #6c7483;
+}
+.demo :global(.editor-titlebar > .icon) {
+  margin-left: auto;
+  width: 13px;
+  height: 13px;
+  color: #87909f;
+}
+.demo :global(.editor-body) {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+}
+.demo :global(.activity-bar) {
+  width: 32px;
+  flex: none;
+  padding: 10px 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  background: #f6f7f9;
+  border-right: 1px solid #e4e7ec;
+  color: #9aa2af;
+}
+.demo :global(.activity-bar > .icon) {
+  width: 17px;
+  height: 17px;
+  stroke-width: 1.55;
+}
+.demo :global(.activity-bar > .icon:first-child) {
+  color: #4d596b;
+}
+.demo :global(.activity-bar > .icon:last-child) {
+  margin-top: auto;
+  width: 16px;
+  height: 16px;
+}
+.demo :global(.editor-main) {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+  background: #fafbfc;
+}
+.demo :global(.explorer-heading) {
+  height: 29px;
+  padding: 0 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  color: #626c7c;
+  font-size: 8px;
+  letter-spacing: 0.08em;
+  flex: none;
+}
+.demo :global(.explorer-heading .icon) {
+  width: 14px;
+  height: 14px;
+}
+.demo :global(.file-tree) {
+  font: 11px/1.5 var(--mono);
+  color: #4a5565;
+  padding: 1px 8px 10px;
+  flex: none;
+}
+.demo :global(.file-row) {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 24px;
+  padding: 3px 5px;
+  border-radius: 4px;
+  border: 1px solid transparent;
+  width: max-content;
+  max-width: 100%;
+  white-space: nowrap;
+}
+.demo :global(.file-row .file-name) {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+.demo :global(.file-row .icon) {
+  width: 12px;
+  height: 12px;
+  color: #8d99a8;
+  stroke-width: 1.7;
+}
+.demo :global(.file-row .caret) {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 12px;
+  height: 14px;
+  flex: none;
+}
+.demo :global(.file-row .caret > .icon) {
+  width: 12px;
+  height: 12px;
+  color: #7d8795;
+}
+.demo :global(.file-row .caret.expanded > .icon) {
+  transform: rotate(90deg);
+}
+.demo :global(.file-row.depth1) {
+  margin-left: 13px;
+}
+.demo :global(.file-row.depth2) {
+  margin-left: 26px;
+}
+.demo :global(.file-row.depth3) {
+  margin-left: 39px;
+}
+.demo :global(.file-row.interactive) {
+  padding: 3px 6px;
+  max-width: calc(100% - 26px);
+}
+.demo :global(.file-row.depth3.interactive) {
+  max-width: calc(100% - 39px);
+}
+.demo :global(.file-row.muted) {
+  color: #8b94a1;
+  max-width: calc(100% - 39px);
+}
+.demo :global(.file-row.env-file) {
+  margin: 8px 0 0 13px;
+  padding: 4px 7px;
+  min-height: 27px;
+  border-radius: 4px;
+  width: max-content;
+  max-width: calc(100% - 13px);
+  gap: 6px;
+}
+.demo :global(.type-ts),
+.demo :global(.type-js) {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 15px;
+  height: 15px;
+  flex: none;
+  font: 600 8px/1 var(--mono);
+  border-radius: 2px;
+}
+.demo :global(.type-ts) {
+  color: #2674bb;
+  background: #e8f2fc;
+}
+.demo :global(.type-js) {
+  color: #8e7010;
+  background: #f6edc5;
+}
+.demo :global(.file-row.linked),
+.demo :global(.file-row.focused) {
+  border-color: var(--accent-line);
+  background: var(--tint);
+}
+.demo :global(.file-row:hover) {
+  background: #edf0f5;
+}
+.demo :global(.editor-code) {
+  flex: 1;
+  min-height: 0;
+  background: #fff;
+  border-top: 1px solid #e3e7ed;
+  display: flex;
+  flex-direction: column;
+}
+.demo :global(.editor-tabs) {
+  height: 29px;
+  flex: none;
+  background: #f2f4f7;
+  border-bottom: 1px solid #e4e7ec;
+  display: flex;
+}
+.demo :global(.editor-tab) {
+  height: 29px;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 0 10px;
+  border-top: 1px solid var(--accent);
+  border-right: 1px solid #e3e7ed;
+  background: #fff;
+  margin-top: -1px;
+  font: 9px var(--mono);
+  color: #576273;
+}
+.demo :global(.editor-tab > .icon) {
+  width: 10px;
+  height: 10px;
+  margin-left: 5px;
+  color: #8d95a1;
+}
+.demo :global(.editor-tab .type-ts) {
+  font-size: 7px;
+  width: 12px;
+  height: 12px;
+}
+.demo :global(.code-peek) {
+  margin: 0;
+  padding: 12px 10px 7px;
+  border: 0;
+  font: 10px/1.9 var(--mono);
+  color: #42526a;
+  white-space: normal;
+  min-height: 0;
+}
+.demo :global(.code-peek-label) {
+  font: 8px/1.6 var(--mono);
+  color: #97a0ae;
+  margin: 0 0 9px 21px;
+}
+.demo :global(.code-line) {
+  display: flex;
+  gap: 10px;
+  align-items: baseline;
+  min-width: 0;
+}
+.demo :global(.line-number) {
+  width: 11px;
+  flex: none;
+  color: #b1b8c3;
+  text-align: right;
+  font-size: 9px;
+  user-select: none;
+}
+.demo :global(.code-line code) {
+  font: inherit;
+  min-width: 0;
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+}
+.demo :global(.peek-key) {
+  color: #2261a2;
+}
+.demo :global(.peek-string) {
+  color: #507840;
+}
+.demo :global(.peek-comment) {
+  color: #8792a3;
+}
+.demo :global(.editor-status) {
+  height: 20px;
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 0 9px;
+  background: #f1f4f8;
+  border-top: 1px solid #dfe4eb;
+  font: 8px var(--mono);
+  color: #7a8798;
+}
+.demo :global(.editor-branch) {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+.demo :global(.editor-branch .icon) {
+  width: 10px;
+  height: 10px;
+  stroke-width: 1.7;
+}
+
+/* The next tool opens the generated environment in the same editor. */
+.demo :global(.exchange.inspect-exchange) {
+  margin-top: 2px;
+}
+.demo :global(.env-summary) {
+  display: inline-grid;
+  grid-template-columns: 72px auto;
+  gap: 8px;
+  text-align: left;
+  vertical-align: baseline;
+}
+.demo :global(.scene-env) {
+  padding: 1px 0 0;
+}
+.demo :global(.env-editor > .editor-tabs) {
+  padding-left: 8px;
+}
+.demo :global(.env-code) {
+  flex: 1;
+  min-height: 0;
+  padding: 10px 11px 12px;
+  background: #fff;
+  font: 10.5px/17px var(--mono);
+  color: #42526a;
+}
+.demo :global(.env-breadcrumb) {
+  font: 8px/16px var(--mono);
+  color: #97a0ae;
+  margin: 0 0 8px 22px;
+  display: flex;
+  gap: 9px;
+}
+.demo :global(.env-code .code-line) {
+  gap: 10px;
+  min-height: 17px;
+}
+.demo :global(.env-code .line-number) {
+  width: 14px;
+  font-size: 8px;
+  line-height: 17px;
+}
+.demo :global(.env-code .code-line code) {
+  white-space: pre;
+  overflow-wrap: normal;
+}
+.demo :global(.env-code .env-blank) {
+  height: 8px;
+  min-height: 8px;
+}
+.demo :global(.env-blank .line-number) {
+  visibility: hidden;
+}
+.demo :global(.env-section code) {
+  padding: 0 4px;
+  margin: 0 -4px;
+  border: 1px solid transparent;
+  border-radius: 3px;
+  line-height: 15px;
+}
+.demo :global(.env-section code.linked) {
+  border-color: var(--accent-line);
+  background: var(--tint);
+}
+.demo :global(.env-section code.focused) {
+  border-color: var(--accent);
+  background: var(--tint);
+}
+@container simulator-demo (max-width: 850px) {
+  .demo :global(.env-code) {
+    font-size: 10px;
+    padding-left: 8px;
+    padding-right: 8px;
+  }
+  .demo :global(.env-code .code-line) {
+    gap: 7px;
+  }
+  .demo :global(.env-breadcrumb) {
+    margin-left: 21px;
+  }
+}
+@container simulator-demo (min-width: 681px) and (max-width: 760px) {
+  .demo :global(.env-code) {
+    font-size: 9.5px;
+  }
+}
+
+/* Snapshot panel adapted from PR #1748: one border, reference font and SVG rails. */
+.demo :global(.scene-snapshot) {
+  padding: 1px 0 0;
+}
+.demo :global(.snapshot-panel) {
+  height: 506px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid #e0e4eb;
+  border-radius: 10px;
+  background: #fff;
+}
+.demo :global(.snapshot-panel-heading) {
+  height: 38px;
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 0 14px;
+  border-bottom: 1px solid #e0e4eb;
+  background: #f7f8fa;
+  font: 11px var(--mono);
+  color: #29303a;
+  white-space: nowrap;
+}
+.demo :global(.snapshot-panel-heading > .icon) {
+  width: 15px;
+  height: 15px;
+  color: #7c8696;
+}
+.demo :global(.snapshot-scroll) {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: #cbd1db transparent;
+  padding: 16px 10px;
+}
+.demo :global(.snapshot) {
+  --tree-indent: 14px;
+  position: relative;
+  width: max-content;
+  min-width: 100%;
+  font: 12px/24px var(--mono);
+  font-variant-ligatures: none;
+  color: #303743;
+}
+.demo :global(.snapshot-row) {
+  position: relative;
+  display: block;
+  width: 100%;
+  padding: 0 3px;
+  margin: 0;
+  white-space: pre;
+  min-height: 24px;
+}
+.demo :global(.snapshot-row .tree-branch) {
+  display: inline-block;
+  width: calc(var(--depth) * var(--tree-indent));
+  color: transparent;
+  white-space: pre;
+}
+.demo :global(.snapshot-row .ref-token) {
+  color: #7b8495;
+}
+.demo :global(.snapshot-row .ref-token.is-target) {
+  display: inline-block;
+  vertical-align: top;
+  font: inherit;
+  color: var(--accent);
+  border: 1px solid transparent;
+  border-radius: 3px;
+  margin: -1px -3px;
+  padding: 0 2px;
+  cursor: pointer;
+}
+.demo :global(.snapshot-row .ref-token.focused) {
+  background: var(--tint);
+  border-color: var(--accent-line);
+}
+.demo :global(.snapshot-row .ref-token:hover) {
+  background: var(--tint);
+}
+.demo :global(.snapshot-row.omission) {
+  min-height: 15px;
+  height: 15px;
+  line-height: 13px;
+  color: #a4acb9;
+  user-select: none;
+}
+.demo :global(.tree-lines) {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+  overflow: visible;
+  pointer-events: none;
+  color: #aab2bf;
+}
+.demo :global(.tree-lines path) {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+}
+.demo :global(.snapshot-footer) {
+  height: 36px;
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 0 12px;
+  border-top: 1px solid #e0e4eb;
+  background: #f7f8fa;
+  color: #8992a1;
+  font-size: 9px;
+}
+.demo :global(.snapshot-footer button) {
+  font-size: 9px;
+  color: #495464;
+  padding: 4px 0;
+}
+.demo :global(.snapshot-footer button:hover) {
+  color: var(--accent);
+}
+@container simulator-demo (min-width: 1100px) {
+  .demo :global(.snapshot) {
+    font-size: 13px;
+    line-height: 24px;
+    --tree-indent: 17px;
+  }
+  .demo :global(.snapshot-row) {
+    min-height: 24px;
+  }
+  .demo :global(.snapshot-panel-heading) {
+    font-size: 12px;
+  }
+  .demo :global(.file-tree) {
+    font-size: 11px;
+  }
+  .demo :global(.code-peek) {
+    font-size: 11px;
+  }
+  .demo :global(.mac-desktop) {
+    height: 365px;
+  }
+}
+@container simulator-demo (max-width: 850px) {
+  .demo :global(.scene-editor),
+  .demo :global(.scene-snapshot) {
+    padding: 1px 0 0;
+  }
+  .demo :global(.activity-bar) {
+    width: 27px;
+  }
+  .demo :global(.file-tree) {
+    font-size: 10px;
+    padding-left: 5px;
+    padding-right: 5px;
+  }
+  .demo :global(.file-row.depth1) {
+    margin-left: 11px;
+  }
+  .demo :global(.file-row.depth2) {
+    margin-left: 22px;
+  }
+  .demo :global(.file-row.depth3) {
+    margin-left: 33px;
+  }
+  .demo :global(.file-row.muted) {
+    max-width: calc(100% - 33px);
+  }
+  .demo :global(.file-row.env-file) {
+    margin-left: 11px;
+  }
+  .demo :global(.file-row) {
+    gap: 5px;
+  }
+  .demo :global(.explorer-heading) {
+    padding: 0 10px;
+  }
+  .demo :global(.code-peek) {
+    font-size: 9px;
+    padding-left: 7px;
+    padding-right: 7px;
+  }
+  .demo :global(.code-line) {
+    gap: 7px;
+  }
+  .demo :global(.snapshot) {
+    font-size: 11px;
+    --tree-indent: 12px;
+  }
+  .demo :global(.snapshot-scroll) {
+    padding-left: 9px;
+    padding-right: 9px;
+  }
+  .demo :global(.snapshot-panel-heading) {
+    font-size: 10px;
+    padding: 0 11px;
+  }
+  .demo :global(.snapshot-footer) {
+    font-size: 8.5px;
+    padding: 0 10px;
+  }
+  .demo :global(.snapshot-footer button) {
+    font-size: 8.5px;
+  }
+  .demo :global(.dock) {
+    gap: 8px;
+    padding-left: 11px;
+    padding-right: 11px;
+  }
+  .demo :global(.app-placeholder) {
+    width: 37px;
+    height: 37px;
+  }
+  .demo :global(.dock-tip) {
+    bottom: 78px;
+  }
+  .demo :global(.mac-desktop) {
+    height: 320px;
+  }
+  .demo :global(.desktop-menubar) {
+    gap: 10px;
+  }
+}
+@container simulator-demo (min-width: 681px) and (max-width: 760px) {
+  .demo :global(.snapshot) {
+    font-size: 10px;
+  }
+  .demo :global(.file-tree) {
+    font-size: 9px;
+  }
+}
+@container simulator-demo (max-width: 680px) {
+  .demo :global(.scene-dock) {
+    min-height: 350px;
+    padding: 0;
+  }
+  .demo :global(.scene-editor),
+  .demo :global(.scene-snapshot) {
+    padding: 1px 0 0;
+  }
+  .demo :global(.mac-desktop) {
+    height: 320px;
+  }
+  .demo :global(.snapshot) {
+    font-size: 10.5px;
+    --tree-indent: 13px;
+  }
+  .demo :global(.file-tree) {
+    font-size: 10px;
+  }
+  .demo :global(.code-peek) {
+    font-size: 10px;
+  }
+  .demo :global(.editor-window),
+  .demo :global(.snapshot-panel) {
+    height: 506px;
+  }
+}
+
+/* Restore the first desktop composition and original wallpaper, menu and Dock. */
+.demo :global(.scene-dock) {
+  align-items: flex-start;
+  padding: 1px 0 0;
+}
+.demo :global(.mac-desktop) {
+  height: 535px;
+  border-radius: 14px;
+  background:
+    radial-gradient(ellipse at 100% 0, #1363ba 0, transparent 65%),
+    radial-gradient(ellipse at 0 100%, #2165aa, transparent 65%),
+    linear-gradient(150deg, #0a3483, #09205e 62%, #0b448e);
+  box-shadow: none;
+}
+.demo :global(.mac-desktop:before) {
+  display: none;
+}
+.demo :global(.desktop-menubar) {
+  height: 24px;
+  padding: 0 14px;
+  gap: 13px;
+  background: #143b7f50;
+  color: #e1e9fc;
+  box-shadow: none;
+  backdrop-filter: none;
+}
+.demo :global(.desktop-time) {
+  margin-left: auto;
+  color: #adc5ef;
+  font-size: 9px;
+}
+.demo :global(.desktop-orbit) {
+  position: absolute;
+  inset: 50px 12px 110px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+}
+.demo :global(.runtime-icon.large) {
+  width: 82px;
+  height: 82px;
+  border-radius: 20px;
+  background-size: 78% 78%;
+  background-position: center;
+  outline: 0;
+  box-shadow: 0 15px 60px #00225870;
+}
+.demo :global(.launched-title) {
+  font-size: 17px;
+  font-weight: 500;
+  color: #f3f6ff;
+  letter-spacing: 0.1px;
+}
+.demo :global(.dock) {
+  bottom: 23px;
+  height: 62px;
+  gap: 8px;
+  padding: 0 10px 15px;
+  overflow: visible;
+  background: #b7c9f045;
+  border: 1px solid #ffffff70;
+  border-radius: 18px;
+  box-shadow: 0 12px 28px #00205350, inset 0 1px 1px #ffffff7a;
+  backdrop-filter: blur(25px);
+}
+/* A shared bottom baseline lets the magnified icons rise above the Dock. */
+.demo :global(.app-placeholder) {
+  --dock-icon-size: 30px;
+  flex: none;
+  width: var(--dock-icon-size);
+  height: var(--dock-icon-size);
+  border-radius: calc(var(--dock-icon-size) * 0.24);
+}
+.demo :global(.app-placeholder:nth-child(2)) {
+  --dock-icon-size: 36px;
+}
+.demo :global(.app-placeholder:nth-child(3)) {
+  --dock-icon-size: 44px;
+}
+.demo :global(.app-placeholder:nth-child(4)) {
+  --dock-icon-size: 56px;
+}
+.demo :global(.app-placeholder .icon) {
+  width: 56%;
+  height: 56%;
+}
+.demo :global(.runtime-wrap) {
+  flex: none;
+  padding: 0;
+  margin-left: 0;
+}
+.demo :global(.runtime-wrap .runtime-icon) {
+  width: 66px;
+  height: 66px;
+  border-radius: 16px;
+  background-size: 78% 78%;
+  background-position: center;
+  outline: 0;
+  transform: none;
+  box-shadow: 0 3px 8px #00133333;
+}
+.demo :global(.runtime-wrap:after) {
+  width: 4px;
+  height: 4px;
+  bottom: -10px;
+  background: #0c1d4e;
+}
+.demo :global(.dock-tip) {
+  bottom: 83px;
+  padding: 8px 15px;
+  background: #b5cef5e8;
+  border: 1px solid #e9f3ffb3;
+  color: #152343;
+  border-radius: 13px;
+  font-size: 12px;
+  box-shadow: 0 3px 8px #00234b20;
+}
+.demo :global(.dock-tip:after) {
+  width: 9px;
+  height: 9px;
+  left: calc(50% - 5px);
+  background: #b5cef5;
+  border-color: #e9f3ff80;
+}
+@container simulator-demo (max-width: 760px) {
+  .demo :global(.desktop-menubar) {
+    gap: 10px;
+    padding: 0 10px;
+  }
+  .demo :global(.desktop-time) {
+    display: none;
+  }
+}
+@container simulator-demo (max-width: 680px) {
+  .demo :global(.scene-dock) {
+    min-height: 440px;
+  }
+  .demo :global(.mac-desktop) {
+    height: 440px;
+  }
+}
+
+.demo :global(.code-peek),
+.demo :global(.env-code) {
+  overflow: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+}
+
+.demo[data-theme="dark"] {
+  color-scheme: dark;
+  --ink: #e5e7ed;
+  --muted: #a2abba;
+  --line: #383e4a;
+  --demo-bg: #141518;
+  --demo-panel: #1d2027;
+  --demo-toolbar: #262a33;
+}
+
+.demo[data-theme="dark"] {
+  background: var(--demo-bg);
+}
+
+.demo[data-theme="dark"] :global(.conversation),
+.demo[data-theme="dark"] :global(.editor-window),
+.demo[data-theme="dark"] :global(.editor-code),
+.demo[data-theme="dark"] :global(.editor-tab),
+.demo[data-theme="dark"] :global(.page-window),
+.demo[data-theme="dark"] :global(.snapshot-panel) {
+  background: var(--demo-panel);
+  border-color: var(--line);
+}
+
+.demo[data-theme="dark"] :global(.user-bubble),
+.demo[data-theme="dark"] :global(.agent-mark),
+.demo[data-theme="dark"] :global(.window-bar),
+.demo[data-theme="dark"] :global(.activity-bar),
+.demo[data-theme="dark"] :global(.editor-titlebar),
+.demo[data-theme="dark"] :global(.editor-tabs),
+.demo[data-theme="dark"] :global(.editor-status),
+.demo[data-theme="dark"] :global(.snapshot-panel-heading),
+.demo[data-theme="dark"] :global(.snapshot-footer) {
+  background: var(--demo-toolbar);
+  border-color: var(--line);
+}
+
+.demo[data-theme="dark"] :global(.conv-meta) {
+  border-color: var(--line);
+}
+
+.demo[data-theme="dark"] :global(.editor-main) {
+  background: var(--demo-bg);
+}
+
+.demo[data-theme="dark"] :global(.editor-tab) {
+  border-top-color: var(--accent);
+}
+
+.demo[data-theme="dark"] :global(.command-box),
+.demo[data-theme="dark"] :global(.agent-report code),
+.demo[data-theme="dark"] :global(.code-peek),
+.demo[data-theme="dark"] :global(.file-tree),
+.demo[data-theme="dark"] :global(.snapshot),
+.demo[data-theme="dark"] :global(.snapshot-panel-heading),
+.demo[data-theme="dark"] :global(.snapshot-footer button) {
+  color: var(--ink);
+}
+
+.demo[data-theme="dark"] :global(.agent-mark),
+.demo[data-theme="dark"] :global(.call-select > .icon:first-child),
+.demo[data-theme="dark"] :global(.comment),
+.demo[data-theme="dark"] :global(.speaker),
+.demo[data-theme="dark"] :global(.scene-values),
+.demo[data-theme="dark"] :global(.scene-values small),
+.demo[data-theme="dark"] :global(.read-tool b),
+.demo[data-theme="dark"] :global(.tool-path),
+.demo[data-theme="dark"] :global(.detail-header),
+.demo[data-theme="dark"] :global(.editor-title),
+.demo[data-theme="dark"] :global(.editor-tab),
+.demo[data-theme="dark"] :global(.explorer-heading),
+.demo[data-theme="dark"] :global(.activity-bar > .icon:first-child),
+.demo[data-theme="dark"] :global(.file-row.muted),
+.demo[data-theme="dark"] :global(.editor-status),
+.demo[data-theme="dark"] :global(.line-number),
+.demo[data-theme="dark"] :global(.peek-comment),
+.demo[data-theme="dark"] :global(.code-peek-label),
+.demo[data-theme="dark"] :global(.snapshot-row .ref-token),
+.demo[data-theme="dark"] :global(.snapshot-footer),
+.demo[data-theme="dark"] :global(.window-title) {
+  color: var(--muted);
+}
+
+.demo[data-theme="dark"] :global(.call:hover .call-select),
+.demo[data-theme="dark"] :global(.file-row:hover),
+.demo[data-theme="dark"] :global(.keyword:hover),
+.demo[data-theme="dark"] :global(.keyword.focused),
+.demo[data-theme="dark"] :global(.read-tool:hover),
+.demo[data-theme="dark"] :global(.read-tool.focused) {
+  background: var(--tint);
+  color: var(--accent);
+}
+
+.demo[data-theme="dark"] :global(.connections circle) {
+  fill: var(--demo-panel);
+}
+
+.demo[data-theme="dark"] :global(.peek-key) {
+  color: #9dcaff;
+}
+
+.demo[data-theme="dark"] :global(.peek-string) {
+  color: #a6d990;
+}
+
+.demo :global(.command-box .keyword) {
+  color: var(--accent);
+}
+
+/* Resolve website colors in place, with the original purple as fallback. */
+.demo :global(#simulator-demo) {
+  --accent: var(--shell-secondary, #737c8a);
+  --tint: color-mix(in srgb, var(--accent) 5%, var(--demo-panel, white));
+  --accent-line: color-mix(
+    in srgb,
+    var(--accent) 34%,
+    var(--demo-panel, white)
+  );
+}
+.demo :global(#simulator-demo[data-default-step="true"]) {
+  --accent: var(--shell-primary, #7c3aed);
+}
+
+.demo[data-theme="dark"] :global(#simulator-demo) {
+  --tint: color-mix(in srgb, var(--accent) 14%, var(--demo-panel));
+  --accent-line: color-mix(in srgb, var(--accent) 45%, var(--line));
+}
+
+.demo[data-theme="dark"] :global(.env-code) {
+  background: var(--demo-panel);
+  color: var(--ink);
+}
+
+.demo {
+  container: simulator-demo / inline-size;
+  --shell-primary: var(--rp-c-brand, var(--semi-color-primary, #7c3aed));
+  --shell-secondary: var(--semi-color-secondary, var(--rp-c-text-2, #737c8a));
+  line-height: normal;
+  text-align: left;
+  font-weight: normal;
+  letter-spacing: normal;
+  overflow: hidden;
+  border: 1px solid var(--semi-color-border, var(--rp-c-divider));
+  border-radius: 8px;
+}

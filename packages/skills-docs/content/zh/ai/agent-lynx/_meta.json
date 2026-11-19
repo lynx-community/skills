@@ -51,6 +51,11 @@
   },
   {
     "type": "file",
+    "name": "simulator.mdx",
+    "label": "Lynx Simulator"
+  },
+  {
+    "type": "file",
     "name": "programmatic-api.mdx",
     "label": "程序化 API"
   },
