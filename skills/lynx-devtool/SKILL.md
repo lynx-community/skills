@@ -32,9 +32,12 @@ agent_lynx_tmp="$(mktemp -d /tmp/agent-lynx.XXXXXX)" &&
 
 Online CLI commands share a local connector daemon (`127.0.0.1:21783`) by default so independent CLI calls reuse one physical DebugRouter connection.
 
-- Snapshot/ref commands (`snapshot`, `tap`, `long-press`, `fill`, `clear`, `scroll`, `get`, `wait`, `screenshot`) and `reactlynx` require daemon mode.
+- Snapshot/ref commands (`snapshot`, `tap`, `long-press`, `fill`, `clear`, `scroll`, `get`, `wait`, `screenshot`) `reactlynx`, and `simulator` require daemon mode.
 - `--no-daemon` bypasses the daemon for a single direct invocation. Stop the daemon (`agent-lynx daemon stop`) first when direct mode could compete for the same target.
 - `ADB_SERVER_SOCKET`, `ANDROID_ADB_SERVER_ADDRESS`, and `ANDROID_ADB_SERVER_PORT` configure only `--no-daemon`; daemon mode ignores them with a stderr warning.
+
+For local bundles and page-env authoring, load `lynx-simulator` with
+`agent-lynx skills get lynx-simulator`.
 
 ## Reference Map
 
@@ -63,6 +66,7 @@ Read the specific reference in the third column on demand.
 | Record or query a Perfetto trace | `trace ...` | [Performance Trace](references/trace.md) |
 | Encode or decode a TASM template | `tasm encode/decode` | [TASM Template Codec](references/tasm.md) |
 | Record interactions into a TestBench replay | `recorder start/end` | [Recording](references/recorder.md) |
+| Manage local Lynx Simulator processes | `simulator ...` | [Local Lynx Simulator](references/simulator.md) |
 | Inspect, start, or stop the local daemon | `daemon status/start/stop` | [Daemon Lifecycle](references/daemon.md) |
 | Browse global options, env vars, and all commands | `help`, `<command> --help` | [Command Reference Index](references/command-reference.md) |
 | Diagnose discovery, daemon, or command failures | varies | [Troubleshooting Index](references/troubleshooting/index.md) |
