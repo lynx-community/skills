@@ -453,6 +453,56 @@ test("Android concurrent waits for one device share a single ADB wait without ca
   await connection[Symbol.asyncDispose]();
 });
 
+test("Android connection retries once when the ADB handshake finds a disconnected device", async () => {
+  const transport = new AndroidTransport();
+  let waitForCalls = 0;
+  const handshakes: unknown[] = [];
+  const rawSocket = createRawSocket();
+  rawSocket.close = () => rawSocket.resolveClosed();
+  Object.defineProperty(transport, "client", {
+    value: {
+      async waitFor() {
+        waitForCalls += 1;
+      },
+      async createDeviceConnection(_device: unknown, service: unknown) {
+        handshakes.push(service);
+        if (handshakes.length === 1) throw new Error("closed");
+        return rawSocket;
+      },
+    },
+  });
+
+  const connection = await transport.connect({ deviceId: "device", port: 8901 });
+  assert.deepEqual(handshakes, ["tcp:8901", "tcp:8901"]);
+  assert.equal(waitForCalls, 2);
+  await connection[Symbol.asyncDispose]();
+});
+
+test("Android connection does not retry refused ports or aborted callers", async () => {
+  for (const [message, abort] of [["cannot connect", false], ["closed", true]] as const) {
+    const transport = new AndroidTransport();
+    const controller = new AbortController();
+    let handshakeCalls = 0;
+    const failure = new Error(message);
+    Object.defineProperty(transport, "client", {
+      value: {
+        async waitFor() {},
+        async createDeviceConnection() {
+          handshakeCalls += 1;
+          if (abort) controller.abort(failure);
+          throw failure;
+        },
+      },
+    });
+
+    await assert.rejects(
+      transport.connect({ deviceId: "device", port: 8901, signal: controller.signal }),
+      error => error === failure,
+    );
+    assert.equal(handshakeCalls, 1);
+  }
+});
+
 test("Android openApp falls through to createAdb when waitFor times out on a missing device", async (t) => {
   const timeoutController = new AbortController();
   const originalTimeout = AbortSignal.timeout.bind(AbortSignal);
