@@ -9,6 +9,7 @@ import {
   type App,
   type Connection,
   type Device,
+  Platform,
   requireNumericPort,
   type Transport,
   type TransportConnectOptions,
@@ -17,7 +18,7 @@ import {
 const debug = createDebug("devtool-mcp-server:connector:desktop");
 
 export class DesktopTransport implements Transport {
-  readonly id: string = "desktop";
+  readonly id: string = Platform.Desktop;
   #takeoverHDT: boolean;
   constructor(takeoverHDT = true) {
     this.#takeoverHDT = takeoverHDT;

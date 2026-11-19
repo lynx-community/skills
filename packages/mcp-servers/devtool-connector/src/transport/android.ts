@@ -14,6 +14,7 @@ import {
   type Connection,
   type Device,
   type OpenAppOptions,
+  Platform,
   requireNumericPort,
   type Transport,
   type TransportConnectOptions,
@@ -34,7 +35,7 @@ export interface AppIcon {
 }
 
 export class AndroidTransport implements Transport {
-  readonly id = "android";
+  readonly id: Platform = Platform.Android;
   protected readonly client: AdbServerClient;
   readonly #appIconHelperDeployments = new Map<string, Promise<void>>();
 
@@ -187,7 +188,7 @@ export class AndroidTransport implements Transport {
   async openApp(
     deviceId: string,
     packageName: string,
-    { withDataCleared, schema, restart = true }: OpenAppOptions = {},
+    { withDataCleared, schema, restart = true }: OpenAppOptions<string> = {},
   ): Promise<void> {
     await this.#withAdb(deviceId, async (adb) => {
       const pmOutput = await spawnWaitText(adb, ["pm", "list", "packages", packageName]);

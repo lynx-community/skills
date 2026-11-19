@@ -15,7 +15,7 @@ import { promisify } from "node:util";
 import { ClientId } from "../client-id.ts";
 import type { Connector } from "../index.ts";
 import { DesktopTransport } from "./desktop.ts";
-import type { Client, Connection, Device, TransportConnectOptions } from "./transport.ts";
+import { type Client, type Connection, type Device, Platform, type TransportConnectOptions } from "./transport.ts";
 
 const ASSETS = path.join(
   path.dirname(createRequire(import.meta.url).resolve("@lynx-js/devtool-connector/package.json")),
@@ -64,7 +64,7 @@ function duration(ms: number): number {
 }
 
 export class LynxSimulatorTransport extends DesktopTransport {
-  override readonly id = "simulator";
+  override readonly id: Platform = Platform.Simulator;
   readonly persistent = true;
   #runs = new Map<string, LynxSimulatorRun>();
   #prepared = new Map<string, Promise<void>>();

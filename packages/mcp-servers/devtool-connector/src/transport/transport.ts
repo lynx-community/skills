@@ -23,7 +23,21 @@ export function requireNumericPort(port: ClientTarget): number {
   throw new TypeError(`Transport requires a numeric port, received target: ${port}`);
 }
 
-export interface OpenAppOptions {
+export const Platform = {
+  Android: "android",
+  iOS: "ios",
+  Desktop: "desktop",
+  Simulator: "simulator",
+} as const;
+
+export type Platform = (typeof Platform)[keyof typeof Platform];
+
+export interface ListAvailableAppsOptions<TPlatform extends string = Platform> {
+  /** Target platform, so the daemon can skip device discovery. */
+  platform?: TPlatform | undefined;
+}
+
+export interface OpenAppOptions<TPlatform extends string = Platform> extends ListAvailableAppsOptions<TPlatform> {
   signal?: AbortSignal;
   withDataCleared?: boolean | undefined;
   /** Stop the app before launching; Android preserves its existing default of true. */
@@ -41,9 +55,9 @@ export interface Transport {
 
   listClients?(): Promise<Client[]>;
 
-  listAvailableApps(deviceId: string): Promise<App[]>;
+  listAvailableApps(deviceId: string, options?: ListAvailableAppsOptions<string>): Promise<App[]>;
 
-  openApp(deviceId: string, packageName: string, options?: OpenAppOptions): Promise<void>;
+  openApp(deviceId: string, packageName: string, options?: OpenAppOptions<string>): Promise<void>;
 
   connect<TInput = unknown, TOutput = unknown>(options: TransportConnectOptions): Promise<Connection<TOutput, TInput>>;
 
