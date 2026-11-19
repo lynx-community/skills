@@ -34,7 +34,11 @@ function resolveImport(file, specifier) {
 
 test('the package ships every manifest resource and both locales share page routes', () => {
   const pkg = JSON.parse(readFileSync(join(root, 'package.json'), 'utf8'));
-  assert.deepEqual(pkg.files, ['content', 'public', 'manifest.json']);
+  assert.deepEqual(pkg.files, [
+    'content',
+    'public',
+    'manifest.json',
+  ]);
   assert.equal(pkg.dependencies, undefined);
   assert.equal(manifest.schemaVersion, 1);
   assert.equal(pkg.name, '@lynx-js/skills-docs');
