@@ -4,16 +4,17 @@ description: 'agent-lynx 全部公开命令、版本与帮助、JSON 输出控�
 
 # CLI 参考
 
-本栏目以 `agent-lynx@0.14.23` 的公开能力为基准。安装与设备配置参见[快速开始](getting-started.mdx)，具体操作参见[各功能指南](index.mdx#按功能查阅)，[程序化 API](programmatic-api.mdx) 单独介绍包导出和集成方式。使用 `agent-lynx <command> --help` 查看已安装版本支持的完整选项。
+本栏目以 `agent-lynx@0.15.2` 的公开能力为基准。安装与设备配置参见[快速开始](getting-started.mdx)，具体操作参见[各功能指南](index.mdx#按功能查阅)，[程序化 API](programmatic-api.mdx) 单独介绍包导出和集成方式。使用 `agent-lynx <command> --help` 查看已安装版本支持的完整选项。
 
 ## 命令清单
 
-公开 CLI 提供以下 46 个可执行命令，子命令分别计数。`agent-lynx --version`、`agent-lynx --help` 和 `agent-lynx help <command>` 提供版本及帮助信息。
+以下按功能列出公开 CLI 命令。`agent-lynx --version`、`agent-lynx --help` 和 `agent-lynx help <command>` 提供版本及帮助信息。
 
 | 能力                                                   | 命令                                                                                                                                                                                                                                    |
 | ------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | [读取自带的 skills](getting-started.mdx)               | `agent-lynx skills list`、`agent-lynx skills get`                                                                                                                                                                                       |
 | [查找应用和页面](connections.mdx)                      | `agent-lynx list-clients`、`agent-lynx wait-for-client`、`agent-lynx list-sessions`、`agent-lynx open`                                                                                                                                  |
+| [在本地运行 Lynx 页面](simulator.mdx) | `agent-lynx simulator run`、`agent-lynx simulator list`、`agent-lynx simulator get`、`agent-lynx simulator logs`、`agent-lynx simulator wait`、`agent-lynx simulator stop` |
 | [获取元素树](page-inspection.mdx)                      | `agent-lynx snapshot`                                                                                                                                                                                                                   |
 | [交互与等待](page-inspection.mdx)                      | `agent-lynx tap`、`agent-lynx long-press`、`agent-lynx fill`、`agent-lynx clear`、`agent-lynx scroll`、`agent-lynx wait`                                                                                                                |
 | [读取元素和定位源码](debugging.mdx)                    | `agent-lynx get text`、`agent-lynx get style`、`agent-lynx get-source-info`                                                                                                                                                             |

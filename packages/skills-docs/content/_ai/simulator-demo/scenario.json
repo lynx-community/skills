@@ -1,0 +1,372 @@
+{
+  "defaultStep": 4,
+  "steps": [
+    {
+      "kind": "run",
+      "title": "已启动的本地运行时",
+      "index": "01 / RUN",
+      "prose": "我先启动本地 Simulator。",
+      "label": "agent-lynx simulator run",
+      "naturalLabel": false,
+      "icon": 0,
+      "content": "\n<pre class=\"command-box\">agent-lynx <button class=\"keyword\" data-link=\"runtime\" type=\"button\">simulator run</button>\n<span class=\"comment\"># { \"clientId\": \"simulator:localhost:45678\", ... }</span></pre>\n"
+    },
+    {
+      "kind": "prepare",
+      "title": "仓库代码与环境依赖",
+      "index": "02 / PREPARE",
+      "prose": "\n                  先看页面如何读取初始数据，再准备 page-env。\n                ",
+      "label": "Grep · Read · Write",
+      "naturalLabel": false,
+      "icon": 1,
+      "content": "\n<div class=\"read-list\">\n<button class=\"read-tool\" data-file=\"request\" data-link=\"dependency\" type=\"button\">\n<b>Grep</b><span class=\"tool-path\">useInitData | selectedCard</span><svg aria-hidden=\"true\" class=\"icon\" fill=\"none\" height=\"24\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" viewBox=\"0 0 24 24\" width=\"24\" xmlns=\"http://www.w3.org/2000/svg\">\n<path d=\"M20 6 9 17l-5-5\"></path>\n</svg>\n</button>\n<button class=\"read-tool\" data-file=\"request\" data-link=\"request\" type=\"button\">\n<b>Read</b><span class=\"tool-path\">src/final/index.tsx</span><svg aria-hidden=\"true\" class=\"icon\" fill=\"none\" height=\"24\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" viewBox=\"0 0 24 24\" width=\"24\" xmlns=\"http://www.w3.org/2000/svg\">\n<path d=\"M20 6 9 17l-5-5\"></path>\n</svg>\n</button>\n<button class=\"read-tool\" data-file=\"page\" data-link=\"business\" type=\"button\">\n<b>Read</b><span class=\"tool-path\">src/final/Components/Card.tsx</span><svg aria-hidden=\"true\" class=\"icon\" fill=\"none\" height=\"24\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" viewBox=\"0 0 24 24\" width=\"24\" xmlns=\"http://www.w3.org/2000/svg\">\n<path d=\"M20 6 9 17l-5-5\"></path>\n</svg>\n</button>\n<button class=\"read-tool\" data-file=\"env\" data-link=\"env\" type=\"button\">\n<b>Write</b><span class=\"tool-path\">page-env.mjs</span><svg aria-hidden=\"true\" class=\"icon\" fill=\"none\" height=\"24\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" viewBox=\"0 0 24 24\" width=\"24\" xmlns=\"http://www.w3.org/2000/svg\">\n<path d=\"M20 6 9 17l-5-5\"></path>\n</svg>\n</button>\n</div>\n"
+    },
+    {
+      "kind": "env",
+      "title": "page-env 初始数据",
+      "index": "03 / PAGE ENV",
+      "prose": null,
+      "label": "cat page-env.mjs",
+      "naturalLabel": false,
+      "icon": 0,
+      "content": "<pre class=\"command-box\">cat page-env.mjs\n<span class=\"comment\"># <button class=\"keyword env-summary\" data-link=\"env-amount\"><span>amount</span><span>初始金额</span></button>\n# <button class=\"keyword env-summary\" data-link=\"env-card\"><span>card</span><span>卡片信息</span></button></span></pre>",
+      "connections": [
+        [
+          "env-amount",
+          "env-amount"
+        ],
+        [
+          "env-card",
+          "env-card"
+        ]
+      ]
+    },
+    {
+      "kind": "open",
+      "title": "运行中的 BankCards 页面",
+      "index": "04 / OPEN",
+      "prose": "\n                  环境已准备好，带上 page-env 打开页面。\n                ",
+      "label": "agent-lynx open --page-env",
+      "naturalLabel": false,
+      "icon": 0,
+      "content": "\n<pre class=\"command-box\">agent-lynx <button class=\"keyword\" data-link=\"open\" type=\"button\">open</button> <span class=\"peek-string\">\"$PAGE_URL\"</span> \\\n  <span class=\"peek-key\">--client</span> simulator:localhost:45678 \\\n  <span class=\"peek-key\">--simulator-window-height</span> 750 \\\n  <span class=\"peek-key\">--page-env</span> ./page-env.mjs</pre>\n<div class=\"scene-values\">\n<small>测试数据</small><button class=\"keyword\" data-link=\"score\" type=\"button\">\n                        268.50\n                      </button><span>·</span><button class=\"keyword\" data-link=\"progress\" type=\"button\">\n                        LYNX DEMO\n                      </button>\n</div>\n"
+    },
+    {
+      "kind": "snapshot",
+      "title": "页面结构与可引用节点",
+      "index": "05 / SNAPSHOT",
+      "prose": "\n                  最后读取 snapshot，核对金额与持卡人。\n                ",
+      "label": "agent-lynx snapshot",
+      "naturalLabel": false,
+      "icon": 0,
+      "content": "\n<pre class=\"command-box\">agent-lynx <button class=\"keyword\" data-link=\"snapshot\" type=\"button\">snapshot</button> \\\n  <span class=\"peek-key\">--client</span> simulator:localhost:45678 <span class=\"peek-key\">--session</span> 1\n<span class=\"comment\"># ...</span>\n<span class=\"comment\"># </span><button class=\"keyword\" data-link=\"node-score\" type=\"button\">@e6 [text] \"268.50\"</button>\n<span class=\"comment\"># </span><button class=\"keyword\" data-link=\"node-progress\" type=\"button\">@e25 [text] \"LYNX DEMO\"</button></pre>\n"
+    }
+  ],
+  "html": {
+    ".user-bubble": "\n<span class=\"speaker\">你</span>帮我在本机打开\n              BankCards，把金额设为 268.50，持卡人设为 LYNX\n              DEMO，检查页面是否正确显示。\n            ",
+    ".agent-report": "\n              页面已正常打开。snapshot 确认：金额为\n              <strong>268.50</strong>，持卡人为 <strong>LYNX DEMO</strong>。\n            ",
+    ".scene-editor .editor-title": "BankCards",
+    ".file-tree": "\n<div class=\"file-row\">\n<span class=\"caret expanded\"><svg aria-hidden=\"true\" class=\"icon\" fill=\"none\" height=\"24\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" viewBox=\"0 0 24 24\" width=\"24\" xmlns=\"http://www.w3.org/2000/svg\">\n<path d=\"m9 18 6-6-6-6\"></path>\n</svg></span><svg aria-hidden=\"true\" class=\"icon\" fill=\"none\" height=\"24\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" viewBox=\"0 0 24 24\" width=\"24\" xmlns=\"http://www.w3.org/2000/svg\">\n<path d=\"M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z\"></path>\n</svg><span class=\"file-name\">src</span>\n</div>\n<div class=\"file-row depth1\">\n<span class=\"caret expanded\"><svg aria-hidden=\"true\" class=\"icon\" fill=\"none\" height=\"24\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" viewBox=\"0 0 24 24\" width=\"24\" xmlns=\"http://www.w3.org/2000/svg\">\n<path d=\"m9 18 6-6-6-6\"></path>\n</svg></span><span class=\"file-name\">final</span>\n</div>\n<button class=\"file-row depth2 interactive\" data-inspect=\"request\" data-target=\"request\" type=\"button\">\n<span class=\"type-ts\">TS</span><span class=\"file-name\">index.tsx</span>\n</button>\n<div class=\"file-row depth2\">\n<span class=\"caret expanded\"><svg aria-hidden=\"true\" class=\"icon\" fill=\"none\" height=\"24\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" viewBox=\"0 0 24 24\" width=\"24\" xmlns=\"http://www.w3.org/2000/svg\">\n<path d=\"m9 18 6-6-6-6\"></path>\n</svg></span><span class=\"file-name\">Components</span>\n</div>\n<button class=\"file-row depth3 interactive\" data-inspect=\"page\" data-target=\"business\" type=\"button\">\n<span class=\"type-ts\">TS</span><span class=\"file-name\">Card.tsx</span>\n</button>\n<div class=\"file-row depth3 muted\">\n<span class=\"caret\"><svg aria-hidden=\"true\" class=\"icon\" fill=\"none\" height=\"24\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" viewBox=\"0 0 24 24\" width=\"24\" xmlns=\"http://www.w3.org/2000/svg\">\n<path d=\"m9 18 6-6-6-6\"></path>\n</svg></span><span class=\"file-name\">Amount.tsx</span>\n</div>\n<button class=\"file-row env-file\" data-inspect=\"env\" data-target=\"env\" type=\"button\">\n<span class=\"type-js\">JS</span><span class=\"file-name\">page-env.mjs</span>\n</button>\n",
+    ".scene-editor .editor-branch": "<svg aria-hidden=\"true\" class=\"icon\" fill=\"none\" height=\"24\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" viewBox=\"0 0 24 24\" width=\"24\" xmlns=\"http://www.w3.org/2000/svg\">\n<path d=\"M15 6a9 9 0 0 0-9 9V3\"></path>\n<circle cx=\"18\" cy=\"6\" r=\"3\"></circle>\n<circle cx=\"6\" cy=\"18\" r=\"3\"></circle>\n</svg>main",
+    ".conv-meta": "5 个步骤",
+    ".conv-header > span": "示例对话",
+    ".desktop-time": "本地运行",
+    ".launched-title": "Lynx Simulator 已启动",
+    "#retry-assets": "\n          重新加载\n        ",
+    ".scene-env .editor-title": "BankCards",
+    ".scene-env .editor-branch": "<svg aria-hidden=\"true\" class=\"icon\" fill=\"none\" height=\"24\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" viewBox=\"0 0 24 24\" width=\"24\" xmlns=\"http://www.w3.org/2000/svg\">\n<path d=\"M15 6a9 9 0 0 0-9 9V3\"></path>\n<circle cx=\"18\" cy=\"6\" r=\"3\"></circle>\n<circle cx=\"6\" cy=\"18\" r=\"3\"></circle>\n</svg>main",
+    ".env-code": "<div class=\"env-breadcrumb\"><span>page-env.mjs</span><span>›</span><span>default</span></div><div class=\"code-line\"><span class=\"line-number\">1</span><code><span class=\"peek-comment\">// Copyright 2026 The Lynx Authors. All rights reserved.</span></code></div><div class=\"code-line\"><span class=\"line-number\">2</span><code><span class=\"peek-comment\">// Licensed under the Apache License Version 2.0 that can be found in the</span></code></div><div class=\"code-line\"><span class=\"line-number\">3</span><code><span class=\"peek-comment\">// LICENSE file in the root directory of this source tree.</span></code></div><div class=\"code-line env-blank\"><span class=\"line-number\">4</span><code> </code></div><div class=\"code-line\"><span class=\"line-number\">5</span><code><span class=\"peek-key\">export</span> <span class=\"peek-key\">default</span> () =&gt; ({</code></div><div class=\"code-line\"><span class=\"line-number\">6</span><code>  templateData: {</code></div><div class=\"code-line env-section\"><span class=\"line-number\">7</span><code data-target=\"env-amount\">    amount: <span class=\"peek-string\">'268.50'</span>,</code></div><div class=\"code-line env-section\"><span class=\"line-number\">8</span><code data-target=\"env-card\">    card: {</code></div><div class=\"code-line\"><span class=\"line-number\">9</span><code>      type: <span class=\"peek-string\">'visa'</span>,</code></div><div class=\"code-line\"><span class=\"line-number\">10</span><code>      number: <span class=\"peek-string\">'4242 **** **** 4242'</span>,</code></div><div class=\"code-line\"><span class=\"line-number\">11</span><code>      name: <span class=\"peek-string\">'LYNX DEMO'</span>,</code></div><div class=\"code-line\"><span class=\"line-number\">12</span><code>    },</code></div><div class=\"code-line\"><span class=\"line-number\">13</span><code>  },</code></div><div class=\"code-line\"><span class=\"line-number\">14</span><code>});</code></div>"
+  },
+  "attributes": {
+    ".scene-editor": {
+      "aria-label": "示例仓库代码编辑器"
+    },
+    ".scene-open": {
+      "aria-label": "Lynx Simulator 中的 BankCards 首屏"
+    },
+    ".page-screen": {
+      "aria-label": "固定首屏，268.50，LYNX DEMO"
+    },
+    ".page-image": {
+      "alt": "BankCards 首屏：268.50，持卡人 LYNX DEMO。",
+      "width": "780",
+      "height": "1500"
+    },
+    ".scene-env": {
+      "aria-label": "page-env.mjs：金额与卡片的初始数据"
+    }
+  },
+  "peek": {
+    "request": "<div class=\"code-peek-label\">index.tsx</div><div class=\"code-line\"><span class=\"line-number\">5</span><code><span class=\"peek-key\">import</span> { root, useInitData, useState } <span class=\"peek-key\">from</span> <span class=\"peek-string\">&quot;@lynx-js/react&quot;</span>;</code></div><div class=\"code-line\"><span class=\"line-number\"></span><code class=\"peek-comment\">…</code></div><div class=\"code-line\"><span class=\"line-number\">21</span><code>  <span class=\"peek-key\">const</span> initial = useInitData();</code></div><div class=\"code-line\"><span class=\"line-number\">22</span><code>  <span class=\"peek-key\">const</span> [selectedCard, setSelectedCard] = useState&lt;BankCard&gt;(initial.card ?? {</code></div><div class=\"code-line\"><span class=\"line-number\">23</span><code>    type: <span class=\"peek-string\">&quot;visa&quot;</span>,</code></div><div class=\"code-line\"><span class=\"line-number\">24</span><code>    number: <span class=\"peek-string\">&quot;4558 **** **** 6767&quot;</span>,</code></div><div class=\"code-line\"><span class=\"line-number\">25</span><code>    name: <span class=\"peek-string\">&quot;Alex Quentin&quot;</span>,</code></div><div class=\"code-line\"><span class=\"line-number\">26</span><code>  });</code></div><div class=\"code-line\"><span class=\"line-number\"></span><code class=\"peek-comment\">…</code></div><div class=\"code-line\"><span class=\"line-number\">45</span><code>      <span class=\"peek-key\">&lt;Amount</span> amount={initial.amount ?? <span class=\"peek-string\">&quot;1314&quot;</span>} /&gt;</code></div>",
+    "page": "<div class=\"code-peek-label\">Card.tsx</div><div class=\"code-line\"><span class=\"line-number\">51</span><code>        <span class=\"peek-key\">&lt;view</span> className=<span class=\"peek-string\">&quot;card-number&quot;</span>&gt;</code></div><div class=\"code-line\"><span class=\"line-number\">52</span><code>          <span class=\"peek-key\">&lt;text</span> className=<span class=\"peek-string\">&quot;first-digits&quot;</span>&gt;{firstFour}<span class=\"peek-key\">&lt;/text</span>&gt;</code></div><div class=\"code-line\"><span class=\"line-number\">53</span><code>          <span class=\"peek-key\">&lt;text</span> className=<span class=\"peek-string\">&quot;middle-digits&quot;</span>&gt;**** ****<span class=\"peek-key\">&lt;/text</span>&gt;</code></div><div class=\"code-line\"><span class=\"line-number\">54</span><code>          <span class=\"peek-key\">&lt;text</span> className=<span class=\"peek-string\">&quot;last-digits&quot;</span>&gt;{lastFour}<span class=\"peek-key\">&lt;/text</span>&gt;</code></div><div class=\"code-line\"><span class=\"line-number\"></span><code class=\"peek-comment\">…</code></div><div class=\"code-line\"><span class=\"line-number\">57</span><code>          <span class=\"peek-key\">&lt;text</span>&gt;{selectedCard?.name || <span class=\"peek-string\">&quot;Card holder&quot;</span>}<span class=\"peek-key\">&lt;/text</span>&gt;</code></div>",
+    "env": "<div class=\"code-peek-label\">page-env.mjs</div><div class=\"code-line\"><span class=\"line-number\">1</span><code><span class=\"peek-key\">export</span> <span class=\"peek-key\">default</span> () =&gt; ({</code></div><div class=\"code-line\"><span class=\"line-number\">2</span><code>  templateData: {</code></div><div class=\"code-line\"><span class=\"line-number\">3</span><code>    amount: <span class=\"peek-string\">&quot;268.50&quot;</span>,</code></div><div class=\"code-line\"><span class=\"line-number\">4</span><code>    card: {</code></div><div class=\"code-line\"><span class=\"line-number\">5</span><code>      type: <span class=\"peek-string\">&quot;visa&quot;</span>,</code></div><div class=\"code-line\"><span class=\"line-number\">6</span><code>      number: <span class=\"peek-string\">&quot;4242 **** **** 4242&quot;</span>,</code></div><div class=\"code-line\"><span class=\"line-number\">7</span><code>      name: <span class=\"peek-string\">&quot;LYNX DEMO&quot;</span>,</code></div><div class=\"code-line\"><span class=\"line-number\">8</span><code>    },</code></div><div class=\"code-line\"><span class=\"line-number\">9</span><code>  },</code></div><div class=\"code-line\"><span class=\"line-number\">10</span><code>});</code></div>"
+  },
+  "files": {
+    "request": "index.tsx",
+    "page": "Card.tsx",
+    "env": "page-env.mjs"
+  },
+  "snapshot": {
+    "snapshotLines": [
+      "@e1 [view] @(195,375)",
+      "├─ @e2 [view] @(195,73)",
+      "│  ├─ @e3 [text] \"Amount paid\" @(196,47)",
+      "│  └─ @e4 [view] @(196,84)",
+      "│     ├─ @e5 [text] \"¥\" @(129,90)",
+      "│     └─ @e6 [text] \"268.50\" @(205,84)",
+      "├─ @e7 [view] @(195,196)",
+      "│  ├─ @e8 [view] @(208,196) {hidden}",
+      "│  │  └─ @e9 [view] @(208,196)",
+      "│  │     └─ @e10 [view] @(208,203)",
+      "│  │        ├─ @e11 [view] @(106,195)",
+      "│  │        │  ├─ @e12 [text] \"Card Holder\" @(88,176)",
+      "│  │        │  └─ @e13 [view] @(108,207)",
+      "│  │        │     └─ @e14 [text] \"Alex Quentin\" @(101,207)",
+      "│  │        └─ @e15 [view] @(290,206)",
+      "│  │           ├─ @e16 [view] @(255,206)",
+      "│  │           │  └─ @e17 [text] \"CCV2\" @(255,204)",
+      "│  │           └─ @e18 [view] @(314,206)",
+      "│  └─ @e19 [view] @(208,196)",
+      "│     ├─ @e20 [view] @(208,184)",
+      "│     │  ├─ @e21 [text] \"4242\" @(76,184)",
+      "│     │  ├─ @e22 [text] \"**** ****\" @(166,184)",
+      "│     │  └─ @e23 [text] \"4242\" @(248,184)",
+      "│     └─ @e24 [view] @(208,209)",
+      "│        └─ @e25 [text] \"LYNX DEMO\" @(208,209)",
+      "├─ @e26 [view] @(195,399)",
+      "│  ├─ @e27 [text] \"Payment method\" @(201,278)",
+      "│  └─ @e28 [view] @(195,413)",
+      "│     └─ @e29 [scroll-view] @(195,413) {scrollable}",
+      "│        ├─ @e30 [view] @(195,326)",
+      "│        │  ├─ @e31 [view] @(67,326)",
+      "│        │  │  ├─ @e32 [image] @(48,326)",
+      "│        │  │  └─ @e33 [view] @(85,326)",
+      "│        │  │     └─ @e34 [text] \"Bac\" @(85,326)",
+      "│        │  └─ @e35 [image] @(344,326)",
+      "│        ├─ @e36 [view] @(195,383)",
+      "│        │  └─ @e37 [view] @(67,383)",
+      "│        │     ├─ @e38 [image] @(48,383)",
+      "│        │     └─ @e39 [view] @(85,383)",
+      "│        │        └─ @e40 [text] \"Boc\" @(85,383)",
+      "│        ├─ @e41 [view] @(195,440)",
+      "│        │  └─ @e42 [view] @(66,440)",
+      "│        │     ├─ @e43 [image] @(48,440)",
+      "│        │     └─ @e44 [view] @(84,440)",
+      "│        │        └─ @e45 [text] \"Citi\" @(84,440)",
+      "│        ├─ @e46 [view] @(195,497)",
+      "│        │  └─ @e47 [view] @(71,497)",
+      "│        │     ├─ @e48 [image] @(48,497)",
+      "│        │     └─ @e49 [view] @(89,497)",
+      "│        │        └─ @e50 [text] \"Cmb\" @(89,497)",
+      "│        ├─ @e51 [view] @(195,527)",
+      "│        │  └─ @e52 [view] @(72,554) {offscreen}",
+      "│        │     ├─ @e53 [image] @(48,554) {offscreen}",
+      "│        │     └─ @e54 [view] @(90,554) {offscreen}",
+      "│        │        └─ @e55 [text] \"Hsbc\" @(90,554) {offscreen}",
+      "│        └─ @e56 [view] @(195,611) {offscreen}",
+      "│           └─ @e57 [view] @(69,611) {offscreen}",
+      "│              ├─ @e58 [image] @(48,611) {offscreen}",
+      "│              └─ @e59 [view] @(87,611) {offscreen}",
+      "│                 └─ @e60 [text] \"Icbc\" @(87,611) {offscreen}",
+      "└─ @e61 [view] @(195,683)",
+      "   └─ @e62 [view] @(195,683)",
+      "      └─ @e63 [text] \"Pay Now\" @(196,683)"
+    ],
+    "excerptRefs": [
+      "@e1",
+      "@e2",
+      "@e3",
+      "@e4",
+      "@e5",
+      "@e6",
+      "@e7",
+      "@e19",
+      "@e20",
+      "@e21",
+      "@e22",
+      "@e23",
+      "@e24",
+      "@e25"
+    ],
+    "snapshotTargets": [
+      [
+        "@e1",
+        "snapshot"
+      ],
+      [
+        "@e6",
+        "node-score"
+      ],
+      [
+        "@e25",
+        "node-progress"
+      ]
+    ]
+  },
+  "media": {
+    "page": "https://sf16-sg.tiktokcdn.com/obj/eden-sg/fgoeh7uhbfpognuvo/lynx-website/agent-lynx/simulator/bankcards-c47090c7f230.webp",
+    "icon": "https://sf16-sg.tiktokcdn.com/obj/eden-sg/fgoeh7uhbfpognuvo/lynx-website/agent-lynx/simulator/lynxtron-c961ea6675d5.webp",
+    "font": "https://sf16-sg.tiktokcdn.com/obj/eden-sg/fgoeh7uhbfpognuvo/lynx-website/agent-lynx/annotations/fonts/jetbrains-mono-regular-f1a7a03672cd.woff2",
+    "headers": {}
+  },
+  "layout": {
+    "--bubble-gap": "11px",
+    "--agent-gap": "8px",
+    "--exchange-gap": "8px",
+    "--prose-gap": "4px",
+    "--read-gap": "2px",
+    "--read-height": "21px",
+    "--read-padding": "2px",
+    "--report-gap": "11px",
+    "--page-ratio": "390/750",
+    "--score-left": "34.9%",
+    "--score-top": "8%",
+    "--score-width": "35.2%",
+    "--score-height": "6.4%",
+    "--progress-left": "11%",
+    "--progress-top": "26.2%",
+    "--progress-width": "26%",
+    "--progress-height": "3.4%"
+  },
+  "english": {
+    "patches": [
+      {
+        "selector": ".conv-header > span",
+        "text": "Example conversation"
+      },
+      {
+        "selector": ".conv-meta",
+        "text": "5 steps"
+      },
+      {
+        "selector": ".speaker",
+        "text": "You"
+      },
+      {
+        "selector": "[data-exchange=\"1\"] .assistant-prose",
+        "text": "I’ll start a local Simulator."
+      },
+      {
+        "selector": "[data-exchange=\"2\"] .assistant-prose",
+        "text": "I’ll check how the page reads initial data and prepare page-env."
+      },
+      {
+        "selector": "[data-exchange=\"4\"] .assistant-prose",
+        "text": "The data is ready. I’ll open the page with page-env."
+      },
+      {
+        "selector": "[data-exchange=\"5\"] .assistant-prose",
+        "text": "I’ll read the snapshot to check the amount and cardholder."
+      },
+      {
+        "selector": ".scene-values small",
+        "text": "Test data"
+      },
+      {
+        "selector": ".desktop-time",
+        "text": "Running locally"
+      },
+      {
+        "selector": ".launched-title",
+        "text": "Lynx Simulator is running"
+      },
+      {
+        "selector": "#retry-assets",
+        "text": "Retry"
+      },
+      {
+        "selector": ".user-bubble",
+        "lastText": "Open BankCards locally with an amount of 268.50 and cardholder LYNX DEMO, then check that the page shows them."
+      },
+      {
+        "selector": ".agent-report",
+        "html": "The page is open. The snapshot confirms the amount is <strong>268.50</strong> and the cardholder is <strong>LYNX DEMO</strong>."
+      },
+      {
+        "selector": "#asset-message",
+        "firstText": "Images could not be loaded. "
+      },
+      {
+        "selector": ".conversation",
+        "attributes": {
+          "aria-label": "Example agent conversation"
+        }
+      },
+      {
+        "selector": ".detail",
+        "attributes": {
+          "aria-label": "Selected tool call details"
+        }
+      },
+      {
+        "selector": ".scene-dock",
+        "attributes": {
+          "aria-label": "macOS illustration with Lynx Simulator running"
+        }
+      },
+      {
+        "selector": ".runtime-wrap .runtime-icon",
+        "attributes": {
+          "aria-label": "Lynx Simulator is running"
+        }
+      },
+      {
+        "selector": ".scene-editor",
+        "attributes": {
+          "aria-label": "Example source code editor"
+        }
+      },
+      {
+        "selector": ".scene-open",
+        "attributes": {
+          "aria-label": "BankCards running in Lynx Simulator"
+        }
+      },
+      {
+        "selector": ".page-screen",
+        "attributes": {
+          "aria-label": "Page with amount 268.50 and cardholder LYNX DEMO"
+        }
+      },
+      {
+        "selector": ".scene-snapshot",
+        "attributes": {
+          "aria-label": "Snapshot tree excerpt"
+        }
+      },
+      {
+        "selector": ".snapshot-scroll",
+        "attributes": {
+          "aria-label": "Page snapshot"
+        }
+      },
+      {
+        "selector": ".page-image",
+        "attributes": {
+          "alt": "BankCards: amount 268.50 and cardholder LYNX DEMO supplied by page-env."
+        }
+      },
+      {
+        "selector": "[data-link=\"env-amount\"] span:last-child",
+        "text": "Initial amount"
+      },
+      {
+        "selector": "[data-link=\"env-card\"] span:last-child",
+        "text": "Card details"
+      },
+      {
+        "selector": ".scene-env",
+        "attributes": {
+          "aria-label": "page-env.mjs: initial amount and card data"
+        }
+      }
+    ],
+    "titles": [
+      "Local runtime started",
+      "Source code and page environment",
+      "Initial data in page-env",
+      "BankCards running locally",
+      "Page structure and element refs"
+    ]
+  }
+}

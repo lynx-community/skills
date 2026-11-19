@@ -4,16 +4,17 @@ description: 'All public agent-lynx commands, version and help usage, JSON outpu
 
 # CLI Reference
 
-This section documents the public functionality in `agent-lynx@0.14.23`. Start with [Getting Started](getting-started.mdx) for installation and device setup, or browse the [function guides](index.mdx#explore-by-function). The [programmatic APIs](programmatic-api.mdx) have their own reference. Use `agent-lynx <command> --help` for the complete options supported by your installed version.
+This section documents the public functionality in `agent-lynx@0.15.2`. Start with [Getting Started](getting-started.mdx) for installation and device setup, or browse the [function guides](index.mdx#explore-by-function). The [programmatic APIs](programmatic-api.mdx) have their own reference. Use `agent-lynx <command> --help` for the complete options supported by your installed version.
 
 ## Command Inventory
 
-The public CLI provides the following 46 executable commands, counting subcommands individually. `agent-lynx --version`, `agent-lynx --help`, and `agent-lynx help <command>` provide version and help information.
+The public CLI commands are grouped below. `agent-lynx --version`, `agent-lynx --help`, and `agent-lynx help <command>` provide version and help information.
 
 | Capability                                                          | Commands                                                                                                                                                                                                                                |
 | ------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | [Read bundled skills](getting-started.mdx)                          | `agent-lynx skills list`, `agent-lynx skills get`                                                                                                                                                                                       |
 | [Discover apps and pages](connections.mdx)                          | `agent-lynx list-clients`, `agent-lynx wait-for-client`, `agent-lynx list-sessions`, `agent-lynx open`                                                                                                                                  |
+| [Run Lynx pages locally](simulator.mdx) | `agent-lynx simulator run`, `agent-lynx simulator list`, `agent-lynx simulator get`, `agent-lynx simulator logs`, `agent-lynx simulator wait`, `agent-lynx simulator stop` |
 | [Capture the element tree](page-inspection.mdx)                     | `agent-lynx snapshot`                                                                                                                                                                                                                   |
 | [Interact and wait](page-inspection.mdx)                            | `agent-lynx tap`, `agent-lynx long-press`, `agent-lynx fill`, `agent-lynx clear`, `agent-lynx scroll`, `agent-lynx wait`                                                                                                                |
 | [Read elements and locate source](debugging.mdx)                    | `agent-lynx get text`, `agent-lynx get style`, `agent-lynx get-source-info`                                                                                                                                                             |

@@ -7,6 +7,7 @@
   "skillBaseUrl": "https://github.com/lynx-community/skills/blob/release/skills/",
   "commands": [
     "skills",
+    "simulator",
     "trace",
     "recorder",
     "tasm",
@@ -103,6 +104,18 @@
         "list-clients",
         "open",
         "screenshot"
+      ]
+    },
+    {
+      "name": "lynx-simulator",
+      "commands": [
+        "skills",
+        "simulator",
+        "list-sessions",
+        "open",
+        "evaluate",
+        "inspect",
+        "daemon"
       ]
     },
     {

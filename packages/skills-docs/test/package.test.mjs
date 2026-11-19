@@ -64,8 +64,8 @@ test('the package ships every manifest resource and both locales share page rout
       }
       if (section.id === 'agent-lynx') {
         assert.ok(
-          !meta.some((item) => item.name === 'simulator.mdx'),
-          'keep the unreleased Simulator out of navigation',
+          meta.some((item) => item.name === 'simulator.mdx'),
+          'expose Lynx Simulator in navigation',
         );
         assert.ok(
           existsSync(join(root, folder, 'memory.mdx')),
@@ -137,11 +137,20 @@ test('interactive examples include their downloadable resources', () => {
   for (
     const file of [
       'annotated-screenshot.html',
-      'simulator-demo.html',
       'simulator/page-env.mjs',
       'simulator/bankcards-init-data.patch',
     ]
   ) {
     assert.ok(readFileSync(join(assets, file), 'utf8').length > 0, file);
+  }
+  const component = join(root, 'content/_ai/simulator-demo');
+  for (const file of [
+    'index.tsx',
+    'controller.mjs',
+    'template.ts',
+    'index.module.less',
+    'scenario.json',
+  ]) {
+    assert.ok(readFileSync(join(component, file), 'utf8').length > 0, file);
   }
 });
