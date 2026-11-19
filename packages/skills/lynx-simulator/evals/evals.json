@@ -1,0 +1,44 @@
+{
+  "skill_name": "lynx-simulator",
+  "evals": [
+    {
+      "id": 1,
+      "name": "local-page-with-shared-daemon",
+      "prompt": "Linux 上用本地 /tmp/case/main.lynx.bundle 和 /tmp/case/page-env.json 开一个 320x480 的 Lynx Simulator 页面并截图。agent-lynx 已支持 simulator run，daemon 还被别的任务使用。list-clients 返回空列表。给出运行、验证和结束清理的命令流程。",
+      "expected_output": "Use the returned Lynx Simulator client explicitly, verify its page and screenshot, and stop only this task's Lynx Simulator.",
+      "files": [],
+      "expectations": [
+        "Uses agent-lynx simulator run and retains clientId, pid, and logPath without installing host packages manually.",
+        "Opens the absolute bundle path with --page-env, width 320, height 480, and windowless rendering.",
+        "Uses the returned client even though list-clients is empty, selects the page session, and loads lynx-devtool for verification.",
+        "Cleans up the task-owned process without stopping the shared daemon."
+      ]
+    },
+    {
+      "id": 2,
+      "name": "async-page-state",
+      "prompt": "给同一个 Lynx Simulator 的两个页面编写 page-env.mjs。异步提供 title 和 theme；example.getUser 返回参数、当前页面 ID 和调用次数，每个页面各自从 1 开始。其它 native 调用走默认处理。只写 page-env 文件。",
+      "expected_output": "An async environment factory with per-page state, async data fields, and explicit JSB delegation.",
+      "files": [],
+      "expectations": [
+        "Exports a default async factory; templateData and globalProps return objects.",
+        "Keeps the counter inside the factory and handles name, params, and context.window.id.",
+        "Calls context.next() for unhandled methods instead of using undefined as fallback.",
+        "Returns the page-env file without starting Lynx Simulator or introducing a Lynxtron host entrypoint or runtime dependency."
+      ]
+    },
+    {
+      "id": 3,
+      "name": "optional-fixture-handoff",
+      "prompt": "把 ./wallet.fixture.json 整理成可编辑 Lynx Simulator 用例，保留原录制。我需要知道哪些事件无法还原；当前还没提供参考截图。请说明处理步骤，先不要执行命令。",
+      "expected_output": "Follow the optional fixture reference and reuse lynx-recorder-fixture, preserving the recording and identifying conversion limits.",
+      "files": [],
+      "expectations": [
+        "Loads lynx-recorder-fixture for decoding and documented action/callback structures instead of inventing a decoder.",
+        "Derives bundle/assets, initial data, global props, and matched JSB replies in a separate case directory.",
+        "Distinguishes editable-case conversion from complete action/timing replay and reports unsupported events or missing assets.",
+        "Does not claim visual equivalence without a reference screenshot."
+      ]
+    }
+  ]
+}

@@ -1,0 +1,20 @@
+{
+  "name": "@lynx-js/skill-lynx-simulator",
+  "version": "0.0.0",
+  "description": "Run local Lynx Simulator cases, author page environments, and use or develop JSB and native-extension packages",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/lynx-community/skills.git",
+    "directory": "packages/skills/lynx-simulator"
+  },
+  "license": "Apache-2.0",
+  "type": "module",
+  "files": [
+    "SKILL.md",
+    "references",
+    "examples"
+  ],
+  "publishConfig": {
+    "access": "public"
+  }
+}

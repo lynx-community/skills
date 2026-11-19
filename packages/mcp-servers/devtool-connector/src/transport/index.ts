@@ -8,5 +8,6 @@ export * from "./desktop.ts";
 export * from "./hdt.ts";
 export * from "./ios.ts";
 export * from "./peertalk.ts";
+export * from "./simulator.ts";
 export * from "./transport.ts";
 export * from "./usbmux.ts";

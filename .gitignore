@@ -154,6 +154,9 @@ packages/skills/*/scripts
 # Handwritten fixture tools are source files.
 !packages/skills/lynx-recorder-fixture/scripts/
 packages/skills/*/public
+# Simulator hooks are cross-compiled from source when building the Connector.
+packages/mcp-servers/devtool-connector/public/simulator/*.so
+packages/mcp-servers/devtool-connector/public/simulator/*.dylib
 packages/agent-lynx/skills
 packages/plugins/*/skills
 packages/plugins/*/scripts

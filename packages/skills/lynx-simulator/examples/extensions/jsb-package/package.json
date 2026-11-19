@@ -1,0 +1,13 @@
+{
+  "name": "@example/simulator-jsb",
+  "version": "0.1.0",
+  "description": "Example simulator JSB package with per-window state",
+  "type": "module",
+  "exports": {
+    ".": "./index.mjs"
+  },
+  "files": ["index.mjs"],
+  "engines": {
+    "node": ">=22.18.0"
+  }
+}

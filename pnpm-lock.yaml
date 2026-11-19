@@ -76,6 +76,9 @@ importers:
       '@lynx-js/skill-lynx-recorder-fixture':
         specifier: workspace:*
         version: link:../skills/lynx-recorder-fixture
+      '@lynx-js/skill-lynx-simulator':
+        specifier: workspace:*
+        version: link:../skills/lynx-simulator
       '@lynx-js/skill-lynx-tasm-codec':
         specifier: workspace:*
         version: link:../skills/lynx-tasm-codec
@@ -190,6 +193,9 @@ importers:
       '@lynx-js/skill-lynx-recorder-fixture':
         specifier: workspace:*
         version: link:../skills/lynx-recorder-fixture
+      '@lynx-js/skill-lynx-simulator':
+        specifier: workspace:*
+        version: link:../skills/lynx-simulator
       '@lynx-js/skill-lynx-tasm-codec':
         specifier: workspace:*
         version: link:../skills/lynx-tasm-codec
@@ -249,6 +255,9 @@ importers:
       '@yume-chan/stream-extra':
         specifier: catalog:adb
         version: 3.0.0-beta.5
+      '@zigc/cli':
+        specifier: 0.17.0
+        version: 0.17.0
       dprint:
         specifier: ^0.64.3
         version: 0.64.3
@@ -525,6 +534,8 @@ importers:
   packages/skills/lynx-recorder: {}
 
   packages/skills/lynx-recorder-fixture: {}
+
+  packages/skills/lynx-simulator: {}
 
   packages/skills/lynx-tasm-codec: {}
 
@@ -1562,6 +1573,49 @@ packages:
 
   '@yume-chan/struct@3.0.0-beta.5':
     resolution: {integrity: sha512-ICN3isMo/T2x57R2UzQGBLpPVFx0UOlDqyaMvYWPTRwAte1PKsAyxS3VmgoJvMWGyxjRVvtk4VaQNYWdlSK4/g==}
+
+  '@zigc/cli@0.17.0':
+    resolution: {integrity: sha512-cMM5VdYDjGsrBLQ37oFv2RHT/3qmlF08st2/hF2wJ3JeBnJqVAhkrbcSZWP+yB4hii2/Zuru4Q9SPP0qJW/RIg==}
+    hasBin: true
+
+  '@zigc/darwin-arm64@0.17.0':
+    resolution: {integrity: sha512-HIiRdWp2HZPeWF4MtdV1/axvc+dVYMBAYFXt6QgTcojIiA6ycee37CzGpua81zLpbBkRMKWFe9SI56g88NqIrg==}
+    cpu: [arm64]
+    os: [darwin]
+    hasBin: true
+
+  '@zigc/darwin-x64@0.17.0':
+    resolution: {integrity: sha512-z2OzmwLIeMz/EKZkeUOlJJKJ9Q2IGn6trb2f963z80Y8qk7gHalu2ATCHQl2L+AqkjS8kNJh6AWxocWqe1Lfpw==}
+    cpu: [x64]
+    os: [darwin]
+    hasBin: true
+
+  '@zigc/lib@0.17.0':
+    resolution: {integrity: sha512-n5T2IiXv5by5qLHd0Utg7RjVjFxRIJezzHY1ojrp5McDvfJiZ1IvKvQbaHh74B7u8MVh6sOpuI4GlgQaQLIZiw==}
+
+  '@zigc/linux-arm64@0.17.0':
+    resolution: {integrity: sha512-UQPJR0BxL1glcSgIT6Yu0hqHuPyD5cHQshq3ZaSb+cJfKM4YtyGRAMX2ylX4B5WabdfxF/ez3Nx+p6a5EVgYYw==}
+    cpu: [arm64]
+    os: [linux]
+    hasBin: true
+
+  '@zigc/linux-x64@0.17.0':
+    resolution: {integrity: sha512-fNTXycv5vpo85Axes8Ue2/F8YKEu2Ona6dnya+CnQhckqjXk2Cqe87bqGmyJyP/TeUozeLkXSbve2kntG3F1Ig==}
+    cpu: [x64]
+    os: [linux]
+    hasBin: true
+
+  '@zigc/win32-arm64@0.17.0':
+    resolution: {integrity: sha512-pqPUF0d6VIXPbhpSKppRFZ8JyaKxQFK4S6wx2TO6RAYnY7R0z/77bJRprwWppU2vYUhc3xPfPHwdPu29AEVg8A==}
+    cpu: [arm64]
+    os: [win32]
+    hasBin: true
+
+  '@zigc/win32-x64@0.17.0':
+    resolution: {integrity: sha512-l7ORuMR5j+aEqxa+ntUd0Q9M00ghe6Qx50V1Ha7FU0CQhGcRt9zjY6dBwlciwcHOsQzn6fBDDLAILgZQQXTG0g==}
+    cpu: [x64]
+    os: [win32]
+    hasBin: true
 
   accepts@2.0.0:
     resolution: {integrity: sha512-5cvg6CtKwfgdmVqY1WIiXKc3Q1bkRqGLi+2W/6ao+6Y7gu/RCwRuAhGEzh5B4KlszSuTLgZYuqFqo5bImjNKng==}
@@ -3820,6 +3874,37 @@ snapshots:
     dependencies:
       '@yume-chan/async': 4.2.2
       '@yume-chan/no-data-view': 3.0.0-beta.5
+
+  '@zigc/cli@0.17.0':
+    dependencies:
+      '@zigc/lib': 0.17.0
+    optionalDependencies:
+      '@zigc/darwin-arm64': 0.17.0
+      '@zigc/darwin-x64': 0.17.0
+      '@zigc/linux-arm64': 0.17.0
+      '@zigc/linux-x64': 0.17.0
+      '@zigc/win32-arm64': 0.17.0
+      '@zigc/win32-x64': 0.17.0
+
+  '@zigc/darwin-arm64@0.17.0':
+    optional: true
+
+  '@zigc/darwin-x64@0.17.0':
+    optional: true
+
+  '@zigc/lib@0.17.0': {}
+
+  '@zigc/linux-arm64@0.17.0':
+    optional: true
+
+  '@zigc/linux-x64@0.17.0':
+    optional: true
+
+  '@zigc/win32-arm64@0.17.0':
+    optional: true
+
+  '@zigc/win32-x64@0.17.0':
+    optional: true
 
   accepts@2.0.0:
     dependencies:

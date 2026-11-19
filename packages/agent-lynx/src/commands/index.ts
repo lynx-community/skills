@@ -28,6 +28,7 @@ export * from './recorder-start.ts';
 export * from './result.ts';
 export * from './screenshot.ts';
 export * from './scroll.ts';
+export * from './simulator.ts';
 export * from './skills.ts';
 export * from './snapshot.ts';
 export * from './take-content-screenshot.ts';

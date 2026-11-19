@@ -24,6 +24,13 @@ export default defineConfig([
   js.configs.recommended,
   ts.configs.recommended,
   {
+    // This native-addon example deliberately demonstrates a CommonJS package.
+    files: [
+      'packages/skills/lynx-simulator/examples/extensions/native-package/index.cjs',
+    ],
+    rules: { '@typescript-eslint/no-require-imports': 'off' },
+  },
+  {
     files: ['**/*.{js,mjs,cjs}'],
     languageOptions: { globals: globals.node },
   },
