@@ -32,6 +32,13 @@ const SOCKET_GRACEFUL_CLOSE_TIMEOUT_MS = 100;
 // even the second reconnect attempt (+3_250ms).
 const WAIT_FOR_DEVICE_TIMEOUT_MS = 8_000;
 
+interface PendingDeviceWait {
+  readonly controller: AbortController;
+  promise: Promise<void>;
+  settled: boolean;
+  waiters: number;
+}
+
 function spawnWaitText(adb: Adb, command: string | readonly string[]): Promise<string> {
   return adb.subprocess.noneProtocol.spawn(command).wait().toString();
 }
@@ -45,6 +52,7 @@ export class AndroidTransport implements Transport {
   readonly id = "android";
   protected readonly client: AdbServerClient;
   readonly #appIconHelperDeployments = new Map<string, Promise<void>>();
+  readonly #pendingDeviceWaits = new Map<string, PendingDeviceWait>();
 
   constructor(spec?: SocketConnectOpts) {
     // ADB's server always listens on IPv4 loopback, while `localhost` can
@@ -69,14 +77,61 @@ export class AndroidTransport implements Transport {
     debug("Android transport closed");
   }
 
+  // Concurrent callers for one device share a single `waitFor`; its own timeout
+  // keeps a caller's own timeout from aborting the wait others still need.
   async #waitForDevice(deviceId: string, signal?: AbortSignal): Promise<void> {
-    const timeoutSignal = AbortSignal.timeout(WAIT_FOR_DEVICE_TIMEOUT_MS);
-    const waitSignal = signal ? AbortSignal.any([signal, timeoutSignal]) : timeoutSignal;
-    try {
-      await this.client.waitFor({ serial: deviceId }, "device", { signal: waitSignal });
-    } catch (err) {
-      if (!timeoutSignal.aborted || signal?.aborted) throw err;
+    signal?.throwIfAborted();
+    let entry = this.#pendingDeviceWaits.get(deviceId);
+    if (!entry) {
+      const controller = new AbortController();
+      const waitSignal = AbortSignal.any([controller.signal, AbortSignal.timeout(WAIT_FOR_DEVICE_TIMEOUT_MS)]);
+      const created: PendingDeviceWait = { controller, promise: Promise.resolve(), settled: false, waiters: 0 };
+      created.promise = this.client
+        .waitFor({ serial: deviceId }, "device", { signal: waitSignal })
+        .catch((err: unknown) => {
+          if (!waitSignal.aborted) throw err;
+        })
+        .finally(() => {
+          created.settled = true;
+          this.#pendingDeviceWaits.delete(deviceId);
+        });
+      this.#pendingDeviceWaits.set(deviceId, created);
+      entry = created;
     }
+
+    entry.waiters += 1;
+    const active = entry;
+    if (!signal) {
+      return active.promise.finally(() => {
+        active.waiters -= 1;
+      });
+    }
+
+    return new Promise<void>((resolve, reject) => {
+      const release = (aborted: boolean) => {
+        active.waiters -= 1;
+        if (aborted && !active.settled && active.waiters === 0) {
+          active.controller.abort(signal.reason);
+        }
+      };
+      const onAbort = () => {
+        release(true);
+        reject(signal.reason);
+      };
+      signal.addEventListener("abort", onAbort, { once: true });
+      void active.promise.then(
+        () => {
+          signal.removeEventListener("abort", onAbort);
+          release(false);
+          resolve();
+        },
+        (err: unknown) => {
+          signal.removeEventListener("abort", onAbort);
+          release(false);
+          reject(err);
+        },
+      );
+    });
   }
 
   async #withAdb<T>(deviceId: string, signal: AbortSignal | undefined, fn: (adb: Adb) => Promise<T>): Promise<T> {
@@ -139,9 +194,15 @@ export class AndroidTransport implements Transport {
   }
 
   async listDevices(): Promise<Device[]> {
-    const devices = await this.client.getDevices();
+    const devices = await this.client.getDevices(["device", "unauthorized", "offline"]);
     debug("listDevices: devices %o", devices);
-    return devices.map(({ serial }) => ({ os: "Android", id: serial }));
+    // Shared ADB servers expose other runs' devices, so restrict discovery to
+    // the serials a test run was assigned.
+    const configured = process.env["LYNX_DEVTOOL_MCP_TESTING_ADB_DEVICES"]
+      ?.split(",").map(serial => serial.trim()).filter(Boolean);
+    return devices
+      .filter(({ serial }) => !configured?.length || configured.includes(serial))
+      .map(({ serial }) => ({ os: "Android", id: serial }));
   }
 
   protected getKnownApp(_packageName: string): { name?: string; activityName?: string } | undefined {
