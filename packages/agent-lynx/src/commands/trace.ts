@@ -2,7 +2,11 @@
 // Licensed under the Apache License Version 2.0 that can be found in the
 // LICENSE file in the root directory of this source tree.
 
-import { type CDPResponseMessage, Connector } from '@lynx-js/devtool-connector';
+import {
+  type CDPResponseMessage,
+  ClientId,
+  Connector,
+} from '@lynx-js/devtool-connector';
 import { Command } from 'commander';
 import { randomUUID } from 'node:crypto';
 import fs from 'node:fs/promises';
@@ -162,12 +166,19 @@ async function ensureTraceDebugMode(
   connector: TraceConnector,
   clientId: string,
 ): Promise<boolean> {
-  const clients = await connector.listClients();
-  const client = clients.find(candidate => candidate.id === clientId);
-
   // The original trace recorder only toggles this app-level switch for
-  // Android-style clients. iOS/Profile clients do not expose AppProcessName.
-  if (!client?.info.AppProcessName) return false;
+  // Android-style clients. Avoid full client discovery when transportId is known;
+  // HDT multiplexes Android and iOS clients, so it still checks AppProcessName.
+  const parsed = ClientId.deserialize(clientId);
+  if (parsed && parsed.transportId !== 'hdt') {
+    if (parsed.transportId !== 'android' && parsed.transportId !== 'sandbox') {
+      return false;
+    }
+  } else {
+    const clients = await connector.listClients();
+    const client = clients.find(candidate => candidate.id === clientId);
+    if (!client?.info.AppProcessName) return false;
+  }
 
   const enabled = await connector.getGlobalSwitch(clientId, DEBUG_MODE_KEY);
   if (enabled) return false;
