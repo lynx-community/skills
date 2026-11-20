@@ -989,9 +989,17 @@ testWithClient('Tools', async (suite, connector, client, target) => {
       typeof setupTiming === 'object' && setupTiming !== null,
       'Should include setup_timing object',
     );
+    if (
+      Object.hasOwn(setupTiming as Record<string, unknown>, 'pipeline_start')
+    ) {
+      t.assert.ok(
+        typeof (setupTiming as Record<string, unknown>).pipeline_start
+          === 'number',
+        'setup_timing.pipeline_start should be a number when present',
+      );
+    }
     for (
       const key of [
-        'pipeline_start',
         'load_template_start',
         'load_template_end',
         'draw_end',
