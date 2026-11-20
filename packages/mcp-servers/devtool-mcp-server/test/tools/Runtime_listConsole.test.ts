@@ -189,9 +189,7 @@ test('ListConsole waits for every enable response before applying its idle timeo
     console.requests.map(({ method, sessionId }) => ({ method, sessionId })),
     [
       { method: 'Page.enable', sessionId: undefined },
-      { method: 'Runtime.disable', sessionId: undefined },
       { method: 'Runtime.enable', sessionId: undefined },
-      { method: 'Runtime.disable', sessionId: 'Main' },
       { method: 'Runtime.enable', sessionId: 'Main' },
     ],
   );
@@ -205,7 +203,7 @@ test('ListConsole waits for every enable response before applying its idle timeo
     false,
     'pending enable responses must keep the stream open',
   );
-  assert.equal(new Set(console.requests.map(request => request.id)).size, 5);
+  assert.equal(new Set(console.requests.map(request => request.id)).size, 3);
   console.emit(consoleMessage('late-console-marker'));
   for (const request of console.requests.slice(1)) {
     console.emit({ id: request.id, result: {} });
