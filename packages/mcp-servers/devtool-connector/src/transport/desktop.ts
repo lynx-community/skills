@@ -62,8 +62,9 @@ export class DesktopTransport implements Transport {
     }
 
     debug(`connect: connecting to 127.0.0.1:${numericPort}`);
+    signal?.throwIfAborted();
 
-    const socket = net.createConnection({ host: "127.0.0.1", port: numericPort, signal });
+    const socket = net.createConnection({ host: "127.0.0.1", port: numericPort });
     socket.setNoDelay?.(true);
     const socketClosed = socket.closed
       ? Promise.resolve()
@@ -82,8 +83,28 @@ export class DesktopTransport implements Transport {
         // already connected or failed immediately
       } else {
         await new Promise<void>((resolve, reject) => {
-          socket.once("connect", resolve);
-          socket.once("error", reject);
+          const onConnect = () => {
+            cleanup();
+            resolve();
+          };
+          const onError = (error: Error) => {
+            cleanup();
+            reject(error);
+          };
+          const onAbort = () => {
+            cleanup();
+            socket.destroy();
+            reject(signal?.reason ?? new DOMException("The operation was aborted", "AbortError"));
+          };
+          const cleanup = () => {
+            socket.off("connect", onConnect);
+            socket.off("error", onError);
+            signal?.removeEventListener("abort", onAbort);
+          };
+          socket.once("connect", onConnect);
+          socket.once("error", onError);
+          signal?.addEventListener("abort", onAbort, { once: true });
+          if (signal?.aborted) onAbort();
         });
       }
 

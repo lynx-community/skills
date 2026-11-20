@@ -384,6 +384,8 @@ async function isPaintedRef(
         sessionId,
         "DOM.getNodeForLocation",
         point,
+        false,
+        signal,
       );
     } catch {
       signal?.throwIfAborted();
@@ -469,7 +471,7 @@ async function enrichEditableValues(
   if (editableRefs.length === 0) return;
 
   try {
-    await connector.sendCDPMessage(clientId, sessionId, "UITree.enable");
+    await connector.sendCDPMessage(clientId, sessionId, "UITree.enable", undefined, false, signal);
   } catch {
     signal?.throwIfAborted();
     return;
@@ -487,6 +489,8 @@ async function enrichEditableValues(
         sessionId,
         "UITree.getUIInfoForNode",
         { UINodeId: ref.nodeId },
+        false,
+        signal,
       );
     } catch {
       signal?.throwIfAborted();
@@ -545,12 +549,17 @@ export async function buildSnapshotStructure(
     sessionId,
     "DOM.enable",
     { useCompression: false },
+    false,
+    signal,
   );
   signal?.throwIfAborted();
   const result = await connector.sendCDPMessage<{ root: DomNode | string; compress?: boolean }>(
     clientId,
     sessionId,
     "DOM.getDocumentWithBoxModel",
+    undefined,
+    false,
+    signal,
   );
   signal?.throwIfAborted();
 
