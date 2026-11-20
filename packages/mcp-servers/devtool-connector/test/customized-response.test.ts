@@ -50,6 +50,27 @@ test("Customized response streams report malformed matching JSON", async () => {
     && error.cause instanceof SyntaxError);
 });
 
+test("Customized response streams isolate positive session_id envelopes while retaining session-wide events", async () => {
+  const messages: CustomizedResponse[] = [
+    {
+      event: "Customized",
+      data: { type: "CDP", data: { session_id: 8, message: JSON.stringify({ method: "other" }) } },
+    },
+    {
+      event: "Customized",
+      data: { type: "CDP", data: { session_id: -1, message: JSON.stringify({ method: "global" }) } },
+    },
+    {
+      event: "Customized",
+      data: { type: "CDP", data: { session_id: 7, message: JSON.stringify({ method: "ours" }) } },
+    },
+  ];
+  const parsed = ReadableStream.from(messages).pipeThrough(
+    new CustomizedResponseTransformStream<"CDP", { method: string }>("CDP", undefined, 7),
+  );
+  assert.deepEqual(await Array.fromAsync(parsed), [{ method: "global" }, { method: "ours" }]);
+});
+
 test("Customized type guards and correlation filters support host-defined envelopes", () => {
   const filter = createCorrelatedFilter<CustomizedResponse<"ExampleProtocol">, Response | CustomizedResponse>(
     (message): message is CustomizedResponse<"ExampleProtocol"> =>

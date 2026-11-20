@@ -65,10 +65,20 @@ export class CustomizedResponseTransformStream<
   Output = T extends keyof CustomizedResponseMessageMap ? CustomizedResponseMessageMap[T] : unknown,
   Input extends Response | CustomizedResponse = Response | CustomizedResponse,
 > extends TransformStream<Input, Output> {
-  constructor(type: T, id?: number) {
+  constructor(type: T, id?: number, sessionId?: number) {
     super({
       transform(response, controller) {
         if (!isCustomizedResponseWithType(response, type)) {
+          return;
+        }
+        const responseSessionId = (response.data.data as { session_id?: unknown }).session_id;
+        if (
+          sessionId !== undefined
+          && sessionId >= 0
+          && typeof responseSessionId === "number"
+          && responseSessionId >= 0
+          && responseSessionId !== sessionId
+        ) {
           return;
         }
 

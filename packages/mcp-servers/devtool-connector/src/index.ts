@@ -102,6 +102,69 @@ function isNonEmptyListSessionResponse(response: Response): response is ListSess
   return isListSessionResponse(response) && response.data.data.length > 0;
 }
 
+function attachAbortSignalToStream<T>(
+  stream: ReadableStream<T>,
+  signal: AbortSignal,
+  onAborted?: () => void,
+): ReadableStream<T> {
+  let reader: ReadableStreamDefaultReader<T> | undefined;
+  let cleanup = () => {};
+  let finished = false;
+  return new ReadableStream<T>(
+    {
+      start(controller) {
+        reader = stream.getReader();
+        const onAbort = () => {
+          if (finished) return;
+          finished = true;
+          cleanup();
+          onAborted?.();
+          const reason = signal.reason ?? new DOMException("The operation was aborted", "AbortError");
+          void reader?.cancel(reason).catch(() => {});
+          controller.error(reason);
+        };
+        cleanup = () => signal.removeEventListener("abort", onAbort);
+        signal.addEventListener("abort", onAbort, { once: true });
+        if (signal.aborted) onAbort();
+      },
+      async pull(controller) {
+        if (finished || !reader) return;
+        try {
+          const { value, done } = await reader.read();
+          if (finished) return;
+          if (done) {
+            finished = true;
+            cleanup();
+            reader.releaseLock();
+            controller.close();
+            return;
+          }
+          controller.enqueue(value);
+        } catch (error) {
+          if (finished) return;
+          finished = true;
+          cleanup();
+          reader.releaseLock();
+          controller.error(error);
+        }
+      },
+      async cancel(reason) {
+        finished = true;
+        cleanup();
+        const activeReader = reader;
+        reader = undefined;
+        if (!activeReader) return;
+        try {
+          await activeReader.cancel(reason);
+        } finally {
+          activeReader.releaseLock();
+        }
+      },
+    },
+    { highWaterMark: 0 },
+  );
+}
+
 export class Connector<TPlatform extends string = Platform> {
   #transports: Transport[];
   #hdtTransports: HDTTransport[];
@@ -384,6 +447,7 @@ export class Connector<TPlatform extends string = Platform> {
     method: string,
     params?: Params,
     isMainThread = false,
+    signal?: AbortSignal,
   ): Promise<Output> {
     const id = nextRequestId();
 
@@ -404,10 +468,10 @@ export class Connector<TPlatform extends string = Platform> {
         new CDPRequestTransformStream(sessionId, id),
       ],
       output: [
-        new CDPResponseTransformStream(id),
+        new CDPResponseTransformStream(id, sessionId),
         new CDPOutputTransformStream(),
       ],
-    });
+    }, signal);
   }
 
   async sendListSessionMessage(
@@ -511,7 +575,7 @@ export class Connector<TPlatform extends string = Platform> {
         ],
         output: [
           new SessionGuardTransformStream(sessionId),
-          new CDPResponseTransformStream<CDPRequestMessage>(),
+          new CDPResponseTransformStream<CDPRequestMessage>(undefined, sessionId),
         ],
       },
     });
@@ -593,13 +657,16 @@ export class Connector<TPlatform extends string = Platform> {
 
     const inputAbortController = new AbortController();
     const inputAbortReason = new Error("Connector input stream disposed");
+    const inputSignal = options.signal
+      ? AbortSignal.any([inputAbortController.signal, options.signal])
+      : inputAbortController.signal;
 
     const inputClosed = [
       ...pipeline.input,
       new CustomizedClientIdTransformStream(port),
       new InspectStream((msg) => debug(`connect ${deviceId}:${port} input stream send %o`, JSON.stringify(msg))),
     ].reduce((stream, transform) => stream.pipeThrough(transform), inputStream)
-      .pipeTo(conn.writable, { preventClose: true, signal: inputAbortController.signal })
+      .pipeTo(conn.writable, { preventClose: true, signal: inputSignal })
       .catch((err) => {
         if (err === inputAbortReason) {
           return;
@@ -609,21 +676,36 @@ export class Connector<TPlatform extends string = Platform> {
       });
     const inputSettled = inputClosed.catch(() => {});
 
-    const outputStream = [
+    let connectionDisposePromise: Promise<void> | undefined;
+    const disposeConnection = (): Promise<void> => {
+      connectionDisposePromise ??= Promise.resolve().then(() => conn[Symbol.asyncDispose]());
+      void connectionDisposePromise.catch(() => {});
+      return connectionDisposePromise;
+    };
+
+    const pipedOutputStream = [
       new InspectStream((msg) => debug(`connect ${deviceId}:${port} output stream receive %O`, msg)),
       ...pipeline.output,
     ].reduce(
       (stream, transform) => stream.pipeThrough(transform),
       conn.readable,
     );
+    const outputStream = options.signal
+      ? attachAbortSignalToStream(pipedOutputStream, options.signal, () => {
+        inputAbortController.abort(inputAbortReason);
+        void disposeConnection();
+      })
+      : pipedOutputStream;
 
     return Object.assign(outputStream, {
       inputClosed,
       async [Symbol.asyncDispose]() {
         debug(`connect ${deviceId}:${port} close connection`);
         inputAbortController.abort(inputAbortReason);
-        const connectionDisposed = Promise.resolve().then(() => conn[Symbol.asyncDispose]());
-        void connectionDisposed.catch(() => {});
+        if (!outputStream.locked) {
+          void outputStream.cancel(inputAbortReason).catch(() => {});
+        }
+        const connectionDisposed = disposeConnection();
         await inputSettled;
         return connectionDisposed;
       },

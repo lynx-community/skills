@@ -132,8 +132,8 @@ export class Usbmux {
     const socket = net.createConnection(this.connectOptions);
     socket.setNoDelay?.(true);
 
+    const abortHandler = () => socket.destroy();
     if (signal) {
-      const abortHandler = () => socket.destroy();
       signal.addEventListener("abort", abortHandler, { once: true });
       socket.once("close", () => signal.removeEventListener("abort", abortHandler));
     }
@@ -159,11 +159,13 @@ export class Usbmux {
         const tail = buffer.subarray(length);
 
         const response = parse(responseBuffer.toString("utf8")) as R;
+        signal?.removeEventListener("abort", abortHandler);
         return { socket, response, tail };
       }
 
       throw new Error("Connection closed before response received");
     } catch (error) {
+      signal?.removeEventListener("abort", abortHandler);
       socket.destroy();
       throw error;
     }

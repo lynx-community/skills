@@ -27,8 +27,8 @@ export class CDPRequestTransformStream extends CustomizedRequestTransformStream<
 export class CDPResponseTransformStream<Output = CDPResponseMessage>
   extends CustomizedResponseTransformStream<"CDP", Output>
 {
-  constructor(id?: number) {
-    super("CDP", id);
+  constructor(id?: number, sessionId?: number) {
+    super("CDP", id, sessionId);
   }
 }
 

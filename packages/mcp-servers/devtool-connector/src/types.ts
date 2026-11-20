@@ -61,10 +61,17 @@ export type CDPRequest = CustomizedEvent<"CDP", {
   message: CDPRequestMessage & { id: number };
 }>;
 export type CDPResponse = CustomizedEvent<"CDP", {
+  session_id?: number;
   /** JSON string. See {@link CDPResponseMessage} for parsed result. */
   message: string;
 }>;
 export type CDPResponseMessage = { id: number } & ({ result: unknown } | { error: { code: number; message: string } });
+
+/** JSON message envelope for a host-defined Customized protocol. */
+export type CustomizedResponse<T extends string = string> = CustomizedEvent<T, {
+  session_id?: number;
+  message: string;
+}>;
 
 export type Session = {
   session_id: number;
@@ -110,11 +117,6 @@ export type SetGlobalSwitchResponse = CustomizedEvent<"SetGlobalSwitch", {
   client_id: number;
   session_id: number;
   /** JSON string */
-  message: string;
-}>;
-
-/** JSON message envelope for a host-defined Customized protocol. */
-export type CustomizedResponse<T extends string = string> = CustomizedEvent<T, {
   message: string;
 }>;
 
