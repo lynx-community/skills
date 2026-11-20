@@ -77,7 +77,7 @@ function clampView(view: View): View {
 
 export function AgentLynxSkills({ locale = 'en' }: { locale?: 'en' | 'zh'; }) {
   const copy = labels[locale];
-  const prefix = useId().replaceAll(':', '');
+  const prefix = useId().replace(/:/g, '');
   const [selection, select] = useState<Selection | null>(null);
   const [hover, setHover] = useState<Selection | null>(null);
   const [view, setView] = useState(initialView);

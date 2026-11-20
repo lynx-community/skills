@@ -56,13 +56,13 @@ test('the package ships every manifest resource and both locales share page rout
     );
     assert.deepEqual(routes[0], routes[1]);
     for (const folder of Object.values(section.content)) {
-      const meta = JSON.parse(
-        readFileSync(join(root, folder, '_meta.json'), 'utf8'),
-      );
-      for (const item of meta) {
-        assert.ok(existsSync(join(root, folder, item.name)), item.name);
-      }
       if (section.id === 'agent-lynx') {
+        const meta = JSON.parse(
+          readFileSync(join(root, folder, '_meta.json'), 'utf8'),
+        );
+        for (const item of meta) {
+          assert.ok(existsSync(join(root, folder, item.name)), item.name);
+        }
         assert.ok(
           meta.some((item) => item.name === 'simulator.mdx'),
           'expose Lynx Simulator in navigation',
@@ -72,13 +72,7 @@ test('the package ships every manifest resource and both locales share page rout
           'preserve the former memory URL',
         );
       } else {
-        assert.deepEqual(
-          meta.map(({ name }) => name).sort(),
-          readdirSync(join(root, folder)).filter((name) =>
-            name.endsWith('.mdx')
-          ).sort(),
-          'all skill guides must appear in navigation',
-        );
+        assert.ok(!existsSync(join(root, folder, '_meta.json')));
       }
     }
   }

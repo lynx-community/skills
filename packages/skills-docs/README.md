@@ -12,7 +12,7 @@ pnpm --filter @lynx-js/skills-docs dev
 
 Open `/ai/agent-lynx/` on the preview server and use the navigation to switch between agent-lynx and Skills. Chinese pages have a `/zh` prefix. Changes to pages, scenarios, and components reload directly from this package.
 
-- Author pages and navigation under `content/<locale>/ai/agent-lynx/` or `content/<locale>/ai/skills/`, with `_meta.json` defining each section's sidebar.
+- Author pages under `content/<locale>/ai/agent-lynx/` or `content/<locale>/ai/skills/`. The agent-lynx chapter includes its `_meta.json` navigation; Skills navigation is maintained by the consuming website. The standalone preview discovers Skills pages from their directory.
 - Keep conversation scenarios in the owning section's `_examples/` directory. Reuse components from `content/_ai/` through relative imports.
 - Put public demos and downloads under `public/ai/<section>/` and declare their directories in `manifest.json`.
 - Keep agent instructions (`SKILL.md` and references) in their owning skill packages. Website guides explain use cases, outcomes, and examples, and link to those sources.
