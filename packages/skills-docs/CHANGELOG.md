@@ -1,5 +1,15 @@
 # @lynx-js/skills-docs
 
+## 0.5.0
+
+### Minor Changes
+
+- Leave Skills navigation to the consuming website: `content/{en,zh}/ai/skills` no longer includes `_meta.json`. Website synchronizers must copy the guides without requiring package-supplied Skills navigation. The complete agent-lynx chapter retains its navigation.
+
+### Patch Changes
+
+- Keep the Skills architecture component compatible with ES2020 website type checking and use the active Rspress theme entry for CSS support prompts.
+
 ## 0.4.0
 
 ### Minor Changes
