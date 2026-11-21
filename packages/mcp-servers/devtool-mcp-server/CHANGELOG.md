@@ -1,5 +1,13 @@
 # @lynx-js/devtool-mcp-server
 
+## 0.17.3
+
+### Patch Changes
+
+- Pass optional `platform` (`Platform` enum) through `listAvailableApps` and `openApp`, reuse pooled daemon `DeviceConnection` transport mappings, and coalesce concurrent daemon `listClients` discovery requests to eliminate redundant `listDevices()` scans.
+- Updated dependencies
+  - @lynx-js/devtool-connector@0.19.3
+
 ## 0.17.2
 
 ### Patch Changes

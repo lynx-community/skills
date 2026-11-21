@@ -1,5 +1,14 @@
 # @lynx-js/devtool-connector
 
+## 0.19.3
+
+### Patch Changes
+
+- Updated dependency `dprint` to `^0.65.0`.
+- Propagate abort signals across `sendCDPMessage`, `sendStream`, and snapshot CDP calls, detach setup signals after `DesktopTransport` and `Usbmux` connect, isolate positive `session_id` CDP envelopes on shared connections, and recognize `TimeoutError` in bounded CLI stream helpers.
+- Pass optional `platform` (`Platform` enum) through `listAvailableApps` and `openApp`, reuse pooled daemon `DeviceConnection` transport mappings, and coalesce concurrent daemon `listClients` discovery requests to eliminate redundant `listDevices()` scans.
+- Remove pre-connect `waitFor` check in `AndroidTransport`.
+
 ## 0.19.2
 
 ### Patch Changes

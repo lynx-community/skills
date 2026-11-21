@@ -1,5 +1,11 @@
 # @lynx-js/skills-docs
 
+## 0.5.1
+
+### Patch Changes
+
+- Expose Lynx Simulator in the agent-lynx and Skills guides, navigation, and CLI/Skill diagram. Add a complete page-env file preview to the BankCards illustration, using a shared component that follows the website's primary and secondary colors. Document startup options, extension packages, per-page extension data, runtime commands, and rendering options.
+
 ## 0.5.0
 
 ### Minor Changes
