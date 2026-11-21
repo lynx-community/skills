@@ -86,5 +86,51 @@
   {
     "query": "帮我给这个 Lynx 项目配一条 CI/CD 流水线,build 完自动上传产物",
     "should_trigger": false
+  },
+  {
+    "query": "只帮我分析这个 Rspeedy ReactLynx 项目 `.lynx.bundle` 和 `main-thread.js` 体积为什么膨胀并给出裁剪方案，不要做 tasm 二进制解码或连接真机 DevTool。",
+    "should_trigger": true,
+    "scenario": "own_single_trigger",
+    "co_installed_skills": [
+      "lynx-tasm-codec",
+      "lynx-devtool",
+      "lynx-typescript"
+    ],
+    "expected_skills": ["rspeedy-bundle-size"],
+    "forbidden_skills": ["lynx-tasm-codec", "lynx-devtool", "lynx-typescript"]
+  },
+  {
+    "query": "请同时帮我做两件事：一是按 ReactLynx 双线程最佳实践重构组件里的后台初始化与事件绑定，二是用 rspeedy-bundle-size 分析并剔除混入 `main-thread.js` 的后台监控 SDK 以缩小 `.lynx.bundle` 体积。",
+    "should_trigger": true,
+    "scenario": "own_multi_trigger",
+    "co_installed_skills": ["reactlynx-best-practices", "lynx-tasm-codec"],
+    "expected_skills": ["rspeedy-bundle-size", "reactlynx-best-practices"],
+    "forbidden_skills": ["lynx-tasm-codec"]
+  },
+  {
+    "query": "我们的 Rspeedy 项目构建出的 `.lynx.bundle` 里 `main-thread.js` 体积太大，怎么通过 `__BACKGROUND__` 和 `extractStr` 缩减 Lynx 包体积？",
+    "should_trigger": true,
+    "scenario": "similar_skill_present",
+    "competing_skills": [
+      {
+        "name": "webpack-bundle-analyzer",
+        "description": "Analyze and reduce JavaScript bundle size for standard Webpack 5 and Vite browser web apps using webpack-bundle-analyzer, splitChunks, and tree shaking."
+      }
+    ],
+    "expected_skills": ["rspeedy-bundle-size"],
+    "forbidden_skills": ["webpack-bundle-analyzer"]
+  },
+  {
+    "query": "这是一个纯 Webpack 5 + React DOM 浏览器网站工程（不是 Lynx 或 Rspeedy 项目），请使用 webpack-bundle-analyzer 技能分析 vendor chunk 体积并配置 splitChunks。",
+    "should_trigger": false,
+    "scenario": "similar_skill_requested",
+    "competing_skills": [
+      {
+        "name": "webpack-bundle-analyzer",
+        "description": "Analyze and reduce JavaScript bundle size for standard Webpack 5 and Vite browser web apps using webpack-bundle-analyzer, splitChunks, and tree shaking."
+      }
+    ],
+    "expected_skills": ["webpack-bundle-analyzer"],
+    "forbidden_skills": ["rspeedy-bundle-size"]
   }
 ]

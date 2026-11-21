@@ -1,0 +1,60 @@
+[
+  {
+    "query": "我想直接用 Vanilla Lynx 的 Element PAPI（__CreatePage、__CreateView、__CreateText）写一个无需构建的 .lynxml 计数器页面，绝对不用 ReactLynx JSX，也不连接真机 DevTool。",
+    "should_trigger": true,
+    "scenario": "own_single_trigger",
+    "co_installed_skills": [
+      "reactlynx-best-practices",
+      "lynx-devtool",
+      "lynx-typescript"
+    ],
+    "expected_skills": ["vanilla-lynx"],
+    "forbidden_skills": [
+      "reactlynx-best-practices",
+      "lynx-devtool",
+      "lynx-typescript"
+    ]
+  },
+  {
+    "query": "我有一个 ReactLynx TSX 组件，想用 main-thread:bindtap 和 runOnBackground 优化双线程交互，不使用 Vanilla Lynx Element PAPI。",
+    "should_trigger": false,
+    "scenario": "own_single_trigger",
+    "co_installed_skills": ["reactlynx-best-practices", "lynx-devtool"],
+    "expected_skills": ["reactlynx-best-practices"],
+    "forbidden_skills": ["vanilla-lynx", "lynx-devtool"]
+  },
+  {
+    "query": "请先用 Vanilla Lynx 的 Element PAPI 编写一个单文件 .lynxml 页面并起本地 http-server，然后通过 lynx-devtool 在已连接的真机上打开该 URL、检查 console 日志并截图。",
+    "should_trigger": true,
+    "scenario": "own_multi_trigger",
+    "co_installed_skills": ["lynx-devtool", "lynx-tasm-codec"],
+    "expected_skills": ["vanilla-lynx", "lynx-devtool"],
+    "forbidden_skills": ["lynx-tasm-codec"]
+  },
+  {
+    "query": "帮我用 Vanilla Lynx 的 Element PAPI（__CreatePage、__SetClasses、__FlushElementTree）编写 main-thread.ts 页面树。",
+    "should_trigger": true,
+    "scenario": "similar_skill_present",
+    "competing_skills": [
+      {
+        "name": "vanilla-dom-web",
+        "description": "Build framework-free browser web pages using standard HTML5, document.createElement, appendChild, and Web Components customElements."
+      }
+    ],
+    "expected_skills": ["vanilla-lynx"],
+    "forbidden_skills": ["vanilla-dom-web"]
+  },
+  {
+    "query": "这是一个普通桌面浏览器的原生 HTML5 网页（与 Lynx 无关），请使用 vanilla-dom-web 技能通过 document.createElement 和 Web Components 实现弹窗组件。",
+    "should_trigger": false,
+    "scenario": "similar_skill_requested",
+    "competing_skills": [
+      {
+        "name": "vanilla-dom-web",
+        "description": "Build framework-free browser web pages using standard HTML5, document.createElement, appendChild, and Web Components customElements."
+      }
+    ],
+    "expected_skills": ["vanilla-dom-web"],
+    "forbidden_skills": ["vanilla-lynx"]
+  }
+]
