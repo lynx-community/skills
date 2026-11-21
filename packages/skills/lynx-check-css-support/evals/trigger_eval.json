@@ -70,5 +70,55 @@
   {
     "query": "Update every npm dependency in my repository to its latest version and fix the lockfile.",
     "should_trigger": false
+  },
+  {
+    "query": "Query `@lynx-js/css-defines` compat_data only to check the exact `version_added` for `mask-image` across Android, iOS, and Harmony backends; do not fix TypeScript types or refactor ReactLynx components.",
+    "should_trigger": true,
+    "scenario": "own_single_trigger",
+    "co_installed_skills": [
+      "lynx-typescript",
+      "reactlynx-best-practices",
+      "lynx-devtool"
+    ],
+    "expected_skills": ["lynx-check-css-support"],
+    "forbidden_skills": [
+      "lynx-typescript",
+      "reactlynx-best-practices",
+      "lynx-devtool"
+    ]
+  },
+  {
+    "query": "First query `@lynx-js/css-defines` compat_data to check which Lynx backends support `backdrop-filter`, and also look up the official `lynx-api-docs` for `filter` / `backdrop-filter` usage and fallback patterns.",
+    "should_trigger": true,
+    "scenario": "own_multi_trigger",
+    "co_installed_skills": ["lynx-api-docs", "lynx-tasm-codec"],
+    "expected_skills": ["lynx-check-css-support", "lynx-api-docs"],
+    "forbidden_skills": ["lynx-tasm-codec"]
+  },
+  {
+    "query": "Check `@lynx-js/css-defines` compat_data to see whether `clip-path` is supported on Clay Android in Lynx 3.2.",
+    "should_trigger": true,
+    "scenario": "similar_skill_present",
+    "competing_skills": [
+      {
+        "name": "caniuse-browser-compat",
+        "description": "Query Can I Use and MDN browser-compat-data to check CSS and Web API support across Chrome, Safari, Firefox, and Edge versions."
+      }
+    ],
+    "expected_skills": ["lynx-check-css-support"],
+    "forbidden_skills": ["caniuse-browser-compat"]
+  },
+  {
+    "query": "For a standard desktop web application (not Lynx), please use the `caniuse-browser-compat` skill to check CSS subgrid and `@container` support across Chrome, Safari, and Firefox.",
+    "should_trigger": false,
+    "scenario": "similar_skill_requested",
+    "competing_skills": [
+      {
+        "name": "caniuse-browser-compat",
+        "description": "Query Can I Use and MDN browser-compat-data to check CSS and Web API support across Chrome, Safari, Firefox, and Edge versions."
+      }
+    ],
+    "expected_skills": ["caniuse-browser-compat"],
+    "forbidden_skills": ["lynx-check-css-support"]
   }
 ]

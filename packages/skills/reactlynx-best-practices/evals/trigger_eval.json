@@ -66,5 +66,57 @@
   {
     "query": "Habitat 的 DEPS 文件里怎么加一个 git 依赖？",
     "should_trigger": false
+  },
+  {
+    "query": "帮我重构这段 ReactLynx 组件的双线程代码：把 render 里的 NativeModules 调用移出，并用 main-thread:bindscroll 实现跟手吸顶；不需要改 TS 类型声明，也不要连真机 DevTool。",
+    "should_trigger": true,
+    "scenario": "own_single_trigger",
+    "co_installed_skills": [
+      "lynx-typescript",
+      "vanilla-lynx",
+      "lynx-devtool",
+      "rspeedy-bundle-size"
+    ],
+    "expected_skills": ["reactlynx-best-practices"],
+    "forbidden_skills": [
+      "lynx-typescript",
+      "vanilla-lynx",
+      "lynx-devtool",
+      "rspeedy-bundle-size"
+    ]
+  },
+  {
+    "query": "请同时帮我处理这个 ReactLynx 组件的两个问题：一是按 ReactLynx 双线程最佳实践用 useMainThreadRef 和 runOnMainThread 重构手势动画，二是修复 tsc 报的 MainThreadRef 与 GlobalProps 类型缺失错误。",
+    "should_trigger": true,
+    "scenario": "own_multi_trigger",
+    "co_installed_skills": ["lynx-typescript", "lynx-tasm-codec"],
+    "expected_skills": ["reactlynx-best-practices", "lynx-typescript"],
+    "forbidden_skills": ["lynx-tasm-codec"]
+  },
+  {
+    "query": "帮我审查这个 ReactLynx 组件的双线程边界：为什么 useLayoutEffect 测量不准，以及主线程手势里怎么通过 runOnBackground 更新状态？",
+    "should_trigger": true,
+    "scenario": "similar_skill_present",
+    "competing_skills": [
+      {
+        "name": "react-web-best-practices",
+        "description": "Review and refactor standard React 18/19 Web and Next.js components for hooks rules, useMemo/useCallback optimization, Server Components, and browser DOM performance."
+      }
+    ],
+    "expected_skills": ["reactlynx-best-practices"],
+    "forbidden_skills": ["react-web-best-practices"]
+  },
+  {
+    "query": "这是一个标准的 Next.js 15 + React 19 浏览器 Web 工程（不是 Lynx 项目），请使用 react-web-best-practices 技能帮我优化 Server Components 和浏览器水合性能。",
+    "should_trigger": false,
+    "scenario": "similar_skill_requested",
+    "competing_skills": [
+      {
+        "name": "react-web-best-practices",
+        "description": "Review and refactor standard React 18/19 Web and Next.js components for hooks rules, useMemo/useCallback optimization, Server Components, and browser DOM performance."
+      }
+    ],
+    "expected_skills": ["react-web-best-practices"],
+    "forbidden_skills": ["reactlynx-best-practices"]
   }
 ]

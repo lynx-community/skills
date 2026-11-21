@@ -30,5 +30,21 @@
   {
     "query": "Generate an OpenAPI JSON Schema for my REST endpoint's request and response bodies.",
     "should_trigger": false
+  },
+  {
+    "query": "请生成符合 Lynx A2UI v0.9 协议的 `createSurface`、`updateDataModel` 和 `updateComponents` JSON 消息数组，不要生成 OpenUI Lang DSL，也不要写 ReactLynx TSX 组件。",
+    "should_trigger": true,
+    "scenario": "own_single_trigger",
+    "co_installed_skills": ["lynx-openui", "reactlynx-best-practices"],
+    "expected_skills": ["lynx-a2ui"],
+    "forbidden_skills": ["lynx-openui", "reactlynx-best-practices"]
+  },
+  {
+    "query": "请把这个需求转换成 OpenUI Lang v0.5 原始 DSL 程序传给 OpenUiRenderer，不要输出 A2UI JSON 消息。",
+    "should_trigger": false,
+    "scenario": "own_single_trigger",
+    "co_installed_skills": ["lynx-openui"],
+    "expected_skills": ["lynx-openui"],
+    "forbidden_skills": ["lynx-a2ui"]
   }
 ]
