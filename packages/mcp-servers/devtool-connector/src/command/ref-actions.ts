@@ -255,6 +255,37 @@ async function withPressedTouch(
   if (failed) throw failure;
 }
 
+export async function synchronizeSessionCoordinateMode(
+  connector: Connector,
+  clientId: string,
+  sessionId: number,
+  mode: "lynxview" | "fullscreen",
+  signal: AbortSignal,
+): Promise<void> {
+  signal.throwIfAborted();
+  try {
+    await connector.sendCDPMessage<unknown, Record<string, unknown>>(
+      clientId,
+      sessionId,
+      "Page.startScreencast",
+      {
+        format: "jpeg",
+        quality: 1,
+        mode,
+      },
+    );
+  } catch {
+    signal.throwIfAborted();
+    return;
+  }
+  signal.throwIfAborted();
+  try {
+    await connector.sendCDPMessage(clientId, sessionId, "Page.stopScreencast");
+  } catch {
+    signal.throwIfAborted();
+  }
+}
+
 export async function touchTap(
   connector: Connector,
   clientId: string,
