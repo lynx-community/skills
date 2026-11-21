@@ -1,5 +1,13 @@
 # agent-lynx
 
+## 0.15.3
+
+### Patch Changes
+
+- Propagate abort signals across `sendCDPMessage`, `sendStream`, and snapshot CDP calls, detach setup signals after `DesktopTransport` and `Usbmux` connect, isolate positive `session_id` CDP envelopes on shared connections, and recognize `TimeoutError` in bounded CLI stream helpers.
+- Updated dependencies
+  - @lynx-js/devtool-connector@0.19.3
+
 ## 0.15.2
 
 ### Patch Changes
