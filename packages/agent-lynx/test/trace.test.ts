@@ -23,6 +23,7 @@ interface MockTraceConnector extends Connector {
 }
 
 interface MockTraceConnectorOptions {
+  clientId?: string;
   appProcessName?: string;
   debugMode?: boolean;
   startError?: Error;
@@ -43,7 +44,7 @@ function createMockConnector(
     listClients() {
       calls.push({ method: 'listClients', args: [] });
       return Promise.resolve([{
-        id: 'test-client',
+        id: options.clientId ?? 'test-client',
         info: options.appProcessName === undefined
           ? {}
           : { AppProcessName: options.appProcessName },
@@ -204,6 +205,106 @@ describe('runTraceStart', () => {
     assert.deepEqual(connector.calls.map(call => call.method), [
       'listClients',
       'sendCDPMessage',
+    ]);
+  });
+
+  test('skips client discovery for an Android client ID', async () => {
+    const connector = createMockConnector({ debugMode: false });
+
+    const result = await runTraceStart(
+      connector,
+      'android:emulator-5554:8901',
+      {
+        enableSystrace: true,
+        includedCategories: ['*'],
+        excludedCategories: ['*'],
+        enableMemoryTrace: false,
+        forceGC: true,
+        enableAutoHeapSnapshot: false,
+        sharedGroupId: '',
+        jsProfileInterval: -1,
+        jsProfileType: 'quickjs',
+      },
+    );
+
+    assert.equal(result.restartRequired, true);
+    assert.deepEqual(connector.calls.map(call => call.method), [
+      'getGlobalSwitch',
+      'setGlobalSwitch',
+    ]);
+    assert.deepEqual(connector.calls[0]?.args, ['enable_debug_mode']);
+    assert.equal(
+      connector.calls.filter(call => call.method === 'listClients').length,
+      0,
+    );
+  });
+
+  test('skips client discovery for an iOS client ID', async () => {
+    const connector = createMockConnector({
+      appProcessName: 'com.example.app',
+      debugMode: false,
+    });
+
+    const result = await runTraceStart(
+      connector,
+      'ios:00008110-001:8901',
+      {
+        enableSystrace: true,
+        includedCategories: ['*'],
+        excludedCategories: ['*'],
+        enableMemoryTrace: false,
+        forceGC: true,
+        enableAutoHeapSnapshot: false,
+        sharedGroupId: '',
+        jsProfileInterval: -1,
+        jsProfileType: 'quickjs',
+      },
+    );
+
+    assert.equal(result.started, true);
+    assert.deepEqual(connector.calls.map(call => call.method), [
+      'sendCDPMessage',
+    ]);
+    assert.equal(
+      connector.calls.filter(call =>
+        call.method === 'getGlobalSwitch' || call.method === 'setGlobalSwitch'
+      ).length,
+      0,
+    );
+    assert.equal(
+      connector.calls.filter(call => call.method === 'listClients').length,
+      0,
+    );
+  });
+
+  test('checks AppProcessName via listClients for an HDT client ID', async () => {
+    const connector = createMockConnector({
+      clientId: 'HDT-19783:HDT-19783:8901',
+      appProcessName: 'com.example.app',
+      debugMode: false,
+    });
+
+    const result = await runTraceStart(
+      connector,
+      'HDT-19783:HDT-19783:8901',
+      {
+        enableSystrace: true,
+        includedCategories: ['*'],
+        excludedCategories: ['*'],
+        enableMemoryTrace: false,
+        forceGC: true,
+        enableAutoHeapSnapshot: false,
+        sharedGroupId: '',
+        jsProfileInterval: -1,
+        jsProfileType: 'quickjs',
+      },
+    );
+
+    assert.equal(result.restartRequired, true);
+    assert.deepEqual(connector.calls.map(call => call.method), [
+      'listClients',
+      'getGlobalSwitch',
+      'setGlobalSwitch',
     ]);
   });
 
