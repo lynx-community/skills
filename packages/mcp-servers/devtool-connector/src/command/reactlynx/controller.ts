@@ -1,6 +1,7 @@
 // Copyright 2026 The Lynx Authors. All rights reserved.
 // Licensed under the Apache License Version 2.0 that can be found in the
 // LICENSE file in the root directory of this source tree.
+import { setTimeout as delay } from "node:timers/promises";
 import type { Connector } from "../../index.ts";
 import {
   buildReactLynxUpdatePath,
@@ -14,8 +15,10 @@ import {
 import type { ID, RendererState } from "./protocol.ts";
 import {
   buildReactLynxOutboundFrame,
+  buildReactLynxPageHookFrame,
   type PreactEnvelope,
   reactLynxEmptyTreeDiagnostic,
+  type ReactLynxOutboundFrame,
   type ReactLynxSessionResult,
   runReactLynxSession,
 } from "./session.ts";
@@ -169,7 +172,7 @@ export class ReactLynxController {
       outbound: [buildReactLynxOutboundFrame("refresh")],
       signal,
     });
-    if (result.state.tree.size === 0) {
+    if (result.state.tree.size === 0 || result.state.roots.length === 0) {
       throw new ReactLynxActionError(reactLynxEmptyTreeDiagnostic(result), {
         reason: "reactlynx-empty-tree",
         nextActions: [
@@ -351,12 +354,12 @@ export class ReactLynxController {
   componentForElement(
     connector: Connector,
     target: Target,
-    options: { uniqueId: number; showShells: boolean; refresh: boolean },
+    options: { uniqueIds: readonly number[]; showShells: boolean; refresh: boolean },
     signal: AbortSignal,
   ): Promise<ReactLynxElementToComponentMapping> {
     return this.#withSession(target, signal, async () => {
       let cached = await this.#cachedTarget(connector, target, options.refresh, signal);
-      const id = await this.#componentIdForUniqueId(connector, target, options.uniqueId, signal);
+      const id = await this.#componentIdForUniqueIds(connector, target, options.uniqueIds, signal);
 
       if (!cached.entry.state.tree.has(id) && cached.status === "reused") {
         cached = { ...target, entry: await this.#capture(connector, target, signal), status: "refreshed" };
@@ -519,33 +522,60 @@ export class ReactLynxController {
     );
   }
 
-  async #componentIdForUniqueId(
+  async #runLookupSession<T>(
     connector: Connector,
     target: Target,
-    uniqueId: number,
+    outbound: ReactLynxOutboundFrame[],
+    extract: (envelope: PreactEnvelope) => T | undefined,
+    signal: AbortSignal,
+  ): Promise<{ value: T | undefined; result: ReactLynxSessionResult }> {
+    for (let attempt = 0;; attempt += 1) {
+      let value: T | undefined;
+      const result = await runReactLynxSession({
+        connector,
+        clientId: target.clientId,
+        sessionId: target.sessionId,
+        outbound: [...outbound, buildReactLynxPageHookFrame("root-order-page")],
+        awaitEnvelope: true,
+        idleMs: 1_000,
+        maxMs: 5_000,
+        signal,
+        onEnvelope: (envelope: PreactEnvelope) => {
+          const matched = extract(envelope);
+          if (matched !== undefined) {
+            value = matched;
+            return "stop";
+          }
+          return envelope.type === "root-order" ? "stop" : "continue";
+        },
+      });
+      if (value !== undefined || attempt > 0 || !result.envelopeTypes.has("root-order")) {
+        return { value, result };
+      }
+      await delay(75, undefined, { signal });
+    }
+  }
+
+  async #componentIdForUniqueIds(
+    connector: Connector,
+    target: Target,
+    uniqueIds: readonly number[],
     signal: AbortSignal,
   ): Promise<ID> {
-    let id: ID | undefined;
-    const result = await runReactLynxSession({
+    const { value, result } = await this.#runLookupSession(
       connector,
-      clientId: target.clientId,
-      sessionId: target.sessionId,
-      outbound: [buildReactLynxOutboundFrame("element-picked", { uniqueId })],
-      awaitEnvelope: true,
-      idleMs: 1_000,
-      maxMs: 5_000,
-      signal,
-      onEnvelope: (envelope: PreactEnvelope) => {
-        if (envelope.type !== "element-picked-vnode-id") return "continue";
+      target,
+      uniqueIds.map(uniqueId => buildReactLynxOutboundFrame("element-picked", { uniqueId })),
+      envelope => {
+        if (envelope.type !== "element-picked-vnode-id") return undefined;
         const candidate = (envelope.data as { id?: unknown } | null)?.id;
-        if (typeof candidate !== "number" || !Number.isFinite(candidate)) return "continue";
-        id = candidate;
-        return "stop";
+        return typeof candidate === "number" && Number.isFinite(candidate) ? candidate : undefined;
       },
-    });
-    if (id !== undefined) return id;
+      signal,
+    );
+    if (value !== undefined) return value;
     throw new ReactLynxActionError(
-      `No ReactLynx component mapping was returned for DOM uniqueId ${uniqueId} after `
+      `No ReactLynx component mapping was returned for DOM uniqueId ${uniqueIds[0]} after `
         + `${result.framesSeen} frame(s) (types=${envelopeTypes(result)}). The element may not be React-owned, `
         + "or the App-side identity mapping may not be ready.",
       {
@@ -561,25 +591,18 @@ export class ReactLynxController {
     id: ID,
     signal: AbortSignal,
   ): Promise<number> {
-    let uniqueId: number | undefined;
-    const result = await runReactLynxSession({
+    const { value, result } = await this.#runLookupSession(
       connector,
-      clientId: target.clientId,
-      sessionId: target.sessionId,
-      outbound: [buildReactLynxOutboundFrame("highlight", id)],
-      awaitEnvelope: true,
-      idleMs: 1_000,
-      maxMs: 5_000,
-      signal,
-      onEnvelope: (envelope: PreactEnvelope) => {
-        if (envelope.type !== "preact-devtools-highlight") return "continue";
+      target,
+      [buildReactLynxOutboundFrame("highlight", id)],
+      envelope => {
+        if (envelope.type !== "preact-devtools-highlight") return undefined;
         const candidate = (envelope.data as { uniqueId?: unknown } | null)?.uniqueId;
-        if (typeof candidate !== "number" || !Number.isFinite(candidate)) return "continue";
-        uniqueId = candidate;
-        return "stop";
+        return typeof candidate === "number" && Number.isFinite(candidate) ? candidate : undefined;
       },
-    });
-    if (uniqueId !== undefined) return uniqueId;
+      signal,
+    );
+    if (value !== undefined) return value;
     throw new ReactLynxActionError(
       `No host element mapping was returned for component id ${id} after ${result.framesSeen} frame(s) `
         + `(types=${envelopeTypes(result)}). The component may render null or a Fragment, or its host element `
