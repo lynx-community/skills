@@ -156,16 +156,10 @@ export function registerGetConsoleCommand(program: Command, context: Context) {
       const requests = [
         { method: 'Page.enable' },
         { method: 'Page.getResourceTree' },
-        ...thread.flatMap((t: string) => [
-          {
-            method: 'Runtime.disable',
-            sessionId: t === 'main' ? 'Main' : undefined,
-          },
-          {
-            method: 'Runtime.enable',
-            sessionId: t === 'main' ? 'Main' : undefined,
-          },
-        ]),
+        ...thread.map((t: string) => ({
+          method: 'Runtime.enable',
+          sessionId: t === 'main' ? 'Main' : undefined,
+        })),
       ].map((request, index) => ({ id: requestId + index, ...request }));
       const pendingRequests = new Set(
         requests
