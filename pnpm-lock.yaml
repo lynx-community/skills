@@ -52,7 +52,7 @@ importers:
         specifier: ^0.0.94
         version: 0.0.94
       turbo:
-        specifier: ^2.11.12
+        specifier: ^2.11.13
         version: 2.11.13
       yaml:
         specifier: ^2.9.1
