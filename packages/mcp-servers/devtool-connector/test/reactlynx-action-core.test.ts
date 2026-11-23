@@ -8,7 +8,11 @@ import { setTimeout as delay } from "node:timers/promises";
 import type { CommandData } from "../src/command/contract.ts";
 import { ActionCore } from "../src/command/core.ts";
 import { applyOperationV2, createRendererState } from "../src/command/reactlynx/protocol.ts";
-import type { PreactEnvelope } from "../src/command/reactlynx/session.ts";
+import {
+  buildReactLynxOutboundFrame,
+  type PreactEnvelope,
+  runReactLynxSession,
+} from "../src/command/reactlynx/session.ts";
 import type { DomNode } from "../src/command/snapshot.ts";
 import type { Connector } from "../src/index.ts";
 
@@ -626,61 +630,96 @@ test("an aborted queued ReactLynx action does not open a hole in the session loc
   assert.equal(harness.maxActiveStreams, 1);
 });
 
-test("ReactLynx tree waits across idle for the remount operation_v2 when refresh first emits REMOVE_VNODE and clears stale nodes on page init", async () => {
-  const REMOVE_VNODE = 3;
+function createStreamConnector(options: {
+  dom?: DomNode;
+  onStream?: (emit: (event: unknown) => void) => (() => void) | void;
+  onEnvelope: (
+    envelope: OutboundEnvelope,
+    emit: (event: unknown) => void,
+    close: () => void,
+    frameId?: number,
+  ) => void;
+}): { connector: Connector; outbound: OutboundEnvelope[]; streamCount: () => number } {
   const outbound: OutboundEnvelope[] = [];
-  let replyTimer: NodeJS.Timeout | undefined;
+  let streams = 0;
   const connector = {
+    async sendCDPMessage(_clientId: string, _sessionId: number, method: string) {
+      if (method === "DOM.enable") return {};
+      if (method === "DOM.getDocumentWithBoxModel") return { root: options.dom ?? domTree() };
+      throw new Error(`Unexpected CDP method ${method}`);
+    },
     async sendCDPStream(
       _clientId: string,
       _sessionId: number,
-      input: ReadableStream<{ method: string; params?: unknown }>,
+      input: ReadableStream<{ id?: number; method: string; params?: unknown }>,
     ) {
+      streams += 1;
       let outputController: ReadableStreamDefaultController<unknown> | undefined;
       const output = new ReadableStream<unknown>({
         start(controller) {
           outputController = controller;
         },
       });
+      const emit = (event: unknown) => {
+        try {
+          outputController?.enqueue(event);
+        } catch {
+          // Output stream may already be closed by consumer.
+        }
+      };
+      const close = () => {
+        try {
+          outputController?.close();
+        } catch {
+          // Output stream may already be closed.
+        }
+      };
+      const cleanup = options.onStream?.(emit);
       const inputClosed = (async () => {
         try {
           for await (const frame of input) {
             const params = frame.params as { data?: string } | undefined;
             const envelope = JSON.parse(params?.data ?? "null") as OutboundEnvelope;
             outbound.push(envelope);
-            if (envelope.type === "refresh") {
-              // Simulate a stale tree followed by a page reload `init` and a delayed remount batch
-              outputController?.enqueue(
-                vmEvent("operation_v2", operation(["StaleRoot"], [ADD_VNODE, 99, 3, -1, -1, 1, 0, 0, 0])),
-              );
-              outputController?.enqueue(vmEvent("init", null));
-              outputController?.enqueue(vmEvent("attach", { id: 1, supports: {} }));
-              outputController?.enqueue(vmEvent("operation_v2", operation([], [REMOVE_VNODE, 1, 99])));
-              replyTimer = setTimeout(() => {
-                outputController?.enqueue(vmEvent("operation_v2", componentTree()));
-                outputController?.enqueue(vmEvent("root-order", []));
-                outputController?.close();
-              }, 750);
-            }
+            options.onEnvelope(envelope, emit, close, frame.id);
           }
         } catch {
-          // Stream closed by consumer after tree capture.
+          // Consumer closes stream when done.
         }
       })();
       return Object.assign(output, {
         inputClosed,
         async [Symbol.asyncDispose]() {
-          if (replyTimer) clearTimeout(replyTimer);
-          try {
-            outputController?.close();
-          } catch {
-            // Output may already be closed.
-          }
+          cleanup?.();
+          close();
           await inputClosed;
         },
       });
     },
   } as unknown as Connector;
+  return { connector, outbound, streamCount: () => streams };
+}
+
+test("ReactLynx tree waits across idle for the remount operation_v2 when refresh first emits REMOVE_VNODE and clears stale nodes on page init", async () => {
+  const REMOVE_VNODE = 3;
+  let replyTimer: NodeJS.Timeout | undefined;
+  const { connector, outbound } = createStreamConnector({
+    onStream: () => () => {
+      if (replyTimer) clearTimeout(replyTimer);
+    },
+    onEnvelope(envelope, emit, close) {
+      if (envelope.type !== "refresh") return;
+      emit(vmEvent("operation_v2", operation(["StaleRoot"], [ADD_VNODE, 99, 3, -1, -1, 1, 0, 0, 0])));
+      emit(vmEvent("init", null));
+      emit(vmEvent("attach", { id: 1, supports: {} }));
+      emit(vmEvent("operation_v2", operation([], [REMOVE_VNODE, 1, 99])));
+      replyTimer = setTimeout(() => {
+        emit(vmEvent("operation_v2", componentTree()));
+        emit(vmEvent("root-order", []));
+        close();
+      }, 750);
+    },
+  });
 
   const core = new ActionCore();
   const tree = await core.execute("reactlynx-tree", TARGET, { connector });
@@ -690,4 +729,217 @@ test("ReactLynx tree waits across idle for the remount operation_v2 when refresh
   assert.deepEqual(outbound.map(envelope => envelope.type), ["init", "refresh"]);
   assert.equal(treeData.nodes.some(node => node.id === 99), false);
   assert.deepEqual(treeData.labels, [2, 3, 4, 5]);
+});
+
+test("ReactLynx tree discards dying pre-reload state across Runtime.executionContextsCleared and replays onto the new context", async () => {
+  let refreshSeen = 0;
+  let reloadTimer: NodeJS.Timeout | undefined;
+  const { connector, outbound } = createStreamConnector({
+    onStream(emit) {
+      const domNoiseTimer = setInterval(() => emit({ method: "DOM.attributeModified", params: { nodeId: 1 } }), 15);
+      domNoiseTimer.unref();
+      return () => {
+        if (reloadTimer) clearTimeout(reloadTimer);
+        clearInterval(domNoiseTimer);
+      };
+    },
+    onEnvelope(envelope, emit) {
+      if (envelope.type !== "refresh") return;
+      refreshSeen += 1;
+      if (refreshSeen === 1) {
+        emit(vmEvent("operation_v2", operation(["PreReloadRoot"], [ADD_VNODE, 77, 3, -1, -1, 1, 0, 0, 0])));
+        emit(vmEvent("root-order", [77]));
+        reloadTimer = setTimeout(() => {
+          // Lepus Main-thread target events precede JS context teardown on iOS and must be ignored.
+          emit({ method: "Target.targetDestroyed", params: { targetId: "Main" } });
+          emit({ method: "Target.targetCreated", params: { targetInfo: { targetId: "Main", type: "worker" } } });
+          emit({ method: "Runtime.executionContextsCleared" });
+          emit({ method: "Runtime.executionContextCreated" });
+        }, 20);
+      } else if (refreshSeen === 2) {
+        emit(vmEvent("attach", { id: 1, supports: {} }));
+        emit(vmEvent("operation_v2", operation(["Root"], [ADD_VNODE, 1, 3, -1, -1, 1, 0, 0, 0])));
+        reloadTimer = setTimeout(() => {
+          emit(vmEvent("operation_v2", componentTree()));
+          emit(vmEvent("root-order", [1]));
+        }, 750);
+      }
+    },
+  });
+
+  const startedAt = Date.now();
+  const core = new ActionCore();
+  const tree = await core.execute("reactlynx-tree", TARGET, { connector });
+  const elapsedMs = Date.now() - startedAt;
+  assert.equal(tree.ok, true, tree.error?.message);
+  if (!tree.ok) return;
+  const treeData = tree.data as CommandData<"reactlynx-tree">;
+  assert.deepEqual(outbound.map(envelope => envelope.type), ["init", "refresh", "init", "refresh"]);
+  assert.equal(treeData.nodes.some(node => node.id === 77), false, "pre-reload context nodes must be discarded");
+  assert.deepEqual(treeData.roots, [1]);
+  assert.deepEqual(treeData.labels, [2, 3, 4, 5]);
+  assert.ok(elapsedMs < 3_500, `DOM chatter must not stall tree settle to maxMs (took ${elapsedMs}ms)`);
+});
+
+test("ReactLynx link walks snapshot parentRef ancestors via root-order-page sentinels and settles unmapped highlight promptly", async () => {
+  const nestedDom: DomNode = {
+    nodeId: 100,
+    backendNodeId: 100,
+    localName: "page",
+    box_model: { content: quad(0, 0, 300, 600) },
+    children: [
+      {
+        nodeId: 10,
+        backendNodeId: 104,
+        localName: "view",
+        box_model: { content: quad(20, 30, 120, 40) },
+        children: [
+          {
+            nodeId: 11,
+            backendNodeId: 105,
+            localName: "view",
+            box_model: { content: quad(20, 30, 120, 40) },
+            children: [
+              {
+                nodeId: 12,
+                backendNodeId: 106,
+                localName: "text",
+                attributes: ["text", "Click Me!"],
+                box_model: { content: quad(24, 34, 80, 20) },
+              },
+            ],
+          },
+        ],
+      },
+    ],
+  };
+
+  const { connector, streamCount } = createStreamConnector({
+    dom: nestedDom,
+    onEnvelope(envelope, emit, close) {
+      if (envelope.type === "refresh") {
+        emit(vmEvent("operation_v2", componentTree()));
+        emit(vmEvent("root-order", [1]));
+        close();
+      } else if (envelope.type === "element-picked") {
+        const uniqueId = (envelope.data as { uniqueId?: number } | null)?.uniqueId;
+        if (uniqueId === 104) emit(vmEvent("element-picked-vnode-id", { id: 4 }));
+      } else if (envelope.type === "root-order-page") {
+        emit(vmEvent("root-order", [1]));
+      }
+    },
+  });
+
+  const core = new ActionCore();
+  assert.equal((await core.execute("snapshot", TARGET, { connector })).ok, true);
+  assert.equal((await core.execute("reactlynx-tree", { ...TARGET, showShells: true }, { connector })).ok, true);
+
+  const startedAt = Date.now();
+  const linked = await core.execute("reactlynx-link", { ...TARGET, ref: "@e3", showShells: true }, { connector });
+  assert.equal(linked.ok, true, linked.error?.message);
+  if (!linked.ok) return;
+  const linkData = linked.data as CommandData<"reactlynx-link">;
+  assert.equal(linkData.direction, "element-to-component");
+  assert.equal(linkData.element.ref, "@e3");
+  assert.equal(linkData.component.id, 4);
+  assert.equal(linkData.component.name, "Deep");
+  assert.equal(streamCount(), 2, "ancestor probing must reuse a single ReactLynx stream");
+
+  const fragmentLink = await core.execute(
+    "reactlynx-link",
+    { ...TARGET, ref: "@c1", showShells: true },
+    { connector },
+  );
+  const elapsedMs = Date.now() - startedAt;
+  assert.equal(fragmentLink.ok, false);
+  if (!fragmentLink.ok) assert.equal(fragmentLink.error.reason, "reactlynx-element-not-found");
+  assert.ok(
+    elapsedMs < 500,
+    `FIFO sentinel should resolve unmapped lookups without waiting for idle/maxMs (${elapsedMs}ms)`,
+  );
+});
+
+test("ReactLynx link retries once after async Lepus getUniqueIdListBySnapshotId populates idToUniqueIdList", async () => {
+  let highlightCalls = 0;
+  const { connector } = createStreamConnector({
+    onEnvelope(envelope, emit, close) {
+      if (envelope.type === "refresh") {
+        emit(vmEvent("operation_v2", componentTree()));
+        emit(vmEvent("root-order", [1]));
+        close();
+      } else if (envelope.type === "highlight") {
+        highlightCalls += 1;
+        if (highlightCalls >= 2) {
+          emit(vmEvent("preact-devtools-highlight", { snapshotId: 12, uniqueId: 104 }));
+        }
+      } else if (envelope.type === "root-order-page") {
+        emit(vmEvent("root-order", [1]));
+      }
+    },
+  });
+
+  const core = new ActionCore();
+  assert.equal((await core.execute("snapshot", TARGET, { connector })).ok, true);
+  assert.equal((await core.execute("reactlynx-tree", { ...TARGET, showShells: true }, { connector })).ok, true);
+
+  const result = await core.execute("reactlynx-link", { ...TARGET, ref: "@c4", showShells: true }, { connector });
+  assert.equal(result.ok, true, result.error?.message);
+  if (!result.ok) return;
+  const linkData = result.data as CommandData<"reactlynx-link">;
+  assert.equal(linkData.direction, "component-to-element");
+  assert.equal(linkData.element.ref, "@e2");
+  assert.equal(highlightCalls, 2);
+});
+
+test("runReactLynxSession waits past idle while outbound sendVMEvent ACKs are head-of-line blocked, then exits promptly after ACK on non-ReactLynx pages", async () => {
+  const pendingIds: number[] = [];
+  let delayedTimer: NodeJS.Timeout | undefined;
+  const { connector: stalledConnector } = createStreamConnector({
+    onStream: () => () => {
+      if (delayedTimer) clearTimeout(delayedTimer);
+    },
+    onEnvelope(envelope, emit, _close, frameId) {
+      if (frameId !== undefined) pendingIds.push(frameId);
+      if (envelope.type !== "refresh") return;
+      // Simulate a slow `Debugger.scriptParsed` transfer (> 4x idleMs) blocking PreactDevtools + ACKs.
+      delayedTimer = setTimeout(() => {
+        emit({ method: "Debugger.scriptParsed", params: { scriptId: "2", length: 1_071_956 } });
+        emit(vmEvent("init", null));
+        emit(vmEvent("attach", { id: 1, supports: {} }));
+        emit(vmEvent("operation_v2", componentTree()));
+        emit(vmEvent("root-order", [1]));
+        for (const id of pendingIds) emit({ id, result: {} });
+      }, 120);
+    },
+  });
+
+  const captured = await runReactLynxSession({
+    connector: stalledConnector,
+    clientId: TARGET.clientId,
+    sessionId: TARGET.sessionId,
+    outbound: [buildReactLynxOutboundFrame("refresh")],
+    idleMs: 25,
+    maxMs: 1_500,
+  });
+  assert.equal(captured.state.tree.size, 5);
+  assert.deepEqual(captured.state.roots, [1]);
+
+  // On an already-running non-ReactLynx page, ACKs return immediately and the session stops after one idle window.
+  const { connector: silentConnector } = createStreamConnector({
+    onEnvelope(_envelope, emit, _close, frameId) {
+      if (frameId !== undefined) setTimeout(() => emit({ id: frameId, result: {} }), 5);
+    },
+  });
+  const startedAt = Date.now();
+  const silent = await runReactLynxSession({
+    connector: silentConnector,
+    clientId: TARGET.clientId,
+    sessionId: TARGET.sessionId,
+    outbound: [buildReactLynxOutboundFrame("refresh")],
+    idleMs: 25,
+    maxMs: 2_000,
+  });
+  const elapsedMs = Date.now() - startedAt;
+  assert.equal(silent.framesSeen, 0);
+  assert.ok(elapsedMs < 300, `post-ACK non-ReactLynx session should not wait until maxMs (took ${elapsedMs}ms)`);
 });
