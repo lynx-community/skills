@@ -207,9 +207,15 @@
 
   :global(.rp-codeblock__content__scroll-container) {
     pre code {
-      padding: 8px 12px;
+      // CodeBlockRuntime sets inline padding before highlighting finishes.
+      padding: 8px 12px !important;
       font-size: 12px;
       line-height: 1.5;
+
+      // Keep horizontal spacing on code instead of adding it again per line.
+      > :global(.line) {
+        padding: 0;
+      }
     }
   }
 }
