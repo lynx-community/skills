@@ -1,9 +1,10 @@
 // Copyright 2026 The Lynx Authors. All rights reserved.
 // Licensed under the Apache License Version 2.0 that can be found in the
 // LICENSE file in the root directory of this source tree.
-import { ReadableStream, type ReadableStreamReadResult } from "node:stream/web";
+import { ReadableStream, type ReadableStreamReadResult, TransformStream } from "node:stream/web";
 import { createDebug } from "obug";
 import type { Connector } from "../../index.ts";
+import { nextRequestId } from "../../request-id.ts";
 import { applyOperationV2, applyRootOrder, createRendererState, type RendererState } from "./protocol.ts";
 
 const debug = createDebug("devtool-mcp-server:reactlynx");
@@ -13,6 +14,7 @@ const SOURCE_DEVTOOLS_TO_CLIENT = "preact-devtools-to-client";
 
 export const DEFAULT_REACTLYNX_IDLE_MS = 700;
 export const DEFAULT_REACTLYNX_MAX_MS = 5_000;
+const INITIAL_TREE_IDLE_MS = 2_500;
 
 export interface PreactEnvelope<T = unknown> {
   source: string;
@@ -27,11 +29,13 @@ interface LynxOnVMEventParams {
 }
 
 export interface ReactLynxOutboundFrame {
+  id?: number;
   method: string;
   params: { vmType: string; event: string; data: string };
 }
 
-export function buildReactLynxOutboundFrame<T = null>(
+function buildVMEventFrame<T = null>(
+  source: string,
   type: string,
   data?: T,
 ): ReactLynxOutboundFrame {
@@ -42,13 +46,28 @@ export function buildReactLynxOutboundFrame<T = null>(
       event: PREACT_EVENT,
       data: JSON.stringify(
         {
-          source: SOURCE_DEVTOOLS_TO_CLIENT,
+          source,
           type,
           data: data ?? null,
         } satisfies PreactEnvelope<T | null>,
       ),
     },
   };
+}
+
+export function buildReactLynxOutboundFrame<T = null>(
+  type: string,
+  data?: T,
+): ReactLynxOutboundFrame {
+  return buildVMEventFrame(SOURCE_DEVTOOLS_TO_CLIENT, type, data);
+}
+
+/** Build a `preact-page-hook` frame (e.g. `root-order-page` FIFO sentinel). */
+export function buildReactLynxPageHookFrame<T = null>(
+  type: string,
+  data?: T,
+): ReactLynxOutboundFrame {
+  return buildVMEventFrame(SOURCE_PAGE_HOOK, type, data);
 }
 
 export interface ReactLynxSessionResult {
@@ -74,6 +93,60 @@ export interface RunReactLynxSessionOptions {
   idleMs?: number;
   maxMs?: number;
   signal?: AbortSignal;
+}
+
+type SessionStreamEvent =
+  | { kind: "envelope"; envelope: PreactEnvelope }
+  | { kind: "outbound-acked" }
+  | { kind: "context-cleared" }
+  | { kind: "context-created" };
+
+const CONTEXT_CLEARED_METHODS = new Set([
+  "Runtime.executionContextsCleared",
+  "Runtime.executionContextDestroyed",
+  "Target.targetDestroyed",
+]);
+
+const CONTEXT_CREATED_METHODS = new Set([
+  "Runtime.executionContextCreated",
+  "Target.targetCreated",
+]);
+
+function isMainTargetEvent(value: unknown): boolean {
+  const params = (value as { params?: { targetId?: unknown; targetInfo?: { targetId?: unknown } } }).params;
+  return (params?.targetId ?? params?.targetInfo?.targetId) === "Main";
+}
+
+function parseSessionStreamEvent(
+  value: unknown,
+  pendingAckIds: Set<number>,
+): SessionStreamEvent | null {
+  if (typeof value !== "object" || value === null) return null;
+  const responseId = (value as { id?: unknown }).id;
+  if (typeof responseId === "number" && pendingAckIds.delete(responseId)) {
+    return pendingAckIds.size === 0 ? { kind: "outbound-acked" } : null;
+  }
+  const method = (value as { method?: unknown }).method;
+  if (typeof method !== "string") return null;
+  if (CONTEXT_CLEARED_METHODS.has(method)) {
+    return isMainTargetEvent(value) ? null : { kind: "context-cleared" };
+  }
+  if (CONTEXT_CREATED_METHODS.has(method)) {
+    return isMainTargetEvent(value) ? null : { kind: "context-created" };
+  }
+  if (method !== "Lynx.onVMEvent") return null;
+
+  const params = (value as { params?: LynxOnVMEventParams }).params ?? {};
+  if (params.event !== PREACT_EVENT) return null;
+  try {
+    const parsed: unknown = JSON.parse(params.data ?? "null");
+    if (typeof parsed !== "object" || parsed === null) return null;
+    const envelope = parsed as PreactEnvelope;
+    if (envelope.source !== SOURCE_PAGE_HOOK) return null;
+    return { kind: "envelope", envelope };
+  } catch {
+    return null;
+  }
 }
 
 async function raceRead<T>(
@@ -161,6 +234,7 @@ export async function runReactLynxSession(
     maxMs = DEFAULT_REACTLYNX_MAX_MS,
     signal,
   } = options;
+  const initialTreeIdleMs = options.idleMs ?? INITIAL_TREE_IDLE_MS;
 
   let stopRequested = false;
   let cancelInput: () => void = () => {};
@@ -172,11 +246,17 @@ export async function runReactLynxSession(
   let sendInput: (frame: ReactLynxOutboundFrame) => void = () => {
     throw new Error("ReactLynx input stream is not ready");
   };
+  const pendingAckIds = new Set<number>();
+  const trackOutbound = (frame: ReactLynxOutboundFrame): ReactLynxOutboundFrame => {
+    const id = frame.id ?? nextRequestId();
+    pendingAckIds.add(id);
+    return { ...frame, id };
+  };
 
   const input = new ReadableStream<ReactLynxOutboundFrame>({
     start(controller) {
-      if (sendInit) controller.enqueue(buildReactLynxOutboundFrame("init"));
-      for (const frame of outbound) controller.enqueue(frame);
+      if (sendInit) controller.enqueue(trackOutbound(buildReactLynxOutboundFrame("init")));
+      for (const frame of outbound) controller.enqueue(trackOutbound(frame));
       assertInputWritable = () => {
         if (!inputTerminated) return;
         if (inputTerminalReason !== undefined) throw inputTerminalReason;
@@ -184,9 +264,11 @@ export async function runReactLynxSession(
       };
       sendInput = frame => {
         assertInputWritable();
+        const tracked = trackOutbound(frame);
         try {
-          controller.enqueue(frame);
+          controller.enqueue(tracked);
         } catch (error) {
+          pendingAckIds.delete(tracked.id!);
           inputTerminated = true;
           inputTerminalReason = error;
           throw error;
@@ -211,7 +293,7 @@ export async function runReactLynxSession(
   await using stream = await connector.sendCDPStream(
     clientId,
     sessionId,
-    input as ReadableStream<{ method: string; params?: unknown }>,
+    input as ReadableStream<{ id?: number; method: string; params?: unknown }>,
     signal ? { signal } : undefined,
   );
 
@@ -221,6 +303,7 @@ export async function runReactLynxSession(
   let rootOrderFrames = 0;
   const envelopeTypes = new Set<string>();
   let snapshotPending = afterSnapshot !== undefined;
+  let awaitingNewContext = false;
   const wantsTree = outbound.some(frame => {
     try {
       const parsed = JSON.parse(frame.params.data) as { type?: unknown };
@@ -230,13 +313,34 @@ export async function runReactLynxSession(
     }
   });
 
+  const filteredStream = (stream as ReadableStream<unknown>).pipeThrough(
+    new TransformStream<unknown, SessionStreamEvent>({
+      transform(chunk, controller) {
+        const event = parseSessionStreamEvent(chunk, pendingAckIds);
+        if (event !== null) controller.enqueue(event);
+      },
+    }),
+  );
+
   try {
     for await (
-      const value of readUntilIdle(stream as ReadableStream<unknown>, {
-        idleMs: () => snapshotPending ? snapshotIdleMs : idleMs,
+      const event of readUntilIdle(filteredStream, {
+        idleMs: () => {
+          if (snapshotPending) return snapshotIdleMs;
+          if (framesSeen === 0 && wantsTree) return initialTreeIdleMs;
+          return idleMs;
+        },
         maxMs,
         onIdle: () => {
-          if (wantsTree && state.tree.size === 0 && (operationFrames > 0 || envelopeTypes.has("attach"))) {
+          if (awaitingNewContext) return true;
+          if (
+            wantsTree
+            && (operationFrames > 0
+              ? state.tree.size === 0 || rootOrderFrames === 0
+              : envelopeTypes.has("attach") || envelopeTypes.has("init")
+              ? rootOrderFrames === 0
+              : !snapshotPending && framesSeen === 0 && pendingAckIds.size > 0)
+          ) {
             return true;
           }
           if (!snapshotPending || !afterSnapshot) return awaitEnvelope;
@@ -252,21 +356,32 @@ export async function runReactLynxSession(
         },
       })
     ) {
-      if (typeof value !== "object" || value === null) continue;
-      if ((value as { method?: string }).method !== "Lynx.onVMEvent") continue;
-      const params = (value as { params?: LynxOnVMEventParams }).params ?? {};
-      if (params.event !== PREACT_EVENT) continue;
-
-      let envelope: PreactEnvelope;
-      try {
-        const parsed: unknown = JSON.parse(params.data ?? "null");
-        if (typeof parsed !== "object" || parsed === null) continue;
-        envelope = parsed as PreactEnvelope;
-      } catch {
+      if (event.kind === "outbound-acked") continue;
+      if (event.kind === "context-cleared") {
+        debug("execution context cleared mid-session; discarding pre-reload state");
+        state.tree.clear();
+        state.roots.length = 0;
+        framesSeen = 0;
+        operationFrames = 0;
+        rootOrderFrames = 0;
+        envelopeTypes.clear();
+        pendingAckIds.clear();
+        awaitingNewContext = true;
         continue;
       }
-      if (envelope.source !== SOURCE_PAGE_HOOK) continue;
+      if (event.kind === "context-created") {
+        const shouldReplay = awaitingNewContext || framesSeen === 0;
+        awaitingNewContext = false;
+        if (shouldReplay && !inputTerminated) {
+          debug("execution context created mid-session; re-sending outbound frames");
+          if (sendInit) sendInput(buildReactLynxOutboundFrame("init"));
+          for (const frame of outbound) sendInput(frame);
+        }
+        continue;
+      }
 
+      awaitingNewContext = false;
+      const { envelope } = event;
       framesSeen += 1;
       envelopeTypes.add(envelope.type);
       debug(
@@ -315,9 +430,18 @@ export function reactLynxEmptyTreeDiagnostic(result: ReactLynxSessionResult): st
       + "`[PREACT DEVTOOLS] Devtools initialized successfully` in the device console.";
   }
   if (result.operationFrames === 0) {
+    if (result.rootOrderFrames > 0 && result.state.roots.length === 0) {
+      return `saw ${result.framesSeen} frame(s) with an empty \`root-order\` and no \`operation_v2\` -- `
+        + "`@lynx-js/preact-devtools` responded, but no active ReactLynx roots are currently tracked "
+        + "(the JS runtime may have been restarted or no root is mounted).";
+    }
     return `saw ${result.framesSeen} frame(s) but no \`operation_v2\` -- `
       + "`@lynx-js/preact-devtools` is loaded but does not honor `refresh`. "
       + "Upgrade to a build with the `document.body` and `preactDevtoolsCtx.Node` fixes.";
+  }
+  if (result.state.tree.size > 0 && result.state.roots.length === 0) {
+    return `saw ${result.framesSeen} frame(s) (${result.state.tree.size} node(s)) without \`root-order\` -- `
+      + "the component tree stream ended before the root list arrived.";
   }
   return `saw ${result.framesSeen} frame(s) including ${result.operationFrames} \`operation_v2\` `
     + "but the resulting tree is empty (every node was unmounted).";

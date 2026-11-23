@@ -533,11 +533,19 @@ export class ActionCore {
     if (ref.kind === "element") {
       const resolved = this.#resolveRef("reactlynx-link", clientId, sessionId, ref.ref);
       if ("ok" in resolved) return resolved;
+      const refsByName = new Map(resolved.snapshot.refs.map(candidate => [candidate.ref, candidate]));
+      const uniqueIds = new Set<number>();
+      const visited = new Set<string>();
+      for (let current: SnapshotRef | undefined = resolved.ref; current && !visited.has(current.ref);) {
+        visited.add(current.ref);
+        uniqueIds.add(current.backendNodeId ?? current.nodeId);
+        current = current.parentRef ? refsByName.get(current.parentRef) : undefined;
+      }
       const mapping = await this.#reactLynx.componentForElement(
         ctx.connector,
         target,
         {
-          uniqueId: resolved.ref.backendNodeId ?? resolved.ref.nodeId,
+          uniqueIds: [...uniqueIds],
           showShells,
           refresh,
         },
