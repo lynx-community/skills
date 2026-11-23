@@ -19,7 +19,7 @@ agent-lynx get-sources [options]
 2. **Refresh Scripts**: Sends `Debugger.disable` followed by `Debugger.enable` to trigger the re-emission of `Debugger.scriptParsed` events for all existing scripts.
 3. **Collection**: Listens for `Debugger.scriptParsed` events.
 4. **Completion**: Sends a second `Debugger.enable` as a barrier. Lynx emits the initial script events before this response, so collection finishes when its matching successful response arrives after at least one script.
-5. **Timeout fallback**: An early, missing, or failed barrier, or an empty script list, uses the existing 2-second idle timeout and 5-second overall limit.
+5. **Timeout fallback**: An early, missing, or failed barrier, or an empty script list, uses the existing 2-second idle timeout and 15-second overall limit.
 
 The command enumerates initially loaded scripts; it does not wait for future dynamically loaded scripts.
 

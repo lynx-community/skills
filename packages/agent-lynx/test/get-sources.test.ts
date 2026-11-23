@@ -191,7 +191,7 @@ for (const kind of ['early', 'error', 'missing-result', 'missing', 'empty']) {
     if (kind === 'empty') f.send({ id, result: {} });
     await flush();
     assert.deepEqual(f.output, []);
-    t.mock.timers.tick(kind === 'missing' ? 5000 : 2000);
+    t.mock.timers.tick(kind === 'missing' ? 15_000 : 2000);
     await f.done;
     assert.deepEqual(
       JSON.parse(f.output[0]!),
@@ -201,14 +201,14 @@ for (const kind of ['early', 'error', 'missing-result', 'missing', 'empty']) {
   });
 }
 
-test('unrelated traffic cannot extend the five-second hard deadline', async t => {
+test('unrelated traffic cannot extend the 15-second hard deadline', async t => {
   const f = fixture(t);
   await flush();
   f.send(parsed(0));
   await flush();
-  for (let i = 0; i < 5; i++) {
+  for (let i = 0; i < 15; i++) {
     t.mock.timers.tick(1000);
-    if (i < 4) f.send({ method: 'Runtime.consoleAPICalled', params: {} });
+    if (i < 14) f.send({ method: 'Runtime.consoleAPICalled', params: {} });
     await flush();
   }
   await f.done;

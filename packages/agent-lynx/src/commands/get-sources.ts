@@ -59,7 +59,7 @@ export function registerGetSourcesCommand(program: Command, context: Context) {
       for await (
         const value of readUntilIdle(stream, {
           idleMs: 2000,
-          maxMs: 5000,
+          maxMs: 15_000,
           onIdle: () => !didReceiveBarrierResponse,
         })
       ) {
