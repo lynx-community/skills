@@ -464,7 +464,7 @@ export function annotateScreenshot(options: AnnotateScreenshotOptions): Annotate
   }
 
   try {
-    const encoded = jpeg.encode(image, options.quality ?? 90);
+    const encoded = jpeg.encode(image, options.quality ?? 80);
     return {
       jpeg: Buffer.from(encoded.data),
       width: image.width,

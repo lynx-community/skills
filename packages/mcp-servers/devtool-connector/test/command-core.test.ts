@@ -430,7 +430,7 @@ describe("ActionCore", () => {
     );
     assert.deepEqual((inputMessages[0] as { params: unknown }).params, {
       format: "jpeg",
-      quality: 100,
+      quality: 80,
       mode: "lynxview",
     });
     const modeIndex = timeline.indexOf("Page.startScreencast");
