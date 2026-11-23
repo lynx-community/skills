@@ -35,7 +35,7 @@ export const TakeHeapSnapshot = /*#__PURE__*/ defineTool({
       ? { sessionId: expectedSessionId }
       : {};
 
-    const timeoutSignal = AbortSignal.timeout(60_000); // 60s timeout for heap snapshot
+    const timeoutSignal = AbortSignal.timeout(180_000); // 180s total budget; IDLE_TIMEOUT still catches stalls in 15s
     const signal = extra.signal
       ? AbortSignal.any([extra.signal, timeoutSignal])
       : timeoutSignal;
@@ -98,7 +98,7 @@ export const TakeHeapSnapshot = /*#__PURE__*/ defineTool({
 
     const reader = stream.getReader();
     const IDLE_TIMEOUT = 15000;
-    const MAX_TOTAL_TIME = 60000;
+    const MAX_TOTAL_TIME = 180000;
     const startTime = Date.now();
     let didWriteSnapshotChunk = false;
     let shouldKeepSnapshotFile = false;
