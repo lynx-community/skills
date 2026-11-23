@@ -59,7 +59,7 @@ export function registerTakeHeapSnapshotCommand(
       const extraParams = expectedSessionId
         ? { sessionId: expectedSessionId }
         : {};
-      const timeoutSignal = AbortSignal.timeout(60_000);
+      const timeoutSignal = AbortSignal.timeout(180_000);
       const requestId = randomInt(10_000, 50_000);
 
       await using stream = await connector.sendStream(
@@ -122,7 +122,7 @@ export function registerTakeHeapSnapshotCommand(
         for await (
           const value of readUntilIdle(stream, {
             idleMs: 15_000,
-            maxMs: 60_000,
+            maxMs: 180_000,
           })
         ) {
           const {
