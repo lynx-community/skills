@@ -721,7 +721,7 @@ export class ActionCore {
     try {
       const capturedFrame = await captureScreenshotFrame(ctx.connector, clientId, sessionId, {
         fullscreen,
-        quality: annotate ? 100 : 80,
+        quality: 80,
         signal,
       });
       const jpegBase64 = capturedFrame.data;
