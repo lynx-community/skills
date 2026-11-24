@@ -3,13 +3,11 @@
 // LICENSE file in the root directory of this source tree.
 
 import { spawn } from 'node:child_process';
-import { mkdtemp, readFile } from 'node:fs/promises';
+import { mkdtemp, readFile, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { Readable } from 'node:stream';
-import { pipeline } from 'node:stream/promises';
 
-import { extract } from 'tar';
+import { parseTarGzip } from 'nanotar';
 import { WasmEngine } from '../dist/index.js';
 
 function skip(msg) {
@@ -20,17 +18,19 @@ function skip(msg) {
 
 async function downloadBundle(url, cwd) {
   const res = await fetch(url);
-  if (!res.ok || !res.body) {
+  if (!res.ok) {
     throw new Error(
       `Failed to download ${url}: ${res.status} ${res.statusText}`,
     );
   }
-  await pipeline(
-    Readable.fromWeb(res.body),
-    extract({ cwd, strip: 2, strict: true }, [
-      'package/dist/GalleryComplete.lynx.bundle',
-    ]),
-  );
+  const targetEntry = 'package/dist/GalleryComplete.lynx.bundle';
+  const [entry] = await parseTarGzip(await res.arrayBuffer(), {
+    filter: (file) => file.name === targetEntry,
+  });
+  if (!entry?.data) {
+    throw new Error(`Missing ${targetEntry} in ${url}`);
+  }
+  await writeFile(join(cwd, 'GalleryComplete.lynx.bundle'), entry.data);
 }
 
 function spawnWait(cmd, args) {
