@@ -179,6 +179,7 @@ export class LynxSimulatorTransport extends DesktopTransport {
         "--no-fund",
         "--save-exact",
         "--ignore-scripts=false",
+        ...(host.includes("-") ? ["--legacy-peer-deps"] : []),
         `${this.#config.core.name}@${this.#config.core.version}`,
         `${this.#config.lynxtron.name}@${host}`,
         ...packages,

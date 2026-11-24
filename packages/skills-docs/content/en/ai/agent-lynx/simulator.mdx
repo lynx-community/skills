@@ -88,6 +88,6 @@ Use `simulator get --client <clientId>` to inspect `coreVersion`, `lynxtronVersi
 
 Lynx Simulator uses the daemon connection. The first run prepares dependencies; subsequent runs reuse the local cache. It requires npm and macOS arm64/x64 or Linux x64. Linux also needs the runtime's system graphics libraries. macOS opens a window by default; Linux renders without one. The `open` options `--simulator-window-width`, `--simulator-window-height`, and `--simulator-windowless` control page dimensions and rendering mode.
 
-Use `--simulator-dpr <factor>` to set a positive finite device pixel ratio for windowless rendering. `--simulator-window-background-color '#f5f5f5'` sets the macOS window color behind transparent page areas; windowless mode ignores it. Set the page root's `background-color` to control the background in windowless screenshots.
+Use `--simulator-dpr <factor>` to set a positive finite device pixel ratio for windowless rendering. `--simulator-window-background-color '#f5f5f5'` sets the window canvas color behind transparent page areas; the current default Lynxtron ignores it in windowless mode, so set the page root's `background-color` on the default host or select a compatible `--lynxtron-version`.
 
 For the browser DevTool UI, run `agent-lynx inspect --client <clientId> --session <sessionId>` and open the printed localhost URL.

@@ -247,3 +247,67 @@ test('--no-daemon open invokes ActionCore in-process and never uses HTTP', async
   assert.equal(httpCalls, 0);
   assert.deepEqual(JSON.parse(lines.at(-1) ?? '{}'), response);
 });
+
+test('open encodes Simulator rendering options in the OpenCard URL', async (t) => {
+  const target = 'file:///tmp/simulator%20fixture/template.js';
+  const clientId = 'simulator:localhost:8901';
+  const response = createResponse();
+  t.mock.method(console, 'log', () => {});
+  const execute = t.mock.method(
+    HttpCommandClient.prototype,
+    'execute',
+    async function(
+      ...[action, params]: Parameters<CommandClient['execute']>
+    ) {
+      assert.equal(action, 'open');
+      assert.ok(params && 'url' in params && typeof params.url === 'string');
+      const url = new URL(params.url);
+      assert.deepEqual(params, { url: url.href, clientId });
+      assert.equal(url.protocol, 'lynx-simulator:');
+      assert.equal(url.hostname, 'open');
+      assert.deepEqual(Object.fromEntries(url.searchParams), {
+        url: target,
+        windowless: 'true',
+        dpr: '2.625',
+        'background-color': '#123456',
+      });
+      return ok('open', { clientId, response }) as never;
+    },
+  );
+
+  await createProgram({ env: {} }).parseAsync(
+    [
+      'open',
+      target,
+      '--client',
+      clientId,
+      '--simulator-windowless',
+      '--simulator-dpr',
+      '2.625',
+      '--simulator-window-background-color',
+      '#123456',
+    ],
+    { from: 'user' },
+  );
+
+  assert.equal(execute.mock.callCount(), 1);
+});
+
+test('open rejects invalid Simulator device pixel ratios', async () => {
+  for (const factor of ['0', '-1', 'Infinity', 'NaN', '']) {
+    const program = createProgram({ env: {} });
+    const open = program.commands.find((command) => command.name() === 'open');
+    assert.ok(open);
+    open.exitOverride().configureOutput({ writeErr: () => {} });
+    await assert.rejects(
+      program.parseAsync(
+        ['open', 'file:///tmp/template.js', '--simulator-dpr', factor],
+        { from: 'user' },
+      ),
+      {
+        code: 'commander.invalidArgument',
+        message: /Expected a positive finite number/,
+      },
+    );
+  }
+});

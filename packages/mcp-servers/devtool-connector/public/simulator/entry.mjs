@@ -56,7 +56,7 @@ void app.whenReady().then(async () => {
           windowless,
           size: { width: Number(query.get("width") ?? 390), height: Number(query.get("height") ?? 844) },
           ...(windowless && dpr !== null ? { deviceScaleFactor: Number(dpr) } : {}),
-          ...(!windowless && backgroundColor !== null ? { backgroundColor } : {}),
+          ...(backgroundColor !== null ? { backgroundColor } : {}),
         },
       });
     })().catch(console.error);

@@ -76,7 +76,7 @@ export function registerOpenCommand(program: Command, context: Context): void {
     )
     .option(
       '--simulator-window-background-color <color>',
-      'Lynx Simulator window background color (ignored in windowless mode)',
+      'Lynx Simulator window background color behind transparent page areas',
     )
     .argument('<url>', 'The url of the page')
     .action(async (url: string, options: {

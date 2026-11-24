@@ -88,6 +88,6 @@ agent-lynx simulator run --ttl 20m \
 
 Lynx Simulator 使用 daemon 连接，首次运行会准备依赖，后续复用本地缓存。需要 npm，以及 macOS arm64/x64 或 Linux x64；Linux 还需要运行时所需的系统图形库。macOS 默认打开窗口，Linux 使用无窗口渲染；`open` 的 `--simulator-window-width`、`--simulator-window-height` 和 `--simulator-windowless` 可控制页面尺寸与渲染方式。
 
-使用 `--simulator-dpr <factor>` 为无窗口渲染设置正且有限的像素比。`--simulator-window-background-color '#f5f5f5'` 设置 macOS 窗口在页面透明区域后方的背景色，无窗口模式会忽略此选项；无窗口截图的背景应通过页面根元素的 `background-color` 设置。
+使用 `--simulator-dpr <factor>` 为无窗口渲染设置正且有限的像素比。`--simulator-window-background-color '#f5f5f5'` 设置窗口在页面透明区域后方的画布背景色；当前默认 Lynxtron 在无窗口模式下仍会忽略此选项，默认宿主上可通过页面根元素的 `background-color` 设置，或通过 `--lynxtron-version` 选择支持无窗口背景色的版本。
 
 需要浏览器 DevTool UI 时，运行 `agent-lynx inspect --client <clientId> --session <sessionId>`，打开输出的 localhost URL。
