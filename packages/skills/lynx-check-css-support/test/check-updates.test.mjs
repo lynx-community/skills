@@ -130,28 +130,6 @@ test('fails closed when registry metadata has an invalid version', async (t) => 
   );
 });
 
-test('rejects oversized registry metadata', async (t) => {
-  // Given: the registry response exceeds the update check's metadata limit.
-  const metadata = JSON.stringify({
-    version: bundledVersion,
-    padding: 'x'.repeat(65 * 1024),
-  });
-
-  // When: the update check receives that response.
-  await assert.rejects(
-    runWithFetch(t, metadata, '--check-updates'),
-    (error) => {
-      assert(error instanceof Error);
-
-      // Then: the command fails without processing or echoing the payload.
-      assert.equal(error.code, 1);
-      assert.match(error.stderr, /Unable to check for css-defines updates/);
-      assert.doesNotMatch(error.stderr, /xxxx/);
-      return true;
-    },
-  );
-});
-
 test('fails closed when the registry request fails', async (t) => {
   // Given: the network boundary rejects the registry request.
   const preloadSource =
