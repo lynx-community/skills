@@ -16,7 +16,7 @@
   },
   "dependencies": {},
   "devDependencies": {
-    "tar": "^7.5.23"
+    "nanotar": "^0.3.0"
   },
   "engines": {
     "node": ">=18"

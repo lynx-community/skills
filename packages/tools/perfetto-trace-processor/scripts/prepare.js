@@ -3,11 +3,10 @@
 // LICENSE file in the root directory of this source tree.
 import { copyFile, mkdir, readFile, rm, writeFile } from 'node:fs/promises';
 import { dirname, join, normalize } from 'node:path';
-import { pipeline } from 'node:stream/promises';
 import { fileURLToPath } from 'node:url';
 
 import { build } from 'esbuild';
-import { extract } from 'tar';
+import { parseTarGzip } from 'nanotar';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const RELEASE_DIR = join(
@@ -35,7 +34,12 @@ async function downloadAndExtractLatestRelease() {
   }
 
   console.log('Extracting...');
-  await pipeline(res.body, extract({ cwd: RELEASE_DIR }));
+  for (const entry of await parseTarGzip(await res.arrayBuffer())) {
+    if (!entry.data) continue;
+    const targetPath = join(RELEASE_DIR, entry.name);
+    await mkdir(dirname(targetPath), { recursive: true });
+    await writeFile(targetPath, entry.data);
+  }
 
   // Read version from index.html
   const indexHtml = await readFile(join(RELEASE_DIR, 'index.html'), 'utf-8');

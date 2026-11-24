@@ -3,12 +3,12 @@
 // LICENSE file in the root directory of this source tree.
 
 import { createWriteStream } from 'node:fs';
-import { mkdir, stat, writeFile } from 'node:fs/promises';
+import { mkdir, readFile, stat, writeFile } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
 import { pipeline } from 'node:stream/promises';
 import { fileURLToPath } from 'node:url';
 
-import * as tar from 'tar';
+import { parseTarGzip } from 'nanotar';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -79,31 +79,17 @@ async function main() {
   console.log(`[@lynx-js/benchx-cli] downloading ${url}`);
   await download(url, tgzPath);
 
-  // Extract into vendorDir. The binary may be at root or inside folders.
-  await tar.x({ file: tgzPath, cwd: vendorDir });
-
-  // Find extracted benchx_cli
-  const { default: fs } = await import('node:fs');
-  const found = [];
-  /** @param {string} dir */
-  function walk(dir) {
-    for (const ent of fs.readdirSync(dir, { withFileTypes: true })) {
-      const p = join(dir, ent.name);
-      if (ent.isDirectory()) walk(p);
-      else if (ent.isFile() && ent.name === 'benchx_cli') found.push(p);
-    }
-  }
-  walk(vendorDir);
-
-  const extracted = found[0];
-  if (!extracted) {
+  // Extract benchx_cli into vendorDir. The binary may be at root or inside folders.
+  const entries = await parseTarGzip(await readFile(tgzPath));
+  const entry = entries.find(
+    (item) =>
+      item.data
+      && (item.name === 'benchx_cli' || item.name.endsWith('/benchx_cli')),
+  );
+  if (!entry?.data) {
     throw new Error(`benchx_cli not found after extracting ${tgzPath}`);
   }
-
-  if (extracted !== binPath) {
-    fs.copyFileSync(extracted, binPath);
-  }
-  fs.chmodSync(binPath, 0o755);
+  await writeFile(binPath, entry.data, { mode: 0o755 });
 
   await writeFile(stampPath, new Date().toISOString());
   console.log(`[@lynx-js/benchx-cli] ready: ${binPath}`);
