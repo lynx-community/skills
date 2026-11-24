@@ -264,6 +264,115 @@ test('flags undeclared browser, Node, and unsupported JS globals with line, colu
   assert.match(result.issues[4]?.hint ?? '', /lynx\.performance/);
 });
 
+test('global scope hints recommend an entry available on both threads', () => {
+  const source = [
+    '<!doctype lynx>',
+    '<lynx engine-version="4.2">',
+    '<script thread="main">void global; void window;</script>',
+    '<script thread="background">void global; void window;</script>',
+    '</lynx>',
+  ].join('\n');
+
+  const result = checkLynxmlSource(source);
+
+  assert.equal(result.issues.length, 4);
+  for (const issue of result.issues) {
+    assert.equal(issue.code, 'undeclared-global');
+    assert.match(issue.hint ?? '', /`globalThis`/);
+    assert.doesNotMatch(issue.hint ?? '', /lynx\.SystemInfo/);
+  }
+  const corrected = source.replace(/\b(?:global|window)\b/g, 'globalThis');
+  assert.equal(checkLynxmlSource(corrected).ok, true);
+});
+
+test('recommends lynx.SystemInfo for device metadata', () => {
+  const source = [
+    '<!doctype lynx>',
+    '<lynx engine-version="4.2">',
+    '<script thread="main">',
+    'void navigator.platform;',
+    '</script>',
+    '</lynx>',
+  ].join('\n');
+
+  const result = checkLynxmlSource(source);
+
+  assert.equal(result.ok, false);
+  assert.equal(result.issues.length, 1);
+  assert.equal(result.issues[0]?.symbol, 'navigator');
+  assert.match(result.issues[0]?.hint ?? '', /lynx\.SystemInfo/);
+  assert.match(
+    result.issues[0]?.hint ?? '',
+    /global `SystemInfo` on the background thread/,
+  );
+});
+
+test('uses lynx.SystemInfo on main and allows global SystemInfo on background', () => {
+  const source = [
+    '<!doctype lynx>',
+    '<lynx engine-version="4.2">',
+    '<script thread="main">',
+    'void lynx.SystemInfo.pixelRatio;',
+    'void SystemInfo.pixelRatio;',
+    'void globalThis.SystemInfo.pixelRatio;',
+    '</script>',
+    '<script thread="background">',
+    'void SystemInfo.pixelRatio;',
+    'void globalThis.SystemInfo.pixelRatio;',
+    'void lynx.SystemInfo.pixelRatio;',
+    'void lynx["SystemInfo"].pixelRatio;',
+    'const { SystemInfo: info } = lynx;',
+    'void info;',
+    'function readLocal(lynx) { return lynx.SystemInfo; }',
+    '</script>',
+    '</lynx>',
+  ].join('\n');
+
+  const result = checkLynxmlSource(source);
+
+  assert.equal(result.ok, false);
+  assert.deepEqual(
+    result.issues.map(({ code, thread, symbol }) => ({ code, thread, symbol })),
+    [
+      { code: 'undeclared-global', thread: 'main', symbol: 'SystemInfo' },
+      { code: 'undeclared-global', thread: 'main', symbol: 'SystemInfo' },
+      {
+        code: 'wrong-thread-global',
+        thread: 'background',
+        symbol: 'lynx.SystemInfo',
+      },
+      {
+        code: 'wrong-thread-global',
+        thread: 'background',
+        symbol: 'lynx.SystemInfo',
+      },
+      {
+        code: 'wrong-thread-global',
+        thread: 'background',
+        symbol: 'lynx.SystemInfo',
+      },
+    ],
+  );
+  for (const issue of result.issues) {
+    assert.match(issue.hint ?? '', /lynx\.SystemInfo/);
+  }
+});
+
+test('allows an explicitly initialized main-thread SystemInfo alias', () => {
+  const source = [
+    '<!doctype lynx>',
+    '<lynx engine-version="4.2">',
+    '<script thread="main">',
+    'globalThis.SystemInfo = lynx.SystemInfo;',
+    'void SystemInfo.pixelRatio;',
+    'void globalThis.SystemInfo.pixelRatio;',
+    '</script>',
+    '</lynx>',
+  ].join('\n');
+
+  assert.equal(checkLynxmlSource(source).ok, true);
+});
+
 test('enforces thread boundaries, forbidden compiler PAPIs, and Fiber PAPI calibration', () => {
   const source = [
     '<!doctype lynx>',
