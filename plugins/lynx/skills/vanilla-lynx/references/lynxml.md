@@ -62,7 +62,7 @@ Add `--json` when structured `{ ok, files }` output is needed. Interpret the res
   - `syntax-error`: invalid JavaScript syntax, unbalanced `}` in `<script thread="background">`, or top-level lexical redeclaration of an `app-service.js` wrapper parameter.
   - `unsupported-syntax`: ESM `import`/`export`, dynamic `import()`, or `with` inside raw `.lynxml` scripts.
   - `forbidden-api`: compiler-only or legacy Element PAPI global (`__AddEvent`, `__CreateFor`, `__CreateIf`, `__SetStyleObject`, etc.).
-  - `wrong-thread-global`: main-thread Element PAPI used on `background`, or background-only `NativeModules`/`fetch` used on `main`.
+  - `wrong-thread-global`: main-thread Element PAPI or `lynx.SystemInfo` used on `background`, or background-only `NativeModules`/`fetch` used on `main`.
   - `undeclared-global`: browser, Node, or unsupported JS/Lynx global, or an `app-service.js` wrapper parameter read via `globalThis` instead of as a bare identifier.
 - When authoring or modifying a `.lynxml` document, fix every reported issue using its `line:column` and `Hint`, then re-run `check-lynxml.mjs` until it exits `0` before delivering. When reviewing without modifying, report each emitted issue in your findings. If the host environment cannot execute `node`, perform the manual checks below directly and state that static CLI validation could not be run.
 

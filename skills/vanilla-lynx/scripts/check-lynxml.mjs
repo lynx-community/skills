@@ -7193,7 +7193,6 @@ const ECMASCRIPT_GLOBALS = new Set([
     'unescape'
 ]);
 const MAIN_RUNTIME_GLOBALS = new Set([
-    'SystemInfo',
     'cancelAnimationFrame',
     'clearInterval',
     'clearTimeout',
@@ -7402,18 +7401,19 @@ const GLOBAL_HINTS = {
     exports: "CommonJS `exports` is not part of raw `.lynxml` scripts; load external bundles with `lynx.fetchBundle()` and `lynx.loadScript()`.",
     getElementById: 'Bare `getElementById` is not installed as a global; use `lynx.getElementById(id)` on `<script thread="background">` or Element PAPI handles on `<script thread="main">`.',
     getNapiLoader: 'Bare `getNapiLoader` is not available in isolated page contexts; use `lynx.getNapiLoader()` on `<script thread="background">`.',
-    global: '`global` is undefined in Lynx; use `globalThis` for global scope or `lynx` / `SystemInfo` for runtime APIs.',
+    global: '`global` is undefined in Lynx; use `globalThis` for global scope.',
     localStorage: '`localStorage` is undefined in Lynx; use `lynx.setSessionStorageItem` / `lynx.getSessionStorageItem` or host `NativeModules`.',
     module: "CommonJS `module` is not part of raw `.lynxml` scripts; load external bundles with `lynx.fetchBundle()` and `lynx.loadScript()`.",
-    navigator: '`navigator` is undefined in Lynx; read platform/device metadata from `SystemInfo`.',
+    navigator: '`navigator` is undefined in Lynx; read platform/device metadata from `lynx.SystemInfo` on the main thread or global `SystemInfo` on the background thread.',
     performance: '`performance` is not a Lynx global. Use either `Date.now()` or the `requestAnimationFrame` callback timestamp consistently (without mixing the two), or `lynx.performance` for trace/timing observation (it has no `.now()`).',
     process: 'Node.js `process` is not a Lynx global.',
     processData: 'Define `processData` on `globalThis` (for example `Object.assign(globalThis, { processData(data) { ... } })`) in `<script thread="main">` before calling it.',
     queueMicrotask: 'Global `queueMicrotask` is not defined across Lynx runtimes; use `Promise.resolve().then(...)` (or `lynx.queueMicrotask(...)` on the background thread).',
     require: "CommonJS `require` is not supported in `.lynxml` scripts; load external background bundles with `lynx.fetchBundle()` and `lynx.loadScript()`.",
     self: '`self` is undefined in Lynx; use `globalThis`.',
+    SystemInfo: 'Read system and device metadata from `lynx.SystemInfo` in raw Fiber `<script thread="main">`; bare `SystemInfo` and `globalThis.SystemInfo` are allowed in `<script thread="background">`. A main-thread global alias requires explicit initialization in the page source.',
     updateGlobalProps: '`updateGlobalProps` is not a Lynx runtime global; read initial values from `lynx.__globalProps` and listen for `__UpdateGlobalProps` on `lynx.getEngine()` in `<script thread="main">`.',
-    window: '`window` is undefined in Lynx; use `globalThis` for global scope or `lynx` / `SystemInfo` for runtime APIs.'
+    window: '`window` is undefined in Lynx; use `globalThis` for global scope.'
 };
 function isASCIIWhitespace(ch) {
     return ' ' === ch || '\t' === ch || '\n' === ch || '\r' === ch || '\f' === ch;
@@ -8002,6 +8002,10 @@ function analyzeScriptSection(section, thread, lineStarts, sourceLength, issues)
         const classification = classifyDisallowedGlobal(propName, thread, true);
         reportAtNode(reportNode, classification.code, classification.message, propName, classification.hint);
     };
+    const checkBackgroundSystemInfoRead = (reportNode, object, propName)=>{
+        const receiver = unwrapExpression(object);
+        if ('background' === thread && 'SystemInfo' === propName && receiver?.type === 'Identifier' && 'lynx' === receiver.name && referenceByIdentifier.get(receiver)?.resolved?.scope === wrapperScope) reportAtNode(reportNode, 'wrong-thread-global', '`lynx.SystemInfo` is not available on the background-thread `lynx` object.', 'lynx.SystemInfo', 'Read global `SystemInfo` or `globalThis.SystemInfo` in `<script thread="background">`; use `lynx.SystemInfo` only in `<script thread="main">`.');
+    };
     for (const [idNode, ref] of referenceByIdentifier){
         const name = idNode.name;
         if (void 0 === name) continue;
@@ -8036,12 +8040,14 @@ function analyzeScriptSection(section, thread, lineStarts, sourceLength, issues)
                 reportAtNode(node, 'unsupported-syntax', `Dynamic \`import()\` is not supported in raw \`.lynxml\` \`<script thread="${thread}">\`.`, void 0, 'Load external background bundles with `lynx.fetchBundle()` and `lynx.loadScript()`.');
                 break;
             case 'MemberExpression':
+                if (!writeMemberNodes.has(node)) checkBackgroundSystemInfoRead(node, node.object, extractStaticMemberProperty(node));
                 if (!writeMemberNodes.has(node) && isGlobalThis(node.object)) {
                     const propName = extractStaticMemberProperty(node);
                     if (null !== propName) checkGlobalThisPropertyRead(node, propName);
                 }
                 break;
             case 'VariableDeclarator':
+                if (node.id?.type === 'ObjectPattern') for (const prop of node.id.properties ?? [])checkBackgroundSystemInfoRead(prop, node.init, extractStaticObjectPropertyKey(prop));
                 if (node.id?.type === 'ObjectPattern' && isGlobalThis(node.init)) for (const prop of node.id.properties ?? []){
                     const propName = extractStaticObjectPropertyKey(prop);
                     if (null !== propName) checkGlobalThisPropertyRead(prop, propName);
@@ -8049,6 +8055,7 @@ function analyzeScriptSection(section, thread, lineStarts, sourceLength, issues)
                 break;
             case 'AssignmentExpression':
             case 'AssignmentPattern':
+                if (node.left?.type === 'ObjectPattern') for (const prop of node.left.properties ?? [])checkBackgroundSystemInfoRead(prop, node.right, extractStaticObjectPropertyKey(prop));
                 if (node.left?.type === 'ObjectPattern' && isGlobalThis(node.right)) for (const prop of node.left.properties ?? []){
                     const propName = extractStaticObjectPropertyKey(prop);
                     if (null !== propName) checkGlobalThisPropertyRead(prop, propName);

@@ -7,6 +7,7 @@ Read [`event.md`](event.md) for `lynx.getEngine()` and event environment APIs. I
 ## Table of Contents
 
 - [Responsibilities](#responsibilities)
+- [System Metadata](#system-metadata)
 - [Element PAPI Surface](#element-papi-surface)
 - [Build the Tree](#build-the-tree)
 - [Bind Element Events](#bind-element-events)
@@ -26,6 +27,12 @@ Read [`event.md`](event.md) for `lynx.getEngine()` and event environment APIs. I
 - Register `__DestroyLifetime` to remove runtime and node listeners.
 - Rely on the SDK default flush for initial `renderPage`; call `__FlushElementTree()` after later UI mutations.
 - For background-thread workflows, heavy business logic, timers, async requests, or native calls, read [`background.md`](background.md).
+
+## System Metadata
+
+Vanilla Lynx Fiber main-thread source reads `lynx.SystemInfo`; background source reads global `SystemInfo` or `globalThis.SystemInfo`. The engine's [`MTSRuntime::RegisterLynx`](https://github.com/lynx-family/lynx/blob/319e600c01974b674072fa1d05149fba69319604/core/shell/runtime/mts/mts_runtime.cc#L286) installs the main-thread property on `lynx`, while the [background global binding](https://github.com/lynx-family/lynx/blob/319e600c01974b674072fa1d05149fba69319604/core/runtime/js/bindings/global.cc#L59) installs `SystemInfo` on the global object.
+
+Frameworks can add their own aliases: [ReactLynx initialization](https://github.com/lynx-family/lynx-stack/blob/63bcbfccfa408fa651967f119cbf83152a2d08a2/packages/react/runtime/src/snapshot/lynx/env.ts#L14) assigns `globalThis.SystemInfo = lynx.SystemInfo ?? {}` on the main thread. A DevTool expression or shared type declaration for such a page does not establish a built-in global for raw Vanilla Lynx `.lynxml`. The checker allows an alias that the main-thread source explicitly initializes; otherwise use `lynx.SystemInfo`.
 
 ## Element PAPI Surface
 
