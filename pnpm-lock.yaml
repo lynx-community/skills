@@ -507,9 +507,6 @@ importers:
       commander:
         specifier: ^13.1.0
         version: 13.1.0
-      ky:
-        specifier: ^1.14.3
-        version: 1.14.3
       typescript:
         specifier: ^5.9.3
         version: 5.9.3
@@ -2197,10 +2194,6 @@ packages:
   kind-of@6.0.3:
     resolution: {integrity: sha512-dcS1ul+9tmeD95T+x28/ehLgd9mENa3LsvDTtzm3vyBEO7RPptvAD+t44WVXaUjTBRcrpFeFlC8WCruUR456hw==}
     engines: {node: '>=0.10.0'}
-
-  ky@1.14.3:
-    resolution: {integrity: sha512-9zy9lkjac+TR1c2tG+mkNSVlyOpInnWdSMiue4F+kq8TwJSgv6o8jhLRg8Ho6SnZ9wOYUq/yozts9qQCfk7bIw==}
-    engines: {node: '>=18'}
 
   less-loader@12.3.3:
     resolution: {integrity: sha512-F0+ErFFDj3Pt+nVrCN6VlEGEzocv9s7x/aR9v2riI+WM83UAfTYBDBjGPJnT55lBLR6JSI4fmWblt+aA2JN6/w==}
@@ -4587,8 +4580,6 @@ snapshots:
       graceful-fs: 4.2.12
 
   kind-of@6.0.3: {}
-
-  ky@1.14.3: {}
 
   less-loader@12.3.3(@rspack/core@2.3.3(@swc/helpers@0.5.24))(less@4.9.1(supports-color@8.1.1)):
     dependencies:
