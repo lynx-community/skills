@@ -61,10 +61,11 @@ include window decorations, so verify the page viewport when dimensions matter.
 
 Use `--simulator-dpr <factor>` to set the device pixel ratio for windowless
 rendering. Use a positive finite number, such as `2.625`.
-Use `--simulator-window-background-color '#f5f5f5'` to set the macOS window color
-behind transparent page areas. This option has no effect in windowless mode.
-Set the page root's `background-color` to control the background in windowless
-screenshots.
+Use `--simulator-window-background-color '#f5f5f5'` to set the window canvas color
+behind transparent page areas. Default Lynxtron `0.0.31` still ignores it in
+windowless mode; set the page root's `background-color` for windowless
+screenshots on `0.0.31`, or select a newer `--lynxtron-version` with windowless
+background support.
 
 Always pass the returned `--client`. Select the page's session from the
 open/session response.
