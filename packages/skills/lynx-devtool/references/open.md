@@ -17,7 +17,7 @@ For Lynx Simulator bundles, page environments, and window dimensions, use the
 `--simulator-window-height <pixels>`, and `--simulator-windowless` for these clients.
 
 - `--simulator-dpr <factor>` sets the device pixel ratio in windowless mode. It accepts a positive finite number.
-- `--simulator-window-background-color <color>` sets the macOS window background behind transparent page areas, for example `'#f5f5f5'`. Windowless mode ignores this option.
+- `--simulator-window-background-color <color>` sets the window background behind transparent page areas, for example `'#f5f5f5'`. Default Lynxtron `0.0.31` ignores it in windowless mode; set the page root's `background-color` on `0.0.31` or pass a newer `--lynxtron-version` to `simulator run`.
 
 ## Output
 
