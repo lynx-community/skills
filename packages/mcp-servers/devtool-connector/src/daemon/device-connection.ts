@@ -204,7 +204,7 @@ export class DeviceConnection {
         // HDT's numeric target IDs.
         if (isClientListMessage(message)) continue;
 
-        this.#broadcast(message);
+        this.#broadcast(normalizeCustomizedTargetSender(message, this.port));
       }
     } catch (err) {
       readFailed = true;
@@ -277,4 +277,46 @@ function isClientListMessage(message: unknown): boolean {
   return typeof message === "object"
     && message !== null
     && (message as { event?: unknown }).event === "ClientList";
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+/**
+ * When a connection is addressed by string target (such as a Sandbox Sidecar
+ * package name), the physical DebugRouter handshake uses `client_id = 1` and
+ * replies with `sender: 1`. Normalize `sender` (and nested `client_id`) to the
+ * logical target so downstream subscribers (including the Inspector Web UI)
+ * correlate replies with the selected client.
+ */
+function normalizeCustomizedTargetSender(message: unknown, port: ClientTarget): unknown {
+  if (
+    typeof port !== "string" || !isRecord(message) || message["event"] !== "Customized" || !isRecord(message["data"])
+  ) {
+    return message;
+  }
+  const data = message["data"];
+  const sender = data["sender"];
+  const nested = isRecord(data["data"]) ? data["data"] : undefined;
+  const rewriteSender = sender === 1 || sender === "1";
+  const rewriteClientId = nested !== undefined && (nested["client_id"] === 1 || nested["client_id"] === "1");
+  if (!rewriteSender && !rewriteClientId) {
+    return message;
+  }
+  return {
+    ...message,
+    data: {
+      ...data,
+      ...(rewriteSender ? { sender: port } : {}),
+      ...(rewriteClientId && nested !== undefined
+        ? {
+          data: {
+            ...nested,
+            client_id: port,
+          },
+        }
+        : {}),
+    },
+  };
 }
