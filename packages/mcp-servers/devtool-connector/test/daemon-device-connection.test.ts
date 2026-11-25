@@ -261,6 +261,64 @@ describe("DeviceConnection", () => {
     assert.deepStrictEqual(received, [{ event: "Customized", data: { type: "SessionList" } }]);
   });
 
+  test("normalizes physical sender=1 to string target port on Customized messages", async (t) => {
+    const { transport, deviceWriter, closeConnection } = createFakeTransport();
+    t.after(() => closeConnection());
+
+    const conn = new DeviceConnection(transport, {
+      deviceId: "fake-device",
+      port: "com.lynx.explorer",
+    });
+    await conn.connect();
+    t.after(() => conn.dispose());
+
+    await deviceWriter.write({
+      event: "Register",
+      data: { id: "com.lynx.explorer", info: createAppInfo() },
+    });
+    await conn.waitUntilRegistered();
+
+    const received: unknown[] = [];
+    conn.addSubscriber({ id: 1, send: (message) => received.push(message), close() {} });
+
+    await deviceWriter.write({
+      event: "Customized",
+      data: {
+        type: "SessionList",
+        sender: 1,
+        data: [{ session_id: 1, type: "lynx", url: "https://example.com/template.js" }],
+      },
+    });
+    await deviceWriter.write({
+      event: "Customized",
+      data: {
+        type: "CDP",
+        sender: 1,
+        data: { client_id: 1, session_id: 1, message: "{\"id\":1}" },
+      },
+    });
+    await new Promise<void>((resolve) => setTimeout(resolve, 50));
+
+    assert.deepStrictEqual(received, [
+      {
+        event: "Customized",
+        data: {
+          type: "SessionList",
+          sender: "com.lynx.explorer",
+          data: [{ session_id: 1, type: "lynx", url: "https://example.com/template.js" }],
+        },
+      },
+      {
+        event: "Customized",
+        data: {
+          type: "CDP",
+          sender: "com.lynx.explorer",
+          data: { client_id: "com.lynx.explorer", session_id: 1, message: "{\"id\":1}" },
+        },
+      },
+    ]);
+  });
+
   test("removeSubscriber stops broadcasting to that subscriber", async (t) => {
     const { transport, deviceWriter, closeConnection } = createFakeTransport();
     t.after(() => closeConnection());
