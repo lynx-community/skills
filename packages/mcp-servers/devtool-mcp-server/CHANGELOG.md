@@ -1,5 +1,19 @@
 # @lynx-js/devtool-mcp-server
 
+## 0.18.0
+
+### Minor Changes
+
+- Move internal-only package exports under `_internal/*` (`agent-lynx/_internal/cli`, `@lynx-js/devtool-connector/_internal/command`, `@lynx-js/devtool-mcp-server/_internal/{mcp,schema,tools,utils}`, and `@lynx-js/docs-mcp-server/_internal/{docs,mcp}`), and remove unused library/connector entrypoints from the MCP server packages.
+
+### Patch Changes
+
+- Updated dependency `@rslib/core` to `^1.1.0`.
+- Pass optional `platform` (`Platform` enum) through `listAvailableApps` and `openApp`, reuse pooled daemon `DeviceConnection` transport mappings, and coalesce concurrent daemon `listClients` discovery requests to eliminate redundant `listDevices()` scans.
+- Increase the total heap snapshot streaming timeout budget from 60s to 180s while keeping the 15s idle stall timeout so large snapshots finish transferring over high-latency connections.
+- Updated dependencies
+  - @lynx-js/devtool-connector@0.20.0
+
 ## 0.17.2
 
 ### Patch Changes

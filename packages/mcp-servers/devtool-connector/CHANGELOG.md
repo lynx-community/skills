@@ -1,5 +1,23 @@
 # @lynx-js/devtool-connector
 
+## 0.20.0
+
+### Minor Changes
+
+- Move internal-only package exports under `_internal/*` (`agent-lynx/_internal/cli`, `@lynx-js/devtool-connector/_internal/command`, `@lynx-js/devtool-mcp-server/_internal/{mcp,schema,tools,utils}`, and `@lynx-js/docs-mcp-server/_internal/{docs,mcp}`), and remove unused library/connector entrypoints from the MCP server packages.
+
+### Patch Changes
+
+- Updated dependency `dprint` to `^0.65.0`.
+- Updated dependency `plist` to `^5.1.2`.
+- Updated dependency `@rslib/core` to `^1.1.0`.
+- Propagate abort signals across `sendCDPMessage`, `sendStream`, and snapshot CDP calls, detach setup signals after `DesktopTransport` and `Usbmux` connect, isolate positive `session_id` CDP envelopes on shared connections, and recognize `TimeoutError` in bounded CLI stream helpers.
+- Pass optional `platform` (`Platform` enum) through `listAvailableApps` and `openApp`, reuse pooled daemon `DeviceConnection` transport mappings, and coalesce concurrent daemon `listClients` discovery requests to eliminate redundant `listDevices()` scans.
+- Stabilize ReactLynx session lifecycle and DOM/component linking: isolate `PreactDevtools` idle timing from unrelated CDP chatter, guard initial tree capture with an outbound `Lynx.sendVMEvent` request-ID ACK barrier and a 15s capture ceiling across head-of-line `Debugger.scriptParsed` transfers, reset and re-initialize across background JS `Runtime.executionContext*` reloads (ignoring `Main`-thread target events), wait for `root-order` before settling `refresh`, walk snapshot `parentRef` ancestors for `nearest-component` linking, and use `root-order-page` FIFO sentinels (with a single follow-up probe when async Lepus `idToUniqueIdList` population lags `refresh`) so DOM/component lookups resolve deterministically without long timeouts.
+- Remove pre-connect `waitFor` check in `AndroidTransport`.
+- Use JPEG quality 80 for both capture and re-encoding in annotated screenshots to avoid oversized frames timing out over remote device connections.
+- Forward --simulator-window-background-color to windowless Lynx Simulator windows, pass --legacy-peer-deps for prerelease --lynxtron-version installs, and document default Lynxtron host behavior.
+
 ## 0.19.2
 
 ### Patch Changes

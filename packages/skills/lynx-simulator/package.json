@@ -1,6 +1,6 @@
 {
   "name": "@lynx-js/skill-lynx-simulator",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Run local Lynx Simulator cases, author page environments, and use or develop JSB and native-extension packages",
   "repository": {
     "type": "git",

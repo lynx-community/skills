@@ -1,5 +1,11 @@
 # @lynx-js/skill-lynx-simulator
 
+## 0.0.2
+
+### Patch Changes
+
+- Forward --simulator-window-background-color to windowless Lynx Simulator windows, pass --legacy-peer-deps for prerelease --lynxtron-version installs, and document default Lynxtron host behavior.
+
 ## 0.0.1
 
 ### Patch Changes
