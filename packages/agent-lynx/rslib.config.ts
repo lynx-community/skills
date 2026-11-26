@@ -54,7 +54,7 @@ export default defineConfig({
       },
       dts: {
         bundle: {
-          bundledPackages: ['commander'],
+          bundledPackages: ['commander', '@lynx-js/docs-mcp-server'],
         },
       },
     },

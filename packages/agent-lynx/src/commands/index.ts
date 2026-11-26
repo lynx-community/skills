@@ -5,6 +5,7 @@
 export * from './app.ts';
 export * from './cdp.ts';
 export * from './daemon.ts';
+export * from './docs.ts';
 export * from './evaluate.ts';
 export * from './fill.ts';
 export * from './get-console.ts';

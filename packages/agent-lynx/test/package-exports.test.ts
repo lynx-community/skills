@@ -73,6 +73,7 @@ test('the built package starts its bin and exposes the typed connector API', asy
     'app',
     'cdp',
     'daemon',
+    'docs',
     'evaluate',
     'fill',
     'get',
@@ -168,6 +169,10 @@ test('the built package starts its bin and exposes the typed connector API', asy
   assert.match(
     help.stdout,
     /tasm \[options\]\s+Encode\/decode templates \(powered by\s+@lynx-js\/tasm@/,
+  );
+  assert.match(
+    help.stdout,
+    /docs\s+Browse and read official Lynx\s+documentation/,
   );
   const tasmHelp = await execFileAsync(process.execPath, [
     fileURLToPath(builtBin),

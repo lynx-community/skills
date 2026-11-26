@@ -27,6 +27,8 @@ import {
   registerCdpCommand,
   registerDaemonCommand,
   type RegisterDaemonCommandOptions,
+  registerDocsCommand,
+  type RegisterDocsCommandOptions,
   registerEndCommand,
   registerEvaluateCommand,
   registerFillCommand,
@@ -69,6 +71,7 @@ export { getTelemetryCommandNames };
 export interface CreateProgramOptions {
   cliPlaceholder?: string;
   daemonCommand?: RegisterDaemonCommandOptions;
+  docs?: Omit<RegisterDocsCommandOptions, 'env'>;
   /** Product configuration; Android ADB configuration is read from process.env. */
   env?: NodeJS.ProcessEnv;
   skills?: RegisterSkillsCommandOptions;
@@ -137,6 +140,8 @@ Environment variables:
   DEBUG                           Diagnostic log namespaces on stderr.
   CODEX_SANDBOX_NETWORK_DISABLED  When set to 1, device commands stop with a
                                   network-permission error.
+  LYNX_DOCS_BASE_URL              Lynx documentation mirror base URL used by docs
+                                  commands (default: https://lynxjs.org/next).
 
 Examples:
   $ ${context.cliPlaceholder} list-clients
@@ -159,7 +164,10 @@ Examples:
             + 'Retry with network access and without CODEX_SANDBOX_NETWORK_DISABLED=1.',
         );
       }
-      if (isCommandAction(actionCommand, 'simulator')) return;
+      if (
+        isCommandAction(actionCommand, 'simulator')
+        || isCommandAction(actionCommand, 'docs')
+      ) return;
       if (thisCommand.opts<{ daemon?: boolean; }>().daemon !== false) {
         const ignored = [
           'ADB_SERVER_SOCKET',
@@ -196,6 +204,7 @@ Examples:
     .hook('postAction', (_thisCommand, actionCommand) => {
       if (
         isCommandAction(actionCommand, 'simulator')
+        || isCommandAction(actionCommand, 'docs')
         || isCommandAction(actionCommand, 'skills')
         || isCommandAction(actionCommand, 'tasm')
         || isCommandAction(actionCommand, 'daemon')
@@ -242,5 +251,7 @@ Examples:
   program.commandsGroup('Local Daemon:');
   registerDaemonCommand(program, options.daemonCommand);
   registerSimulatorCommand(program);
+  program.commandsGroup('Documentation:');
+  registerDocsCommand(program, { ...options.docs, env });
   return program;
 }
