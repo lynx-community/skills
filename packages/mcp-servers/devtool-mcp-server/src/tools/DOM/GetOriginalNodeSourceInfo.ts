@@ -5,7 +5,7 @@
 import {
   type OriginalNodeSourceInfo,
   remapOriginalNodeSourceInfo,
-} from '@lynx-js/devtool-connector/command';
+} from '@lynx-js/devtool-connector/_internal/command';
 import { clientId, nodeId, sessionId } from '../../schema/index.ts';
 import { defineTool } from '../defineTool.ts';
 

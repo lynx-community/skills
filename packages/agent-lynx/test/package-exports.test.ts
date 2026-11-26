@@ -108,6 +108,11 @@ test('the built package starts its bin and exposes the typed connector API', asy
   ]);
 
   const cli = await import(new URL('../dist/cli.mjs', import.meta.url).href);
+  assert.ok(import.meta.resolve('agent-lynx/_internal/cli'));
+  assert.throws(
+    () => import.meta.resolve('agent-lynx/cli'),
+    { code: 'ERR_PACKAGE_PATH_NOT_EXPORTED' },
+  );
   for (
     const name of [
       'HEADLESS_CLIENT_ID',
@@ -151,7 +156,7 @@ test('the built package starts its bin and exposes the typed connector API', asy
   ].map((match) => match[1]);
   assert.deepEqual([...new Set(connectorReferences)].sort(), [
     '@lynx-js/devtool-connector',
-    '@lynx-js/devtool-connector/command',
+    '@lynx-js/devtool-connector/_internal/command',
     '@lynx-js/devtool-connector/daemon',
     '@lynx-js/devtool-connector/streams',
     '@lynx-js/devtool-connector/transport',
@@ -278,11 +283,14 @@ test('the built package starts its bin and exposes the typed connector API', asy
   ]);
   const packedManifest = JSON.parse(packedManifestText) as {
     dependencies?: Record<string, string>;
+    exports?: Record<string, unknown>;
   };
   assert.deepEqual(
     Object.keys(packedManifest.dependencies ?? {}).sort(),
     ['@lynx-js/devtool-connector', '@lynx-js/trace-processor'],
   );
+  assert.ok(packedManifest.exports?.['./_internal/cli']);
+  assert.equal(packedManifest.exports?.['./cli'], undefined);
   const { stdout: archiveEntriesText } = await execFileAsync('tar', [
     '-tzf',
     archive,

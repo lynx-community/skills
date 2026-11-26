@@ -5,7 +5,7 @@
 import {
   buildReactLynxUpdatePath,
   type ReactLynxComponentData,
-} from '@lynx-js/devtool-connector/command';
+} from '@lynx-js/devtool-connector/_internal/command';
 import type { Command } from 'commander';
 import { runReactLynxCommand } from '../result.ts';
 import {

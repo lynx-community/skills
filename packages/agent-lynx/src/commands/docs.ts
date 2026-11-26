@@ -18,7 +18,7 @@ import {
   type ListDocsResult,
   normalizeDocsBaseUrl,
   PUBLIC_DOCS_BASE_URL,
-} from '@lynx-js/docs-mcp-server/docs';
+} from '@lynx-js/docs-mcp-server/_internal/docs';
 import { type Command, InvalidArgumentError } from 'commander';
 import { replaceCliPlaceholder } from '../cli-invocation.ts';
 

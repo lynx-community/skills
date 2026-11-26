@@ -116,3 +116,20 @@ test('listDocs and getDoc share mirror normalization, SPA fallback rejection, an
     /parent path traversal is not allowed/u,
   );
 });
+
+test('package exports keep shared docs and MCP modules under _internal/*', () => {
+  assert.ok(import.meta.resolve('@lynx-js/docs-mcp-server/_internal/docs'));
+  assert.ok(import.meta.resolve('@lynx-js/docs-mcp-server/_internal/mcp'));
+  for (
+    const specifier of [
+      '@lynx-js/docs-mcp-server',
+      '@lynx-js/docs-mcp-server/docs',
+      '@lynx-js/docs-mcp-server/mcp',
+    ]
+  ) {
+    assert.throws(
+      () => import.meta.resolve(specifier),
+      { code: 'ERR_PACKAGE_PATH_NOT_EXPORTED' },
+    );
+  }
+});

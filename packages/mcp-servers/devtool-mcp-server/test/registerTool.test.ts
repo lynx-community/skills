@@ -247,3 +247,68 @@ test('a failing context factory prevents handler execution', async t => {
   assert.match(JSON.stringify(result.content), /context unavailable/);
   assert.equal(invoked, false);
 });
+
+test('package exposes only _internal/* subpaths without root or connector library entrypoints', async () => {
+  for (
+    const specifier of [
+      '@lynx-js/devtool-mcp-server',
+      '@lynx-js/devtool-mcp-server/connector',
+      '@lynx-js/devtool-mcp-server/schema',
+      '@lynx-js/devtool-mcp-server/tools',
+      '@lynx-js/devtool-mcp-server/utils',
+    ]
+  ) {
+    assert.throws(
+      () => import.meta.resolve(specifier),
+      { code: 'ERR_PACKAGE_PATH_NOT_EXPORTED' },
+    );
+  }
+
+  const mcpExports = await import('@lynx-js/devtool-mcp-server/_internal/mcp');
+  assert.deepEqual(Object.keys(mcpExports).sort(), [
+    'McpContext',
+    'Schema',
+    'coreTools',
+    'defineTool',
+    'registerTool',
+    'registerToolWithContext',
+    'setupCoreServer',
+    'setupServer',
+  ]);
+  for (
+    const internalSymbol of [
+      'GetDocument',
+      'GLOBAL_SWITCH_KEYS',
+      'McpResponse',
+      'expBackoff',
+      'attachMcpServerCleanup',
+      'raceWithTimeout',
+      'readableFromIterable',
+      'parseSocketSpec',
+    ]
+  ) {
+    assert.equal(
+      internalSymbol in mcpExports,
+      false,
+      `${internalSymbol} must stay scoped to _internal/{tools,utils}`,
+    );
+  }
+
+  const internalSchema = await import(
+    '@lynx-js/devtool-mcp-server/_internal/schema'
+  );
+  const internalTools = await import(
+    '@lynx-js/devtool-mcp-server/_internal/tools'
+  );
+  const internalUtils = await import(
+    '@lynx-js/devtool-mcp-server/_internal/utils'
+  );
+  assert.equal(internalSchema.clientId, mcpExports.Schema.clientId);
+  assert.equal(internalTools.coreTools, mcpExports.coreTools);
+  assert.equal(
+    mcpExports.coreTools.find(tool => tool.name === 'DOM_getDocument'),
+    internalTools.GetDocument,
+  );
+  assert.equal(typeof internalUtils.McpResponse, 'function');
+  assert.equal(typeof internalUtils.parseSocketSpec, 'function');
+});

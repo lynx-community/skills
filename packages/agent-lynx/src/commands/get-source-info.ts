@@ -5,7 +5,7 @@
 import {
   type CommandData,
   getOriginalNodeSourceInfo,
-} from '@lynx-js/devtool-connector/command';
+} from '@lynx-js/devtool-connector/_internal/command';
 import { Command } from 'commander';
 import { cliPlaceholder } from '../cli-invocation.ts';
 import { ok, runCommand, runSnapshotCommand } from './result.ts';

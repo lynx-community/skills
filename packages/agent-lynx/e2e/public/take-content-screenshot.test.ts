@@ -6,7 +6,7 @@ import {
   getTestingSession,
   TEST_APP_PACKAGE_NAME,
   testWithClient,
-} from '@lynx-js/devtool-connector/test-with-client';
+} from '@lynx-js/devtool-connector/_internal/test-with-client';
 import { takeContentScreenshot } from '../../src/commands/take-content-screenshot.ts';
 
 const TEST_APP_PACKAGE_ENV = 'LYNX_DEVTOOL_MCP_TESTING_APP_PACKAGE';

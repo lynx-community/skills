@@ -2,7 +2,7 @@
 // Licensed under the Apache License Version 2.0 that can be found in the
 // LICENSE file in the root directory of this source tree.
 
-import type { OriginalNodeSourceInfo } from '@lynx-js/devtool-connector/command';
+import type { OriginalNodeSourceInfo } from '@lynx-js/devtool-connector/_internal/command';
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { GetOriginalNodeSourceInfo } from '../../src/tools/DOM/GetOriginalNodeSourceInfo.ts';

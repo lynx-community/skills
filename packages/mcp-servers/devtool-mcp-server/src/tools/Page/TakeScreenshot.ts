@@ -2,7 +2,7 @@
 // Licensed under the Apache License Version 2.0 that can be found in the
 // LICENSE file in the root directory of this source tree.
 
-import { captureScreenshotFrame } from '@lynx-js/devtool-connector/command';
+import { captureScreenshotFrame } from '@lynx-js/devtool-connector/_internal/command';
 import fs from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';

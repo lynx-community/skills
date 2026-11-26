@@ -9,11 +9,11 @@ import {
   type CommandData,
   deserializeRendererState,
   formatReactLynxTree,
-} from '@lynx-js/devtool-connector/command';
+} from '@lynx-js/devtool-connector/_internal/command';
 import {
   getTestingSession,
   testWithClient,
-} from '@lynx-js/devtool-connector/test-with-client';
+} from '@lynx-js/devtool-connector/_internal/test-with-client';
 
 testWithClient(
   'reactlynx daemon actions',

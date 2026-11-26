@@ -9,7 +9,7 @@
   },
   "type": "module",
   "exports": {
-    "./startup-reminder": "./scripts/startup-reminder.mjs",
+    "./_internal/startup-reminder": "./scripts/startup-reminder.mjs",
     "./package.json": "./package.json"
   },
   "files": [

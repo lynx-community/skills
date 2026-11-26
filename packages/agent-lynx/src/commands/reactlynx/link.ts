@@ -2,7 +2,10 @@
 // Licensed under the Apache License Version 2.0 that can be found in the
 // LICENSE file in the root directory of this source tree.
 
-import { type CommandData, typeTag } from '@lynx-js/devtool-connector/command';
+import {
+  type CommandData,
+  typeTag,
+} from '@lynx-js/devtool-connector/_internal/command';
 import type { Command } from 'commander';
 import { runSnapshotCommand } from '../result.ts';
 import {

@@ -6,7 +6,7 @@ import {
   type CommandResult,
   fail,
   ok,
-} from '@lynx-js/devtool-connector/command';
+} from '@lynx-js/devtool-connector/_internal/command';
 import type { Command } from 'commander';
 import {
   DEFAULT_CLI_PLACEHOLDER,

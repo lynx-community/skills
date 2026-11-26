@@ -18,3 +18,14 @@ test("transport exports retain daemon and HDT transports without exposing low-le
     assert.equal(name in TransportApi, false, `${name} must remain an internal implementation detail`);
   }
 });
+
+test("internal-only Connector subpaths require the _internal prefix", () => {
+  assert.ok(import.meta.resolve("@lynx-js/devtool-connector/_internal/command"));
+  assert.ok(import.meta.resolve("@lynx-js/devtool-connector/_internal/test-with-client"));
+  for (const subpath of ["command", "test-with-client"]) {
+    assert.throws(
+      () => import.meta.resolve(`@lynx-js/devtool-connector/${subpath}`),
+      { code: "ERR_PACKAGE_PATH_NOT_EXPORTED" },
+    );
+  }
+});

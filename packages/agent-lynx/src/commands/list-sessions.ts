@@ -2,7 +2,7 @@
 // Licensed under the Apache License Version 2.0 that can be found in the
 // LICENSE file in the root directory of this source tree.
 
-import type { CommandClient } from '@lynx-js/devtool-connector/command';
+import type { CommandClient } from '@lynx-js/devtool-connector/_internal/command';
 import { Command } from 'commander';
 import { logMonitor, MonitorCode } from '../telemetry.ts';
 import { CLIENT_OPTION, type Context, getCommandClient } from './utils.ts';

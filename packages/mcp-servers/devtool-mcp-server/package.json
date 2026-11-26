@@ -10,25 +10,28 @@
   "license": "Apache-2.0",
   "type": "module",
   "exports": {
-    ".": {
+    "./_internal/mcp": {
       "types": "./src/index.ts",
       "import": "./src/index.ts",
       "default": "./src/index.ts"
     },
-    "./connector": {
-      "types": "./src/connector.ts",
-      "import": "./src/connector.ts",
-      "default": "./src/connector.ts"
-    },
-    "./schema": {
+    "./_internal/schema": {
       "types": "./src/schema/index.ts",
       "import": "./src/schema/index.ts",
       "default": "./src/schema/index.ts"
     },
+    "./_internal/tools": {
+      "types": "./src/tools/index.ts",
+      "import": "./src/tools/index.ts",
+      "default": "./src/tools/index.ts"
+    },
+    "./_internal/utils": {
+      "types": "./src/utils/index.ts",
+      "import": "./src/utils/index.ts",
+      "default": "./src/utils/index.ts"
+    },
     "./package.json": "./package.json"
   },
-  "main": "./src/index.ts",
-  "types": "./src/index.ts",
   "bin": "./src/main.ts",
   "files": ["dist", "CHANGELOG.md"],
   "scripts": {
@@ -56,24 +59,27 @@
     "access": "public",
     "bin": "./dist/main.js",
     "exports": {
-      ".": {
+      "./_internal/mcp": {
         "types": "./dist/index.d.ts",
         "import": "./dist/index.js",
         "default": "./dist/index.js"
       },
-      "./connector": {
-        "types": "./dist/connector.d.ts",
-        "import": "./dist/connector.js",
-        "default": "./dist/connector.js"
-      },
-      "./schema": {
+      "./_internal/schema": {
         "types": "./dist/schema/index.d.ts",
         "import": "./dist/schema/index.js",
         "default": "./dist/schema/index.js"
       },
+      "./_internal/tools": {
+        "types": "./dist/tools/index.d.ts",
+        "import": "./dist/tools/index.js",
+        "default": "./dist/tools/index.js"
+      },
+      "./_internal/utils": {
+        "types": "./dist/utils/index.d.ts",
+        "import": "./dist/utils/index.js",
+        "default": "./dist/utils/index.js"
+      },
       "./package.json": "./package.json"
-    },
-    "main": "./dist/index.js",
-    "types": "./dist/index.d.ts"
+    }
   }
 }

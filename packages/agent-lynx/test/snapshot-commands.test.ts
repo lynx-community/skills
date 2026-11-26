@@ -6,7 +6,7 @@ import type {
   CommandClient,
   CommandResult,
   StreamCommandEvent,
-} from '@lynx-js/devtool-connector/command';
+} from '@lynx-js/devtool-connector/_internal/command';
 import { Command } from 'commander';
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
