@@ -67,6 +67,9 @@ importers:
         specifier: 0.0.1
         version: 0.0.1
     devDependencies:
+      '@lynx-js/docs-mcp-server':
+        specifier: workspace:*
+        version: link:../mcp-servers/docs-mcp-server
       '@lynx-js/skill-lynx-devtool':
         specifier: workspace:*
         version: link:../skills/lynx-devtool

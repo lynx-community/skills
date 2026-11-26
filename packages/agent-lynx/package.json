@@ -44,6 +44,7 @@
     "@lynx-js/trace-processor": "0.0.1"
   },
   "devDependencies": {
+    "@lynx-js/docs-mcp-server": "workspace:*",
     "@lynx-js/skill-lynx-devtool": "workspace:*",
     "@lynx-js/skill-lynx-recorder": "workspace:*",
     "@lynx-js/skill-lynx-recorder-fixture": "workspace:*",

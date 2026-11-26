@@ -9,11 +9,30 @@
   },
   "license": "Apache-2.0",
   "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/src/mcp.d.ts",
+      "import": "./src/mcp.ts",
+      "default": "./src/mcp.ts"
+    },
+    "./docs": {
+      "types": "./dist/src/docs.d.ts",
+      "import": "./src/docs.ts",
+      "default": "./src/docs.ts"
+    },
+    "./mcp": {
+      "types": "./dist/src/mcp.d.ts",
+      "import": "./src/mcp.ts",
+      "default": "./src/mcp.ts"
+    },
+    "./package.json": "./package.json"
+  },
   "bin": "./main.ts",
   "files": [
     "CHANGELOG.md",
     "dist",
-    "main.ts"
+    "main.ts",
+    "src"
   ],
   "scripts": {
     "build": "tsc",
@@ -35,6 +54,25 @@
     "node": "^22.18.0 || >=24.0.0"
   },
   "publishConfig": {
-    "bin": "./dist/main.js"
+    "access": "public",
+    "bin": "./dist/main.js",
+    "exports": {
+      ".": {
+        "types": "./dist/src/mcp.d.ts",
+        "import": "./dist/src/mcp.js",
+        "default": "./dist/src/mcp.js"
+      },
+      "./docs": {
+        "types": "./dist/src/docs.d.ts",
+        "import": "./dist/src/docs.js",
+        "default": "./dist/src/docs.js"
+      },
+      "./mcp": {
+        "types": "./dist/src/mcp.d.ts",
+        "import": "./dist/src/mcp.js",
+        "default": "./dist/src/mcp.js"
+      },
+      "./package.json": "./package.json"
+    }
   }
 }

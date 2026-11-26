@@ -42,6 +42,11 @@ test('top-level help presents skill discovery as the agent fallback', () => {
     output,
     /reactlynx\s+Inspect ReactLynx components and link them\s+with DOM Snapshot @eN refs/u,
   );
+  assert.match(
+    output,
+    /Documentation:\s+docs\s+Browse and read official Lynx\s+documentation strictly mirrored from\s+lynxjs\.org/u,
+  );
+  assert.doesNotMatch(output, /knowledge-base/u);
 
   const snapshot = program.commands.find(
     (command) => command.name() === 'snapshot',

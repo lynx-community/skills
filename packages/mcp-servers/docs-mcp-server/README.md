@@ -26,6 +26,8 @@ Then ask your assistant:
 
 > Read `lynx-docs://llms.txt`, then use the linked documentation to answer my Lynx question.
 
+For API references, read `lynx-docs://api/llms.txt`. Its indexed pages are omitted from `resources/list` but remain readable through `resources/read` using their `lynx-docs://` URIs (for example `lynx-docs://api/elements/built-in/view.md`).
+
 For command options, run `npx -y @lynx-js/docs-mcp-server@latest --help`.
 
 If the client does not follow server instructions automatically, include the resource request with your question.
