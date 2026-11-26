@@ -6,7 +6,7 @@ import type {
   CommandData,
   CommandParams,
   CommandResult,
-} from '@lynx-js/devtool-connector/command';
+} from '@lynx-js/devtool-connector/_internal/command';
 import { Command } from 'commander';
 import { fail, runSnapshotCommand } from './result.ts';
 import {

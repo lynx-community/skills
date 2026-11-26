@@ -73,6 +73,11 @@ test(
       ? manifest.bin
       : manifest.bin['docs-mcp-server'];
     assert.equal(entry, './dist/main.js');
+    assert.deepEqual(Object.keys(manifest.exports ?? {}).sort(), [
+      './_internal/docs',
+      './_internal/mcp',
+      './package.json',
+    ]);
     await mkdir(join(packed, 'node_modules'));
     for (const name of Object.keys(manifest.dependencies)) {
       const destination = join(packed, 'node_modules', name);

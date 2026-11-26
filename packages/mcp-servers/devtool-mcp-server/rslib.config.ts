@@ -12,9 +12,10 @@ export default defineConfig({
     {
       source: {
         entry: {
-          connector: './src/connector.ts',
           index: './src/index.ts',
           'schema/index': './src/schema/index.ts',
+          'tools/index': './src/tools/index.ts',
+          'utils/index': './src/utils/index.ts',
         },
       },
       dts: { bundle: { bundledPackages: [] } },

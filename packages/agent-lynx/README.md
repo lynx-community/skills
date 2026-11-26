@@ -30,24 +30,6 @@ const clients = await connector.listClients();
 
 The Connector dependency is resolved at runtime, not copied into the Agent bundle.
 
-## Composable CLI API
-
-`agent-lynx/cli` exports the public program factory, root-command lifecycle, command registrations, skill readers, and output helpers. Product entrypoints can register their own commands and supply their own Connector context without copying the common command implementations.
-
-```ts
-import { createProgram } from 'agent-lynx/cli';
-
-const program = createProgram({
-  cliPlaceholder: 'my-tool lynx',
-  telemetry: (code, data) => { console.error('event', code, data); },
-});
-await program.parseAsync(process.argv);
-```
-
-Telemetry is optional, best-effort, and scoped to an invocation. There is no default reporter or monitoring SDK. For a custom program, `createRootCommand(context, telemetry)` preserves the original action error and closes the transports supplied in its context on success or failure. The caller owns transport setup and command-client configuration.
-
-`registerSkillsCommand(program, { skillRoots })` reads an explicit set of skill payloads. Each product should select its own package's direct Skill dependencies; shared CLI code does not recursively discover skills through other Agent packages. Skill Markdown remains independently maintained and is not composed through code includes.
-
 ## Development
 
 Use the repository's Node and pnpm versions:

@@ -5,7 +5,7 @@
 import type {
   CommandData,
   SnapshotRef,
-} from '@lynx-js/devtool-connector/command';
+} from '@lynx-js/devtool-connector/_internal/command';
 import { Command } from 'commander';
 import { runSnapshotCommand } from './result.ts';
 import {

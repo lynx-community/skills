@@ -15,7 +15,7 @@
       "import": "./src/connector.ts",
       "default": "./src/connector.ts"
     },
-    "./cli": {
+    "./_internal/cli": {
       "types": "./src/cli.ts",
       "import": "./src/cli.ts",
       "default": "./src/cli.ts"
@@ -72,7 +72,7 @@
         "import": "./dist/connector.mjs",
         "default": "./dist/connector.mjs"
       },
-      "./cli": {
+      "./_internal/cli": {
         "types": "./dist/cli.d.ts",
         "import": "./dist/cli.mjs",
         "default": "./dist/cli.mjs"

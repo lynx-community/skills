@@ -2,7 +2,7 @@
 // Licensed under the Apache License Version 2.0 that can be found in the
 // LICENSE file in the root directory of this source tree.
 
-import { captureScreenshot } from '@lynx-js/devtool-connector/command';
+import { captureScreenshot } from '@lynx-js/devtool-connector/_internal/command';
 import { Command } from 'commander';
 import fs from 'node:fs/promises';
 import { logMonitor, MonitorCode } from '../telemetry.ts';

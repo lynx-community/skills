@@ -5,7 +5,7 @@
 import type {
   CommandClient,
   StreamCommandParams,
-} from '@lynx-js/devtool-connector/command';
+} from '@lynx-js/devtool-connector/_internal/command';
 import type { Client } from '@lynx-js/devtool-connector/transport';
 import { Command } from 'commander';
 import { logMonitor, MonitorCode } from '../telemetry.ts';

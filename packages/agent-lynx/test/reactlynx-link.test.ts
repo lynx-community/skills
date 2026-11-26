@@ -6,7 +6,7 @@ import {
   type CommandData,
   DevNodeType,
   parseReactLynxLinkRef,
-} from '@lynx-js/devtool-connector/command';
+} from '@lynx-js/devtool-connector/_internal/command';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { renderLink } from '../src/commands/reactlynx/link.ts';

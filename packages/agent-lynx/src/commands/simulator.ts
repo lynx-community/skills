@@ -4,7 +4,7 @@
 import {
   callRawCommand,
   type CommandObject,
-} from '@lynx-js/devtool-connector/command';
+} from '@lynx-js/devtool-connector/_internal/command';
 import { type Command, InvalidArgumentError } from 'commander';
 import { setTimeout as delay } from 'node:timers/promises';
 

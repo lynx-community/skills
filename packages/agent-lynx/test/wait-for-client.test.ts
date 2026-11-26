@@ -10,7 +10,7 @@ import {
   HttpCommandClient,
   ok,
   type StreamCommandEvent,
-} from '@lynx-js/devtool-connector/command';
+} from '@lynx-js/devtool-connector/_internal/command';
 import type { Client } from '@lynx-js/devtool-connector/transport';
 import assert from 'node:assert/strict';
 import test from 'node:test';

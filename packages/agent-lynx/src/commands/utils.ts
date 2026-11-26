@@ -7,7 +7,7 @@ import type {
   CommandClient,
   getOriginalNodeSourceInfo,
   SnapshotAfterResult,
-} from '@lynx-js/devtool-connector/command';
+} from '@lynx-js/devtool-connector/_internal/command';
 import type { Transport } from '@lynx-js/devtool-connector/transport';
 import type { ReadableStream } from 'node:stream/web';
 import { setTimeout as delay } from 'node:timers/promises';

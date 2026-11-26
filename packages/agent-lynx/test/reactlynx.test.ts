@@ -8,7 +8,7 @@ import {
   createRendererState,
   DevNodeType,
   formatReactLynxTree as formatTree,
-} from '@lynx-js/devtool-connector/command';
+} from '@lynx-js/devtool-connector/_internal/command';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 

@@ -10,17 +10,12 @@
   "license": "Apache-2.0",
   "type": "module",
   "exports": {
-    ".": {
-      "types": "./dist/src/mcp.d.ts",
-      "import": "./src/mcp.ts",
-      "default": "./src/mcp.ts"
-    },
-    "./docs": {
+    "./_internal/docs": {
       "types": "./dist/src/docs.d.ts",
       "import": "./src/docs.ts",
       "default": "./src/docs.ts"
     },
-    "./mcp": {
+    "./_internal/mcp": {
       "types": "./dist/src/mcp.d.ts",
       "import": "./src/mcp.ts",
       "default": "./src/mcp.ts"
@@ -57,17 +52,12 @@
     "access": "public",
     "bin": "./dist/main.js",
     "exports": {
-      ".": {
-        "types": "./dist/src/mcp.d.ts",
-        "import": "./dist/src/mcp.js",
-        "default": "./dist/src/mcp.js"
-      },
-      "./docs": {
+      "./_internal/docs": {
         "types": "./dist/src/docs.d.ts",
         "import": "./dist/src/docs.js",
         "default": "./dist/src/docs.js"
       },
-      "./mcp": {
+      "./_internal/mcp": {
         "types": "./dist/src/mcp.d.ts",
         "import": "./dist/src/mcp.js",
         "default": "./dist/src/mcp.js"

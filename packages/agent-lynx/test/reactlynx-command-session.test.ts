@@ -7,7 +7,7 @@ import {
   type CommandObject,
   DevNodeType,
   ok,
-} from '@lynx-js/devtool-connector/command';
+} from '@lynx-js/devtool-connector/_internal/command';
 import { Command } from 'commander';
 import assert from 'node:assert/strict';
 import test, { type TestContext } from 'node:test';

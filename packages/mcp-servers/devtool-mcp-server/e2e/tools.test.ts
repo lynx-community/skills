@@ -9,7 +9,7 @@ import { setTimeout } from 'node:timers/promises';
 import {
   getTestingSession,
   testWithClient,
-} from '@lynx-js/devtool-connector/test-with-client';
+} from '@lynx-js/devtool-connector/_internal/test-with-client';
 import { GetBackgroundColors } from '../src/tools/CSS/GetBackgroundColors.ts';
 import { GetComputedStyleForNode } from '../src/tools/CSS/GetComputedStyleForNode.ts';
 import { GetInlineStylesForNode } from '../src/tools/CSS/GetInlineStylesForNode.ts';

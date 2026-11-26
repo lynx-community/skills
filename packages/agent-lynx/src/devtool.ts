@@ -6,7 +6,7 @@ import { Connector } from '@lynx-js/devtool-connector';
 import {
   HttpCommandClient,
   InProcessCommandClient,
-} from '@lynx-js/devtool-connector/command';
+} from '@lynx-js/devtool-connector/_internal/command';
 import {
   AndroidTransport,
   DaemonTransport,

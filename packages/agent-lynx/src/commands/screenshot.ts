@@ -6,7 +6,7 @@ import {
   fail,
   type ScreenshotAnnotation,
   type SnapshotData,
-} from '@lynx-js/devtool-connector/command';
+} from '@lynx-js/devtool-connector/_internal/command';
 import { Command } from 'commander';
 import { writeFile } from 'node:fs/promises';
 import { runSnapshotCommand } from './result.ts';
