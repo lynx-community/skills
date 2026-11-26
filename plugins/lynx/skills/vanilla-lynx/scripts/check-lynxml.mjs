@@ -80,28 +80,26 @@
 import { readFileSync, realpathSync } from "node:fs";
 import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-var __webpack_modules__ = {};
-var __webpack_module_cache__ = {};
-function __webpack_require__(moduleId) {
-    var cachedModule = __webpack_module_cache__[moduleId];
+var modules = {};
+var moduleCache = {};
+function rspackRequire(moduleId) {
+    var cachedModule = moduleCache[moduleId];
     if (void 0 !== cachedModule) return cachedModule.exports;
-    var module = __webpack_module_cache__[moduleId] = {
+    var module = moduleCache[moduleId] = {
         exports: {}
     };
-    __webpack_modules__[moduleId](module, module.exports, __webpack_require__);
+    modules[moduleId](module, module.exports, rspackRequire);
     return module.exports;
 }
-__webpack_require__.m = __webpack_modules__;
-(()=>{
-    __webpack_require__.add = function(modules) {
-        Object.assign(__webpack_require__.m, modules);
-    };
-})();
-__webpack_require__.add({
-    "../../../node_modules/.pnpm/esrecurse@4.3.0/node_modules/esrecurse/esrecurse.js" (__unused_rspack_module, exports, __webpack_require__) {
+var moduleFactories = modules;
+moduleFactories.add = function(modules) {
+    Object.assign(moduleFactories, modules);
+};
+moduleFactories.add({
+    "../../../node_modules/.pnpm/esrecurse@4.3.0/node_modules/esrecurse/esrecurse.js" (__unused_rspack_module, exports) {
         (function() {
             'use strict';
-            var estraverse = __webpack_require__("../../../node_modules/.pnpm/estraverse@5.3.0/node_modules/estraverse/estraverse.js");
+            var estraverse = rspackRequire("../../../node_modules/.pnpm/estraverse@5.3.0/node_modules/estraverse/estraverse.js");
             function isNode(node) {
                 if (null == node) return false;
                 return 'object' == typeof node && 'string' == typeof node.type;
@@ -141,7 +139,7 @@ __webpack_require__.add({
                 if (this.__visitor[type]) return void this.__visitor[type].call(this, node);
                 this.visitChildren(node);
             };
-            __webpack_require__("../../../node_modules/.pnpm/esrecurse@4.3.0/node_modules/esrecurse/package.json");
+            rspackRequire("../../../node_modules/.pnpm/esrecurse@4.3.0/node_modules/esrecurse/package.json");
             exports.le = Visitor;
         })();
     },
@@ -6231,7 +6229,7 @@ class ParameterDefinition extends Definition {
         this.rest = rest;
     }
 }
-const estraverse = __webpack_require__("../../../node_modules/.pnpm/estraverse@5.3.0/node_modules/estraverse/estraverse.js");
+const estraverse = rspackRequire("../../../node_modules/.pnpm/estraverse@5.3.0/node_modules/estraverse/estraverse.js");
 const { Syntax } = estraverse;
 function isStrictScope(scope, block, isMethodDefinition) {
     let body;
@@ -6646,7 +6644,7 @@ class ScopeManager {
     }
 }
 const scope_manager = ScopeManager;
-const esrecurse = __webpack_require__("../../../node_modules/.pnpm/esrecurse@4.3.0/node_modules/esrecurse/esrecurse.js");
+const esrecurse = rspackRequire("../../../node_modules/.pnpm/esrecurse@4.3.0/node_modules/esrecurse/esrecurse.js");
 const { Syntax: pattern_visitor_Syntax } = estraverse;
 function getLast(xs) {
     return xs.at(-1) || null;

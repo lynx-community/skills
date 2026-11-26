@@ -4,30 +4,28 @@ import { dirname, resolve as external_node_path_resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { createRequire as __rspack_createRequire } from "node:module";
 const __rspack_createRequire_require = __rspack_createRequire(import.meta.url);
-var __webpack_modules__ = {};
-var __webpack_module_cache__ = {};
-function __webpack_require__(moduleId) {
-    var cachedModule = __webpack_module_cache__[moduleId];
+var modules = {};
+var moduleCache = {};
+function rspackRequire(moduleId) {
+    var cachedModule = moduleCache[moduleId];
     if (void 0 !== cachedModule) return cachedModule.exports;
-    var module = __webpack_module_cache__[moduleId] = {
+    var module = moduleCache[moduleId] = {
         exports: {}
     };
-    __webpack_modules__[moduleId](module, module.exports, __webpack_require__);
+    modules[moduleId](module, module.exports, rspackRequire);
     return module.exports;
 }
-__webpack_require__.m = __webpack_modules__;
-(()=>{
-    __webpack_require__.add = function(modules) {
-        Object.assign(__webpack_require__.m, modules);
-    };
-})();
-__webpack_require__.add({
-    "../../../node_modules/.pnpm/commander@13.1.0/node_modules/commander/index.js" (__unused_rspack_module, exports, __webpack_require__) {
-        const { Argument } = __webpack_require__("../../../node_modules/.pnpm/commander@13.1.0/node_modules/commander/lib/argument.js");
-        const { Command } = __webpack_require__("../../../node_modules/.pnpm/commander@13.1.0/node_modules/commander/lib/command.js");
-        const { CommanderError, InvalidArgumentError } = __webpack_require__("../../../node_modules/.pnpm/commander@13.1.0/node_modules/commander/lib/error.js");
-        const { Help } = __webpack_require__("../../../node_modules/.pnpm/commander@13.1.0/node_modules/commander/lib/help.js");
-        const { Option } = __webpack_require__("../../../node_modules/.pnpm/commander@13.1.0/node_modules/commander/lib/option.js");
+var moduleFactories = modules;
+moduleFactories.add = function(modules) {
+    Object.assign(moduleFactories, modules);
+};
+moduleFactories.add({
+    "../../../node_modules/.pnpm/commander@13.1.0/node_modules/commander/index.js" (__unused_rspack_module, exports) {
+        const { Argument } = rspackRequire("../../../node_modules/.pnpm/commander@13.1.0/node_modules/commander/lib/argument.js");
+        const { Command } = rspackRequire("../../../node_modules/.pnpm/commander@13.1.0/node_modules/commander/lib/command.js");
+        const { CommanderError, InvalidArgumentError } = rspackRequire("../../../node_modules/.pnpm/commander@13.1.0/node_modules/commander/lib/error.js");
+        const { Help } = rspackRequire("../../../node_modules/.pnpm/commander@13.1.0/node_modules/commander/lib/help.js");
+        const { Option } = rspackRequire("../../../node_modules/.pnpm/commander@13.1.0/node_modules/commander/lib/option.js");
         exports.DM = new Command();
         exports.gu = (name)=>new Command(name);
         exports.Ww = (flags, description)=>new Option(flags, description);
@@ -40,8 +38,8 @@ __webpack_require__.add({
         exports.Di = InvalidArgumentError;
         exports.a2 = InvalidArgumentError;
     },
-    "../../../node_modules/.pnpm/commander@13.1.0/node_modules/commander/lib/argument.js" (__unused_rspack_module, exports, __webpack_require__) {
-        const { InvalidArgumentError } = __webpack_require__("../../../node_modules/.pnpm/commander@13.1.0/node_modules/commander/lib/error.js");
+    "../../../node_modules/.pnpm/commander@13.1.0/node_modules/commander/lib/argument.js" (__unused_rspack_module, exports) {
+        const { InvalidArgumentError } = rspackRequire("../../../node_modules/.pnpm/commander@13.1.0/node_modules/commander/lib/error.js");
         class Argument {
             constructor(name, description){
                 this.description = description || '';
@@ -112,17 +110,17 @@ __webpack_require__.add({
         exports.Argument = Argument;
         exports.humanReadableArgName = humanReadableArgName;
     },
-    "../../../node_modules/.pnpm/commander@13.1.0/node_modules/commander/lib/command.js" (__unused_rspack_module, exports, __webpack_require__) {
+    "../../../node_modules/.pnpm/commander@13.1.0/node_modules/commander/lib/command.js" (__unused_rspack_module, exports) {
         const EventEmitter = __rspack_createRequire_require("node:events").EventEmitter;
         const childProcess = __rspack_createRequire_require("node:child_process");
         const path = __rspack_createRequire_require("node:path");
         const fs = __rspack_createRequire_require("node:fs");
         const process1 = __rspack_createRequire_require("node:process");
-        const { Argument, humanReadableArgName } = __webpack_require__("../../../node_modules/.pnpm/commander@13.1.0/node_modules/commander/lib/argument.js");
-        const { CommanderError } = __webpack_require__("../../../node_modules/.pnpm/commander@13.1.0/node_modules/commander/lib/error.js");
-        const { Help, stripColor } = __webpack_require__("../../../node_modules/.pnpm/commander@13.1.0/node_modules/commander/lib/help.js");
-        const { Option, DualOptions } = __webpack_require__("../../../node_modules/.pnpm/commander@13.1.0/node_modules/commander/lib/option.js");
-        const { suggestSimilar } = __webpack_require__("../../../node_modules/.pnpm/commander@13.1.0/node_modules/commander/lib/suggestSimilar.js");
+        const { Argument, humanReadableArgName } = rspackRequire("../../../node_modules/.pnpm/commander@13.1.0/node_modules/commander/lib/argument.js");
+        const { CommanderError } = rspackRequire("../../../node_modules/.pnpm/commander@13.1.0/node_modules/commander/lib/error.js");
+        const { Help, stripColor } = rspackRequire("../../../node_modules/.pnpm/commander@13.1.0/node_modules/commander/lib/help.js");
+        const { Option, DualOptions } = rspackRequire("../../../node_modules/.pnpm/commander@13.1.0/node_modules/commander/lib/option.js");
+        const { suggestSimilar } = rspackRequire("../../../node_modules/.pnpm/commander@13.1.0/node_modules/commander/lib/suggestSimilar.js");
         class Command extends EventEmitter {
             constructor(name){
                 super();
@@ -1287,8 +1285,8 @@ Expecting one of '${allowedValues.join("', '")}'`);
         exports.CommanderError = CommanderError;
         exports.InvalidArgumentError = InvalidArgumentError;
     },
-    "../../../node_modules/.pnpm/commander@13.1.0/node_modules/commander/lib/help.js" (__unused_rspack_module, exports, __webpack_require__) {
-        const { humanReadableArgName } = __webpack_require__("../../../node_modules/.pnpm/commander@13.1.0/node_modules/commander/lib/argument.js");
+    "../../../node_modules/.pnpm/commander@13.1.0/node_modules/commander/lib/help.js" (__unused_rspack_module, exports) {
+        const { humanReadableArgName } = rspackRequire("../../../node_modules/.pnpm/commander@13.1.0/node_modules/commander/lib/argument.js");
         class Help {
             constructor(){
                 this.helpWidth = void 0;
@@ -1557,8 +1555,8 @@ Expecting one of '${allowedValues.join("', '")}'`);
         exports.Help = Help;
         exports.stripColor = stripColor;
     },
-    "../../../node_modules/.pnpm/commander@13.1.0/node_modules/commander/lib/option.js" (__unused_rspack_module, exports, __webpack_require__) {
-        const { InvalidArgumentError } = __webpack_require__("../../../node_modules/.pnpm/commander@13.1.0/node_modules/commander/lib/error.js");
+    "../../../node_modules/.pnpm/commander@13.1.0/node_modules/commander/lib/option.js" (__unused_rspack_module, exports) {
+        const { InvalidArgumentError } = rspackRequire("../../../node_modules/.pnpm/commander@13.1.0/node_modules/commander/lib/error.js");
         class Option {
             constructor(flags, description){
                 this.flags = flags;
@@ -1760,7 +1758,7 @@ Expecting one of '${allowedValues.join("', '")}'`);
         exports.suggestSimilar = suggestSimilar;
     }
 });
-const commander = __webpack_require__("../../../node_modules/.pnpm/commander@13.1.0/node_modules/commander/index.js");
+const commander = rspackRequire("../../../node_modules/.pnpm/commander@13.1.0/node_modules/commander/index.js");
 const { DM: esm_program, gu: createCommand, er: createArgument, Ww: createOption, b7: CommanderError, Di: InvalidArgumentError, a2: InvalidOptionArgumentError, uB: Command, ef: Argument, c$: Option, _V: Help } = commander;
 function getEnumValues(entries) {
     const numericValues = Object.values(entries).filter((v)=>"number" == typeof v);

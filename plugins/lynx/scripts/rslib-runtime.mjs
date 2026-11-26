@@ -1,18 +1,16 @@
-var __webpack_modules__ = {};
-var __webpack_module_cache__ = {};
-function __webpack_require__(moduleId) {
-    var cachedModule = __webpack_module_cache__[moduleId];
+var modules = {};
+var moduleCache = {};
+function rspackRequire(moduleId) {
+    var cachedModule = moduleCache[moduleId];
     if (void 0 !== cachedModule) return cachedModule.exports;
-    var module = __webpack_module_cache__[moduleId] = {
+    var module = moduleCache[moduleId] = {
         exports: {}
     };
-    __webpack_modules__[moduleId](module, module.exports, __webpack_require__);
+    modules[moduleId](module, module.exports, rspackRequire);
     return module.exports;
 }
-__webpack_require__.m = __webpack_modules__;
-(()=>{
-    __webpack_require__.add = function(modules) {
-        Object.assign(__webpack_require__.m, modules);
-    };
-})();
-export { __webpack_require__ };
+var moduleFactories = modules;
+moduleFactories.add = function(modules) {
+    Object.assign(moduleFactories, modules);
+};
+export { rspackRequire, moduleFactories };
