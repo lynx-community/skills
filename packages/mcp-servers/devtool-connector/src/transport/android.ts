@@ -1,7 +1,7 @@
 // Copyright 2026 The Lynx Authors. All rights reserved.
 // Licensed under the Apache License Version 2.0 that can be found in the
 // LICENSE file in the root directory of this source tree.
-import { type Adb, type AdbServerClient, escapeArg } from "@yume-chan/adb";
+import { type Adb, type AdbServerClient, AdbSync, escapeArg, LinuxFileType } from "@yume-chan/adb";
 import { AdbServerNodeJsClient } from "@yume-chan/adb-server-node-tcp";
 import { ReadableStream } from "@yume-chan/stream-extra";
 import type { SocketConnectOpts } from "node:net";
@@ -152,16 +152,27 @@ export class AndroidTransport implements Transport {
     return this.#withAdb(deviceId, async (adb) => {
       let deployment = this.#appIconHelperDeployments.get(deviceId);
       if (!deployment) {
-        deployment = adb.sync.write({
-          path: APP_ICON_HELPER_REMOTE_PATH,
-          permission: 0o644,
-          readable: new ReadableStream({
-            start(controller) {
-              controller.enqueue(ANDROID_APP_ICON_HELPER_JAR);
-              controller.close();
-            },
-          }),
-        }).then(() => undefined);
+        deployment = (async () => {
+          const existing = await adb.sync.lstat?.(APP_ICON_HELPER_REMOTE_PATH).catch(() => undefined);
+          if (
+            existing?.type === LinuxFileType.File
+            && existing.size === BigInt(ANDROID_APP_ICON_HELPER_JAR.byteLength)
+          ) {
+            return;
+          }
+          // Helper JAR is already compressed; Android 15 sendrecv_v2 otherwise defaults to Brotli quality 11.
+          await adb.sync.write({
+            path: APP_ICON_HELPER_REMOTE_PATH,
+            permission: 0o644,
+            compression: AdbSync.Compression.Format.None,
+            readable: new ReadableStream({
+              start(controller) {
+                controller.enqueue(ANDROID_APP_ICON_HELPER_JAR);
+                controller.close();
+              },
+            }),
+          });
+        })();
         this.#appIconHelperDeployments.set(deviceId, deployment);
       }
       try {

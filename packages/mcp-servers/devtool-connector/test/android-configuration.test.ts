@@ -1,10 +1,12 @@
 // Copyright 2026 The Lynx Authors. All rights reserved.
 // Licensed under the Apache License Version 2.0 that can be found in the
 // LICENSE file in the root directory of this source tree.
+import { AdbSync, LinuxFileType } from "@yume-chan/adb";
 import { AdbServerNodeJsTcpConnector } from "@yume-chan/adb-server-node-tcp";
 import assert from "node:assert/strict";
 import { describe, test } from "node:test";
 import { createDaemonProcessEnvironment } from "../src/daemon/manager.ts";
+import { ANDROID_APP_ICON_HELPER_JAR } from "../src/transport/android-app-icon-helper.ts";
 import { AndroidTransport } from "../src/transport/android.ts";
 
 const ADB_ENV = ["ADB_SERVER_SOCKET", "ANDROID_ADB_SERVER_ADDRESS", "ANDROID_ADB_SERVER_PORT"] as const;
@@ -81,5 +83,50 @@ describe("Android ADB server configuration", () => {
     };
     assert.deepEqual(createDaemonProcessEnvironment(env), { PATH: "/usr/bin", DEBUG: "" });
     assert.equal(env.ADB_SERVER_SOCKET, "tcp:adb.example:5038");
+  });
+
+  test("getAppIcon pushes helper JAR uncompressed and skips upload when remote size matches", async () => {
+    const png = Uint8Array.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 1]);
+    const writes: Array<{ path: string; compression: unknown }> = [];
+    let remoteSize: bigint | undefined;
+
+    const createTransport = () => {
+      const transport = new AndroidTransport();
+      const adb = {
+        subprocess: {
+          noneProtocol: {
+            spawn() {
+              return {
+                wait: () => Promise.resolve(png),
+              };
+            },
+          },
+        },
+        sync: {
+          async lstat() {
+            if (remoteSize === undefined) throw new Error("ENOENT");
+            return { type: LinuxFileType.File, size: remoteSize };
+          },
+          async write({ path, compression }: { path: string; compression?: unknown }) {
+            writes.push({ path, compression });
+            remoteSize = BigInt(ANDROID_APP_ICON_HELPER_JAR.byteLength);
+          },
+        },
+        async close() {},
+      };
+      Object.defineProperty(transport, "client", {
+        value: { createAdb: async () => adb },
+      });
+      return transport;
+    };
+
+    await createTransport().getAppIcon("device", "com.example.app");
+    await createTransport().getAppIcon("device", "com.example.app");
+    assert.deepEqual(writes, [
+      {
+        path: "/data/local/tmp/lynx-connector-app-icon-v1.jar",
+        compression: AdbSync.Compression.Format.None,
+      },
+    ]);
   });
 });
