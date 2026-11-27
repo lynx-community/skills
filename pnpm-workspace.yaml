@@ -18,6 +18,8 @@ catalogs:
     "@yume-chan/adb": 3.0.0-beta.5
     "@yume-chan/adb-server-node-tcp": 3.0.0-beta.5
     "@yume-chan/stream-extra": 3.0.0-beta.5
+  ui:
+    lucide-react: 1.79.0
 
 allowBuilds:
   core-js: false
