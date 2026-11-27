@@ -14,7 +14,7 @@ type SentCDPMessage = {
 };
 
 describe('DOM.getDocument', () => {
-  test('disables compression and passes depth through to CDP', async () => {
+  test('enables compression and passes depth through to CDP', async () => {
     const sentMessages: SentCDPMessage[] = [];
     let listSessionCalls = 0;
     const connector = {
@@ -59,7 +59,7 @@ describe('DOM.getDocument', () => {
         clientId: 'test-client-id:9999',
         sessionId: 41,
         method: 'DOM.enable',
-        params: { useCompression: false },
+        params: { useCompression: true },
       },
       {
         clientId: 'test-client-id:9999',

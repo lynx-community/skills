@@ -3,7 +3,12 @@
 // LICENSE file in the root directory of this source tree.
 import { ReadableStream, type TransformStream } from "node:stream/web";
 import { createDebug } from "obug";
-import { CDPOutputTransformStream, CDPRequestTransformStream, CDPResponseTransformStream } from "./streams/cdp.ts";
+import {
+  CDPOutputTransformStream,
+  CDPRequestTransformStream,
+  CDPResponseTransformStream,
+  decompressCDPResult,
+} from "./streams/cdp.ts";
 import {
   AppResponseTransformStream,
   CustomizedClientIdTransformStream,
@@ -13,7 +18,7 @@ import {
 } from "./streams/customized.ts";
 import { FilterTransformStream, InspectStream, SessionGuardTransformStream } from "./streams/utils.ts";
 
-export { CDPOutputTransformStream, CDPRequestTransformStream, CDPResponseTransformStream };
+export { CDPOutputTransformStream, CDPRequestTransformStream, CDPResponseTransformStream, decompressCDPResult };
 
 import { throwClientDiscoveryFailures } from "./client-discovery-errors.ts";
 import { ClientId } from "./client-id.ts";
@@ -459,7 +464,7 @@ export class Connector<TPlatform extends string = Platform> {
       );
     }
 
-    return await this.#sendMessage<Record<string, unknown>, Output>(clientId, {
+    const result = await this.#sendMessage<Record<string, unknown>, Output>(clientId, {
       method,
       params,
       sessionId: isMainThread ? "Main" : undefined,
@@ -472,6 +477,8 @@ export class Connector<TPlatform extends string = Platform> {
         new CDPOutputTransformStream(),
       ],
     }, signal);
+
+    return await decompressCDPResult(method, result);
   }
 
   async sendListSessionMessage(

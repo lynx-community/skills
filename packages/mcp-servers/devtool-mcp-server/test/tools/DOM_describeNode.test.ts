@@ -27,7 +27,7 @@ async function loadDescribeNodeTool() {
 }
 
 describe('DOM.describeNode', () => {
-  test('disables compression before describing a node by nodeId', async () => {
+  test('enables compression before describing a node by nodeId', async () => {
     const sentMessages: SentCDPMessage[] = [];
     const connector = {
       sendCDPMessage: async (
@@ -65,7 +65,7 @@ describe('DOM.describeNode', () => {
         clientId: 'test-client-id:9999',
         sessionId: 1,
         method: 'DOM.enable',
-        params: { useCompression: false },
+        params: { useCompression: true },
       },
       {
         clientId: 'test-client-id:9999',

@@ -32,6 +32,53 @@ export class CDPResponseTransformStream<Output = CDPResponseMessage>
   }
 }
 
+const COMPRESSED_CDP_PAYLOAD_FIELDS: Readonly<Record<string, string>> = {
+  "DOM.getDocument": "root",
+  "DOM.getDocumentWithBoxModel": "root",
+  "DOM.describeNode": "node",
+  "UITree.getLynxUITree": "root",
+};
+
+function decodeBase64(base64: string): Uint8Array<ArrayBuffer> {
+  if (typeof Buffer === "function") {
+    const decoded = Buffer.from(base64, "base64");
+    const bytes = new Uint8Array(decoded.byteLength);
+    bytes.set(decoded);
+    return bytes;
+  }
+  return Uint8Array.from(atob(base64), ch => ch.charCodeAt(0));
+}
+
+/**
+ * Inflate compressed CDP payloads (`DOM.getDocument`, `DOM.getDocumentWithBoxModel`,
+ * `DOM.describeNode`, `UITree.getLynxUITree`) when `compress === true`.
+ */
+export async function decompressCDPResult<Output>(method: string, result: Output): Promise<Output> {
+  const field = COMPRESSED_CDP_PAYLOAD_FIELDS[method];
+  if (!field || typeof result !== "object" || result === null) {
+    return result;
+  }
+
+  const record = result as Record<string, unknown>;
+  const payload = record[field];
+  if (record["compress"] !== true || typeof payload !== "string" || payload.length === 0) {
+    return result;
+  }
+
+  try {
+    const bytes = decodeBase64(payload);
+    const stream = new Blob([bytes]).stream().pipeThrough(new DecompressionStream("deflate"));
+    const parsed: unknown = JSON.parse(await new Response(stream).text());
+    return {
+      ...record,
+      [field]: parsed,
+      compress: false,
+    } as Output;
+  } catch (err) {
+    throw new Error(`Failed to decompress ${method} response`, { cause: err });
+  }
+}
+
 export class CDPOutputTransformStream<Output> extends ResponseParserTransformStream<CDPResponseMessage, Output> {
   constructor() {
     super({

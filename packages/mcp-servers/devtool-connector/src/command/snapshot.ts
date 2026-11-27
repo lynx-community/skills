@@ -2,6 +2,7 @@
 // Licensed under the Apache License Version 2.0 that can be found in the
 // LICENSE file in the root directory of this source tree.
 import type { Connector } from "../index.ts";
+import { decompressCDPResult } from "../streams/cdp.ts";
 
 /** A bounding box in CDP logical coordinates. */
 export interface Box {
@@ -548,12 +549,12 @@ export async function buildSnapshotStructure(
     clientId,
     sessionId,
     "DOM.enable",
-    { useCompression: false },
+    { useCompression: true },
     false,
     signal,
   );
   signal?.throwIfAborted();
-  const result = await connector.sendCDPMessage<{ root: DomNode | string; compress?: boolean }>(
+  const rawResult = await connector.sendCDPMessage<{ root: DomNode | string; compress?: boolean }>(
     clientId,
     sessionId,
     "DOM.getDocumentWithBoxModel",
@@ -562,10 +563,12 @@ export async function buildSnapshotStructure(
     signal,
   );
   signal?.throwIfAborted();
+  const result = await decompressCDPResult("DOM.getDocumentWithBoxModel", rawResult);
+  signal?.throwIfAborted();
 
   if (typeof result.root === "string") {
     throw new Error(
-      "DOM.getDocumentWithBoxModel returned a compressed tree. Retry after DOM.enable with useCompression:false.",
+      "DOM.getDocumentWithBoxModel returned a string root without compress:true.",
     );
   }
 

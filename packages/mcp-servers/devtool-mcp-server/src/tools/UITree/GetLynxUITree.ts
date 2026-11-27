@@ -20,7 +20,7 @@ export const GetLynxUITree = /*#__PURE__*/ defineTool({
     const connector = context.connector();
 
     await connector.sendCDPMessage(clientId, sessionId, 'UITree.enable', {
-      useCompression: false,
+      useCompression: true,
     });
 
     const result = await connector.sendCDPMessage(

@@ -34,7 +34,7 @@ export const DescribeNode = /*#__PURE__*/ defineTool({
     const connector = context.connector();
 
     await connector.sendCDPMessage(clientId, sessionId, 'DOM.enable', {
-      useCompression: false,
+      useCompression: true,
     });
 
     const result = await connector.sendCDPMessage(
