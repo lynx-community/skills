@@ -6172,7 +6172,7 @@ class Reference {
         this.__maybeImplicitGlobal = maybeImplicitGlobal;
     }
     isStatic() {
-        return !this.tainted && this.resolved && this.resolved.scope.isStatic();
+        return !this.tainted && !!this.resolved && this.resolved.scope.isStatic();
     }
     isWrite() {
         return !!(this.flag & Reference.WRITE);
@@ -6193,7 +6193,7 @@ class Reference {
 Reference.READ = READ;
 Reference.WRITE = WRITE;
 Reference.RW = RW;
-const reference = Reference;
+const lib_reference = Reference;
 class Variable {
     constructor(name, scope){
         this.name = name;
@@ -6260,9 +6260,6 @@ function registerScope(scopeManager, scope) {
         scope
     ]);
 }
-function shouldBeStatically(def) {
-    return def.type === lib_variable.ClassName || def.type === lib_variable.Variable && "var" !== def.parent.kind;
-}
 class scope_Scope {
     constructor(scopeManager, type, upperScope, block, isMethodDefinition){
         this.type = type;
@@ -6286,14 +6283,7 @@ class scope_Scope {
         registerScope(scopeManager, this);
     }
     __shouldStaticallyClose(scopeManager) {
-        return !this.dynamic || scopeManager.__isOptimistic();
-    }
-    __shouldStaticallyCloseForGlobal(ref) {
-        const name = ref.identifier.name;
-        if (!this.set.has(name)) return false;
-        const variable = this.set.get(name);
-        const defs = variable.defs;
-        return defs.length > 0 && defs.every(shouldBeStatically);
+        return !this.dynamic || scopeManager.__isOptimistic() || "global" === this.type;
     }
     __staticCloseRef(ref) {
         if (!this.__resolve(ref)) this.__delegateToUpperScope(ref);
@@ -6305,13 +6295,9 @@ class scope_Scope {
             current = current.upper;
         }while (current);
     }
-    __globalCloseRef(ref) {
-        if (this.__shouldStaticallyCloseForGlobal(ref)) this.__staticCloseRef(ref);
-        else this.__dynamicCloseRef(ref);
-    }
     __close(scopeManager) {
         let closeRef;
-        closeRef = this.__shouldStaticallyClose(scopeManager) ? this.__staticCloseRef : "global" !== this.type ? this.__dynamicCloseRef : this.__globalCloseRef;
+        closeRef = this.__shouldStaticallyClose(scopeManager) ? this.__staticCloseRef : this.__dynamicCloseRef;
         for(let i = 0, iz = this.__left.length; i < iz; ++i){
             const ref = this.__left[i];
             closeRef.call(this, ref);
@@ -6370,7 +6356,7 @@ class scope_Scope {
     __referencing(node, assign, writeExpr, maybeImplicitGlobal, partial, init) {
         if (!node || node.type !== Syntax.Identifier && "JSXIdentifier" !== node.type) return;
         if ("super" === node.name) return;
-        const ref = new reference(node, this, assign || reference.READ, writeExpr, maybeImplicitGlobal, !!partial, !!init);
+        const ref = new lib_reference(node, this, assign || lib_reference.READ, writeExpr, maybeImplicitGlobal, !!partial, !!init);
         this.references.push(ref);
         this.__left.push(ref);
     }
@@ -6432,11 +6418,37 @@ class GlobalScope extends scope_Scope {
             const info = implicit[i];
             this.__defineImplicit(info.pattern, new Definition(lib_variable.ImplicitGlobalVariable, info.pattern, info.node, null, null, null));
         }
-        this.implicit.left = this.__left;
-        return super.__close(scopeManager);
+        super.__close(scopeManager);
+        this.implicit.left = [
+            ...this.through
+        ];
+        return null;
     }
     __defineImplicit(node, def) {
         if (node && node.type === Syntax.Identifier) this.__defineGeneric(node.name, this.implicit.set, this.implicit.variables, node, def);
+    }
+    __addVariables(names) {
+        for (const name of names)this.__defineGeneric(name, this.set, this.variables, null, null);
+        const namesSet = new Set(names);
+        this.through = this.through.filter((reference)=>{
+            const name = reference.identifier.name;
+            if (namesSet.has(name)) {
+                const variable = this.set.get(name);
+                reference.resolved = variable;
+                variable.references.push(reference);
+                return false;
+            }
+            return true;
+        });
+        this.implicit.variables = this.implicit.variables.filter((variable)=>{
+            const name = variable.name;
+            if (namesSet.has(name)) {
+                this.implicit.set.delete(name);
+                return false;
+            }
+            return true;
+        });
+        this.implicit.left = this.implicit.left.filter((reference)=>!namesSet.has(reference.identifier.name));
     }
 }
 class ModuleScope extends scope_Scope {
@@ -6552,7 +6564,7 @@ class ScopeManager {
         return "module" === this.__options.sourceType;
     }
     isImpliedStrict() {
-        return this.__options.impliedStrict;
+        return !!this.__options.impliedStrict;
     }
     isStrictModeSupported() {
         return this.__options.ecmaVersion >= 5;
@@ -6592,6 +6604,9 @@ class ScopeManager {
             return this.acquire(scope.block, inner);
         }
         return null;
+    }
+    addGlobals(names) {
+        this.globalScope.__addVariables(names);
     }
     attach() {}
     detach() {}
@@ -6771,7 +6786,7 @@ class Referencer extends esrecurse.le {
     referencingDefaultValue(pattern, assignments, maybeImplicitGlobal, init) {
         const scope = this.currentScope();
         assignments.forEach((assignment)=>{
-            scope.__referencing(pattern, reference.WRITE, assignment.right, maybeImplicitGlobal, pattern !== assignment.left, init);
+            scope.__referencing(pattern, lib_reference.WRITE, assignment.right, maybeImplicitGlobal, pattern !== assignment.left, init);
         });
     }
     visitPattern(node, options, callback) {
@@ -6829,7 +6844,7 @@ class Referencer extends esrecurse.le {
         if (node.left.type === referencer_Syntax.VariableDeclaration) {
             this.visit(node.left);
             this.visitPattern(node.left.declarations[0].id, (pattern)=>{
-                this.currentScope().__referencing(pattern, reference.WRITE, node.right, null, true, true);
+                this.currentScope().__referencing(pattern, lib_reference.WRITE, node.right, null, true, true);
             });
         } else this.visitPattern(node.left, {
             processRightHandNodes: true
@@ -6840,7 +6855,7 @@ class Referencer extends esrecurse.le {
                 node
             };
             this.referencingDefaultValue(pattern, info.assignments, maybeImplicitGlobal, false);
-            this.currentScope().__referencing(pattern, reference.WRITE, node.right, maybeImplicitGlobal, true, false);
+            this.currentScope().__referencing(pattern, lib_reference.WRITE, node.right, maybeImplicitGlobal, true, false);
         });
         this.visit(node.right);
         this.visit(node.body);
@@ -6854,7 +6869,7 @@ class Referencer extends esrecurse.le {
         }, (pattern, info)=>{
             variableTargetScope.__define(pattern, new Definition(type, pattern, decl, node, index, node.kind));
             this.referencingDefaultValue(pattern, info.assignments, null, true);
-            if (init) this.currentScope().__referencing(pattern, reference.WRITE, init, null, !info.topLevel, true);
+            if (init) this.currentScope().__referencing(pattern, lib_reference.WRITE, init, null, !info.topLevel, true);
         });
     }
     AssignmentExpression(node) {
@@ -6867,9 +6882,9 @@ class Referencer extends esrecurse.le {
                 node
             };
             this.referencingDefaultValue(pattern, info.assignments, maybeImplicitGlobal, false);
-            this.currentScope().__referencing(pattern, reference.WRITE, node.right, maybeImplicitGlobal, !info.topLevel, false);
+            this.currentScope().__referencing(pattern, lib_reference.WRITE, node.right, maybeImplicitGlobal, !info.topLevel, false);
         });
-        else this.currentScope().__referencing(node.left, reference.RW, node.right);
+        else this.currentScope().__referencing(node.left, lib_reference.RW, node.right);
         else this.visit(node.left);
         this.visit(node.right);
     }
@@ -6900,7 +6915,7 @@ class Referencer extends esrecurse.le {
     }
     PrivateIdentifier() {}
     UpdateExpression(node) {
-        if (pattern_visitor.isPattern(node.argument)) this.currentScope().__referencing(node.argument, reference.RW, null);
+        if (pattern_visitor.isPattern(node.argument)) this.currentScope().__referencing(node.argument, lib_reference.RW, null);
         else this.visitChildren(node);
     }
     MemberExpression(node) {
