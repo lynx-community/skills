@@ -107,8 +107,8 @@ importers:
         specifier: ^3.51.0
         version: 3.51.0
       obug:
-        specifier: ^2.2.1
-        version: 2.2.1
+        specifier: ^3.0.0
+        version: 3.0.0
       typescript:
         specifier: ^7.0.2
         version: 7.0.2
@@ -268,8 +268,8 @@ importers:
         specifier: ^0.4.4
         version: 0.4.4
       obug:
-        specifier: ^2.2.1
-        version: 2.2.1
+        specifier: ^3.0.0
+        version: 3.0.0
       plist:
         specifier: ^5.1.2
         version: 5.1.2
@@ -332,8 +332,8 @@ importers:
         specifier: ^2.2.4
         version: 2.2.4
       obug:
-        specifier: ^2.2.1
-        version: 2.2.1
+        specifier: ^3.0.0
+        version: 3.0.0
     devDependencies:
       '@types/mdast':
         specifier: ^4.0.4
@@ -2547,8 +2547,8 @@ packages:
     resolution: {integrity: sha512-IVgHNlp/jwQX271+Xzoq9LZNTWXxZK+cEOrGBOBxXNbn7fapnZ+Ts6TVMgNOuAezwG2wdtnMX97tTPK6VEnuOQ==}
     engines: {node: '>= 0.4'}
 
-  obug@2.2.1:
-    resolution: {integrity: sha512-XrsrhT5sybtKI6wakr2SPOlGZWWYbUXZ7a0jT8/QOeAPau+1X/bSegNe5YR75oJmEZQbKningirmGOEJCIk61Q==}
+  obug@3.0.0:
+    resolution: {integrity: sha512-5vvB5+W7ePv+p3uqxi+RcW1XAzLW0/hxt3/4X4Lc4qHudzOhmBiBwOY6DRob4WnanAEGvNcLjF+KNOufrUoEQw==}
     engines: {node: '>=12.20.0'}
 
   on-finished@2.4.2:
@@ -5206,7 +5206,7 @@ snapshots:
 
   object-inspect@1.14.0: {}
 
-  obug@2.2.1: {}
+  obug@3.0.0: {}
 
   on-finished@2.4.2:
     dependencies:

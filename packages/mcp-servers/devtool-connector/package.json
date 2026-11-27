@@ -74,7 +74,7 @@
     "@zigc/cli": "0.17.0",
     "dprint": "^0.65.0",
     "jpeg-js": "^0.4.4",
-    "obug": "^2.2.1",
+    "obug": "^3.0.0",
     "plist": "^5.1.2",
     "rsbuild-plugin-publint": "^1.0.0",
     "semver": "^7.8.6",

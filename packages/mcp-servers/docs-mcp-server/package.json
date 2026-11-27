@@ -38,7 +38,7 @@
     "commander": "^15.1.0",
     "mdast-util-from-markdown": "^2.1.0",
     "mdast-util-to-markdown": "^2.2.4",
-    "obug": "^2.2.1"
+    "obug": "^3.0.0"
   },
   "devDependencies": {
     "@types/mdast": "^4.0.4",
