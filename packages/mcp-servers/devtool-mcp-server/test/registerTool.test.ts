@@ -7,9 +7,9 @@ import { Client } from '@modelcontextprotocol/sdk/client';
 import { InMemoryTransport } from '@modelcontextprotocol/sdk/inMemory.js';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import assert from 'node:assert/strict';
+import { execFileSync } from 'node:child_process';
 import { test, type TestContext } from 'node:test';
 import { fileURLToPath } from 'node:url';
-import ts from 'typescript';
 import * as z from 'zod';
 import {
   type Context,
@@ -119,27 +119,28 @@ test('inferred schemas retain defaults and optional fields', async t => {
 });
 
 test('context registration type-checks concrete schemas and custom contexts', () => {
-  const fileName = fileURLToPath(import.meta.url);
-  const options: ts.CompilerOptions = {
-    target: ts.ScriptTarget.ESNext,
-    module: ts.ModuleKind.NodeNext,
-    moduleResolution: ts.ModuleResolutionKind.NodeNext,
-    strict: true,
-    exactOptionalPropertyTypes: true,
-    noUncheckedIndexedAccess: true,
-    allowImportingTsExtensions: true,
-    noEmit: true,
-    types: ['node'],
-  };
-  const host = ts.createCompilerHost(options);
-  const program = ts.createProgram([fileName], options, host);
-  const sourceFile = program.getSourceFile(fileName);
-  assert.ok(sourceFile);
-  const diagnostics = [
-    ...program.getSyntacticDiagnostics(sourceFile),
-    ...program.getSemanticDiagnostics(sourceFile),
-  ];
-  assert.equal(diagnostics.length, 0, ts.formatDiagnostics(diagnostics, host));
+  const tsc = new URL(
+    './bin/tsc',
+    import.meta.resolve('typescript/package.json'),
+  );
+  execFileSync(process.execPath, [
+    fileURLToPath(tsc),
+    '--ignoreConfig',
+    '--target',
+    'esnext',
+    '--module',
+    'nodenext',
+    '--strict',
+    '--exactOptionalPropertyTypes',
+    '--noUncheckedIndexedAccess',
+    '--allowImportingTsExtensions',
+    '--noEmit',
+    '--types',
+    'node',
+    '--pretty',
+    'false',
+    fileURLToPath(import.meta.url),
+  ], { cwd: new URL('..', import.meta.url), stdio: 'inherit' });
 });
 
 test('shared execution preserves text/image output and normalizes tool failures', async t => {
