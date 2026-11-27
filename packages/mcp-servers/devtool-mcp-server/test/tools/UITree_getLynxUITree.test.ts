@@ -15,7 +15,7 @@ type SentCDPMessage = {
 };
 
 describe('UITree.getLynxUITree', () => {
-  test('enables UITree without compression before reading native UI metadata', async () => {
+  test('enables UITree with compression before reading native UI metadata', async () => {
     const sentMessages: SentCDPMessage[] = [];
     const connector = {
       sendCDPMessage: async (
@@ -68,7 +68,7 @@ describe('UITree.getLynxUITree', () => {
         clientId: 'test-client-id:9999',
         sessionId: 1,
         method: 'UITree.enable',
-        params: { useCompression: false },
+        params: { useCompression: true },
       },
       {
         clientId: 'test-client-id:9999',

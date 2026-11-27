@@ -20,7 +20,7 @@ export const GetDocument = /*#__PURE__*/ defineTool({
     const connector = context.connector();
 
     await connector.sendCDPMessage(clientId, sessionId, 'DOM.enable', {
-      useCompression: false,
+      useCompression: true,
     });
 
     const tree = await connector.sendCDPMessage(
