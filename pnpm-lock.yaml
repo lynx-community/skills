@@ -594,8 +594,8 @@ importers:
         specifier: ^14.0.3
         version: 14.0.3
       immer:
-        specifier: ^10.2.0
-        version: 10.2.0
+        specifier: ^11.2.10
+        version: 11.2.10
     devDependencies:
       '@lynx-js/benchx-cli':
         specifier: workspace:*
@@ -2125,6 +2125,9 @@ packages:
 
   immer@10.2.0:
     resolution: {integrity: sha512-d/+XTN3zfODyjr89gM3mPq1WNX2B8pYsu7eORitdwyA2sBubnTl3laYlBk4sXY5FUa5qTZGBDPJICVbvqzjlbw==}
+
+  immer@11.2.10:
+    resolution: {integrity: sha512-pzANBj+0A9u+prdhBJ14DVi44vCvVUQzBa8DKt6I0AMCokPHtt722BK9IX5bFC70xUSU9TnzLRIJLTGqIzjEFw==}
 
   import-lazy@4.0.0:
     resolution: {integrity: sha512-rKtvo6a868b5Hu3heneU+L4yEQ4jYKLtjpnPeUdK7h0yzXGmyBTypknlkCvHFBqfX9YlorEiMM6Dnq/5atfHkw==}
@@ -4538,6 +4541,8 @@ snapshots:
       minimatch: 5.1.9
 
   immer@10.2.0: {}
+
+  immer@11.2.10: {}
 
   import-lazy@4.0.0: {}
 

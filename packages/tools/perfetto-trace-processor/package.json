@@ -30,7 +30,7 @@
   },
   "dependencies": {
     "commander": "^14.0.3",
-    "immer": "^10.2.0"
+    "immer": "^11.2.10"
   },
   "devDependencies": {
     "@lynx-js/benchx-cli": "workspace:*",
