@@ -1,5 +1,24 @@
 # agent-lynx
 
+## 0.16.0
+
+### Minor Changes
+
+- Move internal-only package exports under `_internal/*` (`agent-lynx/_internal/cli`, `@lynx-js/devtool-connector/_internal/command`, `@lynx-js/devtool-mcp-server/_internal/{mcp,schema,tools,utils}`, and `@lynx-js/docs-mcp-server/_internal/{docs,mcp}`), and remove unused library/connector entrypoints from the MCP server packages.
+
+### Patch Changes
+
+- Updated dependency `@rslib/core` to `^1.1.0`.
+- Propagate abort signals across `sendCDPMessage`, `sendStream`, and snapshot CDP calls, detach setup signals after `DesktopTransport` and `Usbmux` connect, isolate positive `session_id` CDP envelopes on shared connections, and recognize `TimeoutError` in bounded CLI stream helpers.
+- Increase the `get-sources` collection timeout from 5s to 15s (keeping the 2s idle timeout and barrier early-exit) so large `Debugger.scriptParsed` payloads with inline source maps are not truncated on high-latency links.
+- Increase the total heap snapshot streaming timeout budget from 60s to 180s while keeping the 15s idle stall timeout so large snapshots finish transferring over high-latency connections.
+- Share the Lynx documentation crawler and fetcher core in `@lynx-js/docs-mcp-server`, reject SPA HTML fallbacks, rewrite mirrored `lynxjs.org` links to the configured base URL, and add `agent-lynx docs` for listing and reading official Lynx documentation.
+  
+  Keep `api/llms.txt` in the MCP resource list without enumerating its indexed pages. Those pages remain readable by URI through a resource template; the CLI retains its complete listing and filters.
+- Forward --simulator-window-background-color to windowless Lynx Simulator windows, pass --legacy-peer-deps for prerelease --lynxtron-version installs, and document default Lynxtron host behavior.
+- Updated dependencies
+  - @lynx-js/devtool-connector@0.20.0
+
 ## 0.15.2
 
 ### Patch Changes

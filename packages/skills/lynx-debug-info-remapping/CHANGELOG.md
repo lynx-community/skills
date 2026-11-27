@@ -1,5 +1,11 @@
 # @lynx-js/skill-debug-info-remapping
 
+## 0.0.6
+
+### Patch Changes
+
+- Updated dependency `@rslib/core` to `^1.1.0`.
+
 ## 0.0.5
 
 ### Patch Changes

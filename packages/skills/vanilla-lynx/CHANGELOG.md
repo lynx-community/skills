@@ -1,5 +1,12 @@
 # @lynx-js/skill-vanilla-lynx
 
+## 0.2.4
+
+### Patch Changes
+
+- Updated dependency `@rslib/core` to `^1.1.0`.
+- Clarify and validate SystemInfo access: use lynx.SystemInfo on the main thread and global SystemInfo on the background thread.
+
 ## 0.2.3
 
 ### Patch Changes

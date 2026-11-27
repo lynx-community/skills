@@ -1,5 +1,14 @@
 # @lynx-js/skills-docs
 
+## 0.5.1
+
+### Patch Changes
+
+- Updated dependency `@rspress/core` to `2.1.4`.
+- Expose Lynx Simulator in the agent-lynx and Skills guides, navigation, and CLI/Skill diagram. Add a complete page-env file preview to the BankCards illustration, using a shared component that follows the website's primary and secondary colors. Document startup options, extension packages, per-page extension data, runtime commands, and rendering options.
+- Forward --simulator-window-background-color to windowless Lynx Simulator windows, pass --legacy-peer-deps for prerelease --lynxtron-version installs, and document default Lynxtron host behavior.
+- Fix extra indentation in example conversation code blocks and keep their spacing consistent while syntax highlighting loads.
+
 ## 0.5.0
 
 ### Minor Changes

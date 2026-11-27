@@ -1,5 +1,14 @@
 # @lynx-js/docs-mcp-server
 
+## 0.2.7
+
+### Patch Changes
+
+- Move internal-only package exports under `_internal/*` (`agent-lynx/_internal/cli`, `@lynx-js/devtool-connector/_internal/command`, `@lynx-js/devtool-mcp-server/_internal/{mcp,schema,tools,utils}`, and `@lynx-js/docs-mcp-server/_internal/{docs,mcp}`), and remove unused library/connector entrypoints from the MCP server packages.
+- Share the Lynx documentation crawler and fetcher core in `@lynx-js/docs-mcp-server`, reject SPA HTML fallbacks, rewrite mirrored `lynxjs.org` links to the configured base URL, and add `agent-lynx docs` for listing and reading official Lynx documentation.
+  
+  Keep `api/llms.txt` in the MCP resource list without enumerating its indexed pages. Those pages remain readable by URI through a resource template; the CLI retains its complete listing and filters.
+
 ## 0.2.6
 
 ### Patch Changes
