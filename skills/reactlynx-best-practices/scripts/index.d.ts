@@ -107,47 +107,47 @@ export declare interface RuleConfig {
 export declare const rules: {
     'detect-background-only': {
         id: string;
-        severity: "error";
+        severity: 'error';
         message: string;
     };
     'avoid-use-layout-effect': {
         id: string;
-        severity: "warning";
+        severity: 'warning';
         message: string;
     };
     'proper-event-handlers': {
         id: string;
-        severity: "warning";
+        severity: 'warning';
         message: string;
     };
     'main-thread-scripts-guide': {
         id: string;
-        severity: "warning";
+        severity: 'warning';
         message: string;
     };
     'component-library-packaging': {
         id: string;
-        severity: "warning";
+        severity: 'warning';
         message: string;
     };
     'global-props-mode': {
         id: string;
-        severity: "warning";
+        severity: 'warning';
         message: string;
     };
     'code-splitting': {
         id: string;
-        severity: "info";
+        severity: 'info';
         message: string;
     };
     'performance-profiling': {
         id: string;
-        severity: "info";
+        severity: 'info';
         message: string;
     };
     'hoist-static-jsx': {
         id: string;
-        severity: "info";
+        severity: 'info';
         message: string;
     };
 };
