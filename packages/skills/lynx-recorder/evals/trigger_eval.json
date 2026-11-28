@@ -30,5 +30,63 @@
   {
     "query": "Take a screenshot of the current Lynx page.",
     "should_trigger": false
+  },
+  {
+    "query": "Start a new Lynx Recorder session with agent-lynx to capture page taps into a fresh TestBench replay file; do not edit an existing fixture or record a .pftrace performance trace.",
+    "should_trigger": true,
+    "scenario": "own_single_trigger",
+    "co_installed_skills": [
+      "lynx-recorder-fixture",
+      "lynx-trace-record",
+      "lynx-devtool"
+    ],
+    "expected_skills": ["lynx-recorder"],
+    "forbidden_skills": [
+      "lynx-recorder-fixture",
+      "lynx-trace-record",
+      "lynx-devtool"
+    ]
+  },
+  {
+    "query": "I already have an existing TestBench fixture JSON file on disk; do not start a new recording, just decode it and edit the Callback mock response.",
+    "should_trigger": false,
+    "scenario": "own_single_trigger",
+    "co_installed_skills": ["lynx-recorder-fixture", "lynx-trace-record"],
+    "expected_skills": ["lynx-recorder-fixture"],
+    "forbidden_skills": ["lynx-recorder", "lynx-trace-record"]
+  },
+  {
+    "query": "First use agent-lynx to record a new Lynx page interaction into a TestBench replay file, and then immediately decode that fixture file to modify its mock network Callback response and re-encode it.",
+    "should_trigger": true,
+    "scenario": "own_multi_trigger",
+    "co_installed_skills": ["lynx-recorder-fixture", "lynx-trace-record"],
+    "expected_skills": ["lynx-recorder", "lynx-recorder-fixture"],
+    "forbidden_skills": ["lynx-trace-record"]
+  },
+  {
+    "query": "Use agent-lynx recorder start and end to capture Lynx template loads and touch events into a TestBench replay file.",
+    "should_trigger": true,
+    "scenario": "similar_skill_present",
+    "competing_skills": [
+      {
+        "name": "playwright-codegen-recorder",
+        "description": "Record desktop browser clicks, form fills, and navigation into Playwright E2E test scripts and trace archives."
+      }
+    ],
+    "expected_skills": ["lynx-recorder"],
+    "forbidden_skills": ["playwright-codegen-recorder"]
+  },
+  {
+    "query": "I am testing a standard desktop Chromium web app (not Lynx). Please use the `playwright-codegen-recorder` skill to record browser clicks and generate a Playwright test script.",
+    "should_trigger": false,
+    "scenario": "similar_skill_requested",
+    "competing_skills": [
+      {
+        "name": "playwright-codegen-recorder",
+        "description": "Record desktop browser clicks, form fills, and navigation into Playwright E2E test scripts and trace archives."
+      }
+    ],
+    "expected_skills": ["playwright-codegen-recorder"],
+    "forbidden_skills": ["lynx-recorder"]
   }
 ]

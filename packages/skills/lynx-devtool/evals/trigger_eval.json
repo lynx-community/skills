@@ -34,5 +34,63 @@
   {
     "query": "TypeScript 里怎么扩展 NativeModules 的类型？",
     "should_trigger": false
+  },
+  {
+    "query": "真机已经连好且 Lynx 页面已打开，不需要录制 TestBench 回放文件或采集 pftrace，直接用 lynx-devtool 查看当前 session 的 DOM 树和 console error。",
+    "should_trigger": true,
+    "scenario": "own_single_trigger",
+    "co_installed_skills": [
+      "lynx-recorder",
+      "lynx-recorder-fixture",
+      "lynx-trace-record"
+    ],
+    "expected_skills": ["lynx-devtool"],
+    "forbidden_skills": [
+      "lynx-recorder",
+      "lynx-recorder-fixture",
+      "lynx-trace-record"
+    ]
+  },
+  {
+    "query": "我手里只有一个现成的 TestBench fixture JSON 文件，不要连接真机 DevTool，只帮我解码并修改里面的接口 Callback mock 数据。",
+    "should_trigger": false,
+    "scenario": "own_single_trigger",
+    "co_installed_skills": ["lynx-recorder-fixture", "lynx-recorder"],
+    "expected_skills": ["lynx-recorder-fixture"],
+    "forbidden_skills": ["lynx-devtool", "lynx-recorder"]
+  },
+  {
+    "query": "请先用 `agent-lynx tasm` 把 `/tmp/card.json` 编码成 `/tmp/card.tasm`，然后用 `lynx-devtool` 连接当前设备查看页面 DOM 树、抓取 console 日志并截图。",
+    "should_trigger": true,
+    "scenario": "own_multi_trigger",
+    "co_installed_skills": ["lynx-tasm-codec", "lynx-recorder"],
+    "expected_skills": ["lynx-tasm-codec", "lynx-devtool"],
+    "forbidden_skills": ["lynx-recorder"]
+  },
+  {
+    "query": "我的 Lynx 页面在已连接的手机上渲染错位，帮我通过 Lynx DevTool 的 CDP 命令检查 DOM 节点和 CSS 计算样式。",
+    "should_trigger": true,
+    "scenario": "similar_skill_present",
+    "competing_skills": [
+      {
+        "name": "chrome-devtools",
+        "description": "Debug desktop Chrome/Chromium web pages using Chrome DevTools Protocol (CDP), inspect HTML DOM and CSS styles, read browser console logs, and capture web screenshots."
+      }
+    ],
+    "expected_skills": ["lynx-devtool"],
+    "forbidden_skills": ["chrome-devtools"]
+  },
+  {
+    "query": "我正在调试普通桌面 Chrome 浏览器里的 HTML 网页（不是 Lynx 应用），请使用 chrome-devtools 技能通过 CDP 检查网页 DOM 并抓取浏览器 console 报错。",
+    "should_trigger": false,
+    "scenario": "similar_skill_requested",
+    "competing_skills": [
+      {
+        "name": "chrome-devtools",
+        "description": "Debug desktop Chrome/Chromium web pages using Chrome DevTools Protocol (CDP), inspect HTML DOM and CSS styles, read browser console logs, and capture web screenshots."
+      }
+    ],
+    "expected_skills": ["chrome-devtools"],
+    "forbidden_skills": ["lynx-devtool"]
   }
 ]

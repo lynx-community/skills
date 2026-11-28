@@ -70,5 +70,55 @@
   {
     "query": "Help me configure GitHub Actions to run Node project tests automatically.",
     "should_trigger": false
+  },
+  {
+    "query": "Explain the official Lynx API docs for `<scroll-view>` and why Lynx flex items shrink differently from Web flex layout; do not run compat_data version queries or connect DevTool.",
+    "should_trigger": true,
+    "scenario": "own_single_trigger",
+    "co_installed_skills": [
+      "lynx-check-css-support",
+      "lynx-devtool",
+      "lynx-tasm-codec"
+    ],
+    "expected_skills": ["lynx-api-docs"],
+    "forbidden_skills": [
+      "lynx-check-css-support",
+      "lynx-devtool",
+      "lynx-tasm-codec"
+    ]
+  },
+  {
+    "query": "First look up the official Lynx API docs for how `grid-template-columns` layout semantics work, and also query `@lynx-js/css-defines` compat_data to check which Lynx version added support on Android and Harmony.",
+    "should_trigger": true,
+    "scenario": "own_multi_trigger",
+    "co_installed_skills": ["lynx-check-css-support", "lynx-tasm-codec"],
+    "expected_skills": ["lynx-api-docs", "lynx-check-css-support"],
+    "forbidden_skills": ["lynx-tasm-codec"]
+  },
+  {
+    "query": "When migrating a Web HTML/CSS card to Lynx `<view>` and `<text>`, which CSS layout behaviors differ from Web?",
+    "should_trigger": true,
+    "scenario": "similar_skill_present",
+    "competing_skills": [
+      {
+        "name": "mdn-web-css-docs",
+        "description": "Look up MDN Web Docs for standard browser HTML elements, W3C CSS specifications, DOM APIs, and Chrome/Firefox/Safari layout behavior."
+      }
+    ],
+    "expected_skills": ["lynx-api-docs"],
+    "forbidden_skills": ["mdn-web-css-docs"]
+  },
+  {
+    "query": "This is a pure desktop browser HTML5 website (unrelated to Lynx). Please use the `mdn-web-css-docs` skill to explain W3C CSS margin collapsing rules in Chrome and Firefox.",
+    "should_trigger": false,
+    "scenario": "similar_skill_requested",
+    "competing_skills": [
+      {
+        "name": "mdn-web-css-docs",
+        "description": "Look up MDN Web Docs for standard browser HTML elements, W3C CSS specifications, DOM APIs, and Chrome/Firefox/Safari layout behavior."
+      }
+    ],
+    "expected_skills": ["mdn-web-css-docs"],
+    "forbidden_skills": ["lynx-api-docs"]
   }
 ]
