@@ -643,6 +643,42 @@ describe("ActionCore", () => {
     assert.ok(calls.some(call => call.method === "Input.emulateTouchFromMouseEvent"));
   });
 
+  test("synchronizes per-session touch coordinate mode once before dispatching LynxView-relative input", async () => {
+    const calls: CdpCall[] = [];
+    const core = new ActionCore();
+    const context = { connector: fakeConnector({ calls }) };
+    const target = { clientId: "device:8901", sessionId: 3 };
+
+    assert.equal((await core.execute("snapshot", target, context)).ok, true);
+    assert.equal((await core.execute("tap", { ...target, ref: "@e3" }, context)).ok, true);
+    assert.equal((await core.execute("tap", { ...target, ref: "@e3" }, context)).ok, true);
+
+    const startScreencasts = calls.filter(call => call.method === "Page.startScreencast");
+    const stopScreencasts = calls.filter(call => call.method === "Page.stopScreencast");
+    assert.equal(startScreencasts.length, 1);
+    assert.equal(stopScreencasts.length, 1);
+    assert.deepEqual(startScreencasts[0]?.params, {
+      format: "jpeg",
+      quality: 1,
+      mode: "lynxview",
+    });
+
+    const inputMessages: unknown[] = [];
+    const fsConnector = screenshotConnector(
+      fakeConnector({ calls }),
+      whiteJpeg(20, 30).toString("base64"),
+      inputMessages,
+    );
+    assert.equal(
+      (await core.execute("screenshot", { ...target, fullscreen: true }, { connector: fsConnector })).ok,
+      true,
+    );
+    assert.equal((await core.execute("snapshot", target, { connector: fsConnector })).ok, true);
+    calls.length = 0;
+    assert.equal((await core.execute("tap", { ...target, ref: "@e3" }, { connector: fsConnector })).ok, true);
+    assert.equal(calls.filter(call => call.method === "Page.startScreencast").length, 1);
+  });
+
   test("get-source-info resolves a cached ref to its nodeId", async () => {
     const calls: CdpCall[] = [];
     const core = new ActionCore();
