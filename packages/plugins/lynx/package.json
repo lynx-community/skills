@@ -41,7 +41,7 @@
   },
   "devDependencies": {
     "@rslib/core": "catalog:rstack",
-    "@types/node": "^24.19.3",
+    "@types/node": "^24.19.4",
     "build-plugin": "workspace:*",
     "commander": "^13.1.0",
     "typescript": "^7.0.2"
