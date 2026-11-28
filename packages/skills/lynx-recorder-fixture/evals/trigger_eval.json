@@ -30,5 +30,47 @@
   {
     "query": "Create a Jest unit test fixture for a ReactLynx component.",
     "should_trigger": false
+  },
+  {
+    "query": "I already have an existing Lynx Recorder TestBench fixture file on disk; decode it, edit its Action List and Callback mock, and re-encode it without starting a new live recording.",
+    "should_trigger": true,
+    "scenario": "own_single_trigger",
+    "co_installed_skills": ["lynx-recorder", "lynx-tasm-codec", "lynx-devtool"],
+    "expected_skills": ["lynx-recorder-fixture"],
+    "forbidden_skills": ["lynx-recorder", "lynx-tasm-codec", "lynx-devtool"]
+  },
+  {
+    "query": "First capture a new Lynx page interaction recording using `lynx-recorder`, and once saved, use `lynx-recorder-fixture` to decode the recorded fixture and edit its mock Callback data.",
+    "should_trigger": true,
+    "scenario": "own_multi_trigger",
+    "co_installed_skills": ["lynx-recorder", "lynx-tasm-codec"],
+    "expected_skills": ["lynx-recorder", "lynx-recorder-fixture"],
+    "forbidden_skills": ["lynx-tasm-codec"]
+  },
+  {
+    "query": "Decode this Lynx TestBench replay fixture JSON, inspect the Invoked Method Data and Callback sections, and update the mock response.",
+    "should_trigger": true,
+    "scenario": "similar_skill_present",
+    "competing_skills": [
+      {
+        "name": "har-network-editor",
+        "description": "Inspect, sanitize, and edit HTTP Archive (.har) network recordings and MSW mock handlers for browser web apps."
+      }
+    ],
+    "expected_skills": ["lynx-recorder-fixture"],
+    "forbidden_skills": ["har-network-editor"]
+  },
+  {
+    "query": "This is a browser Chrome `.har` HTTP archive file (not a Lynx TestBench fixture). Please use the `har-network-editor` skill to sanitize headers and generate MSW handlers.",
+    "should_trigger": false,
+    "scenario": "similar_skill_requested",
+    "competing_skills": [
+      {
+        "name": "har-network-editor",
+        "description": "Inspect, sanitize, and edit HTTP Archive (.har) network recordings and MSW mock handlers for browser web apps."
+      }
+    ],
+    "expected_skills": ["har-network-editor"],
+    "forbidden_skills": ["lynx-recorder-fixture"]
   }
 ]
