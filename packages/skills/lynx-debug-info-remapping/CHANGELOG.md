@@ -1,5 +1,12 @@
 # @lynx-js/skill-debug-info-remapping
 
+## 0.0.7
+
+### Patch Changes
+
+- Updated dependency `@types/node` to `^24.19.4`.
+- Updated dependency `typescript` to `^7.0.2`.
+
 ## 0.0.6
 
 ### Patch Changes

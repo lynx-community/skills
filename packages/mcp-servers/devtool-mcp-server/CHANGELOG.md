@@ -1,5 +1,15 @@
 # @lynx-js/devtool-mcp-server
 
+## 0.18.1
+
+### Patch Changes
+
+- Updated dependency `@types/node` to `^24.19.4`.
+- Updated dependency `typescript` to `^7.0.2`.
+- Decompress zlib-compressed CDP responses for DOM and UITree methods and enable compression by default.
+- Updated dependencies
+  - @lynx-js/devtool-connector@0.20.1
+
 ## 0.18.0
 
 ### Minor Changes

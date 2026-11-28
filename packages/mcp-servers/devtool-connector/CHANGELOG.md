@@ -1,5 +1,14 @@
 # @lynx-js/devtool-connector
 
+## 0.20.1
+
+### Patch Changes
+
+- Updated dependency `@types/node` to `^24.19.4`.
+- Updated dependency `obug` to `^3.0.0`.
+- Decompress zlib-compressed CDP responses for DOM and UITree methods and enable compression by default.
+- Disable ADB sync Brotli compression when deploying the Android app icon helper JAR and skip uploads when a matching file is already present.
+
 ## 0.20.0
 
 ### Minor Changes

@@ -1,5 +1,13 @@
 # @lynx-js/skill-vanilla-lynx
 
+## 0.2.5
+
+### Patch Changes
+
+- Updated dependency `eslint-scope` to `^9.1.2`.
+- Updated dependency `@types/node` to `^24.19.4`.
+- Updated dependency `typescript` to `^7.0.2`.
+
 ## 0.2.4
 
 ### Patch Changes
