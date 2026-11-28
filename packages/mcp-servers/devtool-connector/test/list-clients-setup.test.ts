@@ -16,6 +16,10 @@ class SetupAwareTransport implements Transport {
   readonly #ports = [8901, 8902];
   readonly messagesByConnection = new Map<number, { kind: string; port: number }[]>();
   readonly setupRequests: { key: string; value: boolean; port: number }[] = [];
+  readonly registerAttempts = new Map<number, number>();
+  recovery: "same" | "changed" | "closed" | "silent" = "same";
+  readonly activePorts = new Set<number>();
+  appRequests = 0;
   connectCalls = 0;
   disposeCalls = 0;
 
@@ -46,11 +50,14 @@ class SetupAwareTransport implements Transport {
       throw new Error(`Unexpected deviceId: ${options.deviceId}`);
     }
 
+    if (this.activePorts.has(options.port)) throw new Error("Overlapping physical connections");
+    this.activePorts.add(options.port);
     let enqueueResponse: ((value: unknown) => void) | undefined;
     let closeReadable: (() => void) | undefined;
     const connectionId = ++this.connectCalls;
     const dispose = () => {
       this.disposeCalls += 1;
+      this.activePorts.delete(options.port);
       options.signal?.removeEventListener("abort", abortHandler);
       closeReadable?.();
     };
@@ -76,10 +83,15 @@ class SetupAwareTransport implements Transport {
       write: (chunk) => {
         if (this.#isExpectedInitialize(chunk, options.port)) {
           messages.push({ kind: "Initialize", port: options.port });
-          if (this.#failRegisterPorts.has(options.port)) {
+          const attempt = (this.registerAttempts.get(options.port) ?? 0) + 1;
+          this.registerAttempts.set(options.port, attempt);
+          if (attempt > 1 && this.recovery === "silent") return;
+          if (this.#failRegisterPorts.has(options.port) || (attempt > 1 && this.recovery === "closed")) {
             closeReadable?.();
           } else {
-            enqueueResponse?.(this.#createRegisterResponse(options.port));
+            const response = this.#createRegisterResponse(options.port);
+            if (attempt > 1 && this.recovery === "changed") response.data.info.debugRouterId = "replacement";
+            enqueueResponse?.(response);
           }
           return;
         }
@@ -109,6 +121,23 @@ class SetupAwareTransport implements Transport {
           return;
         }
 
+        const request = chunk as { event?: string; data?: { type?: string; data?: { message?: { id: number } } } };
+        if (request.event === "Customized" && request.data?.type === "App" && request.data.data?.message) {
+          this.appRequests += 1;
+          enqueueResponse?.({
+            event: "Customized",
+            data: {
+              type: "App",
+              data: {
+                message: JSON.stringify({
+                  id: request.data.data.message.id,
+                  result: JSON.stringify({ code: 0, switch: false, value: "" }),
+                }),
+              },
+            },
+          });
+          return;
+        }
         closeReadable?.();
       },
       close: () => {
@@ -245,6 +274,41 @@ describe("Connector listClients setup", () => {
     }
   });
 
+  for (const key of ["enable_devtool", "enable_quickjs_debug"]) {
+    test(`revalidates a registered client after ${key} times out`, async (t) => {
+      const transport = timeoutTransport(t, key);
+      const connector = new Connector([transport]);
+      const clients = await connector.listClients();
+      t.assert.deepStrictEqual(clients.map(({ id }) => id), [
+        ClientId.serialize("setup-aware", "device under:test", 8901),
+      ]);
+      t.assert.equal(transport.registerAttempts.get(8901), 2);
+      t.assert.equal(transport.connectCalls, 11);
+      t.assert.equal(transport.disposeCalls, 11);
+      const recovery = [...transport.messagesByConnection.values()].at(-1);
+      t.assert.deepStrictEqual(recovery, [{ kind: "Initialize", port: 8901 }]);
+      t.assert.equal(transport.setupRequests.filter(request => request.key === key).length, 1);
+      t.assert.deepStrictEqual(await connector.sendAppMessage(clients[0]!.id, "App.getPPE"), {
+        code: 0,
+        switch: false,
+        value: "",
+      });
+      t.assert.equal(transport.appRequests, 1);
+      t.assert.equal(transport.activePorts.size, 0);
+    });
+  }
+
+  for (const recovery of ["changed", "closed", "silent"] as const) {
+    test(`does not publish a ${recovery} client after setup timeout`, async (t) => {
+      const transport = timeoutTransport(t, "enable_devtool");
+      transport.recovery = recovery;
+      const clients = await new Connector([transport]).listClients();
+      t.assert.deepStrictEqual(clients, []);
+      t.assert.equal(transport.registerAttempts.get(8901), 2);
+      t.assert.equal(transport.connectCalls, transport.disposeCalls);
+    });
+  }
+
   test("does not let the completed discovery deadline abort setup", async (t) => {
     const discovery = new AbortController();
     const originalTimeout = AbortSignal.timeout.bind(AbortSignal);
@@ -315,4 +379,23 @@ async function settlesBeforeImmediate(promise: Promise<unknown>): Promise<boolea
     ),
     new Promise<false>(resolve => setImmediate(() => resolve(false))),
   ]);
+}
+
+function timeoutTransport(t: TestContext, key: string): SetupAwareTransport {
+  const originalTimeout = AbortSignal.timeout.bind(AbortSignal);
+  const setup = new AbortController();
+  let setupStarted = false;
+  t.mock.method(AbortSignal, "timeout", (delay: number) => {
+    if (delay === 5_000) return originalTimeout(delay);
+    return setupStarted ? originalTimeout(20) : setup.signal;
+  });
+  return new SetupAwareTransport({
+    failRegisterPorts: [8902],
+    onSetupRequest(requestKey, port) {
+      if (requestKey !== key || port !== 8901) return;
+      setupStarted = true;
+      setImmediate(() => setup.abort(new DOMException("Switch response timed out", "TimeoutError")));
+      return false;
+    },
+  });
 }
