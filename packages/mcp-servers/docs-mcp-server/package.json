@@ -34,7 +34,7 @@
     "test": "pnpm run build && node --test test/*.test.mjs"
   },
   "dependencies": {
-    "@modelcontextprotocol/sdk": "^1.32.2",
+    "@modelcontextprotocol/sdk": "catalog:mcp_sdk",
     "commander": "^15.1.0",
     "mdast-util-from-markdown": "^2.1.0",
     "mdast-util-to-markdown": "^2.2.4",
