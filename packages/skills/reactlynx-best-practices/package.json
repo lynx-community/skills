@@ -25,7 +25,7 @@
     "@rslib/core": "catalog:rstack",
     "@rstest/adapter-rslib": "^0.12.6",
     "@rstest/core": "catalog:rstack",
-    "@types/node": "^24.19.3",
+    "@types/node": "^24.19.4",
     "typescript": "^7.0.2"
   }
 }
