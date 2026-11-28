@@ -1,5 +1,15 @@
 # @lynx-js/skills-docs
 
+## 0.6.0
+
+### Patch Changes
+
+- Updated dependency `lucide-react` to `1.80.0`.
+- Updated dependency `lucide-react` to `1.79.0`.
+- Updated dependency `@rsbuild/plugin-less` to `^2.0.1`.
+- Updated dependency `@types/node` to `^24.19.4`.
+- Updated dependency `@types/react` to `19.3.2`.
+
 ## 0.5.1
 
 ### Patch Changes

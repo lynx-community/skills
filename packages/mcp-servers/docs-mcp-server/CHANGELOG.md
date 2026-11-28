@@ -1,5 +1,13 @@
 # @lynx-js/docs-mcp-server
 
+## 0.2.8
+
+### Patch Changes
+
+- Updated dependency `@types/node` to `^24.19.4`.
+- Updated dependency `obug` to `^3.0.0`.
+- Updated dependency `typescript` to `^7.0.2`.
+
 ## 0.2.7
 
 ### Patch Changes

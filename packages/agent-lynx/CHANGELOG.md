@@ -1,5 +1,14 @@
 # agent-lynx
 
+## 0.16.1
+
+### Patch Changes
+
+- Updated dependency `@types/node` to `^24.19.4`.
+- Updated dependency `obug` to `^3.0.0`.
+- Updated dependencies
+  - @lynx-js/devtool-connector@0.20.1
+
 ## 0.16.0
 
 ### Minor Changes
