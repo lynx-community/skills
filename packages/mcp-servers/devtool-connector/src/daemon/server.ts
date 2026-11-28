@@ -1,7 +1,8 @@
 // Copyright 2026 The Lynx Authors. All rights reserved.
 // Licensed under the Apache License Version 2.0 that can be found in the
 // LICENSE file in the root directory of this source tree.
-import { randomUUID } from "node:crypto";
+import { randomUUID, timingSafeEqual } from "node:crypto";
+import { rm } from "node:fs/promises";
 import http from "node:http";
 import type { AddressInfo } from "node:net";
 import { createDebug } from "obug";
@@ -37,6 +38,7 @@ import {
   isPingEvent,
   isRegisterEvent,
 } from "./protocol.ts";
+import { publishSimulatorAuthorization, SIMULATOR_RUN_ACTION } from "./simulator-authorization.ts";
 import { StaticServer } from "./static-server.ts";
 import { CONNECTOR_VERSION } from "./version.ts";
 
@@ -91,6 +93,7 @@ export class DevtoolDaemon {
     commandProtocol: DAEMON_COMMAND_PROTOCOL_VERSION,
   };
   #commandConnector: Connector | null = null;
+  #simulatorAuthorization?: ReturnType<typeof publishSimulatorAuthorization>;
   readonly #instanceId = randomUUID();
   readonly #startedAt = Date.now();
 
@@ -198,6 +201,14 @@ export class DevtoolDaemon {
         this.#httpServer.removeListener("error", reject);
         this.#resetIdleTimer();
         const address = this.#httpServer.address() as AddressInfo;
+        if (this.#transports.some(transport => transport instanceof LynxSimulatorTransport)) {
+          try {
+            // Publish only after winning the bind, before answering requests on this port.
+            this.#simulatorAuthorization = publishSimulatorAuthorization(address.port);
+          } catch (error) {
+            debug("failed to publish simulator command credential: %O", error);
+          }
+        }
         // ActionCore must use the daemon transport too. Routing back through
         // the loopback WebSocket adds a short-lived local subscriber while the
         // server reuses its pooled DeviceConnection, instead of opening a
@@ -258,6 +269,11 @@ export class DevtoolDaemon {
     }
     this.#deviceConnections.clear();
 
+    if (this.#simulatorAuthorization) {
+      await rm(this.#simulatorAuthorization.file, { force: true }).catch(error => {
+        debug("failed to remove simulator command credential: %O", error);
+      });
+    }
     this.#wss?.close();
     return new Promise<void>((resolve) => {
       this.#httpServer.close(() => resolve());
@@ -396,6 +412,18 @@ export class DevtoolDaemon {
       return;
     }
 
+    if (action === SIMULATOR_RUN_ACTION) {
+      const expected = this.#simulatorAuthorization?.header;
+      const received = Buffer.from(req.headers.authorization ?? "");
+      if (this.#closed || !expected || received.length !== expected.length || !timingSafeEqual(received, expected)) {
+        this.#sendJson(res, 403, {
+          ok: false,
+          error: "Starting Lynx Simulator requires the local daemon's credential. Use agent-lynx simulator run.",
+        });
+        return;
+      }
+    }
+
     const controller = new AbortController();
     this.#commandControllers.add(controller);
     const onDisconnect = () => controller.abort(new Error("HTTP command client disconnected."));
@@ -456,7 +484,7 @@ export class DevtoolDaemon {
       if (!simulator) throw new Error("Lynx Simulator transport is unavailable.");
       const clientId = typeof params["clientId"] === "string" ? params["clientId"] : "";
       switch (action) {
-        case "simulator-run":
+        case SIMULATOR_RUN_ACTION:
           return ok(
             action,
             await simulator.run(context.connector, signal, params["ttlMs"] as number | undefined, {

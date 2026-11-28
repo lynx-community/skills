@@ -6,7 +6,7 @@ import type { AppInfo } from "../types.ts";
 
 export const DAEMON_PRODUCT = "@lynx-js/devtool-connector";
 export const DAEMON_LIFECYCLE_PROTOCOL_VERSION = 1;
-export const DAEMON_COMMAND_PROTOCOL_VERSION = 1;
+export const DAEMON_COMMAND_PROTOCOL_VERSION = 2;
 export const DAEMON_BROWSER_PREVIEW_PROTOCOL_VERSION = 1;
 
 export interface DaemonIdentity {

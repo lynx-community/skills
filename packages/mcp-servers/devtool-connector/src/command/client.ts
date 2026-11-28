@@ -2,6 +2,7 @@
 // Licensed under the Apache License Version 2.0 that can be found in the
 // LICENSE file in the root directory of this source tree.
 import { DaemonManager, DEFAULT_DAEMON_PORT } from "../daemon/manager.ts";
+import { readSimulatorAuthorization, SIMULATOR_RUN_ACTION } from "../daemon/simulator-authorization.ts";
 import type {
   CommandAction,
   CommandClient,
@@ -184,9 +185,22 @@ export class HttpCommandClient implements CommandClient {
     let response: Response;
     try {
       if (this.#ensureDaemon) await this.ensureDaemonRunning(port);
+      const headers: Record<string, string> = { "content-type": "application/json" };
+      if (action === SIMULATOR_RUN_ACTION) {
+        try {
+          headers["authorization"] = await readSimulatorAuthorization(port);
+        } catch (error) {
+          return fail(action, "Unable to read the local daemon's Simulator credential.", {
+            cause: error,
+            recoverable: true,
+            nextActions: ["Restart the connector daemon under the current user, then retry."],
+          });
+        }
+      }
       response = await fetch(`http://127.0.0.1:${port}/command/${encodeURIComponent(action)}`, {
         method: "POST",
-        headers: { "content-type": "application/json" },
+        headers,
+        ...(action === SIMULATOR_RUN_ACTION ? { redirect: "error" } : {}),
         body: JSON.stringify(params),
         signal,
       });
