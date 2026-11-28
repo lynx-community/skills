@@ -34,7 +34,7 @@
   },
   "devDependencies": {
     "@lynx-js/benchx-cli": "workspace:*",
-    "@types/node": "^24.19.2",
+    "@types/node": "^24.19.3",
     "esbuild": "^0.28.2",
     "nanotar": "^0.3.0",
     "typescript": "^7.0.2"

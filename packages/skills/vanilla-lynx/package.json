@@ -22,7 +22,7 @@
   },
   "devDependencies": {
     "@rslib/core": "catalog:rstack",
-    "@types/node": "^24.19.2",
+    "@types/node": "^24.19.3",
     "acorn": "^8.19.0",
     "eslint-scope": "^9.1.2",
     "typescript": "^7.0.2"
